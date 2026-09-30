@@ -450,6 +450,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/obligation-instances/bulk-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Aplica o mesmo status a várias instâncias; itens bloqueados são pulados com motivo (CA-016) */
+        post: operations["bulkChangeObligationStatus"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/obligation-instances/{id}": {
         parameters: {
             query?: never;
@@ -995,6 +1012,40 @@ export interface components {
             /** @description Confirma exceção de dependência SOFT (DCTFWeb) */
             confirm_exception?: boolean;
             exception_reason?: string | null;
+        };
+        /** @description Informe instance_ids ou target (exatamente um). */
+        BulkStatusChange: {
+            instance_ids?: string[];
+            target?: {
+                competence: components["schemas"]["Competence"];
+                /** Format: uuid */
+                obligation_type_id: string;
+                company_ids: string[];
+            } | null;
+            status_code: string;
+            /** @description Só calcula o resultado, sem gravar */
+            dry_run?: boolean;
+            /** @description Confirma exceção de dependência SOFT para o lote */
+            confirm_exception?: boolean;
+            exception_reason?: string | null;
+        };
+        BulkStatusSkipped: {
+            /** Format: uuid */
+            id: string;
+            company_code: string;
+            company_name: string;
+            /** @enum {string} */
+            reason: "PERIOD_CLOSED" | "NOT_APPLICABLE" | "DEPENDENCY_BLOCKED" | "INVALID_STATUS" | "UNCHANGED";
+            message: string;
+        };
+        BulkStatusResult: {
+            dry_run: boolean;
+            selected: number;
+            /** @description Instâncias alteradas (ou que seriam, com dry_run) */
+            updated: number;
+            skipped: components["schemas"]["BulkStatusSkipped"][];
+            /** @description Instâncias com pré-requisitos SOFT pendentes */
+            soft_warnings: number;
         };
         StatusChangeResult: {
             instance: components["schemas"]["ObligationInstance"];
@@ -1966,6 +2017,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EnsureSummary"];
+                };
+            };
+        };
+    };
+    bulkChangeObligationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkStatusChange"];
+            };
+        };
+        responses: {
+            /** @description Resultado do lote (ou simulação, com dry_run) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkStatusResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Há pré-requisitos SOFT pendentes e a exceção não foi confirmada (DEPENDENCY_WARNING) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
                 };
             };
         };

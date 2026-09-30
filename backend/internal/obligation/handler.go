@@ -16,6 +16,7 @@ func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
 
 // Routes registra as rotas.
 func (h *Handler) Routes(r chi.Router) {
+	r.Post("/obligation-instances/bulk-status", h.bulkStatus)
 	r.Get("/obligation-instances/{id}", h.get)
 	r.Patch("/obligation-instances/{id}/status", h.changeStatus)
 	r.Patch("/obligation-instances/{id}/details", h.updateDetails)

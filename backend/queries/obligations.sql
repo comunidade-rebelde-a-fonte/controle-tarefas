@@ -78,3 +78,32 @@ LEFT JOIN status_definitions old_d ON h.field = 'STATUS' AND old_d.status_set_id
 LEFT JOIN status_definitions new_d ON h.field = 'STATUS' AND new_d.status_set_id = t.status_set_id AND new_d.code = h.new_value
 WHERE h.obligation_instance_id = $1
 ORDER BY h.created_at DESC, h.id DESC;
+
+-- name: GetInstancesForUpdate :many
+-- Instâncias do lote travadas, com empresa, tipo e estado do período do módulo.
+SELECT i.id, i.company_id, i.competence_id, i.obligation_type_id, i.status_code, i.applicable, i.version,
+       t.code AS type_code, t.name AS type_name, t.primary_module, t.status_set_id,
+       c.internal_code AS company_code, c.legal_name AS company_name,
+       COALESCE(p.state, 'OPEN')::text AS period_state
+FROM obligation_instances i
+JOIN obligation_types t ON t.id = i.obligation_type_id
+JOIN companies c ON c.id = i.company_id
+LEFT JOIN company_module_periods p
+       ON p.company_id = i.company_id AND p.competence_id = i.competence_id AND p.module_code = t.primary_module
+WHERE i.id = ANY (sqlc.arg('ids')::uuid[])
+ORDER BY c.internal_code
+FOR UPDATE OF i;
+
+-- name: ResolveBulkTargets :many
+-- IDs das instâncias de um tipo, numa competência, para as empresas informadas.
+SELECT i.id FROM obligation_instances i
+JOIN competencies k ON k.id = i.competence_id
+WHERE k.competence_key = sqlc.arg('competence_key') AND i.obligation_type_id = sqlc.arg('obligation_type_id')::uuid
+  AND i.company_id = ANY (sqlc.arg('company_ids')::uuid[]);
+
+-- name: CompanyInstancesForDependencies :many
+-- Instâncias das empresas informadas em uma competência (estado de dependências em lote).
+SELECT v.company_id, v.obligation_type_id, v.type_code, t.name AS type_name, v.status_code, v.applicable, v.is_final, v.type_sort_order
+FROM v_obligation_instances v
+JOIN obligation_types t ON t.id = v.obligation_type_id
+WHERE v.competence_id = sqlc.arg('competence_id')::uuid AND v.company_id = ANY (sqlc.arg('company_ids')::uuid[]);
