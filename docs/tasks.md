@@ -444,7 +444,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** migrations sobem e descem; um teste de integração prova que o UNIQUE de instância impede duplicação.
 
 ### T-M2-03 — Resolvedor de aplicabilidade (função pura)
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-06, T-M1-10
 - **Ref:** plan D2, D3, D6, D7 · PRD §5.6, §9, §14.3, §17.4, §39 · RN-010
 - **Arquivos:** `backend/internal/competence/resolve.go`, `resolve_test.go`
