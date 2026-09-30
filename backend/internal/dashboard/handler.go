@@ -22,6 +22,27 @@ func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
 // Routes registra as rotas [PRD §41.9].
 func (h *Handler) Routes(r chi.Router) {
 	r.Get("/dashboard", h.dashboard)
+	r.Get("/dashboard/attention", h.attention)
+}
+
+func (h *Handler) attention(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	c, err := parseCompetence(q, "competence")
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	f, err := parseFilters(q)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	a, err := h.svc.Attention(r.Context(), c, f)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, a)
 }
 
 // parseCompetence lê a competência obrigatória da query.
