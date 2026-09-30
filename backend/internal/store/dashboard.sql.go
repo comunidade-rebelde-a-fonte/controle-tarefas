@@ -74,6 +74,79 @@ func (q *Queries) DashboardCompanyModules(ctx context.Context, arg DashboardComp
 	return items, nil
 }
 
+const dashboardHistory = `-- name: DashboardHistory :many
+SELECT k.competence_key,
+       count(*) FILTER (WHERE v.in_denominator)::int                                      AS applicable,
+       count(*) FILTER (WHERE v.in_denominator AND v.is_final)::int                       AS done,
+       count(*) FILTER (WHERE v.in_denominator AND v.counts_as_operational_progress)::int AS operational_done,
+       count(*) FILTER (WHERE v.in_denominator AND v.is_blocking)::int                    AS pending,
+       count(*) FILTER (WHERE v.applicable AND NOT v.is_final AND v.due_date_effective < $1::date)::int AS overdue
+FROM competencies k
+JOIN v_obligation_instances v ON v.competence_id = k.id
+JOIN company_competence_snapshots s ON s.company_id = v.company_id AND s.competence_id = v.competence_id
+WHERE k.competence_key BETWEEN $2::text AND $3::text
+  AND ($4::text IS NULL OR s.regime_group = $4::text)
+  AND ($5::text IS NULL OR s.tax_regime = $5::text)
+  AND ($6::uuid IS NULL OR $6::uuid = CASE v.primary_module
+        WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
+        WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
+GROUP BY k.competence_key
+ORDER BY k.competence_key
+`
+
+type DashboardHistoryParams struct {
+	Today         time.Time
+	FromKey       string
+	ToKey         string
+	RegimeGroup   *string
+	TaxRegime     *string
+	ResponsibleID *string
+}
+
+type DashboardHistoryRow struct {
+	CompetenceKey   string
+	Applicable      int32
+	Done            int32
+	OperationalDone int32
+	Pending         int32
+	Overdue         int32
+}
+
+// Série por competência (da mais antiga à selecionada) para a comparação histórica [§24.8].
+func (q *Queries) DashboardHistory(ctx context.Context, arg DashboardHistoryParams) ([]DashboardHistoryRow, error) {
+	rows, err := q.db.Query(ctx, dashboardHistory,
+		arg.Today,
+		arg.FromKey,
+		arg.ToKey,
+		arg.RegimeGroup,
+		arg.TaxRegime,
+		arg.ResponsibleID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []DashboardHistoryRow{}
+	for rows.Next() {
+		var i DashboardHistoryRow
+		if err := rows.Scan(
+			&i.CompetenceKey,
+			&i.Applicable,
+			&i.Done,
+			&i.OperationalDone,
+			&i.Pending,
+			&i.Overdue,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const dashboardModuleCounts = `-- name: DashboardModuleCounts :many
 
 SELECT v.primary_module AS module,

@@ -868,6 +868,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comparação com a competência anterior e série das últimas 6 competências (PRD §24.8) */
+        get: operations["getDashboardHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1689,6 +1706,28 @@ export interface components {
         Attention: {
             competence: components["schemas"]["Competence"];
             categories: components["schemas"]["AttentionCategory"][];
+        };
+        HistoryPoint: {
+            competence: components["schemas"]["Competence"];
+            applicable: number;
+            done: number;
+            operational_progress: number;
+            final_completion: number;
+            /** @description Atrasadas em relação a hoje */
+            overdue: number;
+            pending: number;
+        };
+        DashboardHistory: {
+            current: components["schemas"]["HistoryPoint"];
+            previous: components["schemas"]["HistoryPoint"] | null;
+            delta: {
+                final_completion: number;
+                operational_progress: number;
+                overdue: number;
+                pending: number;
+            } | null;
+            /** @description Até 6 competências geradas, da mais antiga à selecionada */
+            series: components["schemas"]["HistoryPoint"][];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -3430,6 +3469,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Attention"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDashboardHistory: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                regime_group?: components["parameters"]["DashboardRegimeGroup"];
+                tax_regime?: components["parameters"]["DashboardTaxRegime"];
+                /** @description Responsável do módulo da obrigação (snapshot da competência) */
+                responsible_id?: components["parameters"]["DashboardResponsible"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comparação histórica */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardHistory"];
                 };
             };
             400: components["responses"]["BadRequest"];
