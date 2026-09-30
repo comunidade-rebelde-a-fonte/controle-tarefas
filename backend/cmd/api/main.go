@@ -1,7 +1,8 @@
 // Comando api: servidor HTTP da aplicação e utilitários operacionais.
 //
-//	api            inicia o servidor (padrão)
-//	api serve      inicia o servidor
+//	api                               inicia o servidor (padrão)
+//	api serve                         inicia o servidor
+//	api migrate up|down|status|reset  gerencia as migrations embutidas
 package main
 
 import (
@@ -22,6 +23,7 @@ import (
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
+	"controle/internal/platform/migrate"
 )
 
 func main() {
@@ -48,9 +50,32 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout 
 	switch cmd {
 	case "serve":
 		return serve(ctx, cfg, logger)
+	case "migrate":
+		return runMigrate(ctx, cfg, args, stdout)
 	default:
-		_ = args
-		return fmt.Errorf("comando desconhecido %q (use: serve)", cmd)
+		return fmt.Errorf("comando desconhecido %q (use: serve, migrate)", cmd)
+	}
+}
+
+func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {
+	sub := "up"
+	if len(args) > 0 {
+		sub = args[0]
+	}
+	switch sub {
+	case "up":
+		return migrate.Up(ctx, cfg.DatabaseURL, stdout)
+	case "down":
+		return migrate.Down(ctx, cfg.DatabaseURL, stdout)
+	case "status":
+		return migrate.Status(ctx, cfg.DatabaseURL, stdout)
+	case "reset":
+		if cfg.IsProduction() {
+			return errors.New("migrate reset não é permitido em produção")
+		}
+		return migrate.Reset(ctx, cfg.DatabaseURL, stdout)
+	default:
+		return fmt.Errorf("subcomando de migrate desconhecido %q (use: up, down, status, reset)", sub)
 	}
 }
 
@@ -70,6 +95,12 @@ func newClock(cfg config.Config) clock.Clock {
 }
 
 func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
+	if cfg.MigrateOnBoot {
+		if err := migrate.Up(ctx, cfg.DatabaseURL, io.Discard); err != nil {
+			return err
+		}
+		logger.Info("migrations aplicadas no boot")
+	}
 	pool, err := db.NewPool(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
 	if err != nil {
 		return err

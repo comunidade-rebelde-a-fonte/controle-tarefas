@@ -61,7 +61,8 @@ func validRequestID(id string) bool {
 		return false
 	}
 	for _, c := range id {
-		if !(c == '-' || c == '_' || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+		valid := c == '-' || c == '_' || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+		if !valid {
 			return false
 		}
 	}
