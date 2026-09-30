@@ -28,5 +28,40 @@ services:
       retries: 30
       start_period: 5s
 
+  api:
+    image: golang:1.26.8-bookworm
+    working_dir: /app/backend
+    # air é instalado com versão fixada; o cache fica em volumes nomeados.
+    command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.toml"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-controle}:${POSTGRES_PASSWORD:-dev-only-change-me}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+      APP_ENV: ${APP_ENV:-development}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      HTTP_PORT: ${HTTP_PORT:-8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      FILE_STORAGE_DIR: /app/storage
+      DB_MAX_CONNS: ${DB_MAX_CONNS:-10}
+      GOFLAGS: -buildvcs=false
+    ports:
+      - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+      - gomodcache:/go/pkg/mod
+      - gobuildcache:/root/.cache/go-build
+      - gobin:/go/bin
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:$${HTTP_PORT}/api/v1/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
 volumes:
   pgdata:
+  gomodcache:
+  gobuildcache:
+  gobin:

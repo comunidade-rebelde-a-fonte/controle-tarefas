@@ -26,7 +26,7 @@ endif
 
 COMPOSE := docker compose
 
-.PHONY: help tools dev db-up db-down db-reset db-psql db-logs test lint e2e migrate migrate-down seed seed-demo gen
+.PHONY: help tools dev db-up db-down db-reset db-psql db-logs test test-backend lint lint-backend e2e migrate migrate-down seed seed-demo gen
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -71,11 +71,16 @@ seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	@echo "disponível a partir de T-M0-04"
 
-lint: ## Lint do backend e do frontend
-	@echo "disponível a partir de T-M0-03"
+lint: lint-backend ## Lint do backend e do frontend
 
-test: ## Testes do backend e do frontend
-	@echo "disponível a partir de T-M0-03"
+lint-backend:
+	@cd backend && test -z "$$(gofmt -l .)" || { echo "arquivos sem gofmt:"; gofmt -l .; exit 1; }
+	cd backend && go vet ./...
+
+test: test-backend ## Testes do backend e do frontend
+
+test-backend:
+	cd backend && go test ./...
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e
 	@echo "disponível a partir de T-M0-07"
