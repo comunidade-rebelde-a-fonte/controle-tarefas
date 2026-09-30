@@ -772,7 +772,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA008_MitShared` e `TestCA009_EsocialShared` passam; `instance_id` idêntico nas duas grades.
 
 ### T-M4-07 — API de Procurações e Certificados
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-04, T-M1-11
 - **Ref:** PRD §19, §33, §41.11 · UC-05 · RN-017
 - **Arquivos:** `backend/internal/credential/{handler,service,validity}.go`
