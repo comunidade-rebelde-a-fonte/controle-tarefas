@@ -3,6 +3,7 @@
 //	api                               inicia o servidor (padrão)
 //	api serve                         inicia o servidor
 //	api migrate up|down|status|reset  gerencia as migrations embutidas
+//	api seed [--demo]                 carrega dados de referência (e de demonstração)
 package main
 
 import (
@@ -24,6 +25,7 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
 	"controle/internal/platform/migrate"
+	"controle/seed"
 )
 
 func main() {
@@ -52,8 +54,10 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout 
 		return serve(ctx, cfg, logger)
 	case "migrate":
 		return runMigrate(ctx, cfg, args, stdout)
+	case "seed":
+		return runSeed(ctx, cfg, args, stdout)
 	default:
-		return fmt.Errorf("comando desconhecido %q (use: serve, migrate)", cmd)
+		return fmt.Errorf("comando desconhecido %q (use: serve, migrate, seed)", cmd)
 	}
 }
 
@@ -77,6 +81,34 @@ func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io
 	default:
 		return fmt.Errorf("subcomando de migrate desconhecido %q (use: up, down, status, reset)", sub)
 	}
+}
+
+func runSeed(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {
+	demo := false
+	for _, a := range args {
+		switch a {
+		case "--demo":
+			demo = true
+		default:
+			return fmt.Errorf("opção de seed desconhecida %q (use: --demo)", a)
+		}
+	}
+	if demo && cfg.IsProduction() {
+		return errors.New("dados de demonstração não são carregados em produção")
+	}
+	pool, err := db.NewPool(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	clk := newClock(cfg)
+	if err := seed.Reference(ctx, pool, clk, stdout); err != nil {
+		return err
+	}
+	if demo {
+		return seed.Demo(ctx, pool, clk, stdout)
+	}
+	return nil
 }
 
 func newLogger(cfg config.Config, w io.Writer) *slog.Logger {
