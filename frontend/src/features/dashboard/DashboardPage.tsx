@@ -5,7 +5,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatPercent } from "@/lib/format";
 import { useCompetence } from "@/lib/useCompetence";
 import { useUrlParams } from "@/lib/useUrlParams";
-import { useDashboard, useDashboardHistory } from "@/services/dashboard";
+import { useAttention, useDashboard, useDashboardHistory } from "@/services/dashboard";
+import { AttentionPanel } from "./AttentionPanel";
 import { CredentialCards } from "./CredentialCards";
 import { DashboardFilters } from "./DashboardFilters";
 import { HistoryComparison } from "./HistoryComparison";
@@ -24,6 +25,7 @@ export function DashboardPage() {
   const query = competence ? dashboardQuery(competence, params) : null;
   const dashboard = useDashboard(query);
   const history = useDashboardHistory(query);
+  const attention = useAttention(query);
   const d = dashboard.data;
   const k = d?.kpis;
 
@@ -56,9 +58,12 @@ export function DashboardPage() {
           </section>
         )}
         {d ? <ModuleCards modules={d.modules} /> : null}
-        <div className="grid grid-cols-2 gap-4">
-          {history.data ? <HistoryComparison history={history.data} /> : <Skeleton className="h-64" />}
-          {d ? <CredentialCards cards={d.credentials} /> : <Skeleton className="h-64" />}
+        <div className="grid grid-cols-[3fr_2fr] items-start gap-4">
+          <div className="grid gap-4">
+            {history.data ? <HistoryComparison history={history.data} /> : <Skeleton className="h-64" />}
+            {d ? <CredentialCards cards={d.credentials} /> : <Skeleton className="h-48" />}
+          </div>
+          {attention.data ? <AttentionPanel attention={attention.data} /> : <Skeleton className="h-96" />}
         </div>
         {d ? <ResponsibleTable rows={d.responsibles} /> : null}
       </div>
