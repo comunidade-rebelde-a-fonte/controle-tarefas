@@ -9,7 +9,7 @@ import (
 )
 
 func TestCompetencies_LatestTriggersGenerationAndListCounts(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	srv := testutil.NewServer(t, pool, testutil.FixedClock(t, "2026-10-01T12:00:00Z"))
 
 	// Acessar a competência corrente inexistente dispara a geração (3º gatilho).

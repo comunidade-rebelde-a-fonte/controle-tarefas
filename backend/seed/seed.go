@@ -70,12 +70,20 @@ func DemoSteps() []Step {
 	}
 }
 
-// Demo carrega os dados de demonstração (supõe os dados de referência já carregados).
+// DemoCompanies carrega só as empresas fictícias e os responsáveis (sem competências).
+func DemoCompanies(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, out io.Writer) error {
+	return Run(ctx, pool, clk, DemoSteps(), out)
+}
+
+// Demo carrega os dados de demonstração (supõe os dados de referência já carregados):
+// empresas fictícias e, em seguida, competências históricas com status variados.
 func Demo(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, out io.Writer) error {
-	steps := DemoSteps()
-	if len(steps) == 0 {
-		_, _ = fmt.Fprintln(out, "seed demo: nenhum dado de demonstração disponível ainda")
-		return nil
+	if err := DemoCompanies(ctx, pool, clk, out); err != nil {
+		return err
 	}
-	return Run(ctx, pool, clk, steps, out)
+	if err := demoHistory(ctx, pool, clk); err != nil {
+		return fmt.Errorf("seed demo: histórico: %w", err)
+	}
+	_, _ = fmt.Fprintf(out, "seed demo: %d competências anteriores + corrente ok\n", HistoryMonths)
+	return nil
 }

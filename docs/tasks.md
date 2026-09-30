@@ -481,7 +481,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de integração: API iniciada com `Clock` em 2026-10-01 cria 10/2026 sem chamada manual.
 
 ### T-M2-06 — Seed de competências históricas de demonstração
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-04, T-M1-12
 - **Ref:** plan M2 (Pronto quando) · PRD §24.8, §25
 - **Arquivos:** `backend/seed/history.go`
