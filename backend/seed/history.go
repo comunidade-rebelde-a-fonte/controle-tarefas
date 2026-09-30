@@ -219,6 +219,16 @@ func applyDemoCompetence(ctx context.Context, tx pgx.Tx, c comp.Competence, age 
 		return fmt.Errorf("status de demonstração em %s: %w", c, err)
 	}
 
+	if age >= 1 {
+		// Competências passadas geradas agora pelo seed: a abertura fica datada no início do mês
+		// seguinte, antes dos fechamentos e reaberturas de demonstração.
+		if _, err := tx.Exec(ctx, `UPDATE company_module_period_events e SET created_at = $2
+			FROM company_module_periods p JOIN competencies k ON k.id = p.competence_id
+			WHERE e.company_module_period_id = p.id AND k.competence_key = $1 AND e.event_type = 'OPENED'`,
+			c.String(), c.Next().FirstDay()); err != nil {
+			return err
+		}
+	}
 	if age >= 2 {
 		if err := closeReadyPeriods(ctx, tx, c, at); err != nil {
 			return err

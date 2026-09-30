@@ -1266,6 +1266,21 @@ paths:
               schema: { $ref: "#/components/schemas/Backlog" }
         "400": { $ref: "#/components/responses/BadRequest" }
 
+  /companies/{id}/history:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: getCompanyHistory
+      summary: Histórico de competências da empresa — matriz competência × módulo com estado, conclusão e eventos
+      responses:
+        "200":
+          description: Histórico
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyHistory" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -2631,6 +2646,42 @@ components:
         total: { type: integer }
         page: { type: integer }
         page_size: { type: integer }
+
+    CompanyHistory:
+      type: object
+      required: [company_id, competences]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        competences:
+          type: array
+          description: Mais recente primeiro
+          items:
+            type: object
+            required: [competence, tax_regime, modules]
+            properties:
+              competence: { $ref: "#/components/schemas/Competence" }
+              tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+              modules:
+                type: array
+                items:
+                  type: object
+                  required: [module, period_id, state, closed_at, progress, events]
+                  properties:
+                    module: { type: string, enum: [FISCAL, DECLARATIONS, ACCOUNTING, PAYROLL] }
+                    period_id: { $ref: "#/components/schemas/Uuid" }
+                    state: { type: string, enum: [OPEN, CLOSED] }
+                    closed_at: { type: [string, "null"], format: date-time }
+                    progress: { $ref: "#/components/schemas/Progress" }
+                    events:
+                      type: array
+                      items:
+                        type: object
+                        required: [event_type, reason, user_name, created_at]
+                        properties:
+                          event_type: { type: string, enum: [OPENED, CLOSED, REOPENED] }
+                          reason: { type: [string, "null"] }
+                          user_name: { type: string }
+                          created_at: { type: string, format: date-time }
 
     UserRole:
       type: string

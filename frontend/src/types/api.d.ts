@@ -945,6 +945,25 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Histórico de competências da empresa — matriz competência × módulo com estado, conclusão e eventos */
+        get: operations["getCompanyHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1881,6 +1900,32 @@ export interface components {
             total: number;
             page: number;
             page_size: number;
+        };
+        CompanyHistory: {
+            company_id: components["schemas"]["Uuid"];
+            /** @description Mais recente primeiro */
+            competences: {
+                competence: components["schemas"]["Competence"];
+                tax_regime: components["schemas"]["TaxRegime"];
+                modules: {
+                    /** @enum {string} */
+                    module: "FISCAL" | "DECLARATIONS" | "ACCOUNTING" | "PAYROLL";
+                    period_id: components["schemas"]["Uuid"];
+                    /** @enum {string} */
+                    state: "OPEN" | "CLOSED";
+                    /** Format: date-time */
+                    closed_at: string | null;
+                    progress: components["schemas"]["Progress"];
+                    events: {
+                        /** @enum {string} */
+                        event_type: "OPENED" | "CLOSED" | "REOPENED";
+                        reason: string | null;
+                        user_name: string;
+                        /** Format: date-time */
+                        created_at: string;
+                    }[];
+                }[];
+            }[];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -3752,6 +3797,29 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+        };
+    };
+    getCompanyHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Histórico */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyHistory"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
 }

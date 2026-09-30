@@ -15,6 +15,7 @@ export const companyKeys = {
   all: ["companies"] as const,
   list: (f: CompanyFilters) => ["companies", "list", f] as const,
   detail: (id: string) => ["companies", "detail", id] as const,
+  history: (id: string) => ["companies", "history", id] as const,
 };
 
 /** Lista de empresas com busca global e filtros (resolvidos na API). */
@@ -129,5 +130,15 @@ export function useSetObligationOverride(id: string) {
     onSuccess: (data) => {
       qc.setQueryData(companySettingsKeys.overrides(id), data);
     },
+  });
+}
+
+export type CompanyHistory = Schemas["CompanyHistory"];
+
+/** GET /companies/{id}/history: competência × módulo com estado, conclusão e eventos. */
+export function useCompanyHistory(id: string) {
+  return useQuery({
+    queryKey: companyKeys.history(id),
+    queryFn: ({ signal }) => api.get("/companies/{id}/history", { path: { id }, signal }),
   });
 }
