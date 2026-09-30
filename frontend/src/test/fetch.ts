@@ -17,3 +17,9 @@ export function requestedUrls(fetchFn: Mock<typeof fetch>): string[] {
 export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 }
+
+/** Corpo JSON da i-ésima chamada ao fetch mockado (undefined se não houver corpo). */
+export function requestBody(fetchFn: Mock<typeof fetch>, i = 0): unknown {
+  const body = fetchFn.mock.calls[i]?.[1]?.body;
+  return typeof body === "string" ? (JSON.parse(body) as unknown) : undefined;
+}

@@ -45,3 +45,21 @@ export const UFS = [
   "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB",
   "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ] as const;
+
+export type HistoryField = Schemas["HistoryEntry"]["field"];
+export type ChangeSource = Schemas["HistoryEntry"]["change_source"];
+
+export const HISTORY_FIELD_LABELS: Record<HistoryField, string> = {
+  STATUS: "Status",
+  DUE_DATE: "Vencimento",
+  APPLICABLE: "Aplicabilidade",
+  TRANSMISSION_DATE: "Data de transmissão",
+  PROTOCOL: "Protocolo",
+};
+
+export const CHANGE_SOURCE_LABELS: Record<ChangeSource, string> = {
+  INLINE: "Individual",
+  BULK: "Em massa",
+  IMPORT: "Importação",
+  SYSTEM: "Sistema",
+};
