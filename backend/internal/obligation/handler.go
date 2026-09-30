@@ -18,6 +18,8 @@ func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
 func (h *Handler) Routes(r chi.Router) {
 	r.Get("/obligation-instances/{id}", h.get)
 	r.Patch("/obligation-instances/{id}/status", h.changeStatus)
+	r.Patch("/obligation-instances/{id}/details", h.updateDetails)
+	r.Get("/obligation-instances/{id}/history", h.history)
 }
 
 func instanceID(r *http.Request) (string, error) {

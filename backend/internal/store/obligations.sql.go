@@ -128,6 +128,31 @@ func (q *Queries) GetInstanceForUpdate(ctx context.Context, id string) (GetInsta
 	return i, err
 }
 
+const getInstanceOverrideInfo = `-- name: GetInstanceOverrideInfo :one
+SELECT due_date_override_reason, due_date_overridden_by, due_date_overridden_at, initial_status_code
+FROM obligation_instances i JOIN obligation_types t ON t.id = i.obligation_type_id
+WHERE i.id = $1
+`
+
+type GetInstanceOverrideInfoRow struct {
+	DueDateOverrideReason *string
+	DueDateOverriddenBy   *string
+	DueDateOverriddenAt   *time.Time
+	InitialStatusCode     string
+}
+
+func (q *Queries) GetInstanceOverrideInfo(ctx context.Context, id string) (GetInstanceOverrideInfoRow, error) {
+	row := q.db.QueryRow(ctx, getInstanceOverrideInfo, id)
+	var i GetInstanceOverrideInfoRow
+	err := row.Scan(
+		&i.DueDateOverrideReason,
+		&i.DueDateOverriddenBy,
+		&i.DueDateOverriddenAt,
+		&i.InitialStatusCode,
+	)
+	return i, err
+}
+
 const getInstanceView = `-- name: GetInstanceView :one
 SELECT v.id, v.company_id, k.competence_key, v.obligation_type_id, v.type_code, t.name AS type_name,
        v.primary_module, v.status_code, v.status_label, v.applicable, v.counts_in_progress,
@@ -289,6 +314,111 @@ func (q *Queries) ListActiveDependencies(ctx context.Context) ([]ListActiveDepen
 		return nil, err
 	}
 	return items, nil
+}
+
+const listInstanceHistory = `-- name: ListInstanceHistory :many
+SELECT h.id, h.field, h.old_value, h.new_value, h.change_source, h.override_reason, h.created_at,
+       u.id AS user_id, u.name AS user_name,
+       old_d.label AS old_label, new_d.label AS new_label
+FROM obligation_status_history h
+JOIN users u ON u.id = h.user_id
+JOIN obligation_instances i ON i.id = h.obligation_instance_id
+JOIN obligation_types t ON t.id = i.obligation_type_id
+LEFT JOIN status_definitions old_d ON h.field = 'STATUS' AND old_d.status_set_id = t.status_set_id AND old_d.code = h.old_value
+LEFT JOIN status_definitions new_d ON h.field = 'STATUS' AND new_d.status_set_id = t.status_set_id AND new_d.code = h.new_value
+WHERE h.obligation_instance_id = $1
+ORDER BY h.created_at DESC, h.id DESC
+`
+
+type ListInstanceHistoryRow struct {
+	ID             string
+	Field          string
+	OldValue       *string
+	NewValue       *string
+	ChangeSource   string
+	OverrideReason *string
+	CreatedAt      time.Time
+	UserID         string
+	UserName       string
+	OldLabel       *string
+	NewLabel       *string
+}
+
+// Histórico da instância, mais recente primeiro, com rótulos dos status.
+func (q *Queries) ListInstanceHistory(ctx context.Context, obligationInstanceID string) ([]ListInstanceHistoryRow, error) {
+	rows, err := q.db.Query(ctx, listInstanceHistory, obligationInstanceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListInstanceHistoryRow{}
+	for rows.Next() {
+		var i ListInstanceHistoryRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Field,
+			&i.OldValue,
+			&i.NewValue,
+			&i.ChangeSource,
+			&i.OverrideReason,
+			&i.CreatedAt,
+			&i.UserID,
+			&i.UserName,
+			&i.OldLabel,
+			&i.NewLabel,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateInstanceDetails = `-- name: UpdateInstanceDetails :execrows
+UPDATE obligation_instances SET
+    transmission_date = $3, protocol = $4, due_date_effective = $5, due_date_override_reason = $6,
+    due_date_overridden_by = $7, due_date_overridden_at = $8, applicable = $9, status_code = $10,
+    version = version + 1, last_changed_by = $11, last_changed_at = $12, updated_at = $12
+WHERE id = $1 AND version = $2
+`
+
+type UpdateInstanceDetailsParams struct {
+	ID                    string
+	Version               int32
+	TransmissionDate      *time.Time
+	Protocol              *string
+	DueDateEffective      *time.Time
+	DueDateOverrideReason *string
+	DueDateOverriddenBy   *string
+	DueDateOverriddenAt   *time.Time
+	Applicable            bool
+	StatusCode            string
+	LastChangedBy         *string
+	LastChangedAt         *time.Time
+}
+
+func (q *Queries) UpdateInstanceDetails(ctx context.Context, arg UpdateInstanceDetailsParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateInstanceDetails,
+		arg.ID,
+		arg.Version,
+		arg.TransmissionDate,
+		arg.Protocol,
+		arg.DueDateEffective,
+		arg.DueDateOverrideReason,
+		arg.DueDateOverriddenBy,
+		arg.DueDateOverriddenAt,
+		arg.Applicable,
+		arg.StatusCode,
+		arg.LastChangedBy,
+		arg.LastChangedAt,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateInstanceStatus = `-- name: UpdateInstanceStatus :execrows

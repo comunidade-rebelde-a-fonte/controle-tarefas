@@ -540,7 +540,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA011_DctfwebWarning`, cobrindo os caminhos de alerta e de exceção registrada.
 
 ### T-M2-11 — Detalhes da instância e histórico
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-08
 - **Ref:** plan R7 · PRD §15.3, §21.3, §23, §41.7
 - **Arquivos:** `backend/internal/obligation/details.go`

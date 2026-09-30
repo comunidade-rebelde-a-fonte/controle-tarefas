@@ -488,6 +488,44 @@ export interface paths {
         patch: operations["changeObligationStatus"];
         trace?: never;
     };
+    "/obligation-instances/{id}/details": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera transmissão, protocolo, vencimento efetivo (com motivo) e aplicabilidade */
+        patch: operations["updateObligationDetails"];
+        trace?: never;
+    };
+    "/obligation-instances/{id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Histórico de alterações da instância (mais recente primeiro) */
+        get: operations["getObligationHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -961,6 +999,33 @@ export interface components {
         StatusChangeResult: {
             instance: components["schemas"]["ObligationInstance"];
             row: components["schemas"]["RowSummary"];
+        };
+        InstanceDetails: {
+            version: components["schemas"]["Version"];
+            transmission_date?: components["schemas"]["Date"] | null;
+            protocol?: string | null;
+            due_date_effective?: components["schemas"]["Date"];
+            /** @description Obrigatório ao alterar o vencimento */
+            due_date_override_reason?: string;
+            applicable?: boolean;
+        };
+        HistoryEntry: {
+            id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            field: "STATUS" | "DUE_DATE" | "APPLICABLE" | "TRANSMISSION_DATE" | "PROTOCOL";
+            old_value: string | null;
+            new_value: string | null;
+            old_label: string | null;
+            new_label: string | null;
+            /** @enum {string} */
+            change_source: "INLINE" | "BULK" | "IMPORT" | "SYSTEM";
+            override_reason: string | null;
+            user: components["schemas"]["UserRef"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        InstanceHistory: {
+            items: components["schemas"]["HistoryEntry"][];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -1973,6 +2038,68 @@ export interface operations {
                 };
             };
             423: components["responses"]["Locked"];
+        };
+    };
+    updateObligationDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InstanceDetails"];
+            };
+        };
+        responses: {
+            /** @description Instância e agregado da linha atualizados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusChangeResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Campo não permitido para o tipo (FIELD_NOT_ALLOWED) ou vencimento sem motivo (REASON_REQUIRED) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            423: components["responses"]["Locked"];
+        };
+    };
+    getObligationHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Histórico */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InstanceHistory"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
 }
