@@ -79,3 +79,21 @@ func TestCheckSoft_DirectComponents(t *testing.T) {
 		t.Fatal("dependência SOFT não bloqueia como HARD")
 	}
 }
+
+func TestSoftDependencyStatus(t *testing.T) {
+	insts := map[string]DepInstance{
+		"mit":     {TypeID: "mit", Name: "MIT", Applicable: true, IsFinal: true},
+		"esocial": {TypeID: "esocial", Name: "eSocial", Applicable: true, IsFinal: false},
+	}
+	st := SoftDependencyStatus("dctf", chain, insts)
+	if st == nil || st.Ready || len(st.Pending) != 1 {
+		t.Fatalf("status = %+v", st)
+	}
+	insts["esocial"] = DepInstance{TypeID: "esocial", Applicable: false}
+	if st := SoftDependencyStatus("dctf", chain, insts); st == nil || !st.Ready {
+		t.Fatalf("componente não aplicável não deve pender: %+v", st)
+	}
+	if SoftDependencyStatus("s3", chain, insts) != nil {
+		t.Fatal("tipo sem dependência SOFT não tem indicador")
+	}
+}

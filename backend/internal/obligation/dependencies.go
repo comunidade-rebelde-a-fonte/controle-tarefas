@@ -108,3 +108,22 @@ func BlockedMessage(target string, pending []DepInstance) string {
 func SoftWarningMessage(target string, pending []DepInstance) string {
 	return target + " possui pré-requisitos pendentes: " + joinNames(pending) + "."
 }
+
+// DependencyStatus é o indicador de dependências SOFT para a grade: apta à conclusão ou
+// pendente, com a lista de componentes pendentes [PRD §31].
+type DependencyStatus struct {
+	Ready   bool          `json:"ready"`
+	Pending []DepInstance `json:"pending"`
+}
+
+// SoftDependencyStatus devolve o indicador do tipo, ou nil se ele não tem dependências SOFT.
+func SoftDependencyStatus(typeID string, deps []Dependency, instances map[string]DepInstance) *DependencyStatus {
+	if len(Prerequisites(typeID, DependencySoft, deps, false)) == 0 {
+		return nil
+	}
+	pending := CheckSoft(typeID, deps, instances)
+	if pending == nil {
+		pending = []DepInstance{}
+	}
+	return &DependencyStatus{Ready: len(pending) == 0, Pending: pending}
+}

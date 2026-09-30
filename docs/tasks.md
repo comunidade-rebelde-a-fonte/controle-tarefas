@@ -529,7 +529,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA010_ContabilDependency`; `Sem movimento` satisfaz a dependência; um pré-requisito não aplicável é ignorado.
 
 ### T-M2-10 — Dependências SOFT (DCTFWeb)
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-08
 - **Ref:** PRD §16.4 · CA-011 · RN-012
 - **Arquivos:** `backend/internal/obligation/dependencies.go`
