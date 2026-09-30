@@ -201,7 +201,7 @@ func TestCredentialControls_CompanyEndpointAndConfiguredThresholds(t *testing.T)
 	if n := getList(t, srv, "").Total; n != 19 {
 		t.Fatalf("grade com empresa inativa = %d, want 19", n)
 	}
-	srv.Get("/api/v1/companies/" + alfa + "/credential-controls").MustStatus(t, http.StatusOK)
+	srv.Get("/api/v1/companies/"+alfa+"/credential-controls").MustStatus(t, http.StatusOK)
 }
 
 func TestCredentialControls_Validation(t *testing.T) {
@@ -232,7 +232,7 @@ func TestCredentialControls_Validation(t *testing.T) {
 		})
 	}
 	for _, q := range []string{"?filter=due_x", "?filter=vencidos", "?type=PASSWORD"} {
-		srv.Get("/api/v1/credential-controls" + q).MustStatus(t, http.StatusBadRequest)
+		srv.Get("/api/v1/credential-controls"+q).MustStatus(t, http.StatusBadRequest)
 	}
 	srv.Get("/api/v1/companies/not-a-uuid/credential-controls").MustStatus(t, http.StatusNotFound)
 }
