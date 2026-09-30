@@ -52,7 +52,7 @@ func TestDemoSeed_CredentialsCoverEveryQuickFilter(t *testing.T) {
 	srv := testutil.NewServer(t, pool, clk)
 	for _, f := range []string{"expired", "due_7", "due_15", "due_30", "due_60", "awaiting_client", "no_date"} {
 		var l credentialList
-		srv.Get("/api/v1/credential-controls?filter=" + f).MustStatus(t, http.StatusOK).JSON(t, &l)
+		srv.Get("/api/v1/credential-controls?filter="+f).MustStatus(t, http.StatusOK).JSON(t, &l)
 		if l.Total == 0 {
 			t.Errorf("filtro %s: nenhuma empresa no seed", f)
 		}
