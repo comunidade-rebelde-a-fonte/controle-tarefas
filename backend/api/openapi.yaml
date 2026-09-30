@@ -21,6 +21,8 @@ tags:
     description: Estado da aplicação
   - name: users
     description: Usuários e responsáveis (sem login no MVP)
+  - name: companies
+    description: Cadastro único de empresas
 
 paths:
   /health:
@@ -115,6 +117,108 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
 
+  /companies:
+    get:
+      tags: [companies]
+      operationId: listCompanies
+      summary: Lista empresas com busca global e filtros
+      description: |
+        `q` casa nome, razão social, nome fantasia, código e CNPJ com ou sem máscara [PRD §26.5].
+        Regime e módulos são os vigentes na competência corrente.
+      parameters:
+        - { name: q, in: query, schema: { type: string } }
+        - { name: cnpj, in: query, schema: { type: string }, description: "Com ou sem máscara" }
+        - { name: code, in: query, schema: { type: string } }
+        - { name: tax_regime, in: query, schema: { $ref: "#/components/schemas/TaxRegime" } }
+        - { name: active, in: query, schema: { type: boolean } }
+        - { name: module, in: query, schema: { $ref: "#/components/schemas/ModuleCode" } }
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    post:
+      tags: [companies]
+      operationId: createCompany
+      summary: Cadastra empresa com regime inicial (vigência = competência do início do atendimento)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyCreate" }
+      responses:
+        "201":
+          description: Criada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Company" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409":
+          description: CNPJ ou código já cadastrado (`details.conflicting_company`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: getCompany
+      summary: Detalha a empresa
+      responses:
+        "200":
+          description: Empresa
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Company" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [companies]
+      operationId: updateCompany
+      summary: Altera dados cadastrais (exige version)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyUpdate" }
+      responses:
+        "200":
+          description: Atualizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Company" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /companies/{id}/deactivate:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [companies]
+      operationId: deactivateCompany
+      summary: Inativa a empresa (não há exclusão física)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                version: { $ref: "#/components/schemas/Version" }
+      responses:
+        "200":
+          description: Inativada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Company" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
 components:
   parameters:
     IdPath:
@@ -179,6 +283,144 @@ components:
     Uuid:
       type: string
       format: uuid
+
+    TaxRegime:
+      type: string
+      enum: [SIMPLES_NACIONAL, LUCRO_PRESUMIDO, LUCRO_REAL, LUCRO_ARBITRADO, IMUNE_ISENTA]
+      description: Regime tributário [PRD §8.1].
+
+    RegimeGroup:
+      type: string
+      enum: [NORMAL, SIMPLES]
+      description: Agrupamento do Fiscal (Normal não é regime) [PRD §5.1].
+
+    ModuleCode:
+      type: string
+      enum: [FISCAL, DECLARATIONS, ACCOUNTING, PAYROLL, CREDENTIALS]
+      description: Módulo contratual [PRD §7.4]. DCTFWeb é visão, não módulo.
+
+    PayrollType:
+      type: string
+      enum: [NO_PAYROLL, PRO_LABORE, PAYROLL]
+      description: Tipo de folha (Sem folha, Pró-labore, Folha) [PRD §17.1].
+
+    UserRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+
+    CompanyResponsibles:
+      type: object
+      required: [fiscal, accounting, payroll, declarations]
+      properties:
+        fiscal: { oneOf: [{ $ref: "#/components/schemas/UserRef" }, { type: "null" }] }
+        accounting: { oneOf: [{ $ref: "#/components/schemas/UserRef" }, { type: "null" }] }
+        payroll: { oneOf: [{ $ref: "#/components/schemas/UserRef" }, { type: "null" }] }
+        declarations: { oneOf: [{ $ref: "#/components/schemas/UserRef" }, { type: "null" }] }
+
+    Company:
+      type: object
+      required: [id, internal_code, legal_name, trade_name, cnpj, city, state, state_registration, municipal_registration,
+                 service_start_date, service_end_date, active, payroll_type, factor_r, responsibles, notes,
+                 current_tax_regime, current_regime_group, active_modules, version]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        internal_code: { type: string }
+        legal_name: { type: string }
+        trade_name: { type: [string, "null"] }
+        cnpj: { $ref: "#/components/schemas/Cnpj" }
+        city: { type: [string, "null"] }
+        state: { type: [string, "null"] }
+        state_registration: { type: [string, "null"] }
+        municipal_registration: { type: [string, "null"] }
+        service_start_date: { $ref: "#/components/schemas/Date" }
+        service_end_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        active: { type: boolean }
+        payroll_type: { $ref: "#/components/schemas/PayrollType" }
+        factor_r: { type: [boolean, "null"] }
+        responsibles: { $ref: "#/components/schemas/CompanyResponsibles" }
+        notes: { type: [string, "null"] }
+        current_tax_regime: { oneOf: [{ $ref: "#/components/schemas/TaxRegime" }, { type: "null" }] }
+        current_regime_group: { oneOf: [{ $ref: "#/components/schemas/RegimeGroup" }, { type: "null" }] }
+        active_modules:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleCode" }
+        version: { $ref: "#/components/schemas/Version" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    CompanyList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Company" }
+        total: { type: integer }
+
+    CompanyCreate:
+      type: object
+      additionalProperties: false
+      required: [internal_code, legal_name, cnpj, service_start_date, payroll_type, tax_regime]
+      properties:
+        internal_code: { type: string, maxLength: 30 }
+        legal_name: { type: string, maxLength: 200 }
+        trade_name: { type: [string, "null"], maxLength: 200 }
+        cnpj: { type: string, description: "Com ou sem máscara; armazenado com 14 dígitos" }
+        city: { type: [string, "null"] }
+        state: { type: [string, "null"], description: "UF com 2 letras" }
+        state_registration: { type: [string, "null"] }
+        municipal_registration: { type: [string, "null"] }
+        service_start_date: { $ref: "#/components/schemas/Date" }
+        service_end_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        payroll_type: { $ref: "#/components/schemas/PayrollType" }
+        factor_r: { type: [boolean, "null"] }
+        fiscal_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        accounting_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        payroll_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        declarations_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        notes: { type: [string, "null"] }
+        tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+        modules:
+          type: array
+          description: Módulos ativos desde o início do atendimento. Ausente = todos.
+          items: { $ref: "#/components/schemas/ModuleCode" }
+
+    CompanyUpdate:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        internal_code: { type: string }
+        legal_name: { type: string }
+        trade_name: { type: [string, "null"] }
+        cnpj: { type: string }
+        city: { type: [string, "null"] }
+        state: { type: [string, "null"] }
+        state_registration: { type: [string, "null"] }
+        municipal_registration: { type: [string, "null"] }
+        service_start_date: { $ref: "#/components/schemas/Date" }
+        service_end_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        active: { type: boolean }
+        payroll_type: { $ref: "#/components/schemas/PayrollType" }
+        factor_r: { type: [boolean, "null"] }
+        fiscal_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        accounting_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        payroll_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        declarations_responsible_user_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        notes: { type: [string, "null"] }
+
+    ConflictingCompany:
+      type: object
+      description: Presente em `details.conflicting_company` dos erros CNPJ_CONFLICT/CODE_CONFLICT [CA-002].
+      required: [id, internal_code, legal_name]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        internal_code: { type: string }
+        legal_name: { type: string }
 
     UserRole:
       type: string

@@ -57,3 +57,14 @@ func Format(s string) string {
 	}
 	return d[0:2] + "." + d[2:5] + "." + d[5:8] + "/" + d[8:12] + "-" + d[12:14]
 }
+
+// WithCheckDigits completa uma base de 12 dígitos com os dígitos verificadores
+// (usado para gerar CNPJs fictícios válidos em testes e massa de carga).
+func WithCheckDigits(base12 string) string {
+	d := Sanitize(base12)
+	if len(d) != 12 {
+		return ""
+	}
+	first := checkDigit(d)
+	return d + string(first) + string(checkDigit(d+string(first)))
+}

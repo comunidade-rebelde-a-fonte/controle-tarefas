@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"controle/internal/company"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
@@ -37,6 +38,7 @@ func NewRouter(d Deps) http.Handler {
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Get("/health", httpx.Health(d.Pool))
 		user.NewHandler(d.Pool).Routes(api)
+		company.NewHandler(company.NewService(d.Pool, d.Clock)).Routes(api)
 	})
 	return r
 }

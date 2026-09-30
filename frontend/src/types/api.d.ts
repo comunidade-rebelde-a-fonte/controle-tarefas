@@ -59,6 +59,67 @@ export interface paths {
         patch: operations["updateUser"];
         trace?: never;
     };
+    "/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lista empresas com busca global e filtros
+         * @description `q` casa nome, razão social, nome fantasia, código e CNPJ com ou sem máscara [PRD §26.5].
+         *     Regime e módulos são os vigentes na competência corrente.
+         */
+        get: operations["listCompanies"];
+        put?: never;
+        /** Cadastra empresa com regime inicial (vigência = competência do início do atendimento) */
+        post: operations["createCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Detalha a empresa */
+        get: operations["getCompany"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera dados cadastrais (exige version) */
+        patch: operations["updateCompany"];
+        trace?: never;
+    };
+    "/companies/{id}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Inativa a empresa (não há exclusão física) */
+        post: operations["deactivateCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -105,6 +166,117 @@ export interface components {
         Version: number;
         /** Format: uuid */
         Uuid: string;
+        /**
+         * @description Regime tributário [PRD §8.1].
+         * @enum {string}
+         */
+        TaxRegime: "SIMPLES_NACIONAL" | "LUCRO_PRESUMIDO" | "LUCRO_REAL" | "LUCRO_ARBITRADO" | "IMUNE_ISENTA";
+        /**
+         * @description Agrupamento do Fiscal (Normal não é regime) [PRD §5.1].
+         * @enum {string}
+         */
+        RegimeGroup: "NORMAL" | "SIMPLES";
+        /**
+         * @description Módulo contratual [PRD §7.4]. DCTFWeb é visão, não módulo.
+         * @enum {string}
+         */
+        ModuleCode: "FISCAL" | "DECLARATIONS" | "ACCOUNTING" | "PAYROLL" | "CREDENTIALS";
+        /**
+         * @description Tipo de folha (Sem folha, Pró-labore, Folha) [PRD §17.1].
+         * @enum {string}
+         */
+        PayrollType: "NO_PAYROLL" | "PRO_LABORE" | "PAYROLL";
+        UserRef: {
+            id: components["schemas"]["Uuid"];
+            name: string;
+        };
+        CompanyResponsibles: {
+            fiscal: components["schemas"]["UserRef"] | null;
+            accounting: components["schemas"]["UserRef"] | null;
+            payroll: components["schemas"]["UserRef"] | null;
+            declarations: components["schemas"]["UserRef"] | null;
+        };
+        Company: {
+            id: components["schemas"]["Uuid"];
+            internal_code: string;
+            legal_name: string;
+            trade_name: string | null;
+            cnpj: components["schemas"]["Cnpj"];
+            city: string | null;
+            state: string | null;
+            state_registration: string | null;
+            municipal_registration: string | null;
+            service_start_date: components["schemas"]["Date"];
+            service_end_date: components["schemas"]["Date"] | null;
+            active: boolean;
+            payroll_type: components["schemas"]["PayrollType"];
+            factor_r: boolean | null;
+            responsibles: components["schemas"]["CompanyResponsibles"];
+            notes: string | null;
+            current_tax_regime: components["schemas"]["TaxRegime"] | null;
+            current_regime_group: components["schemas"]["RegimeGroup"] | null;
+            active_modules: components["schemas"]["ModuleCode"][];
+            version: components["schemas"]["Version"];
+            /** Format: date-time */
+            created_at?: string;
+            /** Format: date-time */
+            updated_at?: string;
+        };
+        CompanyList: {
+            items: components["schemas"]["Company"][];
+            total: number;
+        };
+        CompanyCreate: {
+            internal_code: string;
+            legal_name: string;
+            trade_name?: string | null;
+            /** @description Com ou sem máscara; armazenado com 14 dígitos */
+            cnpj: string;
+            city?: string | null;
+            /** @description UF com 2 letras */
+            state?: string | null;
+            state_registration?: string | null;
+            municipal_registration?: string | null;
+            service_start_date: components["schemas"]["Date"];
+            service_end_date?: components["schemas"]["Date"] | null;
+            payroll_type: components["schemas"]["PayrollType"];
+            factor_r?: boolean | null;
+            fiscal_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            accounting_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            payroll_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            declarations_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            notes?: string | null;
+            tax_regime: components["schemas"]["TaxRegime"];
+            /** @description Módulos ativos desde o início do atendimento. Ausente = todos. */
+            modules?: components["schemas"]["ModuleCode"][];
+        };
+        CompanyUpdate: {
+            version: components["schemas"]["Version"];
+            internal_code?: string;
+            legal_name?: string;
+            trade_name?: string | null;
+            cnpj?: string;
+            city?: string | null;
+            state?: string | null;
+            state_registration?: string | null;
+            municipal_registration?: string | null;
+            service_start_date?: components["schemas"]["Date"];
+            service_end_date?: components["schemas"]["Date"] | null;
+            active?: boolean;
+            payroll_type?: components["schemas"]["PayrollType"];
+            factor_r?: boolean | null;
+            fiscal_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            accounting_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            payroll_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            declarations_responsible_user_id?: components["schemas"]["Uuid"] | null;
+            notes?: string | null;
+        };
+        /** @description Presente em `details.conflicting_company` dos erros CNPJ_CONFLICT/CODE_CONFLICT [CA-002]. */
+        ConflictingCompany: {
+            id: components["schemas"]["Uuid"];
+            internal_code: string;
+            legal_name: string;
+        };
         /**
          * @description Perfil (preparado para permissões futuras).
          * @enum {string}
@@ -329,6 +501,151 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["Unprocessable"];
+        };
+    };
+    listCompanies: {
+        parameters: {
+            query?: {
+                q?: string;
+                /** @description Com ou sem máscara */
+                cnpj?: string;
+                code?: string;
+                tax_regime?: components["schemas"]["TaxRegime"];
+                active?: boolean;
+                module?: components["schemas"]["ModuleCode"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lista */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    createCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyCreate"];
+            };
+        };
+        responses: {
+            /** @description Criada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Company"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description CNPJ ou código já cadastrado (`details.conflicting_company`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Empresa */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Company"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyUpdate"];
+            };
+        };
+        responses: {
+            /** @description Atualizada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Company"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deactivateCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": {
+                    version?: components["schemas"]["Version"];
+                };
+            };
+        };
+        responses: {
+            /** @description Inativada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Company"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
 }
