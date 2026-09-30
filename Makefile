@@ -38,7 +38,7 @@ GOVULNCHECK_VERSION := v1.8.0
 DB_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(DB_NAME)?sslmode=disable
 API := cd backend && DATABASE_URL='$(DB_URL)' go run ./cmd/api
 
-.PHONY: help tools dev db-up db-down db-reset db-psql db-logs test test-backend lint lint-backend e2e migrate migrate-down migrate-status seed seed-demo gen
+.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status seed seed-demo gen
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -52,8 +52,15 @@ tools: ## Instala as ferramentas de desenvolvimento (sqlc, goose, golangci-lint,
 	GOBIN=$(BIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 	@echo "ferramentas instaladas em $(BIN)"
 
-dev: ## Sobe o ambiente completo (db + api + web)
-	@echo "disponível a partir de T-M0-05"
+dev: ## Sobe o ambiente completo (db + api + web) e espera ficar healthy
+	$(COMPOSE) up -d --wait db api web
+	@echo ">>> SPA: http://localhost:5173  |  API: http://localhost:$${HTTP_PORT:-8080}/api/v1/health"
+
+dev-logs: ## Acompanha os logs do ambiente de desenvolvimento
+	$(COMPOSE) logs -f --tail=100
+
+dev-down: ## Para o ambiente de desenvolvimento (dados preservados)
+	$(COMPOSE) stop
 
 db-up: ## Sobe somente o banco e espera ficar healthy
 	$(COMPOSE) up -d --wait db
@@ -92,16 +99,22 @@ seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	cd backend && $(BIN)/sqlc generate
 
-lint: lint-backend ## Lint do backend e do frontend
+lint: lint-backend lint-frontend ## Lint do backend e do frontend
 
 lint-backend:
 	@test -x $(BIN)/golangci-lint || { echo "golangci-lint ausente: rode 'make tools'"; exit 1; }
 	cd backend && $(BIN)/golangci-lint run ./...
 
-test: test-backend ## Testes do backend e do frontend
+lint-frontend:
+	cd frontend && npm run lint && npm run typecheck
+
+test: test-backend test-frontend ## Testes do backend e do frontend
 
 test-backend:
 	cd backend && go test ./...
+
+test-frontend:
+	cd frontend && npm test
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e
 	@echo "disponível a partir de T-M0-07"
