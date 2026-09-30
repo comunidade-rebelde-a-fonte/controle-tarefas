@@ -12,3 +12,14 @@ Valores usados no código ou nos seeds enquanto o escritório não responde às 
 | Q3 | T-M2-07 | ICMS do Simples fora do progresso também não bloqueia o "pronto para fechar" (R4) | `backend/internal/obligation/derived.go` (`InDenominator`), `backend/seed/catalog.sql` |
 | Q4 | T-M2-08 | Módulo fechado bloqueia a edição das instâncias (`423 PERIOD_CLOSED`) até a reabertura (R9) | `backend/internal/obligation/service.go` (`errPeriodClosed`) |
 | Q8 | T-M7-06 | Produção começa na competência corrente do primeiro boot; competências retroativas não são geradas (as pendências anteriores seguem nas planilhas até a resposta) | `docs/operacao.md` §2 (Competência inicial de produção) |
+
+## Situação no fechamento do MVP (T-M7-07, 30/09/2026)
+
+O escritório ainda não respondeu (T-000 aberta). Os oito valores acima continuam provisórios e em uso. Cada um está marcado no código ou na documentação com `A VALIDAR (Qn)`.
+
+Para o projeto ser dado como concluído (AGENTS.md §10.3), cada item precisa de uma destas duas decisões do responsável:
+
+1. **Validar:** registrar a resposta em `docs/decisoes.md` (`prompts/04-registrar-decisoes.md`). O agente então ajusta o seed ou a regra e remove a marca.
+2. **Aceitar como pós-MVP:** entrar em produção com o valor provisório e anotar aqui que o item foi aceito.
+
+As regras de vencimento (Q1) podem ser corrigidas depois, pela tela de Configurações → Regras de vencimento, sem nova versão. Q2 a Q8 exigem alteração de código ou de seed.
