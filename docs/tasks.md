@@ -375,7 +375,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente `CA-003`: o clipboard recebe `00000001000101`; a busca por CNPJ formatado e sem formatação funciona.
 
 ### T-M1-14 — FE: formulário de empresa e inativação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-13
 - **Ref:** PRD §7.1–§7.2, §7.5 · CA-001, CA-002
 - **Arquivos:** `frontend/src/features/companies/CompanyForm.tsx`, `schemas.ts`

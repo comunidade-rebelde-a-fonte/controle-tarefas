@@ -1,4 +1,4 @@
-import { Building2, ExternalLink, MoreHorizontal, Search } from "lucide-react";
+import { Ban, Building2, ExternalLink, MoreHorizontal, Pencil, Plus, Search } from "lucide-react";
 import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
 import { CopyButton, CopyCnpjButton } from "@/components/CopyButton";
@@ -23,6 +23,8 @@ import { formatDate } from "@/lib/format";
 import { MODULE_LABELS, MODULE_SHORT, MODULES, TAX_REGIME_LABELS, TAX_REGIMES, type ModuleCode, type TaxRegime } from "@/lib/labels";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { type Company, type CompanyFilters, useCompanies } from "@/services/companies";
+import { DeactivateCompanyDialog, EditCompanyDialog } from "./CompanyActions";
+import { CompanyFormDialog } from "./CompanyForm";
 
 type StatusFilter = "active" | "inactive" | "all";
 
@@ -56,8 +58,9 @@ function toApiFilters(q: string, status: StatusFilter, regime: string, module: s
   return f;
 }
 
-export function CompaniesPage({ headerActions, emptyState }: { headerActions?: ReactNode; emptyState?: ReactNode }) {
+export function CompaniesPage({ emptyState }: { emptyState?: (openCreate: () => void) => ReactNode }) {
   const { status, regime, module, q, set } = useCompanyFilters();
+  const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState(q);
   const debounced = useDebouncedValue(search, 300);
 
@@ -78,8 +81,13 @@ export function CompaniesPage({ headerActions, emptyState }: { headerActions?: R
       <PageHeader
         title="Empresas"
         description="Cadastro único usado por todos os módulos."
-        actions={headerActions}
+        actions={
+          <Button onClick={() => setCreating(true)}>
+            <Plus aria-hidden /> Nova empresa
+          </Button>
+        }
       />
+      <CompanyFormDialog open={creating} onOpenChange={setCreating} />
       <div className="space-y-4 p-6">
         <div className="flex flex-wrap items-end gap-3" role="search" aria-label="Filtros de empresas">
           <div className="relative w-96">
@@ -148,7 +156,7 @@ export function CompaniesPage({ headerActions, emptyState }: { headerActions?: R
               Nenhuma empresa encontrada para os filtros selecionados.
             </p>
           ) : (
-            emptyState
+            emptyState(() => setCreating(true))
           )
         ) : (
           <CompaniesTable items={data.items} />
@@ -198,6 +206,7 @@ function CompaniesTable({ items }: { items: Company[] }) {
 
 function CompanyRow({ company: c }: { company: Company }) {
   const toast = useToast();
+  const [dialog, setDialog] = useState<"edit" | "deactivate" | null>(null);
   const responsible = c.responsibles.fiscal ?? c.responsibles.accounting ?? c.responsibles.payroll ?? c.responsibles.declarations;
   const copy = async (value: string, what: string) => {
     try {
@@ -269,8 +278,19 @@ function CompanyRow({ company: c }: { company: Company }) {
             <DropdownMenuItem onSelect={() => void copy(c.cnpj.replace(/\D/g, ""), "CNPJ")}>
               <Building2 aria-hidden /> Copiar CNPJ sem máscara
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => setDialog("edit")}>
+              <Pencil aria-hidden /> Editar
+            </DropdownMenuItem>
+            {c.active ? (
+              <DropdownMenuItem onSelect={() => setDialog("deactivate")} className="text-destructive">
+                <Ban aria-hidden /> Inativar
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
+        {dialog === "edit" ? <EditCompanyDialog companyId={c.id} onClose={() => setDialog(null)} /> : null}
+        {dialog === "deactivate" ? <DeactivateCompanyDialog company={c} onClose={() => setDialog(null)} /> : null}
       </Td>
     </tr>
   );
