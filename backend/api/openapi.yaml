@@ -29,6 +29,8 @@ tags:
     description: Calendários e feriados
   - name: settings
     description: Configurações
+  - name: demo
+    description: Dados fictícios de demonstração (somente fora de produção)
 
 paths:
   /health:
@@ -549,6 +551,23 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CredentialThresholds" }
         "400": { $ref: "#/components/responses/BadRequest" }
+
+  /demo/seed:
+    post:
+      tags: [demo]
+      operationId: loadDemoData
+      summary: Carrega as 20 empresas fictícias (idempotente; indisponível em produção)
+      responses:
+        "200":
+          description: Dados carregados
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [companies]
+                properties:
+                  companies: { type: integer, description: "Total de empresas após a carga" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
 components:
   parameters:
