@@ -23,6 +23,27 @@ func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
 func (h *Handler) Routes(r chi.Router) {
 	r.Get("/dashboard", h.dashboard)
 	r.Get("/dashboard/attention", h.attention)
+	r.Get("/dashboard/history", h.history)
+}
+
+func (h *Handler) history(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	c, err := parseCompetence(q, "competence")
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	f, err := parseFilters(q)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	hist, err := h.svc.History(r.Context(), c, f)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, hist)
 }
 
 func (h *Handler) attention(w http.ResponseWriter, r *http.Request) {

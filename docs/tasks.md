@@ -850,7 +850,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA019_ExpiringCertificateInAttention`; cada categoria tem ao menos um caso no seed.
 
 ### T-M5-03 — API de comparação histórica
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-01
 - **Ref:** PRD §24.8
 - **Arquivos:** `backend/internal/dashboard/history.go`

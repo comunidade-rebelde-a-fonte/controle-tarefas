@@ -1165,6 +1165,25 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /dashboard/history:
+    get:
+      tags: [dashboard]
+      operationId: getDashboardHistory
+      summary: Comparação com a competência anterior e série das últimas 6 competências (PRD §24.8)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/DashboardRegimeGroup"
+        - $ref: "#/components/parameters/DashboardTaxRegime"
+        - $ref: "#/components/parameters/DashboardResponsible"
+      responses:
+        "200":
+          description: Comparação histórica
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardHistory" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -2377,6 +2396,42 @@ components:
       properties:
         competence: { $ref: "#/components/schemas/Competence" }
         categories: { type: array, items: { $ref: "#/components/schemas/AttentionCategory" } }
+
+    HistoryPoint:
+      type: object
+      required: [competence, applicable, done, operational_progress, final_completion, overdue, pending]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        applicable: { type: integer }
+        done: { type: integer }
+        operational_progress: { type: number }
+        final_completion: { type: number }
+        overdue: { type: integer, description: "Atrasadas em relação a hoje" }
+        pending: { type: integer }
+
+    DashboardHistory:
+      type: object
+      required: [current, previous, delta, series]
+      properties:
+        current: { $ref: "#/components/schemas/HistoryPoint" }
+        previous:
+          oneOf:
+            - $ref: "#/components/schemas/HistoryPoint"
+            - type: "null"
+        delta:
+          oneOf:
+            - type: object
+              required: [final_completion, operational_progress, overdue, pending]
+              properties:
+                final_completion: { type: number }
+                operational_progress: { type: number }
+                overdue: { type: integer }
+                pending: { type: integer }
+            - type: "null"
+        series:
+          type: array
+          description: Até 6 competências geradas, da mais antiga à selecionada
+          items: { $ref: "#/components/schemas/HistoryPoint" }
 
     UserRole:
       type: string
