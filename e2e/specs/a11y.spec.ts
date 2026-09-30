@@ -262,8 +262,14 @@ test("T-M7-04 teclado na grade: navegar, abrir o menu de status e alterar sem mo
   await page.keyboard.press("Enter");
   await expect(page.getByRole("menu")).toBeVisible();
 
-  // Setas no menu, item a item, até "Fechadas"; Enter confirma.
-  for (const item of ["A iniciar", "Baixadas", "Lançadas", "Fechadas"]) {
+  // O foco entra no menu. Aberto pelo teclado, o Radix pode já focar o primeiro item (depende de
+  // ele ter visto um evento de ponteiro antes); as setas seguem a ordem a partir de onde o foco está.
+  await expect.poll(() => page.evaluate(() => !!document.activeElement?.closest("[role=menu]"))).toBe(true);
+  const order = ["A iniciar", "Baixadas", "Lançadas", "Fechadas"];
+  const start = await page.evaluate(() =>
+    document.activeElement?.getAttribute("role") === "menuitemradio" ? (document.activeElement.textContent ?? "").trim() : "",
+  );
+  for (const item of order.slice(order.indexOf(start) + 1)) {
     await page.keyboard.press("ArrowDown");
     await expect(focusedMenuItem(page)).toHaveText(item);
   }
