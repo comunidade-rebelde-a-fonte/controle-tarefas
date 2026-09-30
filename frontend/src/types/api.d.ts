@@ -450,6 +450,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/obligation-instances/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Instância com os derivados (atraso, final, iniciado) */
+        get: operations["getObligationInstance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/obligation-instances/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera o status (valida conjunto, versão, período e dependências; grava histórico) */
+        patch: operations["changeObligationStatus"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -867,6 +905,62 @@ export interface components {
             companies_processed: number;
             periods_created: number;
             instances_created: number;
+        };
+        Progress: {
+            /** @description Itens aplicáveis que contam no progresso */
+            denominator: number;
+            operational_done: number;
+            final_done: number;
+            /** @description Pendências (status que bloqueiam) */
+            blocking: number;
+            /** @description 0..1 */
+            operational_progress: number;
+            /** @description 0..1 */
+            final_completion: number;
+            ready_to_close: boolean;
+        };
+        ObligationInstance: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            obligation_type: components["schemas"]["ObligationTypeRef"];
+            status_code: string;
+            status_label: string;
+            applicable: boolean;
+            counts_in_progress: boolean;
+            is_final: boolean;
+            is_started: boolean;
+            is_blocking: boolean;
+            /** @description Calculado: aplicável, não final e vencimento efetivo < hoje */
+            is_overdue: boolean;
+            due_date_original: components["schemas"]["Date"] | null;
+            due_date_effective: components["schemas"]["Date"] | null;
+            due_overridden: boolean;
+            due_date_override_reason: string | null;
+            transmission_date: components["schemas"]["Date"] | null;
+            protocol: string | null;
+            has_history: boolean;
+            version: components["schemas"]["Version"];
+            /** Format: date-time */
+            last_changed_at: string | null;
+            last_changed_by: string | null;
+        };
+        RowSummary: {
+            module: string;
+            progress: components["schemas"]["Progress"];
+            overdue: number;
+            nearest_deadline: components["schemas"]["Date"] | null;
+        };
+        StatusChange: {
+            status_code: string;
+            version: components["schemas"]["Version"];
+            /** @description Confirma exceção de dependência SOFT (DCTFWeb) */
+            confirm_exception?: boolean;
+            exception_reason?: string | null;
+        };
+        StatusChangeResult: {
+            instance: components["schemas"]["ObligationInstance"];
+            row: components["schemas"]["RowSummary"];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -1809,6 +1903,76 @@ export interface operations {
                     "application/json": components["schemas"]["EnsureSummary"];
                 };
             };
+        };
+    };
+    getObligationInstance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Instância */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationInstance"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    changeObligationStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StatusChange"];
+            };
+        };
+        responses: {
+            /** @description Instância e agregado da linha atualizados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusChangeResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Conflito de versão (VERSION_CONFLICT) ou pré-requisitos SOFT pendentes (DEPENDENCY_WARNING) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Status inválido, instância não aplicável ou dependência HARD pendente (DEPENDENCY_BLOCKED) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            423: components["responses"]["Locked"];
         };
     };
 }
