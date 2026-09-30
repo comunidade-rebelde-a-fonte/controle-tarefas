@@ -69,3 +69,10 @@ Execute `make help` para a lista completa.
 | API/SPA do E2E | 8091 / 5174 | `E2E_API_PORT` / `E2E_WEB_PORT` |
 
 Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare o outro serviço).
+
+## Dados de referência e demonstração
+
+- `make seed` carrega os dados de referência (conjuntos de status, catálogo de obrigações, feriados nacionais). É idempotente e reaplica os valores do seed.
+- `make seed-demo` carrega também as **20 empresas fictícias** do PRD §37 e os responsáveis de exemplo. Empresas já existentes (mesmo CNPJ) não são alteradas.
+- **Bypass de CNPJ, restrito ao seed:** os CNPJs fictícios do PRD não têm dígitos verificadores válidos. Por isso o seed de demonstração grava as empresas direto no banco, sempre com 14 dígitos. Todo cadastro pela API (tela, importação) continua validando os dígitos verificadores.
+- Valores provisórios (vencimentos, "Sem folha", matriz de declarações, feriados locais) estão marcados `A VALIDAR (Qn)` e listados em `docs/pendencias.md`.

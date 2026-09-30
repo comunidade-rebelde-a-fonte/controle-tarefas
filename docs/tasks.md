@@ -351,7 +351,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** criar um tipo de declaração novo via API faz ele aparecer no catálogo sem migration [§15.2]; testes de validação de payload.
 
 ### T-M1-12 — Seed das 20 empresas fictícias
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-09, T-M1-10
 - **Ref:** PRD §37 · plan M1 (seeds)
 - **Arquivos:** `backend/seed/companies.go`
