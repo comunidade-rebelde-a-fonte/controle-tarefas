@@ -20,7 +20,9 @@ const (
 const NationalCalendarName = "Nacional"
 
 // calendarStep cria o calendário nacional e seus feriados (fixos + móveis pela Páscoa).
-// Calendários de UF e município são criados sob demanda pela tela de feriados (Q7).
+// Calendários de UF e município são criados sob demanda pela tela de feriados.
+// A VALIDAR (Q7): nenhum feriado estadual/municipal no seed até o escritório informar as
+// UFs e municípios da carteira.
 func calendarStep() Step {
 	return Step{Name: "calendar (feriados nacionais)", Run: func(ctx context.Context, tx pgx.Tx, _ clock.Clock) error {
 		var calID string
