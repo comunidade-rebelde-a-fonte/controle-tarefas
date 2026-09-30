@@ -146,7 +146,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `go run ./cmd/api` (no host, com `make db-up`) e `docker compose up api` respondem 200 em `/health`; `/health` retorna 503 com o banco parado; teste unitário do envelope de erro; CORS nega origem não listada.
 
 ### T-M0-04 — Migrations e sqlc
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-02, T-M0-03
 - **Ref:** plan §3, §4 · PRD §42.2
 - **Arquivos:** `backend/migrations/`, `backend/queries/`, `backend/sqlc.yaml`, `Makefile`
