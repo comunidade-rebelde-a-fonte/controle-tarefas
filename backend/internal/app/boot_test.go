@@ -13,7 +13,7 @@ import (
 
 // Critério da T-M2-05: a API iniciada com o relógio em 01/10/2026 cria 10/2026 sem chamada manual.
 func TestBoot_CreatesCurrentCompetenceWithoutManualCall(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

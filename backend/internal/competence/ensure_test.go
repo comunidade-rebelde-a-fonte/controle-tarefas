@@ -73,7 +73,7 @@ func addCompany(t *testing.T, pool *pgxpool.Pool, code, cnpj, start string, end 
 }
 
 func TestCA005_OnlyActiveInServicePeriod(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	ended := "2026-09-30"
 	addCompany(t, pool, "901", "90000000000101", "2025-01-01", nil, false)             // inativa
 	addCompany(t, pool, "902", "90000000000202", "2025-01-01", &ended, true)           // atendimento encerrado antes de 10/2026
@@ -97,7 +97,7 @@ func TestCA005_OnlyActiveInServicePeriod(t *testing.T) {
 }
 
 func TestCA006_DisabledModuleNoInstances(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	e := engine(t, pool)
 	ensure(t, e, "2026-10")
 
@@ -136,7 +136,7 @@ func TestCA006_DisabledModuleNoInstances(t *testing.T) {
 }
 
 func TestCA007_NotApplicableInstanceGeneratedVisible(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	ensure(t, engine(t, pool), "2026-10")
 	status, applicable, _, _ := instance(t, pool, "102", "FISCAL_IPI", "2026-10")
 	if applicable || status != "NOT_APPLICABLE" {
@@ -159,7 +159,7 @@ func TestCA007_NotApplicableInstanceGeneratedVisible(t *testing.T) {
 }
 
 func TestEnsure_DueDatesUseCompanyCalendar(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	// Feriado estadual do PR em 10/11/2026: afeta 101 (Curitiba/PR), não 103 (Joinville/SC).
 	if _, err := pool.Exec(context.Background(), `
 		WITH cal AS (INSERT INTO business_calendars (name, scope, state) VALUES ('UF PR', 'STATE', 'PR') RETURNING id)
@@ -195,7 +195,7 @@ func snapshotCounts(t *testing.T, pool *pgxpool.Pool) counts {
 }
 
 func TestEnsure_IdempotentSequentialAndParallel(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	e := engine(t, pool)
 	first := ensure(t, e, "2026-10")
 	if first.InstancesCreated == 0 || first.PeriodsCreated == 0 {
@@ -242,7 +242,7 @@ func TestEnsure_IdempotentSequentialAndParallel(t *testing.T) {
 }
 
 func TestEnsure_CompanyCreatedAfterGenerationReceivesInstancesOnNextRun(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	e := engine(t, pool)
 	ensure(t, e, "2026-10")
 	before := scalar[string](t, pool, `SELECT md5(string_agg(id::text || status_code || version::text || updated_at::text, ',' ORDER BY id)) FROM obligation_instances`)
@@ -260,7 +260,7 @@ func TestEnsure_CompanyCreatedAfterGenerationReceivesInstancesOnNextRun(t *testi
 }
 
 func TestEnsure_SnapshotPreservesRegimeOfTheCompetence(t *testing.T) {
-	pool := seeded.NewDemoDB(t)
+	pool := seeded.NewCompaniesDB(t)
 	e := engine(t, pool)
 	ensure(t, e, "2025-06")
 	ensure(t, e, "2026-10")
