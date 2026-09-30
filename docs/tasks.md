@@ -289,7 +289,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste verifica que o Simples tem 8 controles fiscais com 7 no progresso [§14.4]; `ESOCIAL` tem 2 contextos; a cadeia contábil tem 5 arestas HARD.
 
 ### T-M1-07 — Seed de feriados nacionais
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-04 · Q7 opcional
 - **Ref:** PRD §21.2, §38.17–§38.18
 - **Arquivos:** `backend/internal/calendar/holidays.go`, `backend/seed/calendar.go`
