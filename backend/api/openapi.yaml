@@ -23,6 +23,12 @@ tags:
     description: Usuários e responsáveis (sem login no MVP)
   - name: companies
     description: Cadastro único de empresas
+  - name: catalog
+    description: Catálogo de obrigações, status e regras de vencimento
+  - name: calendar
+    description: Calendários e feriados
+  - name: settings
+    description: Configurações
 
 paths:
   /health:
@@ -333,6 +339,216 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /obligation-types:
+    get:
+      tags: [catalog]
+      operationId: listObligationTypes
+      summary: Catálogo de obrigações (com contextos, regras por regime e dependências)
+      responses:
+        "200":
+          description: Tipos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationTypeList" }
+    post:
+      tags: [catalog]
+      operationId: createObligationType
+      summary: Cadastra um tipo de obrigação (sem migration)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObligationTypeCreate" }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationType" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /obligation-types/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [catalog]
+      operationId: getObligationType
+      summary: Detalha um tipo
+      responses:
+        "200":
+          description: Tipo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationType" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [catalog]
+      operationId: updateObligationType
+      summary: Altera um tipo (listas enviadas substituem as atuais; vale para as próximas gerações)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObligationTypeUpdate" }
+      responses:
+        "200":
+          description: Atualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationType" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /status-sets:
+    get:
+      tags: [catalog]
+      operationId: listStatusSets
+      summary: Conjuntos de status e metadados
+      responses:
+        "200":
+          description: Conjuntos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusSetList" }
+
+  /due-date-rules:
+    get:
+      tags: [catalog]
+      operationId: listDueDateRules
+      summary: Regras de vencimento
+      responses:
+        "200":
+          description: Regras
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DueDateRuleList" }
+    post:
+      tags: [catalog]
+      operationId: createDueDateRule
+      summary: Cadastra regra de vencimento
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DueDateRuleInput" }
+      responses:
+        "201":
+          description: Criada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DueDateRule" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /due-date-rules/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [catalog]
+      operationId: updateDueDateRule
+      summary: Altera regra de vencimento (exige version)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DueDateRuleInput" }
+      responses:
+        "200":
+          description: Atualizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DueDateRule" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /calendars:
+    get:
+      tags: [calendar]
+      operationId: listCalendars
+      summary: Calendários de feriados (nacional, UF, município)
+      responses:
+        "200":
+          description: Calendários
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CalendarList" }
+
+  /holidays:
+    get:
+      tags: [calendar]
+      operationId: listHolidays
+      summary: Feriados
+      parameters:
+        - { name: calendar_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: year, in: query, schema: { type: integer } }
+      responses:
+        "200":
+          description: Feriados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HolidayList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+    post:
+      tags: [calendar]
+      operationId: createHoliday
+      summary: Cadastra feriado estadual, municipal ou nacional custom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/HolidayInput" }
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Holiday" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /holidays/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    delete:
+      tags: [calendar]
+      operationId: deleteHoliday
+      summary: Exclui feriado configurável (nacionais do seed não podem ser excluídos)
+      responses:
+        "204": { description: Excluído }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /settings/credential-thresholds:
+    get:
+      tags: [settings]
+      operationId: getCredentialThresholds
+      summary: Faixas de validade de procurações e certificados
+      responses:
+        "200":
+          description: Faixas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialThresholds" }
+    put:
+      tags: [settings]
+      operationId: setCredentialThresholds
+      summary: Altera as faixas de validade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialThresholds" }
+      responses:
+        "200":
+          description: Faixas gravadas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialThresholds" }
+        "400": { $ref: "#/components/responses/BadRequest" }
 
 components:
   parameters:
@@ -667,6 +883,227 @@ components:
       properties:
         applicability: { $ref: "#/components/schemas/Applicability" }
         effective_from: { $ref: "#/components/schemas/Competence" }
+
+    DisplayModule:
+      type: string
+      enum: [FISCAL, DECLARATIONS, ACCOUNTING, PAYROLL, DCTFWEB]
+
+    ObligationModule:
+      type: string
+      enum: [FISCAL, DECLARATIONS, ACCOUNTING, PAYROLL]
+
+    DisplayContext:
+      type: object
+      required: [module_code, sort_order]
+      properties:
+        module_code: { $ref: "#/components/schemas/DisplayModule" }
+        sort_order: { type: integer }
+
+    RegimeRule:
+      type: object
+      required: [tax_regime]
+      properties:
+        tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+        default_applicable: { type: boolean }
+        counts_in_progress: { type: boolean }
+
+    Dependency:
+      type: object
+      required: [prerequisite_obligation_type_id, dependency_mode]
+      properties:
+        prerequisite_obligation_type_id: { $ref: "#/components/schemas/Uuid" }
+        prerequisite_code: { type: string, readOnly: true }
+        dependency_mode: { type: string, enum: [HARD, SOFT] }
+
+    ObligationType:
+      type: object
+      required: [id, code, name, primary_module, status_set_code, periodicity, active, sort_order, counts_in_progress,
+                 due_date_rule_id, allows_transmission_date, allows_protocol, initial_status_code, status_when_no_payroll,
+                 is_closing_stage, version, display_contexts, regime_rules, dependencies]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        code: { type: string }
+        name: { type: string }
+        primary_module: { $ref: "#/components/schemas/ObligationModule" }
+        status_set_code: { type: string }
+        periodicity: { type: string, enum: [MONTHLY] }
+        active: { type: boolean }
+        sort_order: { type: integer }
+        counts_in_progress: { type: boolean }
+        due_date_rule_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        allows_transmission_date: { type: boolean }
+        allows_protocol: { type: boolean }
+        initial_status_code: { type: string }
+        status_when_no_payroll: { type: [string, "null"], enum: [NO_MOVEMENT, NOT_APPLICABLE, null] }
+        is_closing_stage: { type: boolean }
+        version: { $ref: "#/components/schemas/Version" }
+        display_contexts: { type: array, items: { $ref: "#/components/schemas/DisplayContext" } }
+        regime_rules: { type: array, items: { $ref: "#/components/schemas/RegimeRule" } }
+        dependencies: { type: array, items: { $ref: "#/components/schemas/Dependency" } }
+
+    ObligationTypeList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ObligationType" } }
+
+    ObligationTypeCreate:
+      type: object
+      additionalProperties: false
+      required: [code, name, primary_module, status_set_code]
+      properties:
+        code: { type: string, description: "Maiúsculas, dígitos e _" }
+        name: { type: string }
+        primary_module: { $ref: "#/components/schemas/ObligationModule" }
+        status_set_code: { type: string }
+        sort_order: { type: integer }
+        active: { type: boolean }
+        counts_in_progress: { type: boolean }
+        due_date_rule_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        allows_transmission_date: { type: boolean }
+        allows_protocol: { type: boolean }
+        initial_status_code: { type: string }
+        status_when_no_payroll: { type: [string, "null"], enum: [NO_MOVEMENT, NOT_APPLICABLE, null] }
+        display_contexts: { type: array, items: { $ref: "#/components/schemas/DisplayContext" } }
+        regime_rules: { type: array, items: { $ref: "#/components/schemas/RegimeRule" } }
+        dependencies: { type: array, items: { $ref: "#/components/schemas/Dependency" } }
+
+    ObligationTypeUpdate:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        name: { type: string }
+        active: { type: boolean }
+        sort_order: { type: integer }
+        counts_in_progress: { type: boolean }
+        due_date_rule_id: { $ref: "#/components/schemas/Uuid" }
+        clear_due_date_rule: { type: boolean }
+        allows_transmission_date: { type: boolean }
+        allows_protocol: { type: boolean }
+        initial_status_code: { type: string }
+        status_when_no_payroll: { type: string, enum: [NO_MOVEMENT, NOT_APPLICABLE, NONE] }
+        display_contexts: { type: array, items: { $ref: "#/components/schemas/DisplayContext" } }
+        regime_rules: { type: array, items: { $ref: "#/components/schemas/RegimeRule" } }
+        dependencies: { type: array, items: { $ref: "#/components/schemas/Dependency" } }
+
+    StatusDefinition:
+      type: object
+      required: [code, label, sort_order, counts_as_started, counts_as_operational_progress, is_final, is_blocking, excluded_from_denominator]
+      properties:
+        code: { type: string }
+        label: { type: string }
+        sort_order: { type: integer }
+        counts_as_started: { type: boolean }
+        counts_as_operational_progress: { type: boolean }
+        is_final: { type: boolean }
+        is_blocking: { type: boolean }
+        excluded_from_denominator: { type: boolean }
+
+    StatusSet:
+      type: object
+      required: [id, code, name, statuses]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        code: { type: string }
+        name: { type: string }
+        statuses: { type: array, items: { $ref: "#/components/schemas/StatusDefinition" } }
+
+    StatusSetList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/StatusSet" } }
+
+    DueDateRule:
+      type: object
+      required: [id, name, month_offset, base_day, day_type, non_business_day_adjustment, calendar_id, notes, version]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+        month_offset: { type: integer, minimum: 0, maximum: 12 }
+        base_day: { type: integer, minimum: 1, maximum: 31 }
+        day_type: { type: string, enum: [CALENDAR, BUSINESS] }
+        non_business_day_adjustment: { type: string, enum: [PREVIOUS, NEXT, NONE] }
+        calendar_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        notes: { type: [string, "null"] }
+        version: { $ref: "#/components/schemas/Version" }
+
+    DueDateRuleList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/DueDateRule" } }
+
+    DueDateRuleInput:
+      type: object
+      additionalProperties: false
+      required: [name, month_offset, base_day, day_type, non_business_day_adjustment]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        name: { type: string }
+        month_offset: { type: integer, minimum: 0, maximum: 12 }
+        base_day: { type: integer, minimum: 1, maximum: 31 }
+        day_type: { type: string, enum: [CALENDAR, BUSINESS] }
+        non_business_day_adjustment: { type: string, enum: [PREVIOUS, NEXT, NONE] }
+        calendar_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        notes: { type: [string, "null"] }
+
+    Calendar:
+      type: object
+      required: [id, name, scope, state, city, holiday_count]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+        scope: { type: string, enum: [NATIONAL, STATE, MUNICIPAL] }
+        state: { type: [string, "null"] }
+        city: { type: [string, "null"] }
+        holiday_count: { type: integer }
+
+    CalendarList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Calendar" } }
+
+    Holiday:
+      type: object
+      required: [id, calendar_id, calendar_name, date, name, scope]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        calendar_id: { $ref: "#/components/schemas/Uuid" }
+        calendar_name: { type: string }
+        date: { $ref: "#/components/schemas/Date" }
+        name: { type: string }
+        scope: { type: string, enum: [NATIONAL, STATE, MUNICIPAL, CUSTOM] }
+
+    HolidayList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Holiday" } }
+
+    HolidayInput:
+      type: object
+      additionalProperties: false
+      required: [scope, date, name]
+      properties:
+        scope: { type: string, enum: [NATIONAL, STATE, MUNICIPAL] }
+        state: { type: [string, "null"] }
+        city: { type: [string, "null"] }
+        date: { $ref: "#/components/schemas/Date" }
+        name: { type: string }
+
+    CredentialThresholds:
+      type: object
+      additionalProperties: false
+      required: [days]
+      properties:
+        days:
+          type: array
+          description: Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60)
+          items: { type: integer, minimum: 1, maximum: 365 }
 
     UserRole:
       type: string

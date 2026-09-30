@@ -218,6 +218,170 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/obligation-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Catálogo de obrigações (com contextos, regras por regime e dependências) */
+        get: operations["listObligationTypes"];
+        put?: never;
+        /** Cadastra um tipo de obrigação (sem migration) */
+        post: operations["createObligationType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/obligation-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Detalha um tipo */
+        get: operations["getObligationType"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera um tipo (listas enviadas substituem as atuais; vale para as próximas gerações) */
+        patch: operations["updateObligationType"];
+        trace?: never;
+    };
+    "/status-sets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conjuntos de status e metadados */
+        get: operations["listStatusSets"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/due-date-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Regras de vencimento */
+        get: operations["listDueDateRules"];
+        put?: never;
+        /** Cadastra regra de vencimento */
+        post: operations["createDueDateRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/due-date-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera regra de vencimento (exige version) */
+        patch: operations["updateDueDateRule"];
+        trace?: never;
+    };
+    "/calendars": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calendários de feriados (nacional, UF, município) */
+        get: operations["listCalendars"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Feriados */
+        get: operations["listHolidays"];
+        put?: never;
+        /** Cadastra feriado estadual, municipal ou nacional custom */
+        post: operations["createHoliday"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/holidays/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Exclui feriado configurável (nacionais do seed não podem ser excluídos) */
+        delete: operations["deleteHoliday"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/credential-thresholds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Faixas de validade de procurações e certificados */
+        get: operations["getCredentialThresholds"];
+        /** Altera as faixas de validade */
+        put: operations["setCredentialThresholds"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -449,6 +613,170 @@ export interface components {
         ObligationOverrideChange: {
             applicability: components["schemas"]["Applicability"];
             effective_from: components["schemas"]["Competence"];
+        };
+        /** @enum {string} */
+        DisplayModule: "FISCAL" | "DECLARATIONS" | "ACCOUNTING" | "PAYROLL" | "DCTFWEB";
+        /** @enum {string} */
+        ObligationModule: "FISCAL" | "DECLARATIONS" | "ACCOUNTING" | "PAYROLL";
+        DisplayContext: {
+            module_code: components["schemas"]["DisplayModule"];
+            sort_order: number;
+        };
+        RegimeRule: {
+            tax_regime: components["schemas"]["TaxRegime"];
+            default_applicable?: boolean;
+            counts_in_progress?: boolean;
+        };
+        Dependency: {
+            prerequisite_obligation_type_id: components["schemas"]["Uuid"];
+            readonly prerequisite_code?: string;
+            /** @enum {string} */
+            dependency_mode: "HARD" | "SOFT";
+        };
+        ObligationType: {
+            id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            primary_module: components["schemas"]["ObligationModule"];
+            status_set_code: string;
+            /** @enum {string} */
+            periodicity: "MONTHLY";
+            active: boolean;
+            sort_order: number;
+            counts_in_progress: boolean;
+            due_date_rule_id: components["schemas"]["Uuid"] | null;
+            allows_transmission_date: boolean;
+            allows_protocol: boolean;
+            initial_status_code: string;
+            /** @enum {string|null} */
+            status_when_no_payroll: "NO_MOVEMENT" | "NOT_APPLICABLE" | null;
+            is_closing_stage: boolean;
+            version: components["schemas"]["Version"];
+            display_contexts: components["schemas"]["DisplayContext"][];
+            regime_rules: components["schemas"]["RegimeRule"][];
+            dependencies: components["schemas"]["Dependency"][];
+        };
+        ObligationTypeList: {
+            items: components["schemas"]["ObligationType"][];
+        };
+        ObligationTypeCreate: {
+            /** @description Maiúsculas, dígitos e _ */
+            code: string;
+            name: string;
+            primary_module: components["schemas"]["ObligationModule"];
+            status_set_code: string;
+            sort_order?: number;
+            active?: boolean;
+            counts_in_progress?: boolean;
+            due_date_rule_id?: components["schemas"]["Uuid"] | null;
+            allows_transmission_date?: boolean;
+            allows_protocol?: boolean;
+            initial_status_code?: string;
+            /** @enum {string|null} */
+            status_when_no_payroll?: "NO_MOVEMENT" | "NOT_APPLICABLE" | null;
+            display_contexts?: components["schemas"]["DisplayContext"][];
+            regime_rules?: components["schemas"]["RegimeRule"][];
+            dependencies?: components["schemas"]["Dependency"][];
+        };
+        ObligationTypeUpdate: {
+            version: components["schemas"]["Version"];
+            name?: string;
+            active?: boolean;
+            sort_order?: number;
+            counts_in_progress?: boolean;
+            due_date_rule_id?: components["schemas"]["Uuid"];
+            clear_due_date_rule?: boolean;
+            allows_transmission_date?: boolean;
+            allows_protocol?: boolean;
+            initial_status_code?: string;
+            /** @enum {string} */
+            status_when_no_payroll?: "NO_MOVEMENT" | "NOT_APPLICABLE" | "NONE";
+            display_contexts?: components["schemas"]["DisplayContext"][];
+            regime_rules?: components["schemas"]["RegimeRule"][];
+            dependencies?: components["schemas"]["Dependency"][];
+        };
+        StatusDefinition: {
+            code: string;
+            label: string;
+            sort_order: number;
+            counts_as_started: boolean;
+            counts_as_operational_progress: boolean;
+            is_final: boolean;
+            is_blocking: boolean;
+            excluded_from_denominator: boolean;
+        };
+        StatusSet: {
+            id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            statuses: components["schemas"]["StatusDefinition"][];
+        };
+        StatusSetList: {
+            items: components["schemas"]["StatusSet"][];
+        };
+        DueDateRule: {
+            id: components["schemas"]["Uuid"];
+            name: string;
+            month_offset: number;
+            base_day: number;
+            /** @enum {string} */
+            day_type: "CALENDAR" | "BUSINESS";
+            /** @enum {string} */
+            non_business_day_adjustment: "PREVIOUS" | "NEXT" | "NONE";
+            calendar_id: components["schemas"]["Uuid"] | null;
+            notes: string | null;
+            version: components["schemas"]["Version"];
+        };
+        DueDateRuleList: {
+            items: components["schemas"]["DueDateRule"][];
+        };
+        DueDateRuleInput: {
+            version?: components["schemas"]["Version"];
+            name: string;
+            month_offset: number;
+            base_day: number;
+            /** @enum {string} */
+            day_type: "CALENDAR" | "BUSINESS";
+            /** @enum {string} */
+            non_business_day_adjustment: "PREVIOUS" | "NEXT" | "NONE";
+            calendar_id?: components["schemas"]["Uuid"] | null;
+            notes?: string | null;
+        };
+        Calendar: {
+            id: components["schemas"]["Uuid"];
+            name: string;
+            /** @enum {string} */
+            scope: "NATIONAL" | "STATE" | "MUNICIPAL";
+            state: string | null;
+            city: string | null;
+            holiday_count: number;
+        };
+        CalendarList: {
+            items: components["schemas"]["Calendar"][];
+        };
+        Holiday: {
+            id: components["schemas"]["Uuid"];
+            calendar_id: components["schemas"]["Uuid"];
+            calendar_name: string;
+            date: components["schemas"]["Date"];
+            name: string;
+            /** @enum {string} */
+            scope: "NATIONAL" | "STATE" | "MUNICIPAL" | "CUSTOM";
+        };
+        HolidayList: {
+            items: components["schemas"]["Holiday"][];
+        };
+        HolidayInput: {
+            /** @enum {string} */
+            scope: "NATIONAL" | "STATE" | "MUNICIPAL";
+            state?: string | null;
+            city?: string | null;
+            date: components["schemas"]["Date"];
+            name: string;
+        };
+        CredentialThresholds: {
+            /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
+            days: number[];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -977,6 +1305,336 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["Unprocessable"];
+        };
+    };
+    listObligationTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tipos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationTypeList"];
+                };
+            };
+        };
+    };
+    createObligationType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObligationTypeCreate"];
+            };
+        };
+        responses: {
+            /** @description Criado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationType"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getObligationType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Tipo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationType"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateObligationType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObligationTypeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Atualizado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationType"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listStatusSets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conjuntos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatusSetList"];
+                };
+            };
+        };
+    };
+    listDueDateRules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regras */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueDateRuleList"];
+                };
+            };
+        };
+    };
+    createDueDateRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DueDateRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Criada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueDateRule"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    updateDueDateRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DueDateRuleInput"];
+            };
+        };
+        responses: {
+            /** @description Atualizada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueDateRule"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listCalendars: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Calendários */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarList"];
+                };
+            };
+        };
+    };
+    listHolidays: {
+        parameters: {
+            query?: {
+                calendar_id?: components["schemas"]["Uuid"];
+                year?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Feriados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HolidayList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    createHoliday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayInput"];
+            };
+        };
+        responses: {
+            /** @description Criado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Holiday"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    deleteHoliday: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Excluído */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+        };
+    };
+    getCredentialThresholds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Faixas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialThresholds"];
+                };
+            };
+        };
+    };
+    setCredentialThresholds: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialThresholds"];
+            };
+        };
+        responses: {
+            /** @description Faixas gravadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialThresholds"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
         };
     };
 }

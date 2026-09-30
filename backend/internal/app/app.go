@@ -9,10 +9,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"controle/internal/calendar"
+	"controle/internal/catalog"
 	"controle/internal/company"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
+	"controle/internal/platform/settings"
 	"controle/internal/user"
 )
 
@@ -39,6 +42,9 @@ func NewRouter(d Deps) http.Handler {
 		api.Get("/health", httpx.Health(d.Pool))
 		user.NewHandler(d.Pool).Routes(api)
 		company.NewHandler(company.NewService(d.Pool, d.Clock)).Routes(api)
+		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
+		calendar.NewHandler(d.Pool).Routes(api)
+		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
 	})
 	return r
 }
