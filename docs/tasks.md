@@ -1040,7 +1040,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** zero violações `serious`/`critical` no axe.
 
 ### T-M7-05 — Checklist de segurança
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-08, T-M6-03
 - **Ref:** PRD §45.3 · RN-018
 - **Arquivos:** `docs/seguranca.md`

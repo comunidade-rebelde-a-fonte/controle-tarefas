@@ -48,7 +48,7 @@ SEED ?= 42
 E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench
+.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -128,6 +128,11 @@ test-backend:
 
 test-frontend:
 	cd frontend && npm test
+
+audit: ## Vulnerabilidades conhecidas: govulncheck (Go) e npm audit (frontend e e2e) [docs/seguranca.md]
+	cd backend && $(BIN)/govulncheck ./...
+	cd frontend && npm audit --audit-level=high
+	cd e2e && npm audit --audit-level=high
 
 db-clean: ## Recria vazio o schema de controle_e2e ou controle_perf (DB=e2e|perf) e aplica as migrations
 	@if [ "$(DB)" = "dev" ]; then echo "db-clean não se aplica ao banco de dev; use make db-reset"; exit 1; fi

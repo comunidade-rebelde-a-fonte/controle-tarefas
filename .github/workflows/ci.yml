@@ -16,6 +16,7 @@ permissions:
 env:
   GOLANGCI_LINT_VERSION: v2.14.0
   SQLC_VERSION: v1.31.1
+  GOVULNCHECK_VERSION: v1.8.0
 
 jobs:
   backend-lint:
@@ -58,6 +59,28 @@ jobs:
       - name: go test
         working-directory: backend
         run: go test -count=1 ./...
+
+  audit:
+    name: Vulnerabilidades conhecidas (govulncheck e npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: govulncheck
+        working-directory: backend
+        run: |
+          GOBIN="$PWD/../.bin" go install golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}
+          ../.bin/govulncheck ./...
+      - name: npm audit (frontend e e2e, severidade alta ou maior)
+        run: |
+          (cd frontend && npm audit --audit-level=high)
+          (cd e2e && npm audit --audit-level=high)
 
   frontend:
     name: Frontend — lint, tipos, testes e build
