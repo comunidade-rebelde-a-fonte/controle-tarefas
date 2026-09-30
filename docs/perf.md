@@ -174,3 +174,42 @@ Pontos de atenção para a T-M7-02 (otimização de consultas), sem meta violada
 - **Backlog:** é a leitura mais cara, com cerca de 230 ms. O plano faz *nested loop* sobre `v_obligation_instances` com todas as competências anteriores e até ~300 ms de *planning* (medido com a máquina carregada). É o mais sensível a estatísticas desatualizadas e à carga da máquina.
 - **bulk-status:** faz duas instruções por item (UPDATE + histórico) em sequência na transação. São cerca de 110 ms para 300 itens em condições normais, mas escala com a latência do banco: chegou a 4 a 7 s com a máquina saturada. Agrupar em `pgx.Batch` ou num UPDATE/INSERT por conjunto é a otimização natural.
 - **Bundle do frontend:** o chunk único de JS acima de 500 kB (aviso do Vite) continua. Não pesa na meta: a carga fria da SPA mais a grade fica abaixo de 0,35 s.
+
+## Otimização de consultas — 30/09/2026 (T-M7-02)
+
+**Massa:** 300 empresas × 12 competências (`make perf-generate COMPETENCES=12`). O `loadgen` passou a gravar o histórico de cada status aplicado, como numa alteração real: são 85.883 linhas em `obligation_status_history`. Sem esse volume, os planos escondiam o custo das consultas que leem o histórico.
+
+**Método:** `EXPLAIN (ANALYZE, BUFFERS)` de cada consulta crítica (grade, dashboard, atenção, histórico, backlog e histórico da empresa), com os parâmetros reais da competência 09/2026, antes e depois de cada mudança. Os tempos abaixo são do banco. As varreduras sequenciais que restam são em tabelas pequenas de catálogo (`obligation_types`, `status_definitions`, `users`, `competencies`) e nos snapshots (3.600 linhas), onde o hash join lendo tudo é a escolha certa do planejador. Nenhuma varredura sequencial resta em `obligation_instances` (93.540 linhas), `obligation_status_history` (85.883), `company_module_periods` (13.008) ou `company_module_period_events`.
+
+| Consulta | Antes | Depois | Mudança |
+|---|---|---|---|
+| GridCells (Fiscal simples) | 19,9 ms, seq scan no histórico | 9,7 ms | `has_history` por `LEFT JOIN LATERAL … LIMIT 1` no índice do histórico; o `EXISTS` na lista de colunas virava uma "hashed SubPlan" que lia o histórico inteiro |
+| DashboardPreviousOpenCompanies | 10,1 ms | 6,8 ms | índice parcial `company_module_periods_open_idx` (`WHERE state = 'OPEN'`, migration 0017) |
+| AttentionPreviousOpen | 9,7 ms | 5,6 ms | idem |
+| Backlog (competências anteriores) | 76 ms, seq scan nos períodos | 78 ms, sem seq scan nos períodos | idem; o custo restante é ler as competências anteriores, o que é inerente à consulta |
+
+**Plano genérico × plano com os valores (a maior diferença):** pela API, o backlog levava 200 ms e o histórico 81 ms, contra 75 ms e 32 ms no banco. A causa: o pgx prepara e reutiliza as consultas, e o PostgreSQL passa a um plano genérico depois de algumas execuções. Nas consultas com filtros opcionais (`$n IS NULL OR …`), esse plano é 2 a 4 vezes mais lento; com `plan_cache_mode = force_generic_plan`, o backlog vai a 283 ms e o histórico a 104 ms. O pool agora abre as conexões com `plan_cache_mode = force_custom_plan` (`internal/platform/db`, com teste).
+
+**Tentativa descartada:** pré-filtrar o backlog pelos códigos de status não finais, com um índice parcial `(status_code, competence_id)`. No mínimo de 5 execuções ficou pior (93 ms contra 71 ms), e a mudança foi revertida.
+
+### API depois da otimização (`make perf-bench BENCH_ARGS="-iterations 30 -patches 200 -bulks 10"`, com o mutex)
+
+| Medição | Linhas/itens | Tamanho (gzip) | n | p50 | p95 | máx | p50 da T-M7-01 |
+|---|---|---|---|---|---|---|---|
+| GET grade Fiscal simples | 179 | 81 KB | 30 | 22 ms | 24 ms | 25 ms | 17 ms |
+| GET grade Fiscal normal | 121 | 76 KB | 30 | 19 ms | 20 ms | 22 ms | 15 ms |
+| GET grade Declarações | 300 | 92 KB | 30 | 23 ms | 24 ms | 25 ms | 20 ms |
+| GET grade Folha | 257 | 60 KB | 30 | 15 ms | 16 ms | 16 ms | 15 ms |
+| GET grade Contábil | 227 | 81 KB | 30 | 19 ms | 21 ms | 21 ms | 16 ms |
+| GET grade DCTFWeb | 300 | 81 KB | 30 | 22 ms | 24 ms | 25 ms | 18 ms |
+| GET dashboard | — | 1 KB | 30 | 20 ms | 24 ms | 28 ms | 47 ms |
+| GET dashboard/attention | 11 categorias | 1 KB | 30 | 45 ms | 50 ms | 52 ms | 39 ms |
+| GET dashboard/history | — | < 1 KB | 30 | 19 ms | 20 ms | 20 ms | 93 ms |
+| GET backlog (página de 100) | 100 de 10.602 | 7 KB | 30 | 59 ms | 68 ms | 101 ms | 226 ms |
+| GET backlog (página de 500) | 500 de 10.602 | 33 KB | 30 | 60 ms | 73 ms | 77 ms | 239 ms |
+| GET exportação XLSX (6 grades) | — | 31–51 KB | 30 | 18–28 ms | 19–29 ms | 19–30 ms | 16–26 ms |
+| PATCH status (com agregado da linha) | — | — | 200 | 2 ms | 3 ms | 6 ms | 2 ms |
+| POST bulk-status (300 itens) | 300 | — | 10 | 123 ms | 136 ms | 136 ms | 106 ms |
+
+As grades ficaram alguns milissegundos mais lentas porque agora há histórico real e cada consulta é planejada com os valores; seguem em cerca de 20 ms, contra a meta de ~2 s. O dashboard, o histórico e o backlog ficaram 2 a 4 vezes mais rápidos. Todas as metas (grades ≤ ~2 s, PATCH p95 < 200 ms, `ensure` < 10 s) continuam atendidas.
+

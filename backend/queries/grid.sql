@@ -72,12 +72,17 @@ SELECT v.id, v.company_id, v.obligation_type_id, t.code AS type_code, t.name AS 
        v.due_date_original, v.due_date_effective, v.due_date_override_reason, v.transmission_date, v.protocol,
        v.version, v.last_changed_at, u.name AS last_changed_by_name,
        COALESCE(p.state, 'OPEN')::text AS period_state,
-       EXISTS (SELECT 1 FROM obligation_status_history h WHERE h.obligation_instance_id = v.id) AS has_history
+       COALESCE(hh.has, false)::boolean AS has_history
 FROM v_obligation_instances v
 JOIN obligation_types t ON t.id = v.obligation_type_id
 LEFT JOIN users u ON u.id = v.last_changed_by
 LEFT JOIN company_module_periods p
        ON p.company_id = v.company_id AND p.competence_id = v.competence_id AND p.module_code = t.primary_module
+-- Indicador de histórico por célula via índice (um EXISTS na lista de colunas vira uma
+-- "hashed SubPlan" que lê o histórico inteiro) [T-M7-02].
+LEFT JOIN LATERAL (
+    SELECT true AS has FROM obligation_status_history h WHERE h.obligation_instance_id = v.id LIMIT 1
+) hh ON true
 WHERE v.competence_id = sqlc.arg('competence_id')
   AND v.company_id = ANY (sqlc.arg('company_ids')::uuid[])
   AND (v.obligation_type_id = ANY (sqlc.arg('type_ids')::uuid[]) OR t.primary_module = sqlc.arg('period_module'));
