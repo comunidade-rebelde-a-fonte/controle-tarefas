@@ -41,7 +41,7 @@ async function prepare(request: APIRequestContext): Promise<string> {
   return competence;
 }
 
-test("UC-02 filtra, altera status inline, vê o progresso mudar e fecha a empresa pronta", async ({ page, request }) => {
+test("UC-02 / CA-014 filtra, altera status inline, vê o progresso mudar e fecha a empresa pronta", async ({ page, request }) => {
   const competence = await prepare(request);
 
   await page.goto(`/fiscal?competence=${competence}`);
