@@ -420,7 +420,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M2 — Motor operacional
 
 ### T-M2-01 — Motor de vencimento
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-03, T-M1-07
 - **Ref:** PRD §21.1–§21.2, §38.16 · §53.1 (vencimento, dia útil)
 - **Arquivos:** `backend/internal/calendar/duedate.go`, `duedate_test.go`
