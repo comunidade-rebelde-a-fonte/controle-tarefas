@@ -160,7 +160,10 @@ func headerRows(doc Document) []core.Row {
 	if len(doc.Filters) > 0 {
 		parts := make([]string, len(doc.Filters))
 		for i, f := range doc.Filters {
-			parts[i] = f.Label + ": " + f.Value
+			parts[i] = f.Label
+			if f.Value != "" { // filtros de marcar (ex.: "Somente atrasadas") não têm valor
+				parts[i] += ": " + f.Value
+			}
 		}
 		filters = "Filtros: " + strings.Join(parts, "   ·   ")
 	}

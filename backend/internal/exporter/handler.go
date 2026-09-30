@@ -45,8 +45,8 @@ var fixedModules = map[string]struct {
 	"dctfweb":      {"DCTFWeb", grid.DctfwebSpec},
 }
 
-// resolve devolve a grade do módulo (Fiscal exige group=normal|simples).
-func resolve(module, group string) (grid.Spec, string, error) {
+// Resolve devolve a grade e o rótulo do módulo (Fiscal exige group=normal|simples).
+func Resolve(module, group string) (grid.Spec, string, error) {
 	if module == "fiscal" {
 		spec, err := grid.FiscalSpec(group)
 		if err != nil {
@@ -74,7 +74,7 @@ func (h *Handler) export(w http.ResponseWriter, r *http.Request) {
 	}
 	q := r.URL.Query()
 	group := strings.ToLower(q.Get("group"))
-	spec, label, err := resolve(module, group)
+	spec, label, err := Resolve(module, group)
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return
@@ -104,7 +104,7 @@ func (h *Handler) export(w http.ResponseWriter, r *http.Request) {
 	meta := Meta{
 		ModuleLabel: label,
 		Competence:  c.Display(),
-		Filters:     h.describeFilters(r.Context(), q, g),
+		Filters:     DescribeFilters(r.Context(), h.q, q, g),
 		GeneratedAt: h.clock.Now().In(h.clock.Location()),
 	}
 	data, err := XLSX(g, rows, meta)
@@ -124,15 +124,16 @@ func (h *Handler) export(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(data)
 }
 
-// describeFilters traduz os filtros aplicados para o cabeçalho da planilha.
-func (h *Handler) describeFilters(ctx context.Context, q url.Values, g grid.Grid) []string {
+// DescribeFilters traduz os filtros da grade aplicados (inclusive a busca q) para o
+// cabeçalho da planilha ou do relatório.
+func DescribeFilters(ctx context.Context, db *store.Queries, q url.Values, g grid.Grid) []string {
 	var out []string
 	if v := q.Get("tax_regime"); v != "" {
 		out = append(out, "Regime: "+regimeLabels[strings.ToUpper(v)])
 	}
 	if v := q.Get("responsible_id"); v != "" {
 		name := v
-		if u, err := h.q.GetUser(ctx, v); err == nil {
+		if u, err := db.GetUser(ctx, v); err == nil {
 			name = u.Name
 		}
 		out = append(out, "Responsável: "+name)
