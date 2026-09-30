@@ -553,7 +553,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** override sem motivo → `422`; o histórico lista a mudança de vencimento e a de status.
 
 ### T-M2-12 — Alteração em massa
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-09, T-M2-10
 - **Ref:** PRD §26.3, §41.7 · CA-016
 - **Arquivos:** `backend/internal/obligation/bulk.go`

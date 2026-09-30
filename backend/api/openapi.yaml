@@ -609,6 +609,29 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/EnsureSummary" }
 
+  /obligation-instances/bulk-status:
+    post:
+      tags: [obligations]
+      operationId: bulkChangeObligationStatus
+      summary: Aplica o mesmo status a várias instâncias; itens bloqueados são pulados com motivo (CA-016)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BulkStatusChange" }
+      responses:
+        "200":
+          description: Resultado do lote (ou simulação, com dry_run)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BulkStatusResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409":
+          description: Há pré-requisitos SOFT pendentes e a exceção não foi confirmada (DEPENDENCY_WARNING)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
   /obligation-instances/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -1346,6 +1369,57 @@ components:
         version: { $ref: "#/components/schemas/Version" }
         confirm_exception: { type: boolean, description: "Confirma exceção de dependência SOFT (DCTFWeb)" }
         exception_reason: { type: [string, "null"] }
+
+    BulkStatusChange:
+      type: object
+      additionalProperties: false
+      required: [status_code]
+      description: Informe instance_ids ou target (exatamente um).
+      properties:
+        instance_ids:
+          type: array
+          maxItems: 5000
+          items: { type: string, format: uuid }
+        target:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [competence, obligation_type_id, company_ids]
+          properties:
+            competence: { $ref: "#/components/schemas/Competence" }
+            obligation_type_id: { type: string, format: uuid }
+            company_ids:
+              type: array
+              minItems: 1
+              maxItems: 2000
+              items: { type: string, format: uuid }
+        status_code: { type: string }
+        dry_run: { type: boolean, description: "Só calcula o resultado, sem gravar" }
+        confirm_exception: { type: boolean, description: "Confirma exceção de dependência SOFT para o lote" }
+        exception_reason: { type: [string, "null"] }
+
+    BulkStatusSkipped:
+      type: object
+      required: [id, company_code, company_name, reason, message]
+      properties:
+        id: { type: string, format: uuid }
+        company_code: { type: string }
+        company_name: { type: string }
+        reason:
+          type: string
+          enum: [PERIOD_CLOSED, NOT_APPLICABLE, DEPENDENCY_BLOCKED, INVALID_STATUS, UNCHANGED]
+        message: { type: string }
+
+    BulkStatusResult:
+      type: object
+      required: [dry_run, selected, updated, skipped, soft_warnings]
+      properties:
+        dry_run: { type: boolean }
+        selected: { type: integer }
+        updated: { type: integer, description: "Instâncias alteradas (ou que seriam, com dry_run)" }
+        skipped:
+          type: array
+          items: { $ref: "#/components/schemas/BulkStatusSkipped" }
+        soft_warnings: { type: integer, description: "Instâncias com pré-requisitos SOFT pendentes" }
 
     StatusChangeResult:
       type: object

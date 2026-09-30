@@ -61,6 +61,59 @@ func (q *Queries) CompanyCompetenceInstances(ctx context.Context, arg CompanyCom
 	return items, nil
 }
 
+const companyInstancesForDependencies = `-- name: CompanyInstancesForDependencies :many
+SELECT v.company_id, v.obligation_type_id, v.type_code, t.name AS type_name, v.status_code, v.applicable, v.is_final, v.type_sort_order
+FROM v_obligation_instances v
+JOIN obligation_types t ON t.id = v.obligation_type_id
+WHERE v.competence_id = $1::uuid AND v.company_id = ANY ($2::uuid[])
+`
+
+type CompanyInstancesForDependenciesParams struct {
+	CompetenceID string
+	CompanyIds   []string
+}
+
+type CompanyInstancesForDependenciesRow struct {
+	CompanyID        string
+	ObligationTypeID string
+	TypeCode         string
+	TypeName         string
+	StatusCode       string
+	Applicable       bool
+	IsFinal          bool
+	TypeSortOrder    int32
+}
+
+// Instâncias das empresas informadas em uma competência (estado de dependências em lote).
+func (q *Queries) CompanyInstancesForDependencies(ctx context.Context, arg CompanyInstancesForDependenciesParams) ([]CompanyInstancesForDependenciesRow, error) {
+	rows, err := q.db.Query(ctx, companyInstancesForDependencies, arg.CompetenceID, arg.CompanyIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CompanyInstancesForDependenciesRow{}
+	for rows.Next() {
+		var i CompanyInstancesForDependenciesRow
+		if err := rows.Scan(
+			&i.CompanyID,
+			&i.ObligationTypeID,
+			&i.TypeCode,
+			&i.TypeName,
+			&i.StatusCode,
+			&i.Applicable,
+			&i.IsFinal,
+			&i.TypeSortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInstanceForUpdate = `-- name: GetInstanceForUpdate :one
 
 SELECT i.id, i.company_id, i.competence_id, i.obligation_type_id, i.status_code, i.applicable,
@@ -228,6 +281,74 @@ func (q *Queries) GetInstanceView(ctx context.Context, id string) (GetInstanceVi
 	return i, err
 }
 
+const getInstancesForUpdate = `-- name: GetInstancesForUpdate :many
+SELECT i.id, i.company_id, i.competence_id, i.obligation_type_id, i.status_code, i.applicable, i.version,
+       t.code AS type_code, t.name AS type_name, t.primary_module, t.status_set_id,
+       c.internal_code AS company_code, c.legal_name AS company_name,
+       COALESCE(p.state, 'OPEN')::text AS period_state
+FROM obligation_instances i
+JOIN obligation_types t ON t.id = i.obligation_type_id
+JOIN companies c ON c.id = i.company_id
+LEFT JOIN company_module_periods p
+       ON p.company_id = i.company_id AND p.competence_id = i.competence_id AND p.module_code = t.primary_module
+WHERE i.id = ANY ($1::uuid[])
+ORDER BY c.internal_code
+FOR UPDATE OF i
+`
+
+type GetInstancesForUpdateRow struct {
+	ID               string
+	CompanyID        string
+	CompetenceID     string
+	ObligationTypeID string
+	StatusCode       string
+	Applicable       bool
+	Version          int32
+	TypeCode         string
+	TypeName         string
+	PrimaryModule    string
+	StatusSetID      string
+	CompanyCode      string
+	CompanyName      string
+	PeriodState      string
+}
+
+// Instâncias do lote travadas, com empresa, tipo e estado do período do módulo.
+func (q *Queries) GetInstancesForUpdate(ctx context.Context, ids []string) ([]GetInstancesForUpdateRow, error) {
+	rows, err := q.db.Query(ctx, getInstancesForUpdate, ids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []GetInstancesForUpdateRow{}
+	for rows.Next() {
+		var i GetInstancesForUpdateRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.CompanyID,
+			&i.CompetenceID,
+			&i.ObligationTypeID,
+			&i.StatusCode,
+			&i.Applicable,
+			&i.Version,
+			&i.TypeCode,
+			&i.TypeName,
+			&i.PrimaryModule,
+			&i.StatusSetID,
+			&i.CompanyCode,
+			&i.CompanyName,
+			&i.PeriodState,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getStatusDefinition = `-- name: GetStatusDefinition :one
 SELECT id, status_set_id, code, label, sort_order, counts_as_started, counts_as_operational_progress, is_final, is_blocking, excluded_from_denominator FROM status_definitions WHERE status_set_id = $1 AND code = $2
 `
@@ -370,6 +491,40 @@ func (q *Queries) ListInstanceHistory(ctx context.Context, obligationInstanceID 
 			return nil, err
 		}
 		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const resolveBulkTargets = `-- name: ResolveBulkTargets :many
+SELECT i.id FROM obligation_instances i
+JOIN competencies k ON k.id = i.competence_id
+WHERE k.competence_key = $1 AND i.obligation_type_id = $2::uuid
+  AND i.company_id = ANY ($3::uuid[])
+`
+
+type ResolveBulkTargetsParams struct {
+	CompetenceKey    string
+	ObligationTypeID string
+	CompanyIds       []string
+}
+
+// IDs das instâncias de um tipo, numa competência, para as empresas informadas.
+func (q *Queries) ResolveBulkTargets(ctx context.Context, arg ResolveBulkTargetsParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, resolveBulkTargets, arg.CompetenceKey, arg.ObligationTypeID, arg.CompanyIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var id string
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
