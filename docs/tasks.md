@@ -92,7 +92,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `make help` lista os alvos; o repositório não versiona artefatos de build.
 
 ### T-M0-02 — Docker Compose de desenvolvimento (banco de dados)
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-01
 - **Ref:** plan M0, D10 · PRD §42.3, §45.2, §45.3
 - **Arquivos:** `docker-compose.yml`, `docker/postgres/init/01-databases.sql`, `.env.example`, `Makefile`
