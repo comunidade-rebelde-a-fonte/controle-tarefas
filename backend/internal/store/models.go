@@ -44,6 +44,47 @@ type Company struct {
 	UpdatedAt                     time.Time
 }
 
+type CompanyCompetenceSnapshot struct {
+	ID                            string
+	CompanyID                     string
+	CompetenceID                  string
+	TaxRegime                     string
+	RegimeGroup                   string
+	PayrollType                   string
+	FactorR                       *bool
+	ActiveModules                 []string
+	FiscalResponsibleUserID       *string
+	AccountingResponsibleUserID   *string
+	PayrollResponsibleUserID      *string
+	DeclarationsResponsibleUserID *string
+	City                          *string
+	State                         *string
+	CreatedAt                     time.Time
+}
+
+type CompanyModulePeriod struct {
+	ID           string
+	CompanyID    string
+	CompetenceID string
+	ModuleCode   string
+	State        string
+	ClosedAt     *time.Time
+	ClosedBy     *string
+	GeneralNote  *string
+	Version      int32
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+}
+
+type CompanyModulePeriodEvent struct {
+	ID                    string
+	CompanyModulePeriodID string
+	EventType             string
+	Reason                *string
+	UserID                string
+	CreatedAt             time.Time
+}
+
 type CompanyModuleSetting struct {
 	ID                      string
 	CompanyID               string
@@ -74,6 +115,15 @@ type CompanyTaxRegimeHistory struct {
 	EffectiveToCompetence   *time.Time
 	CreatedBy               string
 	CreatedAt               time.Time
+}
+
+type Competency struct {
+	ID            string
+	CompetenceKey string
+	Year          int32
+	Month         int32
+	FirstDay      time.Time
+	CreatedAt     time.Time
 }
 
 type CredentialControl struct {
@@ -130,6 +180,41 @@ type ObligationDisplayContext struct {
 	ModuleCode       string
 	SortOrder        int32
 	Active           bool
+}
+
+type ObligationInstance struct {
+	ID                    string
+	CompanyID             string
+	CompetenceID          string
+	ObligationTypeID      string
+	StatusCode            string
+	Applicable            bool
+	CountsInProgress      bool
+	RegimeSnapshot        string
+	DueDateOriginal       *time.Time
+	DueDateEffective      *time.Time
+	DueDateOverrideReason *string
+	DueDateOverriddenBy   *string
+	DueDateOverriddenAt   *time.Time
+	TransmissionDate      *time.Time
+	Protocol              *string
+	Version               int32
+	LastChangedBy         *string
+	LastChangedAt         *time.Time
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+}
+
+type ObligationStatusHistory struct {
+	ID                   string
+	ObligationInstanceID string
+	Field                string
+	OldValue             *string
+	NewValue             *string
+	UserID               string
+	ChangeSource         string
+	OverrideReason       *string
+	CreatedAt            time.Time
 }
 
 type ObligationType struct {
