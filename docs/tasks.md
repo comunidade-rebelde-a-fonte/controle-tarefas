@@ -729,7 +729,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de integração: cada grade retorna as colunas esperadas com o seed; a DCTFWeb não expõe fechamento.
 
 ### T-M4-02 — FE: tela Declarações
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01, T-M3-09
 - **Ref:** PRD §15, §29
 - **Arquivos:** `frontend/src/features/declarations/*`

@@ -29,17 +29,33 @@ export function gridFilterQuery(f: GridFilters): Omit<FiscalGridQuery, "competen
   return q;
 }
 
+/** Grades disponíveis (segmento da rota /modules/{module}/grid). */
+export type GridModule = "fiscal" | "declarations" | "payroll" | "accounting" | "dctfweb";
+
+/** Query das grades: competência, filtros derivados e, no Fiscal, o agrupamento. */
+export type GridQuery = Omit<FiscalGridQuery, "group"> & { group?: FiscalGroup };
+
 /** Chaves das grades: prefixo `obligations`, invalidado por alterações e conflitos de versão. */
 export const gridKeys = {
   all: [...obligationKeys.all, "grid"] as const,
-  fiscal: (query: FiscalGridQuery) => [...obligationKeys.all, "grid", "fiscal", query] as const,
+  grid: (module: GridModule, query: GridQuery | null) => [...obligationKeys.all, "grid", module, query] as const,
 };
 
-/** GET /modules/fiscal/grid [PRD §41.6]. */
-export function useFiscalGrid(query: FiscalGridQuery | null) {
+type Fetcher = (query: GridQuery, signal: AbortSignal) => Promise<ModuleGrid>;
+
+const fetchers: Record<GridModule, Fetcher> = {
+  fiscal: (query, signal) => api.get("/modules/fiscal/grid", { query: { ...query, group: query.group ?? "normal" }, signal }),
+  declarations: (query, signal) => api.get("/modules/declarations/grid", { query, signal }),
+  payroll: (query, signal) => api.get("/modules/payroll/grid", { query, signal }),
+  accounting: (query, signal) => api.get("/modules/accounting/grid", { query, signal }),
+  dctfweb: (query, signal) => api.get("/modules/dctfweb/grid", { query, signal }),
+};
+
+/** GET /modules/{module}/grid [PRD §41.6]; `query` null enquanto a competência carrega. */
+export function useModuleGrid(module: GridModule, query: GridQuery | null) {
   return useQuery({
-    queryKey: gridKeys.fiscal(query ?? { competence: "", group: "normal" }),
-    queryFn: ({ signal }) => api.get("/modules/fiscal/grid", { query: query ?? { competence: "", group: "normal" }, signal }),
+    queryKey: gridKeys.grid(module, query),
+    queryFn: ({ signal }) => fetchers[module](query ?? { competence: "" }, signal),
     enabled: query !== null,
     placeholderData: keepPreviousData,
   });
