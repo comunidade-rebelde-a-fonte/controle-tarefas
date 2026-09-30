@@ -13,5 +13,7 @@ export default defineConfig({
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     css: false,
+    // Acima do asyncUtilTimeout (src/test/setup.ts) para o findBy* falhar com mensagem útil.
+    testTimeout: 15000,
   },
 });
