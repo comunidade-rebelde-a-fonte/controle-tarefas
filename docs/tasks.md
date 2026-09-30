@@ -678,7 +678,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente do fluxo completo com a API mockada.
 
 ### T-M3-08 — FE: filtros de grade na URL
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-03
 - **Ref:** PRD §26.4–§26.5
 - **Arquivos:** `frontend/src/components/GridFilters.tsx`, `frontend/src/lib/useGridFilters.ts`
