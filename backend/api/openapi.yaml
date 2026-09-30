@@ -37,6 +37,8 @@ tags:
     description: Instâncias de obrigação (status, detalhes, histórico)
   - name: periods
     description: Fechamento por empresa + módulo + competência, reabertura e observação geral
+  - name: grids
+    description: Grades dos módulos (colunas do catálogo, linhas por empresa, células com derivados)
 
 paths:
   /health:
@@ -836,6 +838,41 @@ paths:
               schema: { $ref: "#/components/schemas/CompanyModulePeriodEvents" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /modules/fiscal/grid:
+    get:
+      tags: [grids]
+      operationId: getFiscalGrid
+      summary: Grade Fiscal (Normais ou Simples Nacional) com filtros server-side do §26.4
+      description: >-
+        Colunas vindas do catálogo (display context FISCAL + sort_order); linhas pelas empresas com o
+        módulo na competência e o agrupamento pelo regime do snapshot. Atraso, progresso, conclusão,
+        "pronto para fechar" e dependências são calculados pela API. A busca livre fica no cliente.
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - name: group
+          in: query
+          required: true
+          schema: { type: string, enum: [normal, simples] }
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridClosingStatus"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -844,6 +881,65 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/Uuid"
+    GridCompetence:
+      name: competence
+      in: query
+      required: true
+      schema: { $ref: "#/components/schemas/Competence" }
+    GridTaxRegime:
+      name: tax_regime
+      in: query
+      description: Regime do snapshot da competência
+      schema: { $ref: "#/components/schemas/TaxRegime" }
+    GridResponsible:
+      name: responsible_id
+      in: query
+      description: Responsável do módulo no snapshot da competência
+      schema: { $ref: "#/components/schemas/Uuid" }
+    GridStatus:
+      name: status
+      in: query
+      description: Linhas com ao menos uma obrigação aplicável neste status
+      schema: { type: string }
+    GridObligationType:
+      name: obligation_type_id
+      in: query
+      description: Restringe o filtro `status` a uma coluna (exige `status`)
+      schema: { $ref: "#/components/schemas/Uuid" }
+    GridClosingStatus:
+      name: closing_status
+      in: query
+      description: Status do estágio de fechamento do módulo (Fiscal - coluna Fechamento)
+      schema: { type: string }
+    GridPeriodState:
+      name: period_state
+      in: query
+      schema: { type: string, enum: [OPEN, CLOSED] }
+    GridNote:
+      name: note
+      in: query
+      description: Com ou sem observação geral
+      schema: { type: string, enum: [with, without] }
+    GridOverdue:
+      name: overdue
+      in: query
+      description: Somente linhas com obrigações atrasadas
+      schema: { type: boolean }
+    GridPending:
+      name: pending
+      in: query
+      description: Somente linhas com pendências (status que bloqueiam)
+      schema: { type: boolean }
+    GridNotStarted:
+      name: not_started
+      in: query
+      description: Somente linhas com obrigações não iniciadas
+      schema: { type: boolean }
+    GridReadyToClose:
+      name: ready_to_close
+      in: query
+      description: Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto)
+      schema: { type: boolean }
 
   schemas:
     Error:
@@ -1633,6 +1729,110 @@ components:
       required: [items]
       properties:
         items: { type: array, items: { $ref: "#/components/schemas/CompanyModulePeriodEvent" } }
+
+    DependencyRef:
+      type: object
+      required: [obligation_type_id, code, name, status_code]
+      properties:
+        obligation_type_id: { $ref: "#/components/schemas/Uuid" }
+        code: { type: string }
+        name: { type: string }
+        status_code: { type: string }
+
+    DependencyStatus:
+      type: object
+      required: [ready, pending]
+      properties:
+        ready: { type: boolean, description: "Todos os componentes SOFT aplicáveis estão finais" }
+        pending: { type: array, items: { $ref: "#/components/schemas/DependencyRef" } }
+
+    GridColumn:
+      type: object
+      required: [obligation_type, sort_order, is_closing_stage, allows_transmission_date, allows_protocol, status_set_code, statuses]
+      properties:
+        obligation_type: { $ref: "#/components/schemas/ObligationTypeRef" }
+        sort_order: { type: integer }
+        is_closing_stage: { type: boolean, description: "Estágio de fechamento do módulo (Fiscal - Fechamento)" }
+        allows_transmission_date: { type: boolean }
+        allows_protocol: { type: boolean }
+        status_set_code: { type: string }
+        statuses: { type: array, items: { $ref: "#/components/schemas/StatusDefinition" } }
+
+    GridCell:
+      allOf:
+        - $ref: "#/components/schemas/ObligationInstance"
+        - type: object
+          required: [blocked_by, dependency_status]
+          properties:
+            blocked_by:
+              type: array
+              description: Etapas anteriores (HARD) aplicáveis e não finais que impedem concluir
+              items: { $ref: "#/components/schemas/DependencyRef" }
+            dependency_status:
+              description: Indicador SOFT (DCTFWeb); null quando o tipo não tem dependência SOFT
+              oneOf:
+                - $ref: "#/components/schemas/DependencyStatus"
+                - type: "null"
+
+    GridRow:
+      type: object
+      required: [company, snapshot, period, progress, overdue, nearest_deadline, ready_to_close, cells]
+      properties:
+        company:
+          type: object
+          required: [id, internal_code, legal_name, trade_name, cnpj]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            internal_code: { type: string }
+            legal_name: { type: string }
+            trade_name: { type: [string, "null"] }
+            cnpj: { $ref: "#/components/schemas/Cnpj" }
+        snapshot:
+          type: object
+          description: Configuração usada na geração da competência (D4)
+          required: [tax_regime, regime_group, payroll_type, factor_r, responsible]
+          properties:
+            tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+            regime_group: { $ref: "#/components/schemas/RegimeGroup" }
+            payroll_type: { $ref: "#/components/schemas/PayrollType" }
+            factor_r: { type: [boolean, "null"] }
+            responsible:
+              oneOf:
+                - $ref: "#/components/schemas/UserRef"
+                - type: "null"
+        period:
+          type: object
+          required: [id, state, closed_at, closed_by, general_note, version]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            state: { type: string, enum: [OPEN, CLOSED] }
+            closed_at: { type: [string, "null"], format: date-time }
+            closed_by:
+              oneOf:
+                - $ref: "#/components/schemas/UserRef"
+                - type: "null"
+            general_note: { type: [string, "null"] }
+            version: { $ref: "#/components/schemas/Version" }
+        progress: { $ref: "#/components/schemas/Progress" }
+        overdue: { type: integer }
+        nearest_deadline: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        ready_to_close: { type: boolean, description: "Todos os itens relevantes finais e módulo aberto (sugerir fechamento)" }
+        cells:
+          type: object
+          description: Células por código do tipo de obrigação (colunas sem instância ficam ausentes)
+          additionalProperties: { $ref: "#/components/schemas/GridCell" }
+
+    ModuleGrid:
+      type: object
+      required: [module, competence, group, today, columns, rows, total]
+      properties:
+        module: { type: string }
+        competence: { $ref: "#/components/schemas/Competence" }
+        group: { type: [string, "null"], enum: [normal, simples, null] }
+        today: { $ref: "#/components/schemas/Date" }
+        columns: { type: array, items: { $ref: "#/components/schemas/GridColumn" } }
+        rows: { type: array, items: { $ref: "#/components/schemas/GridRow" } }
+        total: { type: integer }
 
     UserRole:
       type: string

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"controle/internal/calendar"
@@ -15,6 +16,7 @@ import (
 	"controle/internal/company"
 	"controle/internal/competence"
 	"controle/internal/demo"
+	"controle/internal/grid"
 	"controle/internal/obligation"
 	"controle/internal/period"
 	"controle/internal/platform/clock"
@@ -67,6 +69,8 @@ func New(d Deps) *App {
 	r.Use(httpx.AccessLog)
 	r.Use(httpx.CORS(httpx.NormalizeOrigins(d.Config.CORSOrigins)))
 	r.Use(user.Middleware)
+	// Grades (~300 linhas x ~13 células) são JSON grandes; gzip reduz a transferência [§45.1].
+	r.Use(middleware.Compress(5, "application/json"))
 	r.NotFound(httpx.NotFoundHandler)
 	r.MethodNotAllowed(httpx.MethodNotAllowedHandler)
 
@@ -77,6 +81,7 @@ func New(d Deps) *App {
 		competence.NewHandler(d.Pool, engine).Routes(api)
 		obligation.NewHandler(obligation.NewService(d.Pool, d.Clock)).Routes(api)
 		period.NewHandler(period.NewService(d.Pool, d.Clock)).Routes(api)
+		grid.NewHandler(grid.NewBuilder(d.Pool, d.Clock)).Routes(api)
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
