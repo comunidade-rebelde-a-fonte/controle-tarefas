@@ -10,6 +10,7 @@ import { TAX_REGIME_LABELS } from "@/lib/labels";
 import { useCompany } from "@/services/companies";
 import { CredentialsTab } from "./CredentialsTab";
 import { GeneralTab } from "./GeneralTab";
+import { HistoryTab } from "./HistoryTab";
 import { ModulesTab } from "./ModulesTab";
 import { OverridesTab } from "./OverridesTab";
 import { PayrollTab } from "./PayrollTab";
@@ -28,10 +29,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number][0];
-
-function Placeholder({ text }: { text: string }) {
-  return <p className="rounded-lg border border-dashed bg-card p-6 text-sm text-muted-foreground">{text}</p>;
-}
 
 /** Ficha da empresa com as 8 abas [PRD §27.3]. A aba ativa fica na URL. */
 export function CompanyDetailPage() {
@@ -122,7 +119,7 @@ export function CompanyDetailPage() {
           <CredentialsTab companyId={company.id} />
         </TabsContent>
         <TabsContent value="history">
-          <Placeholder text="Histórico de competências (estado aberto/fechado por módulo) — disponível a partir de T-M5-08." />
+          <HistoryTab companyId={company.id} internalCode={company.internal_code} />
         </TabsContent>
       </Tabs>
     </>

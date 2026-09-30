@@ -31,6 +31,7 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Put("/companies/{id}/modules/{module}", h.setModule)
 	r.Get("/companies/{id}/obligation-overrides", h.getOverrides)
 	r.Put("/companies/{id}/obligation-overrides/{obligationTypeId}", h.setOverride)
+	r.Get("/companies/{id}/history", h.history)
 }
 
 func companyID(r *http.Request) (string, error) {

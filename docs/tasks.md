@@ -899,7 +899,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E UC-03 completo: dashboard → lista → empresa/módulo → atualizar status.
 
 ### T-M5-08 — Histórico de competências da empresa
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-13, T-M1-15
 - **Ref:** PRD §27.3 (aba 8), §41.1 (`/companies/{id}/history`)
 - **Arquivos:** `backend/internal/company/history.go`, `frontend/src/features/companies/detail/HistoryTab.tsx`
