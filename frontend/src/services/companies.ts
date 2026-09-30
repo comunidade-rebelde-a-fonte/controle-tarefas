@@ -66,3 +66,68 @@ export function useDeactivateCompany() {
     onSettled: () => invalidate(),
   });
 }
+
+export type TaxRegimeTimeline = Schemas["TaxRegimeTimeline"];
+export type CompanyModules = Schemas["CompanyModules"];
+export type ObligationOverrides = Schemas["ObligationOverrides"];
+
+export const companySettingsKeys = {
+  regimes: (id: string) => ["companies", "detail", id, "regimes"] as const,
+  modules: (id: string) => ["companies", "detail", id, "modules"] as const,
+  overrides: (id: string) => ["companies", "detail", id, "overrides"] as const,
+};
+
+export function useTaxRegimes(id: string) {
+  return useQuery({
+    queryKey: companySettingsKeys.regimes(id),
+    queryFn: ({ signal }) => api.get("/companies/{id}/tax-regimes", { path: { id }, signal }),
+  });
+}
+
+export function useChangeTaxRegime(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Schemas["TaxRegimeChange"]) => api.post("/companies/{id}/tax-regimes", { path: { id }, body }),
+    onSuccess: (data) => {
+      qc.setQueryData(companySettingsKeys.regimes(id), data);
+      void qc.invalidateQueries({ queryKey: companyKeys.all });
+    },
+  });
+}
+
+export function useCompanyModules(id: string) {
+  return useQuery({
+    queryKey: companySettingsKeys.modules(id),
+    queryFn: ({ signal }) => api.get("/companies/{id}/modules", { path: { id }, signal }),
+  });
+}
+
+export function useSetCompanyModule(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ module, ...body }: Schemas["CompanyModuleChange"] & { module: Schemas["ModuleCode"] }) =>
+      api.put("/companies/{id}/modules/{module}", { path: { id, module }, body }),
+    onSuccess: (data) => {
+      qc.setQueryData(companySettingsKeys.modules(id), data);
+      void qc.invalidateQueries({ queryKey: companyKeys.all });
+    },
+  });
+}
+
+export function useObligationOverrides(id: string) {
+  return useQuery({
+    queryKey: companySettingsKeys.overrides(id),
+    queryFn: ({ signal }) => api.get("/companies/{id}/obligation-overrides", { path: { id }, signal }),
+  });
+}
+
+export function useSetObligationOverride(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ obligationTypeId, ...body }: Schemas["ObligationOverrideChange"] & { obligationTypeId: string }) =>
+      api.put("/companies/{id}/obligation-overrides/{obligationTypeId}", { path: { id, obligationTypeId }, body }),
+    onSuccess: (data) => {
+      qc.setQueryData(companySettingsKeys.overrides(id), data);
+    },
+  });
+}

@@ -387,7 +387,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente de validação e de exibição do conflito de CNPJ.
 
 ### T-M1-15 — FE: ficha da empresa com abas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-14, T-M1-09, T-M1-10
 - **Ref:** PRD §27.3, §7.3, §8, §9, §17.1–§17.2, §34.4
 - **Arquivos:** `frontend/src/features/companies/detail/*`

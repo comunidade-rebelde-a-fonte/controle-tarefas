@@ -129,7 +129,7 @@ db-clean: ## Recria vazio o schema de controle_e2e ou controle_perf (DB=e2e|perf
 	@echo ">>> recriando o schema do banco $(DB_NAME)"
 	@$(COMPOSE) exec -T db psql -q -U $(POSTGRES_USER) -d $(DB_NAME) -c "SET client_min_messages TO warning; DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 	@$(API) migrate up
-	@$(API) seed
+	@if [ "$(DB)" = "e2e" ]; then $(API) seed --demo; else $(API) seed; fi
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
 	$(COMPOSE) up -d --wait db
