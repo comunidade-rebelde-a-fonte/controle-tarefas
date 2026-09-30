@@ -45,11 +45,16 @@ export interface ModuleGridProps {
   extraColumns?: DataGridColumn<GridRow>[];
   /** Colunas extras depois das obrigações (ex.: dependências da DCTFWeb). */
   trailingColumns?: DataGridColumn<GridRow>[];
+  /** Cabeçalho da coluna de obrigação (ex.: etapa numerada no Contábil). Estável entre renders. */
+  columnHeader?: (column: GridColumn, index: number) => string;
   /** Texto do "pronto para fechar" (ex.: PRD §13.5). */
   readyToCloseText?: string;
 }
 
 const OB = "ob:";
+
+/** Padrão estável para as colunas extras (um array novo a cada render remontaria as células). */
+const NO_COLUMNS: DataGridColumn<GridRow>[] = [];
 
 /** Estado de interface compartilhado com as células (as colunas ficam estáveis e não remontam). */
 interface GridUi {
@@ -198,8 +203,9 @@ export function ModuleGrid({
   rows,
   isLoading,
   error,
-  extraColumns = [],
-  trailingColumns = [],
+  extraColumns = NO_COLUMNS,
+  trailingColumns = NO_COLUMNS,
+  columnHeader,
   readyToCloseText,
 }: ModuleGridProps) {
   const qc = useQueryClient();
@@ -285,9 +291,9 @@ export function ModuleGrid({
         ),
       },
       ...extraColumns,
-      ...(gridColumns ?? []).map((col): DataGridColumn<GridRow> => ({
+      ...(gridColumns ?? []).map((col, index): DataGridColumn<GridRow> => ({
         id: OB + col.obligation_type.code,
-        header: col.obligation_type.name,
+        header: columnHeader ? columnHeader(col, index) : col.obligation_type.name,
         width: 168,
         cell: (row) => <ObligationCell row={row} col={col} />,
       })),
@@ -355,7 +361,7 @@ export function ModuleGrid({
         ),
       },
     ];
-  }, [gridColumns, extraColumns, trailingColumns, closable, moduleLabel, readyToCloseText]);
+  }, [gridColumns, extraColumns, trailingColumns, columnHeader, closable, moduleLabel, readyToCloseText]);
 
   const ui: GridUi = {
     openCell,
