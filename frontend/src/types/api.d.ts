@@ -120,6 +120,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/tax-regimes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Linha do tempo de regimes tributários */
+        get: operations["listTaxRegimes"];
+        put?: never;
+        /** Inclui novo regime a partir de uma competência (encerra o anterior no mês anterior) */
+        post: operations["changeTaxRegime"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -276,6 +296,23 @@ export interface components {
             id: components["schemas"]["Uuid"];
             internal_code: string;
             legal_name: string;
+        };
+        TaxRegimePeriod: {
+            id: components["schemas"]["Uuid"];
+            tax_regime: components["schemas"]["TaxRegime"];
+            regime_group: components["schemas"]["RegimeGroup"];
+            effective_from: components["schemas"]["Competence"];
+            effective_to: components["schemas"]["Competence"] | null;
+            created_by: components["schemas"]["UserRef"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        TaxRegimeTimeline: {
+            items: components["schemas"]["TaxRegimePeriod"][];
+        };
+        TaxRegimeChange: {
+            tax_regime: components["schemas"]["TaxRegime"];
+            effective_from: components["schemas"]["Competence"];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -646,6 +683,58 @@ export interface operations {
             };
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+        };
+    };
+    listTaxRegimes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linha do tempo (ordem cronológica) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxRegimeTimeline"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    changeTaxRegime: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaxRegimeChange"];
+            };
+        };
+        responses: {
+            /** @description Linha do tempo atualizada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaxRegimeTimeline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
         };
     };
 }

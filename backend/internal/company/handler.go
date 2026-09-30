@@ -25,6 +25,8 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/companies/{id}", h.get)
 	r.Patch("/companies/{id}", h.update)
 	r.Post("/companies/{id}/deactivate", h.deactivate)
+	r.Get("/companies/{id}/tax-regimes", h.listRegimes)
+	r.Post("/companies/{id}/tax-regimes", h.changeRegime)
 }
 
 func companyID(r *http.Request) (string, error) {
