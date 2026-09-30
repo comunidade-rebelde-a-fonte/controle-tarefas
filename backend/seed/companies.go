@@ -18,27 +18,31 @@ var demoUsers = []struct{ Key, Name, Email string }{
 	{"diego", "Diego Rocha", "diego.rocha@escritorio.exemplo"},
 }
 
-type demoRegime struct {
+// RegimeSpec é um período de regime de uma empresa fictícia.
+type RegimeSpec struct {
 	Regime, From string // competência inicial AAAA-MM-01
 	To           string // "" = vigência aberta
 }
 
-type demoCompany struct {
+// CompanySpec descreve uma empresa fictícia (demonstração ou massa sintética de carga).
+type CompanySpec struct {
 	Code, LegalName, TradeName, Cnpj, City, State string
-	Regimes                                       []demoRegime
+	Regimes                                       []RegimeSpec
 	Modules                                       []string // módulos habilitados; os demais ficam desabilitados
 	PayrollType                                   string
 	FactorR                                       *bool
-	Fiscal, Accounting, Payroll, Declarations     string // chaves de demoUsers
+	Fiscal, Accounting, Payroll, Declarations     string // chaves de demoUsers (ana, bruno, carla, diego)
 	NotApplicable                                 []string
 }
 
 var (
 	yes, no    = true, false
 	allModules = []string{"FISCAL", "DECLARATIONS", "ACCOUNTING", "PAYROLL", "CREDENTIALS"}
+	// AllModules são os módulos configuráveis por empresa.
+	AllModules = allModules
 )
 
-func open(regime string) []demoRegime { return []demoRegime{{Regime: regime, From: "2025-01-01"}} }
+func open(regime string) []RegimeSpec { return []RegimeSpec{{Regime: regime, From: "2025-01-01"}} }
 
 // demoCompanies são as 20 empresas fictícias do PRD §37 (dados apenas para demonstração),
 // com módulos, overrides, tipos de folha, fator R e responsáveis variados.
@@ -46,7 +50,7 @@ func open(regime string) []demoRegime { return []demoRegime{{Regime: regime, Fro
 // Bypass documentado: os CNPJs fictícios do PRD não têm dígitos verificadores válidos, por
 // isso o seed grava diretamente no banco (somente 14 dígitos). A API continua validando os
 // dígitos verificadores de todo cadastro feito pela interface ou importação.
-var demoCompanies = []demoCompany{
+var demoCompanies = []CompanySpec{
 	{Code: "101", LegalName: "Empresa Fictícia Alfa Comércio Ltda", TradeName: "Alfa Comércio", Cnpj: "00000001000101", City: "Curitiba", State: "PR",
 		Regimes: open("LUCRO_PRESUMIDO"), Modules: allModules, PayrollType: "PAYROLL", Fiscal: "ana", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
 	{Code: "102", LegalName: "Empresa Fictícia Beta Serviços Ltda", TradeName: "Beta Serviços", Cnpj: "00000002000102", City: "Curitiba", State: "PR",
@@ -85,7 +89,7 @@ var demoCompanies = []demoCompany{
 		Fiscal: "diego", Payroll: "carla", Declarations: "diego"},
 	{Code: "205", LegalName: "Estação Criativa Publicidade Ltda", TradeName: "Estação Criativa", Cnpj: "00100005000105", City: "São Paulo", State: "SP",
 		// Troca de regime histórica: Lucro Presumido em 2025, Simples Nacional a partir de 01/2026.
-		Regimes: []demoRegime{{Regime: "LUCRO_PRESUMIDO", From: "2025-01-01", To: "2025-12-01"}, {Regime: "SIMPLES_NACIONAL", From: "2026-01-01"}},
+		Regimes: []RegimeSpec{{Regime: "LUCRO_PRESUMIDO", From: "2025-01-01", To: "2025-12-01"}, {Regime: "SIMPLES_NACIONAL", From: "2026-01-01"}},
 		Modules: allModules, PayrollType: "PAYROLL", FactorR: &yes, Fiscal: "diego", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
 	{Code: "206", LegalName: "Fênix Manutenção Predial Ltda", TradeName: "Fênix Manutenção", Cnpj: "00100006000106", City: "São Paulo", State: "SP",
 		Regimes: open("SIMPLES_NACIONAL"), Modules: allModules, PayrollType: "PAYROLL", FactorR: &yes, Fiscal: "diego", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
@@ -110,69 +114,75 @@ const adminID = "00000000-0000-0000-0000-000000000001"
 // são mantidas como estão: rodar de novo não duplica nem sobrescreve edições.
 func companiesStep() Step {
 	return Step{Name: "demo: 20 empresas fictícias", Run: func(ctx context.Context, tx pgx.Tx, _ clock.Clock) error {
-		users := map[string]string{}
-		for _, u := range demoUsers {
-			var id string
-			err := tx.QueryRow(ctx, `SELECT id FROM users WHERE lower(email) = lower($1)`, u.Email).Scan(&id)
-			if errors.Is(err, pgx.ErrNoRows) {
-				err = tx.QueryRow(ctx, `INSERT INTO users (name, email, role) VALUES ($1, $2, 'OPERATOR') RETURNING id`, u.Name, u.Email).Scan(&id)
-			}
-			if err != nil {
-				return fmt.Errorf("responsável %s: %w", u.Name, err)
-			}
-			users[u.Key] = id
-		}
-		ref := func(key string) *string {
-			if key == "" {
-				return nil
-			}
-			id := users[key]
-			return &id
-		}
-		for _, c := range demoCompanies {
-			var id string
-			err := tx.QueryRow(ctx, `
-				INSERT INTO companies (internal_code, legal_name, trade_name, cnpj, city, state, service_start_date,
-				    payroll_type, factor_r, fiscal_responsible_user_id, accounting_responsible_user_id,
-				    payroll_responsible_user_id, declarations_responsible_user_id, notes, created_by, updated_by)
-				VALUES ($1, $2, $3, $4, $5, $6, '2025-01-01', $7, $8, $9, $10, $11, $12, 'Empresa fictícia de demonstração.', $13, $13)
-				ON CONFLICT (cnpj) DO NOTHING
-				RETURNING id`,
-				c.Code, c.LegalName, c.TradeName, c.Cnpj, c.City, c.State, c.PayrollType, c.FactorR,
-				ref(c.Fiscal), ref(c.Accounting), ref(c.Payroll), ref(c.Declarations), adminID).Scan(&id)
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue // já cadastrada
-			}
-			if err != nil {
-				return fmt.Errorf("empresa %s: %w", c.Code, err)
-			}
-			for _, r := range c.Regimes {
-				var to *string
-				if r.To != "" {
-					to = &r.To
-				}
-				if _, err := tx.Exec(ctx, `INSERT INTO company_tax_regime_history (company_id, tax_regime, effective_from_competence, effective_to_competence, created_by)
-					VALUES ($1, $2, $3, $4, $5)`, id, r.Regime, r.From, to, adminID); err != nil {
-					return fmt.Errorf("regime da empresa %s: %w", c.Code, err)
-				}
-			}
-			for _, m := range allModules {
-				enabled := false
-				for _, e := range c.Modules {
-					enabled = enabled || e == m
-				}
-				if _, err := tx.Exec(ctx, `INSERT INTO company_module_settings (company_id, module_code, enabled, effective_from_competence, created_by)
-					VALUES ($1, $2, $3, '2025-01-01', $4)`, id, m, enabled, adminID); err != nil {
-					return fmt.Errorf("módulo %s da empresa %s: %w", m, c.Code, err)
-				}
-			}
-			for _, code := range c.NotApplicable {
-				if _, err := tx.Exec(ctx, `INSERT INTO company_obligation_overrides (company_id, obligation_type_id, applicability, effective_from_competence, created_by)
-					SELECT $1, t.id, 'NOT_APPLICABLE', '2025-01-01', $3 FROM obligation_types t WHERE t.code = $2`, id, code, adminID); err != nil {
-					return fmt.Errorf("override %s da empresa %s: %w", code, c.Code, err)
-				}
-			}
-		}
-		return nil
+		return InsertCompanies(ctx, tx, demoCompanies)
 	}}
+}
+
+// InsertCompanies grava os responsáveis fictícios e as empresas, com regimes, módulos e
+// overrides. Empresas já existentes (mesmo CNPJ) são mantidas: rodar de novo não duplica.
+func InsertCompanies(ctx context.Context, tx pgx.Tx, companies []CompanySpec) error {
+	users := map[string]string{}
+	for _, u := range demoUsers {
+		var id string
+		err := tx.QueryRow(ctx, `SELECT id FROM users WHERE lower(email) = lower($1)`, u.Email).Scan(&id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			err = tx.QueryRow(ctx, `INSERT INTO users (name, email, role) VALUES ($1, $2, 'OPERATOR') RETURNING id`, u.Name, u.Email).Scan(&id)
+		}
+		if err != nil {
+			return fmt.Errorf("responsável %s: %w", u.Name, err)
+		}
+		users[u.Key] = id
+	}
+	ref := func(key string) *string {
+		if key == "" {
+			return nil
+		}
+		id := users[key]
+		return &id
+	}
+	for _, c := range companies {
+		var id string
+		err := tx.QueryRow(ctx, `
+			INSERT INTO companies (internal_code, legal_name, trade_name, cnpj, city, state, service_start_date,
+			    payroll_type, factor_r, fiscal_responsible_user_id, accounting_responsible_user_id,
+			    payroll_responsible_user_id, declarations_responsible_user_id, notes, created_by, updated_by)
+			VALUES ($1, $2, $3, $4, $5, $6, '2025-01-01', $7, $8, $9, $10, $11, $12, 'Empresa fictícia de demonstração.', $13, $13)
+			ON CONFLICT (cnpj) DO NOTHING
+			RETURNING id`,
+			c.Code, c.LegalName, c.TradeName, c.Cnpj, c.City, c.State, c.PayrollType, c.FactorR,
+			ref(c.Fiscal), ref(c.Accounting), ref(c.Payroll), ref(c.Declarations), adminID).Scan(&id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			continue // já cadastrada
+		}
+		if err != nil {
+			return fmt.Errorf("empresa %s: %w", c.Code, err)
+		}
+		for _, r := range c.Regimes {
+			var to *string
+			if r.To != "" {
+				to = &r.To
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO company_tax_regime_history (company_id, tax_regime, effective_from_competence, effective_to_competence, created_by)
+				VALUES ($1, $2, $3, $4, $5)`, id, r.Regime, r.From, to, adminID); err != nil {
+				return fmt.Errorf("regime da empresa %s: %w", c.Code, err)
+			}
+		}
+		for _, m := range allModules {
+			enabled := false
+			for _, e := range c.Modules {
+				enabled = enabled || e == m
+			}
+			if _, err := tx.Exec(ctx, `INSERT INTO company_module_settings (company_id, module_code, enabled, effective_from_competence, created_by)
+				VALUES ($1, $2, $3, '2025-01-01', $4)`, id, m, enabled, adminID); err != nil {
+				return fmt.Errorf("módulo %s da empresa %s: %w", m, c.Code, err)
+			}
+		}
+		for _, code := range c.NotApplicable {
+			if _, err := tx.Exec(ctx, `INSERT INTO company_obligation_overrides (company_id, obligation_type_id, applicability, effective_from_competence, created_by)
+				SELECT $1, t.id, 'NOT_APPLICABLE', '2025-01-01', $3 FROM obligation_types t WHERE t.code = $2`, id, code, adminID); err != nil {
+				return fmt.Errorf("override %s da empresa %s: %w", code, c.Code, err)
+			}
+		}
+	}
+	return nil
 }

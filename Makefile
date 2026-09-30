@@ -40,10 +40,15 @@ API := cd backend && DATABASE_URL='$(DB_URL)' go run ./cmd/api
 
 # Banco e portas exclusivos do E2E (nunca o banco de dev).
 E2E_DB_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/controle_e2e?sslmode=disable
+PERF_DB_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/controle_perf?sslmode=disable
+LOADGEN := cd backend && DATABASE_URL='$(PERF_DB_URL)' go run ./cmd/loadgen
+COMPANIES ?= 300
+COMPETENCES ?= 3
+SEED ?= 42
 E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen
+.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -130,6 +135,13 @@ db-clean: ## Recria vazio o schema de controle_e2e ou controle_perf (DB=e2e|perf
 	@$(COMPOSE) exec -T db psql -q -U $(POSTGRES_USER) -d $(DB_NAME) -c "SET client_min_messages TO warning; DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 	@$(API) migrate up
 	@if [ "$(DB)" = "e2e" ]; then $(API) seed --demo; else $(API) seed; fi
+
+perf-generate: ## Massa sintética no controle_perf (COMPANIES=300 COMPETENCES=3 SEED=42; recria o schema)
+	@$(MAKE) --no-print-directory db-clean DB=perf
+	@$(LOADGEN) generate -companies $(COMPANIES) -competences $(COMPETENCES) -seed $(SEED)
+
+perf-bench: ## Mede a grade Fiscal e o PATCH de status no controle_perf (BENCH_ARGS="-iterations 50")
+	@$(LOADGEN) bench $(BENCH_ARGS)
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
 	$(COMPOSE) up -d --wait db
