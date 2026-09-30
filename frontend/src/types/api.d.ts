@@ -3788,6 +3788,8 @@ export interface operations {
                 q?: string;
                 overdue_min?: number;
                 overdue_max?: number;
+                /** @description backlog.pdf (padrão days_overdue). */
+                sort?: "days_overdue" | "due_date" | "competence" | "company";
                 /** @description credentials.pdf — expired, due_N (1 a 365), awaiting_client ou no_date. */
                 filter?: string;
                 /** @description credentials.pdf. */
