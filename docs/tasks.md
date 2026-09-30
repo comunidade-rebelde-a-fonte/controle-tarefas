@@ -818,7 +818,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E UC-05 completo; E2E de upload de `.pfx` recusado.
 
 ### T-M4-11 — FE: aba de credenciais na ficha da empresa
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-10, T-M1-15
 - **Ref:** PRD §27.3 (aba 7)
 - **Arquivos:** `frontend/src/features/companies/detail/CredentialsTab.tsx`

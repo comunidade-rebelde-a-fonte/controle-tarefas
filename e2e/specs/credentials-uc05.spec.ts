@@ -84,3 +84,23 @@ test("CA-020 recusa .pfx com a mensagem do backend e aceita a procuração em PD
   await expect(dialog.getByText("procuracao-delta.pdf")).toBeVisible();
   await expect(dialog.getByText("Nenhum documento enviado.")).toHaveCount(1);
 });
+
+test("T-M4-11 editar a validade na ficha da empresa reflete na tela geral", async ({ page, request }) => {
+  const EPSILON = "Empresa Fictícia Épsilon Logística Ltda";
+  const res = await request.get("/api/v1/credential-controls");
+  expect(res.ok()).toBeTruthy();
+  const list = (await res.json()) as { items: { company: { id: string; legal_name: string } }[] };
+  const company = list.items.find((r) => r.company.legal_name === EPSILON);
+  if (!company) throw new Error("empresa 105 fora da lista de credenciais");
+
+  await page.goto(`/companies/${company.company.id}?tab=credentials`);
+  const due = page.getByLabel(`Vencimento — Certificado digital — ${EPSILON}`);
+  await expect(due).toBeVisible();
+  await due.fill("2027-03-15");
+  await due.press("Enter");
+  await expect(due).toBeEnabled();
+  await expect(due).toHaveValue("2027-03-15");
+
+  await page.goto("/credentials?q=Épsilon");
+  await expect(page.getByLabel(`Vencimento — Certificado digital — ${EPSILON}`)).toHaveValue("2027-03-15");
+});

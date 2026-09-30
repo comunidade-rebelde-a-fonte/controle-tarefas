@@ -18,7 +18,7 @@ import {
   useDeleteCredentialFile,
   useUploadCredentialFile,
 } from "@/services/credentials";
-import { SituationBadge } from "./cells";
+import { ExpiresCell, RenewalCell, SituationBadge } from "./cells";
 import { useSaveCredential } from "./useSaveCredential";
 
 /** Formatos aceitos por tipo (dica ao navegador; a validação real é da API) [PRD §19.1-§19.2]. */
@@ -65,14 +65,18 @@ function CompanyDocuments({ companyId }: { companyId: string }) {
       <DialogHeader title={`Documentos — ${row.company.legal_name}`} description="Um documento vigente por tipo; um novo envio substitui o anterior." />
       <div className="grid gap-4 md:grid-cols-2">
         {CREDENTIAL_TYPES.map((type) => (
-          <TypeSection key={`${row.company.id}:${type}`} row={row} type={type} />
+          <CredentialSection key={`${row.company.id}:${type}`} row={row} type={type} />
         ))}
       </div>
     </>
   );
 }
 
-function TypeSection({ row, type }: { row: CredentialRow; type: CredentialType }) {
+/**
+ * Procuração ou certificado de uma empresa: situação, documento vigente e observação. Com
+ * `editable`, também edita vencimento e etapa (ficha da empresa, fora da grade).
+ */
+export function CredentialSection({ row, type, editable = false }: { row: CredentialRow; type: CredentialType; editable?: boolean }) {
   const ctl = controlOf(row, type);
   const upload = useUploadCredentialFile();
   const remove = useDeleteCredentialFile();
@@ -104,7 +108,22 @@ function TypeSection({ row, type }: { row: CredentialRow; type: CredentialType }
         </h3>
         <SituationBadge situation={ctl.situation} />
       </div>
-      <p className="text-xs text-muted-foreground">Validade: {ctl.expires_at ? formatDate(ctl.expires_at) : "sem data cadastrada"}</p>
+      {editable ? (
+        <div className="grid grid-cols-2 gap-3 text-xs">
+          <div className="grid gap-1">
+            <span className="font-medium">Vencimento</span>
+            <div className="rounded-md border">
+              <ExpiresCell row={row} type={type} columnId={`${type}_expires`} tabIndex={0} />
+            </div>
+          </div>
+          <div className="grid gap-1">
+            <span className="font-medium">Etapa de renovação</span>
+            <RenewalCell row={row} type={type} columnId={`${type}_renewal`} tabIndex={0} />
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground">Validade: {ctl.expires_at ? formatDate(ctl.expires_at) : "sem data cadastrada"}</p>
+      )}
 
       <div className="grid gap-2 text-sm">
         {ctl.file ? (
