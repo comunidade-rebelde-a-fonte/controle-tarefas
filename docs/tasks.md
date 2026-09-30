@@ -761,7 +761,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E CA-010: tentar a Conciliação com a etapa anterior "A iniciar" é bloqueado com a mensagem do §18.3.
 
 ### T-M4-06 — Integração: obrigação canônica entre telas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01
 - **Ref:** PRD §16.1, §40 · CA-008, CA-009 · RN-009 · ADR-005
 - **Arquivos:** `backend/internal/grid/canonical_test.go`
