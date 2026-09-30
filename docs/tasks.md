@@ -974,7 +974,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA017_ExportRespectsFilters` reabre o XLSX e confere linhas e colunas.
 
 ### T-M6-06 — Base de relatórios PDF
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-03
 - **Ref:** PRD §36.2
 - **Arquivos:** `backend/internal/report/layout.go`
