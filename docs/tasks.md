@@ -660,7 +660,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de componente: não é possível confirmar a reabertura ou a exceção sem motivo.
 
 ### T-M3-06 — FE: NoteCell
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-03, T-M2-13
 - **Ref:** PRD §22 · RN-016
 - **Arquivos:** `frontend/src/components/NoteCell.tsx`
