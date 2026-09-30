@@ -620,7 +620,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente: navegar anterior/próxima atualiza a URL; o seletor direto funciona na virada de ano.
 
 ### T-M3-03 — FE: DataGrid reutilizável
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-05
 - **Ref:** PRD §26.1, §28.2, §45.1, §45.4
 - **Arquivos:** `frontend/src/components/DataGrid/*`
