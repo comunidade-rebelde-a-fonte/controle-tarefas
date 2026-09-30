@@ -220,22 +220,42 @@ func loadDependencyState(ctx context.Context, q *store.Queries, companyID, compe
 
 // checkDependencies aplica as dependências do tipo ao concluir (status final):
 //   - HARD (Contábil): etapa anterior aplicável não final bloqueia com 422 DEPENDENCY_BLOCKED;
-//     "Sem movimento" pode ser marcado sem checar e satisfaz as etapas seguintes [PRD §18.2].
+//     "Sem movimento" pode ser marcado sem checar e satisfaz as etapas seguintes [PRD §18.2];
+//   - SOFT (DCTFWeb): componente aplicável não final gera 409 DEPENDENCY_WARNING (alerta
+//     forte); com confirm_exception e motivo, a conclusão é aceita e o motivo vai para o
+//     histórico [PRD §16.4, RN-012].
 //
 // Devolve o motivo de exceção a registrar no histórico, se houver.
-func (s *Service) checkDependencies(ctx context.Context, q *store.Queries, inst store.GetInstanceForUpdateRow, def store.StatusDefinition, _ StatusChangeInput) (*string, error) {
-	if !def.IsFinal || def.Code == StatusNoMovement {
+func (s *Service) checkDependencies(ctx context.Context, q *store.Queries, inst store.GetInstanceForUpdateRow, def store.StatusDefinition, in StatusChangeInput) (*string, error) {
+	if !def.IsFinal {
 		return nil, nil
 	}
 	deps, byType, err := loadDependencyState(ctx, q, inst.CompanyID, inst.CompetenceID)
 	if err != nil {
 		return nil, err
 	}
-	if pending := CheckHard(inst.ObligationTypeID, deps, byType); len(pending) > 0 {
-		return nil, apperr.Unprocessable("DEPENDENCY_BLOCKED", BlockedMessage(inst.TypeName, pending)).
+	if def.Code != StatusNoMovement {
+		if pending := CheckHard(inst.ObligationTypeID, deps, byType); len(pending) > 0 {
+			return nil, apperr.Unprocessable("DEPENDENCY_BLOCKED", BlockedMessage(inst.TypeName, pending)).
+				WithDetails(map[string]any{"pending": pending})
+		}
+	}
+	pending := CheckSoft(inst.ObligationTypeID, deps, byType)
+	if len(pending) == 0 {
+		return nil, nil
+	}
+	if !in.ConfirmException {
+		return nil, apperr.Conflict("DEPENDENCY_WARNING", SoftWarningMessage(inst.TypeName, pending)).
 			WithDetails(map[string]any{"pending": pending})
 	}
-	return nil, nil
+	reason := ""
+	if in.ExceptionReason != nil {
+		reason = strings.TrimSpace(*in.ExceptionReason)
+	}
+	if reason == "" {
+		return nil, validate.Field("exception_reason", "Informe o motivo da exceção.")
+	}
+	return &reason, nil
 }
 
 // GetInstance devolve a instância com os derivados.
