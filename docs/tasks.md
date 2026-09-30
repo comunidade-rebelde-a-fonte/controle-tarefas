@@ -909,7 +909,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** a empresa com reabertura no seed mostra os eventos `CLOSED` → `REOPENED`.
 
 ### T-M5-09 — Teste de consistência do dashboard
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-02, T-M5-04, T-M2-06
 - **Ref:** PRD §54 ("dashboard refletir o estado real")
 - **Arquivos:** `backend/internal/dashboard/consistency_test.go`
