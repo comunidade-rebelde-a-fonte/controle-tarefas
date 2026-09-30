@@ -90,6 +90,9 @@ func parseCompetence(q url.Values, name string) (comp.Competence, error) {
 	return c, nil
 }
 
+// ParseFilters lê os filtros do dashboard (usados também pelos relatórios PDF).
+func ParseFilters(q url.Values) (Filters, error) { return parseFilters(q) }
+
 // parseFilters lê regime_group, tax_regime e responsible_id.
 func parseFilters(q url.Values) (Filters, error) {
 	var f Filters

@@ -982,7 +982,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste gera um PDF de exemplo e verifica o texto extraído (título, acentos).
 
 ### T-M6-07 — Os 6 relatórios PDF
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-06, T-M5-01, T-M5-04, T-M4-07, T-M6-05
 - **Ref:** PRD §36.3, §41.13
 - **Arquivos:** `backend/internal/report/{general,pending,overdue,backlog,credentials,module}.go`
