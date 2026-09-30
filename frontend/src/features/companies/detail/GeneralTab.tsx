@@ -5,12 +5,14 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { formatCnpj } from "@/lib/cnpj";
 import { formatDate } from "@/lib/format";
 import { PAYROLL_TYPE_LABELS, TAX_REGIME_LABELS } from "@/lib/labels";
+import { cn } from "@/lib/utils";
 import type { Company } from "@/services/companies";
 import { CompanyFormDialog } from "../CompanyForm";
 
-function Item({ label, children }: { label: string; children: ReactNode }) {
+function Item({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
+  // Cada par dt/dd fica numa div filha direta do dl (estrutura válida de lista de definição).
   return (
-    <div className="grid gap-0.5">
+    <div className={cn("grid gap-0.5", className)}>
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="text-sm">{children ?? "—"}</dd>
     </div>
@@ -43,9 +45,9 @@ export function GeneralTab({ company: c }: { company: Company }) {
           <Item label="Inscrição estadual">{c.state_registration}</Item>
           <Item label="Inscrição municipal">{c.municipal_registration}</Item>
           <Item label="Situação">{c.active ? "Ativa" : "Inativa"}</Item>
-          <div className="col-span-4">
-            <Item label="Observações cadastrais">{c.notes ? <span className="whitespace-pre-line">{c.notes}</span> : null}</Item>
-          </div>
+          <Item label="Observações cadastrais" className="col-span-4">
+            {c.notes ? <span className="whitespace-pre-line">{c.notes}</span> : null}
+          </Item>
         </dl>
       </CardBody>
       <CompanyFormDialog open={editing} onOpenChange={setEditing} company={c} />

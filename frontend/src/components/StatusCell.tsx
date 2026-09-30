@@ -14,7 +14,7 @@ import {
   type LucideIcon,
   TriangleAlert,
 } from "lucide-react";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,6 +113,7 @@ export function StatusCell({
   const change = useChangeStatus();
   const reasonId = useId();
   const blockedId = useId();
+  const triggerRef = useRef<HTMLButtonElement>(null);
   // Resposta mais nova que a prop (a tela pode demorar a repassar a linha atualizada).
   const [confirmed, setConfirmed] = useState<ObligationInstance | null>(null);
   // Status otimista, válido só enquanto a versão-base for a exibida.
@@ -213,6 +214,7 @@ export function StatusCell({
         <DropdownMenu open={open} onOpenChange={onOpenChange}>
           <DropdownMenuTrigger asChild>
             <button
+              ref={triggerRef}
               type="button"
               aria-label={name}
               aria-busy={optimistic ? true : undefined}
@@ -223,7 +225,18 @@ export function StatusCell({
               <ChevronDown aria-hidden="true" className="ml-auto opacity-50" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" aria-describedby={blockedMessage ? blockedId : undefined}>
+          <DropdownMenuContent
+            align="start"
+            aria-describedby={blockedMessage ? blockedId : undefined}
+            onCloseAutoFocus={(e) => {
+              // Na grade, o foco volta para a célula (tabindex rotativo) e as setas seguem navegando.
+              const cell = triggerRef.current?.closest<HTMLElement>("[data-cell]");
+              if (cell) {
+                e.preventDefault();
+                cell.focus();
+              }
+            }}
+          >
             {blockedMessage ? (
               <DropdownMenuLabel id={blockedId} className="flex max-w-72 items-start gap-1.5 text-xs font-normal text-amber-800">
                 <TriangleAlert aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />

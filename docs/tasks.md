@@ -1032,7 +1032,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** suíte verde no CI (job E2E adicionado a `ci.yml`).
 
 ### T-M7-04 — Acessibilidade
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M7-03
 - **Ref:** PRD §28.3, §45.4
 - **Arquivos:** `e2e/specs/a11y.spec.ts`

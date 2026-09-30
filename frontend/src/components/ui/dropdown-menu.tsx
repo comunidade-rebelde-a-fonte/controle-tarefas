@@ -3,7 +3,13 @@ import { DropdownMenu as Menu } from "radix-ui";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
-export const DropdownMenu = Menu.Root;
+/**
+ * Menu não modal: o restante da página não recebe aria-hidden enquanto continua focável
+ * (axe aria-hidden-focus). O foco entra no menu, Esc fecha e o foco volta ao gatilho.
+ */
+export function DropdownMenu({ modal = false, ...props }: ComponentProps<typeof Menu.Root>) {
+  return <Menu.Root modal={modal} {...props} />;
+}
 export const DropdownMenuTrigger = Menu.Trigger;
 
 export function DropdownMenuContent({ className, sideOffset = 4, align = "end", ...props }: ComponentProps<typeof Menu.Content>) {
