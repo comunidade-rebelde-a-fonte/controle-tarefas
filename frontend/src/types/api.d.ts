@@ -442,6 +442,33 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/credential-controls/{type}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                type: components["schemas"]["CredentialType"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Envia o documento vigente (substitui o anterior) [PRD §19.1, CA-020]
+         * @description Limite de 10 MB. Procuração: PDF, PNG ou JPEG (pelo conteúdo). Certificado: somente o
+         *     certificado público (.cer/.crt DER, ou PEM só com blocos CERTIFICATE). `.pfx`, `.p12`,
+         *     contêineres PKCS#12 e qualquer chave privada são recusados com `PRIVATE_KEY_REJECTED`
+         *     ("Chaves privadas não são armazenadas pelo sistema.").
+         */
+        put: operations["uploadCredentialFile"];
+        post?: never;
+        /** Remove o documento vigente (os demais dados permanecem) */
+        delete: operations["deleteCredentialFile"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/seed": {
         parameters: {
             query?: never;
@@ -2404,6 +2431,74 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    uploadCredentialFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                type: components["schemas"]["CredentialType"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    /** @description Opcional: versão esperada (divergência → 409) */
+                    version?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Documento gravado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialControl"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Chave privada (PRIVATE_KEY_REJECTED) ou formato não aceito (UNSUPPORTED_FILE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    deleteCredentialFile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                type: components["schemas"]["CredentialType"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Item sem documento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialControl"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     loadDemoData: {

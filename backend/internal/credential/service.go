@@ -6,6 +6,7 @@ package credential
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -114,14 +115,31 @@ type UpdateInput struct {
 
 // Service contém as regras de procurações e certificados.
 type Service struct {
-	pool     *pgxpool.Pool
-	clock    clock.Clock
-	settings *settings.Service
+	pool       *pgxpool.Pool
+	clock      clock.Clock
+	settings   *settings.Service
+	storageDir string
+	logger     *slog.Logger
 }
 
-// NewService cria o serviço.
-func NewService(pool *pgxpool.Pool, clk clock.Clock) *Service {
-	return &Service{pool: pool, clock: clk, settings: settings.NewService(pool)}
+// NewService cria o serviço. Os documentos ficam em storageDir/<uuid> (FILE_STORAGE_DIR).
+func NewService(pool *pgxpool.Pool, clk clock.Clock, storageDir string, logger *slog.Logger) *Service {
+	return &Service{pool: pool, clock: clk, settings: settings.NewService(pool), storageDir: storageDir, logger: logger}
+}
+
+func (s *Service) logRemoveError(err error) {
+	if s.logger != nil {
+		s.logger.Error("credential: falha ao remover documento substituído", "error", err)
+	}
+}
+
+// ensureCompany devolve 404 se a empresa não existir.
+func (s *Service) ensureCompany(ctx context.Context, companyID string) error {
+	_, err := store.New(s.pool).GetCredentialCompany(ctx, store.GetCredentialCompanyParams{Ref: s.ref(), ID: companyID})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return apperr.NotFound(companyNotFound, companyMissing)
+	}
+	return err
 }
 
 func (s *Service) thresholds(ctx context.Context) ([]int, error) {
@@ -270,13 +288,10 @@ func (s *Service) Update(ctx context.Context, companyID, typ string, in UpdateIn
 	if err != nil {
 		return Control{}, err
 	}
-	q := store.New(s.pool)
-	if _, err := q.GetCredentialCompany(ctx, store.GetCredentialCompanyParams{Ref: s.ref(), ID: companyID}); err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return Control{}, apperr.NotFound(companyNotFound, companyMissing)
-		}
+	if err := s.ensureCompany(ctx, companyID); err != nil {
 		return Control{}, err
 	}
+	q := store.New(s.pool)
 	current, err := s.records(ctx, q, []string{companyID})
 	if err != nil {
 		return Control{}, err

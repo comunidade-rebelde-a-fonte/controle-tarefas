@@ -10,6 +10,73 @@ import (
 	"time"
 )
 
+const clearCredentialFile = `-- name: ClearCredentialFile :one
+UPDATE credential_controls
+SET file_storage_key = NULL, file_name = NULL, file_mime_type = NULL, file_size_bytes = NULL,
+    file_uploaded_at = NULL, updated_by = $3, updated_at = $4, version = version + 1
+WHERE company_id = $1 AND type = $2
+RETURNING id, company_id, type, expires_at, renewal_status, file_storage_key, file_name, file_mime_type, file_size_bytes, file_uploaded_at, notes, version, updated_by, created_at, updated_at
+`
+
+type ClearCredentialFileParams struct {
+	CompanyID string
+	Type      string
+	UpdatedBy *string
+	UpdatedAt time.Time
+}
+
+func (q *Queries) ClearCredentialFile(ctx context.Context, arg ClearCredentialFileParams) (CredentialControl, error) {
+	row := q.db.QueryRow(ctx, clearCredentialFile,
+		arg.CompanyID,
+		arg.Type,
+		arg.UpdatedBy,
+		arg.UpdatedAt,
+	)
+	var i CredentialControl
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.Type,
+		&i.ExpiresAt,
+		&i.RenewalStatus,
+		&i.FileStorageKey,
+		&i.FileName,
+		&i.FileMimeType,
+		&i.FileSizeBytes,
+		&i.FileUploadedAt,
+		&i.Notes,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const ensureCredentialControl = `-- name: EnsureCredentialControl :exec
+INSERT INTO credential_controls (company_id, type, updated_by, updated_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (company_id, type) DO NOTHING
+`
+
+type EnsureCredentialControlParams struct {
+	CompanyID string
+	Type      string
+	UpdatedBy *string
+	UpdatedAt time.Time
+}
+
+// Cria o registro padrão do tipo (sem data, Vigente) se ainda não existir.
+func (q *Queries) EnsureCredentialControl(ctx context.Context, arg EnsureCredentialControlParams) error {
+	_, err := q.db.Exec(ctx, ensureCredentialControl,
+		arg.CompanyID,
+		arg.Type,
+		arg.UpdatedBy,
+		arg.UpdatedAt,
+	)
+	return err
+}
+
 const getCredentialCompany = `-- name: GetCredentialCompany :one
 SELECT
     c.id, c.internal_code, c.legal_name, c.trade_name, c.cnpj,
@@ -49,6 +116,38 @@ func (q *Queries) GetCredentialCompany(ctx context.Context, arg GetCredentialCom
 		&i.TradeName,
 		&i.Cnpj,
 		&i.TaxRegime,
+	)
+	return i, err
+}
+
+const getCredentialControlForUpdate = `-- name: GetCredentialControlForUpdate :one
+SELECT id, company_id, type, expires_at, renewal_status, file_storage_key, file_name, file_mime_type, file_size_bytes, file_uploaded_at, notes, version, updated_by, created_at, updated_at FROM credential_controls WHERE company_id = $1 AND type = $2 FOR UPDATE
+`
+
+type GetCredentialControlForUpdateParams struct {
+	CompanyID string
+	Type      string
+}
+
+func (q *Queries) GetCredentialControlForUpdate(ctx context.Context, arg GetCredentialControlForUpdateParams) (CredentialControl, error) {
+	row := q.db.QueryRow(ctx, getCredentialControlForUpdate, arg.CompanyID, arg.Type)
+	var i CredentialControl
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.Type,
+		&i.ExpiresAt,
+		&i.RenewalStatus,
+		&i.FileStorageKey,
+		&i.FileName,
+		&i.FileMimeType,
+		&i.FileSizeBytes,
+		&i.FileUploadedAt,
+		&i.Notes,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
@@ -199,6 +298,57 @@ func (q *Queries) ListCredentialControls(ctx context.Context, companyIds []strin
 		return nil, err
 	}
 	return items, nil
+}
+
+const setCredentialFile = `-- name: SetCredentialFile :one
+UPDATE credential_controls
+SET file_storage_key = $3, file_name = $4, file_mime_type = $5, file_size_bytes = $6,
+    file_uploaded_at = $7, updated_by = $8, updated_at = $7, version = version + 1
+WHERE company_id = $1 AND type = $2
+RETURNING id, company_id, type, expires_at, renewal_status, file_storage_key, file_name, file_mime_type, file_size_bytes, file_uploaded_at, notes, version, updated_by, created_at, updated_at
+`
+
+type SetCredentialFileParams struct {
+	CompanyID      string
+	Type           string
+	FileStorageKey *string
+	FileName       *string
+	FileMimeType   *string
+	FileSizeBytes  *int64
+	FileUploadedAt *time.Time
+	UpdatedBy      *string
+}
+
+func (q *Queries) SetCredentialFile(ctx context.Context, arg SetCredentialFileParams) (CredentialControl, error) {
+	row := q.db.QueryRow(ctx, setCredentialFile,
+		arg.CompanyID,
+		arg.Type,
+		arg.FileStorageKey,
+		arg.FileName,
+		arg.FileMimeType,
+		arg.FileSizeBytes,
+		arg.FileUploadedAt,
+		arg.UpdatedBy,
+	)
+	var i CredentialControl
+	err := row.Scan(
+		&i.ID,
+		&i.CompanyID,
+		&i.Type,
+		&i.ExpiresAt,
+		&i.RenewalStatus,
+		&i.FileStorageKey,
+		&i.FileName,
+		&i.FileMimeType,
+		&i.FileSizeBytes,
+		&i.FileUploadedAt,
+		&i.Notes,
+		&i.Version,
+		&i.UpdatedBy,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const updateCredentialControl = `-- name: UpdateCredentialControl :one
