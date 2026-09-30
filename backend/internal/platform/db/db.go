@@ -82,3 +82,12 @@ func IsConstraint(err error, code, constraint string) bool {
 	}
 	return constraint == "" || pgErr.ConstraintName == constraint
 }
+
+// InvalidTextRepresentation (22P02): ex.: UUID malformado.
+const InvalidTextRepresentation = "22P02"
+
+// IsInvalidText indica erro de conversão de texto (ex.: UUID inválido).
+func IsInvalidText(err error) bool {
+	pgErr, ok := PgError(err)
+	return ok && pgErr.Code == InvalidTextRepresentation
+}
