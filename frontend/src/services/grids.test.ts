@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EMPTY_GRID_FILTERS } from "@/lib/useGridFilters";
+import { EMPTY_GRID_FILTERS, type GridFilters } from "@/lib/useGridFilters";
 import { gridExportUrl, gridFilterQuery } from "./grids";
 
 describe("gridExportUrl", () => {
   it("CA-017 leva competência, agrupamento, filtros e busca da tela para a exportação", () => {
-    const filters = { ...EMPTY_GRID_FILTERS, taxRegime: "LUCRO_REAL", overdue: true, q: " Alfa " };
+    const filters: GridFilters = { ...EMPTY_GRID_FILTERS, taxRegime: "LUCRO_REAL", overdue: true, q: " Alfa " };
     const url = gridExportUrl("fiscal", { competence: "2026-10", group: "normal", ...gridFilterQuery(filters) }, filters.q);
     const [path, qs] = url.split("?");
     expect(path).toBe("/api/v1/exports/fiscal.xlsx");

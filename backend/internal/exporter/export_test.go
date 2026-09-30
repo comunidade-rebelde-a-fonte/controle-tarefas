@@ -47,12 +47,12 @@ func TestCA017_ExportRespectsFilters(t *testing.T) {
 	query := "competence=2026-10&group=normal&tax_regime=LUCRO_REAL"
 
 	var g gridBody
-	srv.Get("/api/v1/modules/fiscal/grid?" + query).MustStatus(t, http.StatusOK).JSON(t, &g)
+	srv.Get("/api/v1/modules/fiscal/grid?"+query).MustStatus(t, http.StatusOK).JSON(t, &g)
 	if len(g.Rows) == 0 || len(g.Rows) >= 10 {
 		t.Fatalf("filtro por regime deveria reduzir a grade Normal: %d linhas", len(g.Rows))
 	}
 
-	res := srv.Get("/api/v1/exports/fiscal.xlsx?" + query).MustStatus(t, http.StatusOK)
+	res := srv.Get("/api/v1/exports/fiscal.xlsx?"+query).MustStatus(t, http.StatusOK)
 	if ct := res.Header.Get("Content-Type"); ct != "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" {
 		t.Fatalf("Content-Type = %q", ct)
 	}
@@ -120,7 +120,7 @@ func TestExport_FreeSearchAndOtherModules(t *testing.T) {
 	}
 
 	for _, m := range []string{"declarations", "payroll", "accounting", "dctfweb"} {
-		res := srv.Get("/api/v1/exports/" + m + ".xlsx?competence=2026-10&overdue=true").MustStatus(t, http.StatusOK)
+		res := srv.Get("/api/v1/exports/"+m+".xlsx?competence=2026-10&overdue=true").MustStatus(t, http.StatusOK)
 		f, sheet := open(t, res.Body)
 		rows, _ := f.GetRows(sheet)
 		if !slices.Contains(rows[2], "Filtros: Somente atrasadas") {
