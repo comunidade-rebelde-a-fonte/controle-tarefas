@@ -51,3 +51,12 @@ export function usePeriodEvents(id: string | null, enabled = true) {
     enabled: enabled && !!id,
   });
 }
+
+export type UpdateNoteInput = Schemas["CompanyModulePeriodNote"] & { id: string };
+
+/** PATCH /company-module-periods/{id}/note: observação geral da empresa no módulo [PRD §22, RN-016]. */
+export function useUpdateNote() {
+  return useMutation({
+    mutationFn: ({ id, ...body }: UpdateNoteInput) => api.patch("/company-module-periods/{id}/note", { path: { id }, body }),
+  });
+}
