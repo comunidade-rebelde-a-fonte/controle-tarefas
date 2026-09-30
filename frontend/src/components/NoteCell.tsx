@@ -18,6 +18,9 @@ export interface NoteCellProps {
   label?: string;
   /** -1 dentro da DataGrid. */
   tabIndex?: number;
+  /** Edição controlada (ex.: Enter na célula da DataGrid). */
+  editing?: boolean;
+  onEditingChange?: (editing: boolean) => void;
   onSaved?: (period: ModulePeriod) => void;
 }
 
@@ -25,12 +28,18 @@ export interface NoteCellProps {
  * Observação geral da empresa no módulo e competência [PRD §22, RN-016]: exibição truncada com
  * tooltip e edição inline (Enter ou sair do campo salva, Esc cancela), otimista com rollback.
  */
-export function NoteCell({ periodId, version, note, label, tabIndex, onSaved }: NoteCellProps) {
+export function NoteCell({ periodId, version, note, label, tabIndex, editing: editingProp, onEditingChange, onSaved }: NoteCellProps) {
   const toast = useToast();
   const qc = useQueryClient();
   const update = useUpdateNote();
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState("");
+  const [localEditing, setLocalEditing] = useState(false);
+  const editing = editingProp ?? localEditing;
+  const setEditing = (value: boolean) => {
+    setLocalEditing(value);
+    onEditingChange?.(value);
+  };
+  // null = ainda não editado: o campo começa com o texto exibido.
+  const [draft, setDraft] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<ModulePeriod | null>(null);
   const [optimistic, setOptimistic] = useState<{ note: string | null; baseVersion: number } | null>(null);
   const cancelled = useRef(false);
@@ -43,14 +52,15 @@ export function NoteCell({ periodId, version, note, label, tabIndex, onSaved }: 
   const start = () => {
     if (update.isPending) return;
     cancelled.current = false;
-    setDraft(shown ?? "");
+    setDraft(null);
     setEditing(true);
   };
 
   const save = () => {
     if (cancelled.current) return;
     setEditing(false);
-    const next = draft.trim() || null;
+    const next = (draft ?? shown ?? "").trim() || null;
+    setDraft(null);
     if (next === (shown ?? null)) return;
     const base = current;
     setOptimistic({ note: next, baseVersion: base.version });
@@ -87,6 +97,7 @@ export function NoteCell({ periodId, version, note, label, tabIndex, onSaved }: 
       e.preventDefault();
       e.stopPropagation();
       cancelled.current = true;
+      setDraft(null);
       setEditing(false);
     }
   };
@@ -97,10 +108,13 @@ export function NoteCell({ periodId, version, note, label, tabIndex, onSaved }: 
         autoFocus
         aria-label={name}
         maxLength={2000}
-        value={draft}
+        value={draft ?? shown ?? ""}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={onKeyDown}
         onBlur={save}
+        onFocus={() => {
+          cancelled.current = false;
+        }}
         className="h-7 text-xs"
       />
     );

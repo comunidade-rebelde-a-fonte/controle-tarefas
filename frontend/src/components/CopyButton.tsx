@@ -13,10 +13,12 @@ interface CopyButtonProps {
   /** Exibe o rótulo ao lado do ícone. */
   showLabel?: boolean;
   className?: string;
+  /** -1 dentro da DataGrid (a célula é que recebe o foco). */
+  tabIndex?: number;
 }
 
 /** Copia um valor para a área de transferência com feedback acessível ("Copiado"). */
-export function CopyButton({ value, label, showLabel = false, className }: CopyButtonProps) {
+export function CopyButton({ value, label, showLabel = false, className, tabIndex }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
 
@@ -41,6 +43,7 @@ export function CopyButton({ value, label, showLabel = false, className }: CopyB
         size={showLabel ? "sm" : "icon-sm"}
         className={cn("text-muted-foreground", className)}
         aria-label={text}
+        tabIndex={tabIndex}
         onClick={(e) => {
           e.stopPropagation();
           void copy();
@@ -57,6 +60,13 @@ export function CopyButton({ value, label, showLabel = false, className }: CopyB
 }
 
 /** Copia o CNPJ somente com os 14 dígitos [RN-014, CA-003]. */
-export function CopyCnpjButton({ cnpj, showLabel }: { cnpj: string; showLabel?: boolean }) {
-  return <CopyButton value={sanitizeCnpj(cnpj)} label="Copiar CNPJ" {...(showLabel !== undefined ? { showLabel } : {})} />;
+export function CopyCnpjButton({ cnpj, showLabel, tabIndex }: { cnpj: string; showLabel?: boolean; tabIndex?: number }) {
+  return (
+    <CopyButton
+      value={sanitizeCnpj(cnpj)}
+      label="Copiar CNPJ"
+      {...(showLabel !== undefined ? { showLabel } : {})}
+      {...(tabIndex !== undefined ? { tabIndex } : {})}
+    />
+  );
 }
