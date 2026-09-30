@@ -717,7 +717,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M4 — Demais grades
 
 ### T-M4-01 — Endpoints das grades de Declarações, Folha, DCTFWeb e Contábil
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-01
 - **Ref:** PRD §29–§32, §41.6 · plan R1
 - **Arquivos:** `backend/internal/grid/{declarations,payroll,dctfweb,accounting}.go`

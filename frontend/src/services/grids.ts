@@ -58,15 +58,23 @@ export function applyStatusChange(qc: QueryClient, res: StatusChangeResult) {
     const cell = row?.cells[code];
     if (!row || !cell || cell.version > res.instance.version) return grid;
     const rows = [...grid.rows];
-    rows[index] = {
-      ...row,
-      cells: { ...row.cells, [code]: { ...cell, ...res.instance } },
-      progress: res.row.progress,
-      overdue: res.row.overdue,
-      nearest_deadline: res.row.nearest_deadline,
-      // Status só muda com o módulo aberto (fechado → 423), então o indicador da linha é o da API.
-      ready_to_close: res.row.progress.ready_to_close,
-    };
+    const updated = { ...row, cells: { ...row.cells, [code]: { ...cell, ...res.instance } } };
+    // O agregado devolvido é o do módulo da instância; só vale para a linha se for o mesmo módulo
+    // do período da grade (na DCTFWeb, o eSocial é da Folha).
+    rows[index] =
+      res.row.module === grid.period_module
+        ? {
+            ...updated,
+            progress: res.row.progress,
+            overdue: res.row.overdue,
+            nearest_deadline: res.row.nearest_deadline,
+            // Status só muda com o módulo aberto (fechado → 423), então o indicador é o da API.
+            ready_to_close: grid.closable && res.row.progress.ready_to_close,
+          }
+        : updated;
     return { ...grid, rows };
   });
+  // Indicadores de outras células (blocked_by no Contábil, dependências da DCTFWeb) e filtros
+  // derivados dependem da alteração: as grades são recarregadas em segundo plano.
+  void qc.invalidateQueries({ queryKey: gridKeys.all });
 }

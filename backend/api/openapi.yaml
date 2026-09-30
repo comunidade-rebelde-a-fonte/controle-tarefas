@@ -1000,6 +1000,110 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /modules/declarations/grid:
+    get:
+      tags: [grids]
+      operationId: getDeclarationsGrid
+      summary: Grade de Declarações (colunas dinâmicas do catálogo; célula com vencimento, transmissão e protocolo)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /modules/payroll/grid:
+    get:
+      tags: [grids]
+      operationId: getPayrollGrid
+      summary: Grade da Folha (Tipo de Folha e Fator R do snapshot; Fator R só no Simples)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /modules/accounting/grid:
+    get:
+      tags: [grids]
+      operationId: getAccountingGrid
+      summary: Grade Contábil (colunas na ordem da sequência; blocked_by por célula)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /modules/dctfweb/grid:
+    get:
+      tags: [grids]
+      operationId: getDctfwebGrid
+      summary: Visão DCTFWeb (MIT, REINF, eSocial e DCTFWeb; coluna dependências; sem fechamento próprio)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -1968,7 +2072,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/ObligationInstance"
         - type: object
-          required: [blocked_by, dependency_status]
+          required: [blocked_by, dependency_status, locked]
           properties:
             blocked_by:
               type: array
@@ -1979,10 +2083,13 @@ components:
               oneOf:
                 - $ref: "#/components/schemas/DependencyStatus"
                 - type: "null"
+            locked:
+              type: boolean
+              description: Módulo principal da instância fechado na competência (edição bloqueada até reabrir)
 
     GridRow:
       type: object
-      required: [company, snapshot, period, progress, overdue, nearest_deadline, ready_to_close, cells]
+      required: [company, snapshot, period, progress, overdue, nearest_deadline, ready_to_close, dependencies, cells]
       properties:
         company:
           type: object
@@ -1995,13 +2102,13 @@ components:
             cnpj: { $ref: "#/components/schemas/Cnpj" }
         snapshot:
           type: object
-          description: Configuração usada na geração da competência (D4)
+          description: Configuração usada na geração da competência (D4); responsável do módulo da grade
           required: [tax_regime, regime_group, payroll_type, factor_r, responsible]
           properties:
             tax_regime: { $ref: "#/components/schemas/TaxRegime" }
             regime_group: { $ref: "#/components/schemas/RegimeGroup" }
             payroll_type: { $ref: "#/components/schemas/PayrollType" }
-            factor_r: { type: [boolean, "null"] }
+            factor_r: { type: [boolean, "null"], description: "Somente no Simples; null nos demais regimes" }
             responsible:
               oneOf:
                 - $ref: "#/components/schemas/UserRef"
@@ -2022,7 +2129,12 @@ components:
         progress: { $ref: "#/components/schemas/Progress" }
         overdue: { type: integer }
         nearest_deadline: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
-        ready_to_close: { type: boolean, description: "Todos os itens relevantes finais e módulo aberto (sugerir fechamento)" }
+        ready_to_close: { type: boolean, description: "Todos os itens relevantes finais e módulo aberto (sugerir fechamento); false sem fechamento próprio" }
+        dependencies:
+          description: Coluna "dependências" da DCTFWeb (apta/pendente); null nas demais grades
+          oneOf:
+            - $ref: "#/components/schemas/DependencyStatus"
+            - type: "null"
         cells:
           type: object
           description: Células por código do tipo de obrigação (colunas sem instância ficam ausentes)
@@ -2030,9 +2142,13 @@ components:
 
     ModuleGrid:
       type: object
-      required: [module, competence, group, today, columns, rows, total]
+      required: [module, period_module, closable, competence, group, today, columns, rows, total]
       properties:
         module: { type: string }
+        period_module:
+          type: string
+          description: Módulo do período das linhas (observação e agregado da linha)
+        closable: { type: boolean, description: "A grade tem fechamento próprio (a DCTFWeb não tem)" }
         competence: { $ref: "#/components/schemas/Competence" }
         group: { type: [string, "null"], enum: [normal, simples, null] }
         today: { $ref: "#/components/schemas/Date" }

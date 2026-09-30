@@ -24,6 +24,14 @@ func NewHandler(b *Builder) *Handler { return &Handler{b: b} }
 // Routes registra as rotas [PRD §41.6].
 func (h *Handler) Routes(r chi.Router) {
 	r.Get("/modules/fiscal/grid", h.fiscal)
+	r.Get("/modules/declarations/grid", h.fixed(DeclarationsSpec()))
+	r.Get("/modules/payroll/grid", h.fixed(PayrollSpec()))
+	r.Get("/modules/accounting/grid", h.fixed(AccountingSpec()))
+	r.Get("/modules/dctfweb/grid", h.fixed(DctfwebSpec()))
+}
+
+func (h *Handler) fixed(spec Spec) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) { h.serve(w, r, spec) }
 }
 
 func (h *Handler) fiscal(w http.ResponseWriter, r *http.Request) {

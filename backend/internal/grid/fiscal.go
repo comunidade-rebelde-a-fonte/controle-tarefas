@@ -14,7 +14,7 @@ const (
 // FiscalSpec devolve a grade Fiscal do agrupamento: Normais (Presumido, Real, Arbitrado,
 // Imune/Isenta) ou Simples Nacional, pelo regime do snapshot da competência [PRD §13.1, §14].
 func FiscalSpec(group string) (Spec, error) {
-	spec := Spec{Module: "FISCAL", PeriodModule: "FISCAL", Group: group}
+	spec := Spec{Module: "FISCAL", PeriodModule: "FISCAL", Group: group, Closable: true}
 	switch group {
 	case GroupParamNormal:
 		spec.RegimeGroup = company.GroupNormal

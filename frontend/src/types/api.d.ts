@@ -745,6 +745,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/modules/declarations/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grade de Declarações (colunas dinâmicas do catálogo; célula com vencimento, transmissão e protocolo) */
+        get: operations["getDeclarationsGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/modules/payroll/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grade da Folha (Tipo de Folha e Fator R do snapshot; Fator R só no Simples) */
+        get: operations["getPayrollGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/modules/accounting/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grade Contábil (colunas na ordem da sequência; blocked_by por célula) */
+        get: operations["getAccountingGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/modules/dctfweb/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Visão DCTFWeb (MIT, REINF, eSocial e DCTFWeb; coluna dependências; sem fechamento próprio) */
+        get: operations["getDctfwebGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1417,6 +1485,8 @@ export interface components {
             blocked_by: components["schemas"]["DependencyRef"][];
             /** @description Indicador SOFT (DCTFWeb); null quando o tipo não tem dependência SOFT */
             dependency_status: components["schemas"]["DependencyStatus"] | null;
+            /** @description Módulo principal da instância fechado na competência (edição bloqueada até reabrir) */
+            locked: boolean;
         };
         GridRow: {
             company: {
@@ -1426,11 +1496,12 @@ export interface components {
                 trade_name: string | null;
                 cnpj: components["schemas"]["Cnpj"];
             };
-            /** @description Configuração usada na geração da competência (D4) */
+            /** @description Configuração usada na geração da competência (D4); responsável do módulo da grade */
             snapshot: {
                 tax_regime: components["schemas"]["TaxRegime"];
                 regime_group: components["schemas"]["RegimeGroup"];
                 payroll_type: components["schemas"]["PayrollType"];
+                /** @description Somente no Simples; null nos demais regimes */
                 factor_r: boolean | null;
                 responsible: components["schemas"]["UserRef"] | null;
             };
@@ -1447,8 +1518,10 @@ export interface components {
             progress: components["schemas"]["Progress"];
             overdue: number;
             nearest_deadline: components["schemas"]["Date"] | null;
-            /** @description Todos os itens relevantes finais e módulo aberto (sugerir fechamento) */
+            /** @description Todos os itens relevantes finais e módulo aberto (sugerir fechamento); false sem fechamento próprio */
             ready_to_close: boolean;
+            /** @description Coluna "dependências" da DCTFWeb (apta/pendente); null nas demais grades */
+            dependencies: components["schemas"]["DependencyStatus"] | null;
             /** @description Células por código do tipo de obrigação (colunas sem instância ficam ausentes) */
             cells: {
                 [key: string]: components["schemas"]["GridCell"];
@@ -1456,6 +1529,10 @@ export interface components {
         };
         ModuleGrid: {
             module: string;
+            /** @description Módulo do período das linhas (observação e agregado da linha) */
+            period_module: string;
+            /** @description A grade tem fechamento próprio (a DCTFWeb não tem) */
+            closable: boolean;
             competence: components["schemas"]["Competence"];
             /** @enum {string|null} */
             group: "normal" | "simples" | null;
@@ -2925,6 +3002,178 @@ export interface operations {
                 obligation_type_id?: components["parameters"]["GridObligationType"];
                 /** @description Status do estágio de fechamento do módulo (Fiscal - coluna Fechamento) */
                 closing_status?: components["parameters"]["GridClosingStatus"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDeclarationsGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getPayrollGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getAccountingGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDctfwebGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
                 period_state?: components["parameters"]["GridPeriodState"];
                 /** @description Com ou sem observação geral */
                 note?: components["parameters"]["GridNote"];
