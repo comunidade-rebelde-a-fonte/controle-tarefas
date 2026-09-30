@@ -2,8 +2,9 @@
  * Formatadores de exibição (pt-BR). Somente apresentação: nenhuma regra de negócio.
  */
 
+import { displayCompetence } from "./competence";
+
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
-const COMPETENCE_KEY = /^(\d{4})-(\d{2})$/;
 
 /** Data civil da API (`AAAA-MM-DD`) → `DD/MM/AAAA`. Não aplica fuso (data sem hora). */
 export function formatDate(value: string | null | undefined): string {
@@ -30,12 +31,7 @@ export function formatDateTime(value: string | null | undefined): string {
 }
 
 /** Competência armazenada (`AAAA-MM`) → exibição `MM/AAAA`. */
-export function formatCompetence(key: string | null | undefined): string {
-  if (!key) return "";
-  const m = COMPETENCE_KEY.exec(key);
-  if (!m) return key;
-  return `${m[2] ?? ""}/${m[1] ?? ""}`;
-}
+export const formatCompetence = displayCompetence;
 
 const percentFormatter = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 });
 

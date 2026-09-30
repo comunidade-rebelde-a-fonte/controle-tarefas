@@ -235,7 +235,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste de integração prova que inserir regimes sobrepostos falha e que CNPJ/código duplicados falham.
 
 ### T-M1-03 — Utilitários de competência e CNPJ
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-03
 - **Ref:** PRD §5.3, §7.3, §53.1 (sanitização) · RN-014
 - **Arquivos:** `backend/internal/platform/competence/`, `backend/internal/platform/cnpj/`, `frontend/src/lib/{competence,cnpj}.ts`
