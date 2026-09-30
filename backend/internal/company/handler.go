@@ -27,6 +27,10 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Post("/companies/{id}/deactivate", h.deactivate)
 	r.Get("/companies/{id}/tax-regimes", h.listRegimes)
 	r.Post("/companies/{id}/tax-regimes", h.changeRegime)
+	r.Get("/companies/{id}/modules", h.getModules)
+	r.Put("/companies/{id}/modules/{module}", h.setModule)
+	r.Get("/companies/{id}/obligation-overrides", h.getOverrides)
+	r.Put("/companies/{id}/obligation-overrides/{obligationTypeId}", h.setOverride)
 }
 
 func companyID(r *http.Request) (string, error) {

@@ -326,7 +326,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes da troca Simples → Presumido (exemplo do §8.2) e de `RegimeAt` antes e depois da troca.
 
 ### T-M1-10 — API de módulos e overrides de aplicabilidade
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-08, T-M1-06
 - **Ref:** plan R6 · PRD §7.4, §9, §41.3–§41.4 · RN-015
 - **Arquivos:** `backend/internal/company/{modules,overrides}.go`

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -28,6 +29,8 @@ type Service struct {
 	pool  *pgxpool.Pool
 	q     *store.Queries
 	clock clock.Clock
+	// latestGenerated devolve a última competência gerada (injetada pelo motor, M2).
+	latestGenerated func(ctx context.Context) (*competence.Competence, error)
 }
 
 // NewService cria o serviço.
@@ -559,3 +562,5 @@ func mapNotFound(err error) error {
 	}
 	return err
 }
+
+func civilOf(t time.Time) civil.Date { return civil.Of(t) }
