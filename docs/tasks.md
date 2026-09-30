@@ -595,7 +595,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M3 — Grade genérica + Fiscal
 
 ### T-M3-01 — Endpoint da grade Fiscal
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-07, T-M2-13
 - **Ref:** plan M3 · PRD §13.2, §14.1, §26.4, §41.6
 - **Arquivos:** `backend/internal/grid/{builder,fiscal}.go`, `backend/queries/grid.sql`
