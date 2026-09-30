@@ -469,7 +469,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA005_OnlyActiveInServicePeriod`, `TestCA006_DisabledModuleNoInstances`, `TestCA007_NotApplicableKeepsPercent` (este em conjunto com T-M2-07); rodar 3× sequencialmente e 5× em paralelo produz o mesmo número de linhas; uma empresa criada depois da geração recebe as instâncias na próxima chamada, sem alterar as demais.
 
 ### T-M2-05 — Gatilhos e endpoints de competência
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-04
 - **Ref:** PRD §10.2, §10.7, §41.5 · UC-01
 - **Arquivos:** `backend/cmd/api/main.go`, `backend/internal/competence/{scheduler,handler}.go`

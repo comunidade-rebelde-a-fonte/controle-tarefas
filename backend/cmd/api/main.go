@@ -140,7 +140,9 @@ func serve(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
 	defer pool.Close()
 
 	clk := newClock(cfg)
-	handler := app.NewRouter(app.Deps{Config: cfg, Pool: pool, Clock: clk, Logger: logger})
+	application := app.New(app.Deps{Config: cfg, Pool: pool, Clock: clk, Logger: logger})
+	application.Boot(ctx)
+	handler := application.Handler
 
 	srv := &http.Server{
 		Addr:              ":" + strconv.Itoa(cfg.HTTPPort),

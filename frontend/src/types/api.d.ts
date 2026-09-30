@@ -399,6 +399,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/competencies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Competências geradas (mais recente primeiro) com totais */
+        get: operations["listCompetencies"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/competencies/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Competência mais recente (garante a corrente antes) */
+        get: operations["getLatestCompetence"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/competencies/ensure-current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Garante a competência corrente (idempotente) */
+        post: operations["ensureCurrentCompetence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -794,6 +845,28 @@ export interface components {
         CredentialThresholds: {
             /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
             days: number[];
+        };
+        CompetenceInfo: {
+            competence: components["schemas"]["Competence"];
+            /** Format: date-time */
+            created_at: string;
+            companies: number;
+            instances: number;
+            open_periods: number;
+            closed_periods: number;
+        };
+        CompetenceList: {
+            items: components["schemas"]["CompetenceInfo"][];
+        };
+        LatestCompetence: {
+            competence: components["schemas"]["Competence"];
+            current: components["schemas"]["Competence"];
+        };
+        EnsureSummary: {
+            competence: components["schemas"]["Competence"];
+            companies_processed: number;
+            periods_created: number;
+            instances_created: number;
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -1676,6 +1749,66 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    listCompetencies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Competências */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompetenceList"];
+                };
+            };
+        };
+    };
+    getLatestCompetence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Competência mais recente e corrente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LatestCompetence"];
+                };
+            };
+        };
+    };
+    ensureCurrentCompetence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resumo da execução */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnsureSummary"];
+                };
+            };
         };
     };
 }
