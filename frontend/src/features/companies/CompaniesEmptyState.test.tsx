@@ -19,7 +19,7 @@ const company = {
 };
 
 describe("Estado vazio de empresas", () => {
-  it("oferece cadastrar, importar (desabilitado) e carregar demonstração; o CTA carrega as empresas", async () => {
+  it("oferece cadastrar, importar planilha e carregar demonstração; o CTA carrega as empresas", async () => {
     let seeded = false;
     mockFetchRoutes(({ method, url }) => {
       if (method === "GET" && url.pathname === "/api/v1/companies") {
@@ -36,7 +36,7 @@ describe("Estado vazio de empresas", () => {
 
     expect(await screen.findByRole("heading", { name: "Nenhuma empresa cadastrada" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cadastrar empresa" })).toBeEnabled();
-    expect(screen.getByRole("button", { name: "Importar planilha" })).toBeDisabled();
+    expect(screen.getByRole("link", { name: "Importar planilha" })).toHaveAttribute("href", "/imports");
 
     await user.click(screen.getByRole("button", { name: "Carregar dados de demonstração" }));
 

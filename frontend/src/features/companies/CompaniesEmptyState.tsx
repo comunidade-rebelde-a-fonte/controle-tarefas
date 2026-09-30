@@ -1,8 +1,8 @@
 import { Building2, Database, FileSpreadsheet, Plus } from "lucide-react";
+import { Link } from "react-router";
 import { EmptyState } from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast-context";
-import { Tooltip } from "@/components/ui/tooltip";
 import { isApiError } from "@/lib/api";
 import { useLoadDemoData } from "@/services/demo";
 
@@ -19,13 +19,11 @@ export function CompaniesEmptyState({ onCreate }: { onCreate: () => void }) {
       <Button onClick={onCreate}>
         <Plus aria-hidden /> Cadastrar empresa
       </Button>
-      <Tooltip content="Disponível em breve (importação XLSX/CSV).">
-        <span>
-          <Button variant="outline" disabled>
-            <FileSpreadsheet aria-hidden /> Importar planilha
-          </Button>
-        </span>
-      </Tooltip>
+      <Button variant="outline" asChild>
+        <Link to="/imports">
+          <FileSpreadsheet aria-hidden /> Importar planilha
+        </Link>
+      </Button>
       <Button
         variant="secondary"
         disabled={demo.isPending}
