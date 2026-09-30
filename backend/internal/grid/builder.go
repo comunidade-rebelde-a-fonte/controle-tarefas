@@ -26,10 +26,14 @@ import (
 // regimes que definem as colunas (e, no Fiscal, o agrupamento das linhas).
 type Spec struct {
 	Module       string   // obligation_display_contexts.module_code
-	PeriodModule string   // company_module_periods.module_code
+	PeriodModule string   // company_module_periods.module_code: linhas, observação e agregado da linha
 	Regimes      []string // regimes cujas regras definem as colunas
 	RegimeGroup  string   // NORMAL | SIMPLES (Fiscal); "" = todos
 	Group        string   // valor de "group" devolvido (normal | simples); "" = sem agrupamento
+	// Closable: a grade tem fechamento próprio. A visão DCTFWeb não tem (plan R1).
+	Closable bool
+	// DependencyColumn: código do tipo cujo indicador SOFT vira a coluna "dependências" (DCTFWeb).
+	DependencyColumn string
 }
 
 // Filters são os filtros server-side do §26.4. A busca livre é aplicada no cliente.
@@ -89,6 +93,8 @@ type Period struct {
 // Cell é a instância da coluna com os indicadores de dependência.
 type Cell struct {
 	obligation.Instance
+	// Módulo principal da instância fechado na competência: edição bloqueada (plan R9).
+	Locked bool `json:"locked"`
 	// Etapas anteriores (HARD) que impedem concluir; vazio se nada bloqueia.
 	BlockedBy []obligation.DepInstance `json:"blocked_by"`
 	// Indicador SOFT (DCTFWeb): apto/pendente com a lista; null se o tipo não tem SOFT.
@@ -104,19 +110,26 @@ type Row struct {
 	Overdue         int                 `json:"overdue"`
 	NearestDeadline *civil.Date         `json:"nearest_deadline"`
 	// Todos os itens relevantes finais e módulo ainda aberto: sugerir o fechamento [§10.5, R2].
-	ReadyToClose bool            `json:"ready_to_close"`
-	Cells        map[string]Cell `json:"cells"` // por código do tipo
+	// Sempre false em grades sem fechamento próprio.
+	ReadyToClose bool `json:"ready_to_close"`
+	// Coluna "dependências" (DCTFWeb): apta ou pendente, com a lista; null nas demais grades.
+	Dependencies *obligation.DependencyStatus `json:"dependencies"`
+	Cells        map[string]Cell              `json:"cells"` // por código do tipo
 }
 
 // Grid é a resposta de GET /modules/{module}/grid.
 type Grid struct {
-	Module     string          `json:"module"`
-	Competence comp.Competence `json:"competence"`
-	Group      *string         `json:"group"`
-	Today      civil.Date      `json:"today"`
-	Columns    []Column        `json:"columns"`
-	Rows       []Row           `json:"rows"`
-	Total      int             `json:"total"`
+	Module string `json:"module"`
+	// Módulo do período das linhas (observação e agregado); é o módulo do RowSummary que
+	// acompanha as alterações de status desse módulo.
+	PeriodModule string          `json:"period_module"`
+	Closable     bool            `json:"closable"`
+	Competence   comp.Competence `json:"competence"`
+	Group        *string         `json:"group"`
+	Today        civil.Date      `json:"today"`
+	Columns      []Column        `json:"columns"`
+	Rows         []Row           `json:"rows"`
+	Total        int             `json:"total"`
 }
 
 // Builder monta as grades.
@@ -141,7 +154,8 @@ type depJSON struct {
 // leitura (visão consistente entre as consultas).
 func (b *Builder) BuildGrid(ctx context.Context, spec Spec, c comp.Competence, f Filters) (Grid, error) {
 	today := clock.Today(b.clock)
-	g := Grid{Module: spec.Module, Competence: c, Today: civil.Date{Time: today}, Columns: []Column{}, Rows: []Row{}}
+	g := Grid{Module: spec.Module, PeriodModule: spec.PeriodModule, Closable: spec.Closable, Competence: c,
+		Today: civil.Date{Time: today}, Columns: []Column{}, Rows: []Row{}}
 	if spec.Group != "" {
 		g.Group = &spec.Group
 	}
@@ -170,7 +184,7 @@ func (b *Builder) BuildGrid(ctx context.Context, spec Spec, c comp.Competence, f
 		return g, err
 	}
 	if len(rows) == 0 || len(cols) == 0 {
-		g.Rows = buildRows(rows, cols, nil, deps, c, today, f)
+		g.Rows = buildRows(spec, rows, cols, nil, deps, c, today, f)
 		g.Total = len(g.Rows)
 		return g, nil
 	}
@@ -179,11 +193,13 @@ func (b *Builder) BuildGrid(ctx context.Context, spec Spec, c comp.Competence, f
 	for i, r := range rows {
 		companyIDs[i] = r.CompanyID
 	}
-	cells, err := q.GridCells(ctx, store.GridCellsParams{CompetenceID: competenceID, CompanyIds: companyIDs, TypeIds: cellTypes(cols, deps)})
+	cells, err := q.GridCells(ctx, store.GridCellsParams{
+		CompetenceID: competenceID, CompanyIds: companyIDs, TypeIds: cellTypes(cols, deps), PeriodModule: spec.PeriodModule,
+	})
 	if err != nil {
 		return g, err
 	}
-	g.Rows = buildRows(rows, cols, cells, deps, c, today, f)
+	g.Rows = buildRows(spec, rows, cols, cells, deps, c, today, f)
 	g.Total = len(g.Rows)
 	return g, nil
 }
@@ -244,7 +260,7 @@ func cellTypes(cols []Column, deps []obligation.Dependency) []string {
 	return out
 }
 
-func buildRows(rows []store.GridRowsRow, cols []Column, cells []store.GridCellsRow, deps []obligation.Dependency,
+func buildRows(spec Spec, rows []store.GridRowsRow, cols []Column, cells []store.GridCellsRow, deps []obligation.Dependency,
 	c comp.Competence, today time.Time, f Filters) []Row {
 	byCompany := map[string][]store.GridCellsRow{}
 	for _, cell := range cells {
@@ -257,9 +273,13 @@ func buildRows(rows []store.GridRowsRow, cols []Column, cells []store.GridCellsR
 
 	out := []Row{}
 	for _, r := range rows {
+		factorR := r.FactorR
+		if r.RegimeGroup != "SIMPLES" {
+			factorR = nil // Fator R só se aplica ao Simples [PRD §17.2]
+		}
 		row := Row{
 			Company: Company{ID: r.CompanyID, InternalCode: r.InternalCode, LegalName: r.LegalName, TradeName: r.TradeName, Cnpj: r.Cnpj},
-			Snapshot: Snapshot{TaxRegime: r.TaxRegime, RegimeGroup: r.RegimeGroup, PayrollType: r.PayrollType, FactorR: r.FactorR,
+			Snapshot: Snapshot{TaxRegime: r.TaxRegime, RegimeGroup: r.RegimeGroup, PayrollType: r.PayrollType, FactorR: factorR,
 				Responsible: userRef(r.ResponsibleID, r.ResponsibleName)},
 			Period: Period{ID: r.PeriodID, State: r.PeriodState, ClosedAt: r.ClosedAt, ClosedBy: userRef(r.ClosedByID, r.ClosedByName),
 				GeneralNote: r.GeneralNote, Version: r.PeriodVersion},
@@ -278,11 +298,26 @@ func buildRows(rows []store.GridRowsRow, cols []Column, cells []store.GridCellsR
 		var applicable, final []bool
 		m := match{}
 		for _, cell := range byCompany[r.CompanyID] {
+			// Agregado da linha: obrigações do módulo do período, como no fechamento (R1) e no
+			// RowSummary devolvido pelas alterações de status.
+			if cell.PrimaryModule == spec.PeriodModule {
+				items = append(items, obligation.Item{
+					Applicable: cell.Applicable, CountsInProgress: cell.CountsInProgress, CountsAsProgress: cell.CountsAsOperationalProgress,
+					IsFinal: cell.IsFinal, IsBlocking: cell.IsBlocking, ExcludedFromDenominator: cell.ExcludedFromDenominator,
+				})
+				dues = append(dues, cell.DueDateEffective)
+				applicable = append(applicable, cell.Applicable)
+				final = append(final, cell.IsFinal)
+				if obligation.IsOverdue(cell.Applicable, cell.IsFinal, cell.DueDateEffective, today) {
+					row.Overdue++
+				}
+			}
 			col, shown := colByType[cell.ObligationTypeID]
 			if !shown {
-				continue // pré-requisito de outro módulo: só entra no cálculo de dependências
+				continue // pré-requisito ou obrigação do módulo fora das colunas desta grade
 			}
 			gc := toCell(cell, r.CompanyID, c, today)
+			gc.Locked = cell.PeriodState == "CLOSED"
 			if cell.Applicable && !cell.IsFinal {
 				gc.BlockedBy = obligation.CheckHard(cell.ObligationTypeID, deps, state)
 			}
@@ -290,23 +325,15 @@ func buildRows(rows []store.GridRowsRow, cols []Column, cells []store.GridCellsR
 				gc.BlockedBy = []obligation.DepInstance{}
 			}
 			gc.DependencyStatus = obligation.SoftDependencyStatus(cell.ObligationTypeID, deps, state)
-			row.Cells[cell.TypeCode] = gc
-
-			items = append(items, obligation.Item{
-				Applicable: cell.Applicable, CountsInProgress: cell.CountsInProgress, CountsAsProgress: cell.CountsAsOperationalProgress,
-				IsFinal: cell.IsFinal, IsBlocking: cell.IsBlocking, ExcludedFromDenominator: cell.ExcludedFromDenominator,
-			})
-			dues = append(dues, cell.DueDateEffective)
-			applicable = append(applicable, cell.Applicable)
-			final = append(final, cell.IsFinal)
-			if gc.IsOverdue {
-				row.Overdue++
+			if spec.DependencyColumn != "" && cell.TypeCode == spec.DependencyColumn {
+				row.Dependencies = gc.DependencyStatus
 			}
+			row.Cells[cell.TypeCode] = gc
 			m.observe(cell, col, f)
 		}
 		row.Progress = obligation.Aggregate(items)
 		row.NearestDeadline = civil.Ptr(obligation.NearestDeadline(dues, applicable, final))
-		row.ReadyToClose = row.Progress.ReadyToClose && r.PeriodState == "OPEN"
+		row.ReadyToClose = spec.Closable && row.Progress.ReadyToClose && r.PeriodState == "OPEN"
 		if keep(row, m, f) {
 			out = append(out, row)
 		}

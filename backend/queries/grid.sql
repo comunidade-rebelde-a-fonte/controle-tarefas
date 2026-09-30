@@ -63,17 +63,21 @@ WHERE s.competence_id = sqlc.arg('competence_id')
 ORDER BY c.legal_name, c.internal_code;
 
 -- name: GridCells :many
--- Células: instâncias das empresas da grade para os tipos das colunas e seus pré-requisitos.
+-- Células: instâncias das empresas da grade para os tipos das colunas, seus pré-requisitos e
+-- todas as obrigações do módulo da linha (agregado de progresso, como no fechamento, plan R1).
+-- period_state é o do módulo principal da instância (na visão DCTFWeb, cada célula tem o seu).
 SELECT v.id, v.company_id, v.obligation_type_id, t.code AS type_code, t.name AS type_name, t.primary_module,
        v.type_sort_order, v.status_code, v.status_label, v.applicable, v.counts_in_progress, v.is_final,
        v.counts_as_started, v.counts_as_operational_progress, v.is_blocking, v.excluded_from_denominator,
        v.due_date_original, v.due_date_effective, v.due_date_override_reason, v.transmission_date, v.protocol,
        v.version, v.last_changed_at, u.name AS last_changed_by_name,
+       COALESCE(p.state, 'OPEN')::text AS period_state,
        EXISTS (SELECT 1 FROM obligation_status_history h WHERE h.obligation_instance_id = v.id) AS has_history
 FROM v_obligation_instances v
 JOIN obligation_types t ON t.id = v.obligation_type_id
 LEFT JOIN users u ON u.id = v.last_changed_by
+LEFT JOIN company_module_periods p
+       ON p.company_id = v.company_id AND p.competence_id = v.competence_id AND p.module_code = t.primary_module
 WHERE v.competence_id = sqlc.arg('competence_id')
   AND v.company_id = ANY (sqlc.arg('company_ids')::uuid[])
-  AND v.obligation_type_id = ANY (sqlc.arg('type_ids')::uuid[]);
-
+  AND (v.obligation_type_id = ANY (sqlc.arg('type_ids')::uuid[]) OR t.primary_module = sqlc.arg('period_module'));

@@ -43,8 +43,8 @@ export interface ModuleGridProps {
   error: unknown;
   /** Colunas extras depois do CNPJ (ex.: regime, tipo de folha). */
   extraColumns?: DataGridColumn<GridRow>[];
-  /** Módulo com fechamento próprio (a visão DCTFWeb não tem, plan R1). */
-  closable?: boolean;
+  /** Colunas extras depois das obrigações (ex.: dependências da DCTFWeb). */
+  trailingColumns?: DataGridColumn<GridRow>[];
   /** Texto do "pronto para fechar" (ex.: PRD §13.5). */
   readyToCloseText?: string;
 }
@@ -86,7 +86,7 @@ function ObligationCell({ row, col }: { row: GridRow; col: GridColumn }) {
     );
   const colId = OB + col.obligation_type.code;
   const label = `${col.obligation_type.name} — ${row.company.legal_name}`;
-  const locked = row.period.state === "CLOSED";
+  const locked = cell.locked;
   const isOpen =
     ui.openCell?.row === row.company.id && ui.openCell.col === colId;
   return (
@@ -199,7 +199,7 @@ export function ModuleGrid({
   isLoading,
   error,
   extraColumns = [],
-  closable = true,
+  trailingColumns = [],
   readyToCloseText,
 }: ModuleGridProps) {
   const qc = useQueryClient();
@@ -222,6 +222,8 @@ export function ModuleGrid({
   } | null>(null);
   const competence = grid?.competence ?? "";
   const gridColumns = grid?.columns;
+  // Sem fechamento próprio (visão DCTFWeb, plan R1), a grade não mostra fechar/reabrir.
+  const closable = grid?.closable ?? false;
 
   const target = (row: GridRow): PeriodTarget => ({
     periodId: row.period.id,
@@ -289,6 +291,7 @@ export function ModuleGrid({
         width: 168,
         cell: (row) => <ObligationCell row={row} col={col} />,
       })),
+      ...trailingColumns,
       {
         id: "progress",
         header: "Progresso operacional",
@@ -352,7 +355,7 @@ export function ModuleGrid({
         ),
       },
     ];
-  }, [gridColumns, extraColumns, closable, moduleLabel, readyToCloseText]);
+  }, [gridColumns, extraColumns, trailingColumns, closable, moduleLabel, readyToCloseText]);
 
   const ui: GridUi = {
     openCell,

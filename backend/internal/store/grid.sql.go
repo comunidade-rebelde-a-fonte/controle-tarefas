@@ -16,19 +16,23 @@ SELECT v.id, v.company_id, v.obligation_type_id, t.code AS type_code, t.name AS 
        v.counts_as_started, v.counts_as_operational_progress, v.is_blocking, v.excluded_from_denominator,
        v.due_date_original, v.due_date_effective, v.due_date_override_reason, v.transmission_date, v.protocol,
        v.version, v.last_changed_at, u.name AS last_changed_by_name,
+       COALESCE(p.state, 'OPEN')::text AS period_state,
        EXISTS (SELECT 1 FROM obligation_status_history h WHERE h.obligation_instance_id = v.id) AS has_history
 FROM v_obligation_instances v
 JOIN obligation_types t ON t.id = v.obligation_type_id
 LEFT JOIN users u ON u.id = v.last_changed_by
+LEFT JOIN company_module_periods p
+       ON p.company_id = v.company_id AND p.competence_id = v.competence_id AND p.module_code = t.primary_module
 WHERE v.competence_id = $1
   AND v.company_id = ANY ($2::uuid[])
-  AND v.obligation_type_id = ANY ($3::uuid[])
+  AND (v.obligation_type_id = ANY ($3::uuid[]) OR t.primary_module = $4)
 `
 
 type GridCellsParams struct {
 	CompetenceID string
 	CompanyIds   []string
 	TypeIds      []string
+	PeriodModule string
 }
 
 type GridCellsRow struct {
@@ -56,12 +60,20 @@ type GridCellsRow struct {
 	Version                     int32
 	LastChangedAt               *time.Time
 	LastChangedByName           *string
+	PeriodState                 string
 	HasHistory                  bool
 }
 
-// Células: instâncias das empresas da grade para os tipos das colunas e seus pré-requisitos.
+// Células: instâncias das empresas da grade para os tipos das colunas, seus pré-requisitos e
+// todas as obrigações do módulo da linha (agregado de progresso, como no fechamento, plan R1).
+// period_state é o do módulo principal da instância (na visão DCTFWeb, cada célula tem o seu).
 func (q *Queries) GridCells(ctx context.Context, arg GridCellsParams) ([]GridCellsRow, error) {
-	rows, err := q.db.Query(ctx, gridCells, arg.CompetenceID, arg.CompanyIds, arg.TypeIds)
+	rows, err := q.db.Query(ctx, gridCells,
+		arg.CompetenceID,
+		arg.CompanyIds,
+		arg.TypeIds,
+		arg.PeriodModule,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +106,7 @@ func (q *Queries) GridCells(ctx context.Context, arg GridCellsParams) ([]GridCel
 			&i.Version,
 			&i.LastChangedAt,
 			&i.LastChangedByName,
+			&i.PeriodState,
 			&i.HasHistory,
 		); err != nil {
 			return nil, err
