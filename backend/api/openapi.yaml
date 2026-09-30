@@ -35,6 +35,8 @@ tags:
     description: Competências mensais
   - name: obligations
     description: Instâncias de obrigação (status, detalhes, histórico)
+  - name: periods
+    description: Fechamento por empresa + módulo + competência, reabertura e observação geral
 
 paths:
   /health:
@@ -720,6 +722,118 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/InstanceHistory" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /company-module-periods/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [periods]
+      operationId: getModulePeriod
+      summary: Estado do módulo da empresa na competência
+      responses:
+        "200":
+          description: Período
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModulePeriod" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /company-module-periods/{id}/close:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [periods]
+      operationId: closeModulePeriod
+      summary: Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyModulePeriodClose" }
+      responses:
+        "200":
+          description: Período fechado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModulePeriod" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: >-
+            Conflito de versão (VERSION_CONFLICT) ou estágio de fechamento do módulo ainda não
+            encerrado sem confirm_set_closing (CLOSING_STATUS_REQUIRED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Período já fechado (PERIOD_ALREADY_CLOSED) ou dependência HARD do estágio de fechamento
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /company-module-periods/{id}/reopen:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [periods]
+      operationId: reopenModulePeriod
+      summary: Reabre o módulo fechado; o motivo é obrigatório (CA-015)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyModulePeriodReopen" }
+      responses:
+        "200":
+          description: Período reaberto
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModulePeriod" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Motivo ausente (REASON_REQUIRED) ou período não fechado (PERIOD_NOT_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /company-module-periods/{id}/note:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [periods]
+      operationId: updateModulePeriodNote
+      summary: Altera a observação geral da empresa no módulo e competência (RN-016)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyModulePeriodNote" }
+      responses:
+        "200":
+          description: Período atualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModulePeriod" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /company-module-periods/{id}/events:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [periods]
+      operationId: listModulePeriodEvents
+      summary: Abertura, fechamentos e reaberturas (mais recente primeiro)
+      responses:
+        "200":
+          description: Eventos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModulePeriodEvents" }
         "404": { $ref: "#/components/responses/NotFound" }
 
 components:
@@ -1460,6 +1574,65 @@ components:
       required: [items]
       properties:
         items: { type: array, items: { $ref: "#/components/schemas/HistoryEntry" } }
+
+    CompanyModulePeriod:
+      type: object
+      required: [id, company_id, competence, module, state, closed_at, closed_by, general_note, version]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        competence: { $ref: "#/components/schemas/Competence" }
+        module: { type: string, enum: [FISCAL, DECLARATIONS, ACCOUNTING, PAYROLL] }
+        state: { type: string, enum: [OPEN, CLOSED] }
+        closed_at: { type: [string, "null"], format: date-time }
+        closed_by:
+          oneOf:
+            - $ref: "#/components/schemas/UserRef"
+            - type: "null"
+        general_note: { type: [string, "null"] }
+        version: { $ref: "#/components/schemas/Version" }
+
+    CompanyModulePeriodClose:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        confirm_set_closing:
+          type: boolean
+          description: Confirma marcar o estágio de fechamento do módulo (Fiscal "Fechamento") como encerrado no mesmo ato
+
+    CompanyModulePeriodReopen:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason: { type: string, maxLength: 1000 }
+        version: { $ref: "#/components/schemas/Version" }
+
+    CompanyModulePeriodNote:
+      type: object
+      additionalProperties: false
+      required: [version, general_note]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        general_note: { type: [string, "null"], maxLength: 2000, description: "Vazio ou null limpa a observação" }
+
+    CompanyModulePeriodEvent:
+      type: object
+      required: [id, event_type, reason, user, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        event_type: { type: string, enum: [OPENED, CLOSED, REOPENED] }
+        reason: { type: [string, "null"] }
+        user: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+
+    CompanyModulePeriodEvents:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/CompanyModulePeriodEvent" } }
 
     UserRole:
       type: string

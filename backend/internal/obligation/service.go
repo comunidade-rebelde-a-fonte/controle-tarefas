@@ -193,9 +193,9 @@ func (s *Service) ChangeStatus(ctx context.Context, id string, in StatusChangeIn
 	return s.result(ctx, id, companyID, competenceID, module)
 }
 
-// loadDependencyState carrega as dependências ativas e as instâncias da mesma empresa e
+// LoadDependencyState carrega as dependências ativas e as instâncias da mesma empresa e
 // competência (estado usado por CheckHard/CheckSoft).
-func loadDependencyState(ctx context.Context, q *store.Queries, companyID, competenceID string) ([]Dependency, map[string]DepInstance, error) {
+func LoadDependencyState(ctx context.Context, q *store.Queries, companyID, competenceID string) ([]Dependency, map[string]DepInstance, error) {
 	rows, err := q.ListActiveDependencies(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -230,7 +230,7 @@ func (s *Service) checkDependencies(ctx context.Context, q *store.Queries, inst 
 	if !def.IsFinal {
 		return nil, nil
 	}
-	deps, byType, err := loadDependencyState(ctx, q, inst.CompanyID, inst.CompetenceID)
+	deps, byType, err := LoadDependencyState(ctx, q, inst.CompanyID, inst.CompetenceID)
 	if err != nil {
 		return nil, err
 	}

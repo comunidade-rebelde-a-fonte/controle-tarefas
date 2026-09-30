@@ -16,6 +16,7 @@ import (
 	"controle/internal/competence"
 	"controle/internal/demo"
 	"controle/internal/obligation"
+	"controle/internal/period"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
@@ -75,6 +76,7 @@ func New(d Deps) *App {
 		company.NewHandler(companies).Routes(api)
 		competence.NewHandler(d.Pool, engine).Routes(api)
 		obligation.NewHandler(obligation.NewService(d.Pool, d.Clock)).Routes(api)
+		period.NewHandler(period.NewService(d.Pool, d.Clock)).Routes(api)
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)

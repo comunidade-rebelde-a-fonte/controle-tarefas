@@ -543,6 +543,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/company-module-periods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Estado do módulo da empresa na competência */
+        get: operations["getModulePeriod"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company-module-periods/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013) */
+        post: operations["closeModulePeriod"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company-module-periods/{id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reabre o módulo fechado; o motivo é obrigatório (CA-015) */
+        post: operations["reopenModulePeriod"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company-module-periods/{id}/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Altera a observação geral da empresa no módulo e competência (RN-016) */
+        patch: operations["updateModulePeriodNote"];
+        trace?: never;
+    };
+    "/company-module-periods/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Abertura, fechamentos e reaberturas (mais recente primeiro) */
+        get: operations["listModulePeriodEvents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1077,6 +1172,46 @@ export interface components {
         };
         InstanceHistory: {
             items: components["schemas"]["HistoryEntry"][];
+        };
+        CompanyModulePeriod: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @enum {string} */
+            module: "FISCAL" | "DECLARATIONS" | "ACCOUNTING" | "PAYROLL";
+            /** @enum {string} */
+            state: "OPEN" | "CLOSED";
+            /** Format: date-time */
+            closed_at: string | null;
+            closed_by: components["schemas"]["UserRef"] | null;
+            general_note: string | null;
+            version: components["schemas"]["Version"];
+        };
+        CompanyModulePeriodClose: {
+            version: components["schemas"]["Version"];
+            /** @description Confirma marcar o estágio de fechamento do módulo (Fiscal "Fechamento") como encerrado no mesmo ato */
+            confirm_set_closing?: boolean;
+        };
+        CompanyModulePeriodReopen: {
+            reason: string;
+            version?: components["schemas"]["Version"];
+        };
+        CompanyModulePeriodNote: {
+            version: components["schemas"]["Version"];
+            /** @description Vazio ou null limpa a observação */
+            general_note: string | null;
+        };
+        CompanyModulePeriodEvent: {
+            id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            event_type: "OPENED" | "CLOSED" | "REOPENED";
+            reason: string | null;
+            user: components["schemas"]["UserRef"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        CompanyModulePeriodEvents: {
+            items: components["schemas"]["CompanyModulePeriodEvent"][];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -2182,6 +2317,165 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InstanceHistory"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getModulePeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Período */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModulePeriod"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    closeModulePeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyModulePeriodClose"];
+            };
+        };
+        responses: {
+            /** @description Período fechado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModulePeriod"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Conflito de versão (VERSION_CONFLICT) ou estágio de fechamento do módulo ainda não encerrado sem confirm_set_closing (CLOSING_STATUS_REQUIRED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Período já fechado (PERIOD_ALREADY_CLOSED) ou dependência HARD do estágio de fechamento */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    reopenModulePeriod: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyModulePeriodReopen"];
+            };
+        };
+        responses: {
+            /** @description Período reaberto */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModulePeriod"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Motivo ausente (REASON_REQUIRED) ou período não fechado (PERIOD_NOT_CLOSED) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    updateModulePeriodNote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyModulePeriodNote"];
+            };
+        };
+        responses: {
+            /** @description Período atualizado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModulePeriod"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listModulePeriodEvents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eventos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModulePeriodEvents"];
                 };
             };
             404: components["responses"]["NotFound"];
