@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 func TestRequirePerfDatabase(t *testing.T) {
 	ok := []string{
@@ -22,6 +25,28 @@ func TestRequirePerfDatabase(t *testing.T) {
 	for _, u := range bad {
 		if err := requirePerfDatabase(u); err == nil {
 			t.Errorf("%q deveria ser recusado", u)
+		}
+	}
+}
+
+func TestListBodyCount(t *testing.T) {
+	cases := []struct {
+		body string
+		want string
+	}{
+		{`{"rows":[{},{},{}]}`, "3"},
+		{`{"rows":[]}`, "0"},
+		{`{"items":[{},{}],"total":250}`, "2 de 250"},
+		{`{"categories":[{}]}`, "1 categorias"},
+		{`{"kpis":{}}`, "—"},
+	}
+	for _, c := range cases {
+		var b listBody
+		if err := json.Unmarshal([]byte(c.body), &b); err != nil {
+			t.Fatal(err)
+		}
+		if got := b.count(); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.body, got, c.want)
 		}
 	}
 }

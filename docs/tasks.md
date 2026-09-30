@@ -1008,7 +1008,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M7 — QA, carga e implantação
 
 ### T-M7-01 — Teste de carga com 300 empresas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-10, T-M4-06, T-M5-09
 - **Ref:** PRD §45.1, §52 (Fase 6), §54
 - **Arquivos:** `backend/cmd/loadgen`, `docs/perf.md`

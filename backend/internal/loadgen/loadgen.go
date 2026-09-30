@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -118,12 +119,15 @@ func Generate(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, n, k int
 	var out2 []comp.Competence
 	for age := k - 1; age >= 0; age-- {
 		c := cur.AddMonths(-age)
+		started := time.Now()
 		sum, err := engine.Ensure(ctx, c)
 		if err != nil {
 			return nil, fmt.Errorf("competência %s: %w", c, err)
 		}
 		out2 = append(out2, c)
-		_, _ = fmt.Fprintf(out, "competência %s: %d empresas, %d instâncias novas\n", c.Display(), sum.CompaniesProcessed, sum.InstancesCreated)
+		// O tempo do Ensure de cada competência nova é a medição de "ensure" do T-M7-01.
+		_, _ = fmt.Fprintf(out, "competência %s: %d empresas, %d instâncias novas, ensure em %d ms\n",
+			c.Display(), sum.CompaniesProcessed, sum.InstancesCreated, time.Since(started).Milliseconds())
 	}
 	if err := ApplyStatuses(ctx, pool, cur.String(), s); err != nil {
 		return nil, err
