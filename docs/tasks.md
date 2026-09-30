@@ -807,7 +807,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** cada filtro rápido do §33 retorna ao menos uma empresa no seed.
 
 ### T-M4-10 — FE: tela Procurações e Certificados
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-08, T-M3-03
 - **Ref:** PRD §33 · UC-05 · CA-019, CA-020
 - **Arquivos:** `frontend/src/features/credentials/*`
