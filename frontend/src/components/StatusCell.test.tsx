@@ -138,6 +138,37 @@ describe("StatusCell", () => {
     expect(screen.getByRole("button", { name: "ICMS — Alfa Comércio: Baixadas" })).toBeInTheDocument();
   });
 
+  it("na grade, fechar o menu devolve o foco à célula (tabindex rotativo) para as setas seguirem navegando", async () => {
+    stubFetch(() => undefined);
+    const user = userEvent.setup();
+    renderWithProviders(
+      <table>
+        <tbody>
+          <tr>
+            <td data-cell="0:1" tabIndex={0}>
+              <StatusCell instance={base} statuses={statuses} label="ICMS — Alfa Comércio" tabIndex={-1} />
+            </td>
+          </tr>
+        </tbody>
+      </table>,
+    );
+    await user.click(screen.getByRole("button", { name: "ICMS — Alfa Comércio: Baixadas" }));
+    await screen.findByRole("menu");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.getByRole("cell")).toHaveFocus());
+  });
+
+  it("fora da grade, fechar o menu devolve o foco ao botão do status", async () => {
+    stubFetch(() => undefined);
+    const user = userEvent.setup();
+    renderCell();
+    const trigger = screen.getByRole("button", { name: "ICMS — Alfa Comércio: Baixadas" });
+    await user.click(trigger);
+    await screen.findByRole("menu");
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(trigger).toHaveFocus());
+  });
+
   it("em conflito de versão (409) recarrega a instância e avisa", async () => {
     const fetchFn = stubFetch(({ method, path }) => {
       if (method === "PATCH") return jsonResponse({ code: "VERSION_CONFLICT", message: "Registro alterado por outra operação." }, 409);

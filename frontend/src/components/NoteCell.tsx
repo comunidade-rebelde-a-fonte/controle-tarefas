@@ -106,6 +106,8 @@ export function NoteCell({ periodId, version, note, label, tabIndex, editing: ed
     return (
       <Input
         autoFocus
+        // Na grade, a célula é a única parada de Tab (tabindex rotativo); o campo não cria outra.
+        tabIndex={tabIndex}
         aria-label={name}
         maxLength={2000}
         value={draft ?? shown ?? ""}

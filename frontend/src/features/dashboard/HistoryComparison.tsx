@@ -77,9 +77,10 @@ export function HistoryComparison({ history }: { history: DashboardHistory }) {
         {data.length > 1 ? (
           <figure className="grid gap-1">
             <figcaption className="text-xs font-medium text-muted-foreground">Conclusão final por competência (%)</figcaption>
+            {/* Gráfico só visual (sem foco no SVG); a tabela sr-only abaixo tem os mesmos dados. */}
             <div className="h-44" aria-hidden>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer={false}>
                   <CartesianGrid stroke={GRID} vertical={false} />
                   <XAxis dataKey="label" tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={{ stroke: GRID }} />
                   <YAxis domain={[0, 100]} tick={{ fill: AXIS, fontSize: 11 }} tickLine={false} axisLine={false} width={40} />
