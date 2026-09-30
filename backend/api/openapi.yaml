@@ -1125,6 +1125,25 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /dashboard/attention:
+    get:
+      tags: [dashboard]
+      operationId: getDashboardAttention
+      summary: Exige atenção — 11 categorias com contagem, amostra (5) e drill-down (PRD §24.6)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/DashboardRegimeGroup"
+        - $ref: "#/components/parameters/DashboardTaxRegime"
+        - $ref: "#/components/parameters/DashboardResponsible"
+      responses:
+        "200":
+          description: Categorias de atenção
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attention" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -2295,6 +2314,48 @@ components:
         modules: { type: array, items: { $ref: "#/components/schemas/DashboardModuleCard" } }
         credentials: { type: array, items: { $ref: "#/components/schemas/DashboardCredentialCard" } }
         responsibles: { type: array, items: { $ref: "#/components/schemas/DashboardResponsible" } }
+
+    AttentionItem:
+      type: object
+      required: [company, title, detail, date, drilldown]
+      properties:
+        company:
+          type: object
+          required: [id, internal_code, legal_name]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            internal_code: { type: string }
+            legal_name: { type: string }
+        title: { type: string }
+        detail: { type: string }
+        date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        drilldown:
+          oneOf:
+            - $ref: "#/components/schemas/Drilldown"
+            - type: "null"
+
+    AttentionCategory:
+      type: object
+      required: [key, label, count, sample, drilldown]
+      properties:
+        key:
+          type: string
+          enum: [OVERDUE, PENDING, MISSING_DOCUMENTS, ERROR, CERTIFICATE_EXPIRED, CERTIFICATE_DUE_SOON,
+                 POWER_OF_ATTORNEY_EXPIRED, POWER_OF_ATTORNEY_DUE_SOON, PREVIOUS_OPEN, DCTFWEB_BLOCKED, ACCOUNTING_BLOCKED]
+        label: { type: string }
+        count: { type: integer }
+        sample: { type: array, maxItems: 5, items: { $ref: "#/components/schemas/AttentionItem" } }
+        drilldown:
+          oneOf:
+            - $ref: "#/components/schemas/Drilldown"
+            - type: "null"
+
+    Attention:
+      type: object
+      required: [competence, categories]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        categories: { type: array, items: { $ref: "#/components/schemas/AttentionCategory" } }
 
     UserRole:
       type: string

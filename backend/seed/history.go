@@ -232,6 +232,56 @@ func applyDemoCompetence(ctx context.Context, tx pgx.Tx, c comp.Competence, age 
 	if age == 1 {
 		return overrideDueDateDemo(ctx, tx, c, at)
 	}
+	if age == 0 {
+		return attentionDemo(ctx, tx, c, at, clock.Today(clk))
+	}
+	return nil
+}
+
+// AttentionDueReason é o motivo dos vencimentos antecipados da demonstração.
+const AttentionDueReason = "Prazo antecipado a pedido do cliente (demonstração)"
+
+// attentionDemo garante casos do "Exige atenção" na competência corrente [T-M5-02]: duas
+// obrigações com vencimento antecipado para antes de hoje (atrasadas) e um Fechamento Fiscal
+// com Erro, com histórico.
+func attentionDemo(ctx context.Context, tx pgx.Tx, c comp.Competence, at, today time.Time) error {
+	if _, err := tx.Exec(ctx, `
+		WITH target AS (
+		    SELECT i.id, i.due_date_effective FROM obligation_instances i
+		    JOIN competencies k ON k.id = i.competence_id AND k.competence_key = $1
+		    JOIN companies co ON co.id = i.company_id
+		    JOIN obligation_types t ON t.id = i.obligation_type_id
+		    JOIN status_definitions d ON d.status_set_id = t.status_set_id AND d.code = i.status_code
+		    WHERE t.code = 'FISCAL_ENTRADAS' AND i.applicable AND NOT d.is_final AND i.due_date_effective IS NOT NULL
+		    ORDER BY co.internal_code LIMIT 2),
+		upd AS (
+		    UPDATE obligation_instances i SET due_date_effective = $4::date - 3, due_date_override_reason = $5,
+		           due_date_overridden_by = $3, due_date_overridden_at = $2, version = i.version + 1,
+		           last_changed_by = $3, last_changed_at = $2, updated_at = $2
+		    FROM target WHERE i.id = target.id
+		    RETURNING i.id, target.due_date_effective AS old_due, i.due_date_effective AS new_due)
+		INSERT INTO obligation_status_history (obligation_instance_id, field, old_value, new_value, user_id, change_source, override_reason, created_at)
+		SELECT id, 'DUE_DATE', old_due::text, new_due::text, $3, 'SYSTEM', $5, $2 FROM upd`,
+		c.String(), at, adminID, today, AttentionDueReason); err != nil {
+		return fmt.Errorf("atrasos de demonstração: %w", err)
+	}
+	if _, err := tx.Exec(ctx, `
+		WITH target AS (
+		    SELECT i.id, i.status_code FROM obligation_instances i
+		    JOIN competencies k ON k.id = i.competence_id AND k.competence_key = $1
+		    JOIN companies co ON co.id = i.company_id
+		    JOIN obligation_types t ON t.id = i.obligation_type_id
+		    WHERE t.code = 'FISCAL_FECHAMENTO' AND i.applicable AND i.status_code <> 'CLOSED'
+		    ORDER BY co.internal_code DESC LIMIT 1),
+		upd AS (
+		    UPDATE obligation_instances i SET status_code = 'ERROR', version = i.version + 1,
+		           last_changed_by = $3, last_changed_at = $2, updated_at = $2
+		    FROM target WHERE i.id = target.id
+		    RETURNING i.id, target.status_code AS old_status)
+		INSERT INTO obligation_status_history (obligation_instance_id, field, old_value, new_value, user_id, change_source, created_at)
+		SELECT id, 'STATUS', old_status, 'ERROR', $3, 'SYSTEM', $2 FROM upd`, c.String(), at, adminID); err != nil {
+		return fmt.Errorf("erro de demonstração: %w", err)
+	}
 	return nil
 }
 

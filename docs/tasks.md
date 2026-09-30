@@ -842,7 +842,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de integração com números conferidos contra o seed determinístico.
 
 ### T-M5-02 — API "Exige atenção"
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-01, T-M4-07
 - **Ref:** PRD §24.6 · CA-019
 - **Arquivos:** `backend/internal/dashboard/attention.go`
