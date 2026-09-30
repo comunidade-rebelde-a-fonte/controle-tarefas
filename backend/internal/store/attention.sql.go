@@ -112,7 +112,7 @@ FROM (
         JOIN company_competence_snapshots s ON s.company_id = v.company_id AND s.competence_id = v.competence_id
         CROSS JOIN LATERAL unnest(ARRAY[
             CASE WHEN v.applicable AND NOT v.is_final AND v.due_date_effective < $1::date THEN 'OVERDUE' END,
-            CASE WHEN v.applicable AND v.is_blocking THEN 'PENDING' END,
+            CASE WHEN v.in_denominator AND v.is_blocking THEN 'PENDING' END,
             CASE WHEN v.applicable AND v.status_code = 'MISSING_DOCUMENTS' THEN 'MISSING_DOCUMENTS' END,
             CASE WHEN v.applicable AND v.status_code = 'ERROR' THEN 'ERROR' END
         ]::text[]) AS cat

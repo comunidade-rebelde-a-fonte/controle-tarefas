@@ -858,7 +858,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste com as competências históricas do seed.
 
 ### T-M5-04 — API de backlog
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-07
 - **Ref:** plan R8 · PRD §25 · CA-021
 - **Arquivos:** `backend/internal/dashboard/backlog.go`

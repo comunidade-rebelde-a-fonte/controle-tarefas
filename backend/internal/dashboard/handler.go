@@ -24,6 +24,21 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/dashboard", h.dashboard)
 	r.Get("/dashboard/attention", h.attention)
 	r.Get("/dashboard/history", h.history)
+	r.Get("/backlog", h.backlog)
+}
+
+func (h *Handler) backlog(w http.ResponseWriter, r *http.Request) {
+	p, err := ParseBacklog(r.URL.Query())
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	b, err := h.svc.Backlog(r.Context(), p)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, b)
 }
 
 func (h *Handler) history(w http.ResponseWriter, r *http.Request) {
