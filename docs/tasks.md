@@ -431,7 +431,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes table-driven cobrindo dia 31 em fevereiro, 15º dia útil, feriado móvel, sábado com PREVIOUS e NEXT, virada de ano e `NONE`.
 
 ### T-M2-02 — Migrations de competência, snapshots, períodos, instâncias e histórico
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-04
 - **Ref:** plan §4 (8–11), D2, D4, D8 · PRD §38.5–§38.7, §38.11–§38.12, §51
 - **Arquivos:** `backend/migrations/0009_competencies.sql` … `0012_status_history.sql`
