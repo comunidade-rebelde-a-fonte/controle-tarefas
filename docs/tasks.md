@@ -124,7 +124,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
   - `.env` está no `.gitignore` e nenhum segredo real foi versionado.
 
 ### T-M0-03 — Esqueleto da API Go
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-01, T-M0-02
 - **Ref:** plan §3, M0 · PRD §42.2, §45.3
 - **Arquivos:** `backend/cmd/api/main.go`, `backend/internal/platform/{config,db,http,clock}`
