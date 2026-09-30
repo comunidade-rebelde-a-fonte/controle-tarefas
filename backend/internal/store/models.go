@@ -168,6 +168,20 @@ type Holiday struct {
 	CreatedAt  time.Time
 }
 
+type ImportPreview struct {
+	ID          string
+	Kind        string
+	FileName    string
+	Rows        []byte
+	Summary     []byte
+	CreatedBy   string
+	CreatedAt   time.Time
+	ExpiresAt   time.Time
+	CommittedAt *time.Time
+	CommittedBy *string
+	Result      []byte
+}
+
 type ObligationDependency struct {
 	ID                           string
 	ObligationTypeID             string

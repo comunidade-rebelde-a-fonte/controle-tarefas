@@ -941,7 +941,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes com fixtures cobrindo cada classificação, CSV com `;` em Latin-1 e XLSX com linhas vazias no fim.
 
 ### T-M6-03 — Preview e commit da importação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-02
 - **Ref:** PRD §35.3, §35.5, §41.12 · CA-018
 - **Arquivos:** `backend/internal/importer/handler.go`, `backend/migrations/0013_import_previews.sql`
