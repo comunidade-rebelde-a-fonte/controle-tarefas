@@ -81,6 +81,9 @@ func Demo(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, out io.Write
 	if err := DemoCompanies(ctx, pool, clk, out); err != nil {
 		return err
 	}
+	if err := Run(ctx, pool, clk, []Step{credentialsStep()}, out); err != nil {
+		return err
+	}
 	if err := demoHistory(ctx, pool, clk); err != nil {
 		return fmt.Errorf("seed demo: histórico: %w", err)
 	}
