@@ -952,7 +952,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA018_ImportRejectsInvalidBeforeCommit`; commit com token expirado → `410`; existentes não confirmadas não são alteradas.
 
 ### T-M6-04 — FE: wizard de importação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-03, T-M1-17
 - **Ref:** PRD §35.3, §49.1
 - **Arquivos:** `frontend/src/features/imports/*`
