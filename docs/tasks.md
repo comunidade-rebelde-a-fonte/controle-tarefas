@@ -737,7 +737,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E: marcar MIT como Transmitida com protocolo e ver o protocolo no popover após recarregar.
 
 ### T-M4-03 — FE: tela Folha
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01, T-M3-09
 - **Ref:** PRD §17, §30
 - **Arquivos:** `frontend/src/features/payroll/*`

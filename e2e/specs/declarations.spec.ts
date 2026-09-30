@@ -32,7 +32,7 @@ test("T-M4-02 marca o MIT como Transmitida com protocolo e o protocolo persiste 
   await details.getByLabel("Data de transmissão").fill("2026-09-10");
   await details.getByLabel("Protocolo").fill("MIT-2026-0001");
   await details.getByRole("button", { name: "Salvar" }).click();
-  await expect(page.getByText("Detalhes salvos")).toBeVisible();
+  await expect(page.getByText("Detalhes salvos", { exact: true })).toBeVisible();
 
   // Após recarregar, o popover mostra o protocolo gravado.
   await page.reload();
