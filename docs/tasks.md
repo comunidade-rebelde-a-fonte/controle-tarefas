@@ -703,7 +703,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E UC-02: filtrar → alterar status inline → ver o progresso mudar → fechar a empresa pronta.
 
 ### T-M3-10 — Gerador de massa e medição da grade
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-01
 - **Ref:** PRD §45.1 · plan M3/M7
 - **Arquivos:** `backend/cmd/loadgen/main.go`, `docs/perf.md`
