@@ -271,7 +271,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste compara o seed com as tabelas do §11; rodar o seed 2× não duplica.
 
 ### T-M1-06 — Seed do catálogo de obrigações
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-05 · provisório até T-000 (Q1, Q5, Q6)
 - **Ref:** plan D1, D2, D3, D5, D7 · PRD §13–§18, §50, §38.9, §38.15
 - **Arquivos:** `backend/seed/catalog.sql`

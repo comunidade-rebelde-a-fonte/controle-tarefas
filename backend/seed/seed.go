@@ -40,6 +40,7 @@ func sqlStep(file string) Step {
 func ReferenceSteps() []Step {
 	return []Step{
 		sqlStep("status.sql"),
+		sqlStep("catalog.sql"),
 	}
 }
 

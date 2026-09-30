@@ -43,9 +43,10 @@ func TestSchema_TypeRequiresExistingStatusSetAndStatus(t *testing.T) {
 	if !db.IsConstraint(err, db.ForeignKeyViolation, "obligation_types_initial_status_fk") {
 		t.Fatalf("status inicial fora do conjunto deveria falhar: %v", err)
 	}
-	_, err = pool.Exec(ctx, insType, "X", setID, "NOT_STARTED", "NOT_APPLICABLE")
-	if !db.IsConstraint(err, db.ForeignKeyViolation, "obligation_types_no_payroll_status_fk") {
-		t.Fatalf("status 'sem folha' fora do conjunto deveria falhar: %v", err)
+	// "Sem folha" aceita apenas NO_MOVEMENT ou NOT_APPLICABLE (este = gerar como não aplicável, D7).
+	_, err = pool.Exec(ctx, insType, "X", setID, "NOT_STARTED", "PENDING")
+	if !db.IsConstraint(err, db.CheckViolation, "") {
+		t.Fatalf("status 'sem folha' inválido deveria falhar: %v", err)
 	}
 	var id string
 	if err := pool.QueryRow(ctx, insType, "PAYROLL_PROCESSING", setID, "NOT_STARTED", "NO_MOVEMENT").Scan(&id); err != nil {
