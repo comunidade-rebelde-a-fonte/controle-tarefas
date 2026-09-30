@@ -52,3 +52,29 @@ SELECT v.obligation_type_id, v.type_code, t.name AS type_name, v.status_code, v.
 FROM v_obligation_instances v
 JOIN obligation_types t ON t.id = v.obligation_type_id
 WHERE v.company_id = $1 AND v.competence_id = $2;
+
+-- name: UpdateInstanceDetails :execrows
+UPDATE obligation_instances SET
+    transmission_date = $3, protocol = $4, due_date_effective = $5, due_date_override_reason = $6,
+    due_date_overridden_by = $7, due_date_overridden_at = $8, applicable = $9, status_code = $10,
+    version = version + 1, last_changed_by = $11, last_changed_at = $12, updated_at = $12
+WHERE id = $1 AND version = $2;
+
+-- name: GetInstanceOverrideInfo :one
+SELECT due_date_override_reason, due_date_overridden_by, due_date_overridden_at, initial_status_code
+FROM obligation_instances i JOIN obligation_types t ON t.id = i.obligation_type_id
+WHERE i.id = $1;
+
+-- name: ListInstanceHistory :many
+-- Histórico da instância, mais recente primeiro, com rótulos dos status.
+SELECT h.id, h.field, h.old_value, h.new_value, h.change_source, h.override_reason, h.created_at,
+       u.id AS user_id, u.name AS user_name,
+       old_d.label AS old_label, new_d.label AS new_label
+FROM obligation_status_history h
+JOIN users u ON u.id = h.user_id
+JOIN obligation_instances i ON i.id = h.obligation_instance_id
+JOIN obligation_types t ON t.id = i.obligation_type_id
+LEFT JOIN status_definitions old_d ON h.field = 'STATUS' AND old_d.status_set_id = t.status_set_id AND old_d.code = h.old_value
+LEFT JOIN status_definitions new_d ON h.field = 'STATUS' AND new_d.status_set_id = t.status_set_id AND new_d.code = h.new_value
+WHERE h.obligation_instance_id = $1
+ORDER BY h.created_at DESC, h.id DESC;

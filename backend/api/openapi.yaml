@@ -656,6 +656,49 @@ paths:
               schema: { $ref: "#/components/schemas/Error" }
         "423": { $ref: "#/components/responses/Locked" }
 
+  /obligation-instances/{id}/details:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [obligations]
+      operationId: updateObligationDetails
+      summary: Altera transmissão, protocolo, vencimento efetivo (com motivo) e aplicabilidade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InstanceDetails" }
+      responses:
+        "200":
+          description: Instância e agregado da linha atualizados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusChangeResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Campo não permitido para o tipo (FIELD_NOT_ALLOWED) ou vencimento sem motivo (REASON_REQUIRED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423": { $ref: "#/components/responses/Locked" }
+
+  /obligation-instances/{id}/history:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [obligations]
+      operationId: getObligationHistory
+      summary: Histórico de alterações da instância (mais recente primeiro)
+      responses:
+        "200":
+          description: Histórico
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InstanceHistory" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -1310,6 +1353,39 @@ components:
       properties:
         instance: { $ref: "#/components/schemas/ObligationInstance" }
         row: { $ref: "#/components/schemas/RowSummary" }
+
+    InstanceDetails:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: "#/components/schemas/Version" }
+        transmission_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        protocol: { type: [string, "null"], maxLength: 120 }
+        due_date_effective: { $ref: "#/components/schemas/Date" }
+        due_date_override_reason: { type: string, description: "Obrigatório ao alterar o vencimento" }
+        applicable: { type: boolean }
+
+    HistoryEntry:
+      type: object
+      required: [id, field, old_value, new_value, old_label, new_label, change_source, override_reason, user, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        field: { type: string, enum: [STATUS, DUE_DATE, APPLICABLE, TRANSMISSION_DATE, PROTOCOL] }
+        old_value: { type: [string, "null"] }
+        new_value: { type: [string, "null"] }
+        old_label: { type: [string, "null"] }
+        new_label: { type: [string, "null"] }
+        change_source: { type: string, enum: [INLINE, BULK, IMPORT, SYSTEM] }
+        override_reason: { type: [string, "null"] }
+        user: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+
+    InstanceHistory:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/HistoryEntry" } }
 
     UserRole:
       type: string
