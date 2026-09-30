@@ -300,7 +300,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste unitário da Páscoa (2025-04-20, 2026-04-05, 2027-03-28) e contagem de feriados por ano.
 
 ### T-M1-08 — API de empresas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-02, T-M1-03
 - **Ref:** plan M1 · PRD §7, §26.5, §41.1 · CA-001, CA-002 · RN-001, RN-002, RN-008
 - **Arquivos:** `backend/internal/company/{handler,service,repo}.go`, `backend/queries/companies.sql`, `openapi.yaml`

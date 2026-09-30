@@ -8,6 +8,186 @@ import (
 	"time"
 )
 
+type BusinessCalendar struct {
+	ID        string
+	Name      string
+	Scope     string
+	State     *string
+	City      *string
+	CreatedAt time.Time
+}
+
+type Company struct {
+	ID                            string
+	InternalCode                  string
+	LegalName                     string
+	TradeName                     *string
+	Cnpj                          string
+	City                          *string
+	State                         *string
+	StateRegistration             *string
+	MunicipalRegistration         *string
+	ServiceStartDate              time.Time
+	ServiceEndDate                *time.Time
+	Active                        bool
+	PayrollType                   string
+	FactorR                       *bool
+	FiscalResponsibleUserID       *string
+	AccountingResponsibleUserID   *string
+	PayrollResponsibleUserID      *string
+	DeclarationsResponsibleUserID *string
+	Notes                         *string
+	Version                       int32
+	CreatedBy                     string
+	UpdatedBy                     string
+	CreatedAt                     time.Time
+	UpdatedAt                     time.Time
+}
+
+type CompanyModuleSetting struct {
+	ID                      string
+	CompanyID               string
+	ModuleCode              string
+	Enabled                 bool
+	EffectiveFromCompetence time.Time
+	EffectiveToCompetence   *time.Time
+	CreatedBy               string
+	CreatedAt               time.Time
+}
+
+type CompanyObligationOverride struct {
+	ID                      string
+	CompanyID               string
+	ObligationTypeID        string
+	Applicability           string
+	EffectiveFromCompetence time.Time
+	EffectiveToCompetence   *time.Time
+	CreatedBy               string
+	CreatedAt               time.Time
+}
+
+type CompanyTaxRegimeHistory struct {
+	ID                      string
+	CompanyID               string
+	TaxRegime               string
+	EffectiveFromCompetence time.Time
+	EffectiveToCompetence   *time.Time
+	CreatedBy               string
+	CreatedAt               time.Time
+}
+
+type CredentialControl struct {
+	ID             string
+	CompanyID      string
+	Type           string
+	ExpiresAt      *time.Time
+	RenewalStatus  string
+	FileStorageKey *string
+	FileName       *string
+	FileMimeType   *string
+	FileSizeBytes  *int64
+	FileUploadedAt *time.Time
+	Notes          *string
+	Version        int32
+	UpdatedBy      *string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+type DueDateRule struct {
+	ID                       string
+	Name                     string
+	MonthOffset              int32
+	BaseDay                  int32
+	DayType                  string
+	NonBusinessDayAdjustment string
+	CalendarID               *string
+	Notes                    *string
+	Version                  int32
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+}
+
+type Holiday struct {
+	ID         string
+	CalendarID string
+	Date       time.Time
+	Name       string
+	Scope      string
+	CreatedAt  time.Time
+}
+
+type ObligationDependency struct {
+	ID                           string
+	ObligationTypeID             string
+	PrerequisiteObligationTypeID string
+	DependencyMode               string
+	Active                       bool
+}
+
+type ObligationDisplayContext struct {
+	ObligationTypeID string
+	ModuleCode       string
+	SortOrder        int32
+	Active           bool
+}
+
+type ObligationType struct {
+	ID                     string
+	Code                   string
+	Name                   string
+	PrimaryModule          string
+	StatusSetID            string
+	Periodicity            string
+	Active                 bool
+	SortOrder              int32
+	CountsInProgress       bool
+	DueDateRuleID          *string
+	AllowsTransmissionDate bool
+	AllowsProtocol         bool
+	InitialStatusCode      string
+	StatusWhenNoPayroll    *string
+	IsClosingStage         bool
+	Version                int32
+	CreatedAt              time.Time
+	UpdatedAt              time.Time
+}
+
+type ObligationTypeRegimeRule struct {
+	ObligationTypeID  string
+	TaxRegime         string
+	DefaultApplicable bool
+	CountsInProgress  bool
+	Active            bool
+}
+
+type Setting struct {
+	Key       string
+	Value     []byte
+	UpdatedBy *string
+	UpdatedAt time.Time
+}
+
+type StatusDefinition struct {
+	ID                          string
+	StatusSetID                 string
+	Code                        string
+	Label                       string
+	SortOrder                   int32
+	CountsAsStarted             bool
+	CountsAsOperationalProgress bool
+	IsFinal                     bool
+	IsBlocking                  bool
+	ExcludedFromDenominator     bool
+}
+
+type StatusSet struct {
+	ID        string
+	Code      string
+	Name      string
+	CreatedAt time.Time
+}
+
 type User struct {
 	ID        string
 	Name      string
