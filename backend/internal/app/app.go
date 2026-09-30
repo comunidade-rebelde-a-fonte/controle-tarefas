@@ -68,6 +68,7 @@ func New(d Deps) *App {
 	companies.SetLatestGenerated(engine.LatestGenerated)
 
 	r := chi.NewRouter()
+	r.Use(httpx.SecurityHeaders)
 	r.Use(httpx.RequestID(d.Logger))
 	r.Use(httpx.Recoverer)
 	r.Use(httpx.AccessLog)
@@ -77,6 +78,10 @@ func New(d Deps) *App {
 	r.Use(middleware.Compress(5, "application/json"))
 	r.NotFound(httpx.NotFoundHandler)
 	r.MethodNotAllowed(httpx.MethodNotAllowedHandler)
+	// Imagem de produção: o mesmo binário serve a SPA (rotas fora de /api/v1) [plan M7].
+	if d.Config.StaticDir != "" {
+		r.NotFound(httpx.SPA(d.Config.StaticDir).ServeHTTP)
+	}
 
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Get("/health", httpx.Health(d.Pool))

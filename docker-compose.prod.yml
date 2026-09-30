@@ -1,0 +1,53 @@
+# Produção [T-M7-06, docs/operacao.md]. Uso:
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+# O .env.prod não é versionado (modelo: .env.prod.example).
+name: controle-prod
+
+services:
+  db:
+    # Mesma imagem e inicialização do desenvolvimento (Debian por causa das collations ICU).
+    image: postgres:16.15-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env.prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env.prod}
+      POSTGRES_DB: ${POSTGRES_DB:-controle}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale-provider=icu --icu-locale=pt-BR"
+      TZ: UTC
+      PGTZ: UTC
+    # Sem "ports": o banco só é alcançável pela rede interna do compose [AGENTS §6.3].
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
+  app:
+    image: controle-app:${APP_VERSION:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+      HTTP_PORT: "8080"
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      FILE_STORAGE_DIR: /data/storage
+      MIGRATE_ON_BOOT: "true"
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8080}:8080"
+    volumes:
+      - storage:/data/storage
+
+volumes:
+  pgdata:
+  storage:

@@ -1,0 +1,21 @@
+# Contexto de build da imagem de produção: só o código necessário, sem segredos.
+.env
+.env.*
+**/.env*
+storage/
+backups/
+**/node_modules
+.git
+.github
+.bin
+.claude
+docs
+prompts
+e2e
+frontend/dist
+frontend/coverage
+backend/tmp
+backend/bin
+**/*.log
+**/*.test
+**/coverage.*
