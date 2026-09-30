@@ -39,6 +39,7 @@ type moduleRow struct {
 		BlockedBy []struct {
 			Code string `json:"code"`
 		} `json:"blocked_by"`
+		BlockedMessage *string `json:"blocked_message"`
 	} `json:"cells"`
 }
 
@@ -121,8 +122,12 @@ func TestAccountingGrid_SequenceAndBlockedBy(t *testing.T) {
 		t.Fatalf("colunas = %v", got)
 	}
 	r := g.Rows[g.row("101")]
-	if len(r.Cells["ACCOUNTING_MOVEMENT_RECEIVED"].BlockedBy) != 0 {
+	if first := r.Cells["ACCOUNTING_MOVEMENT_RECEIVED"]; len(first.BlockedBy) != 0 || first.BlockedMessage != nil {
 		t.Fatal("a primeira etapa não tem pré-requisito")
+	}
+	if m := r.Cells["ACCOUNTING_PAYROLL_POSTED"].BlockedMessage; m == nil ||
+		*m != "Não é possível concluir Contabilização da folha. A etapa Movimento recebido ainda não foi concluída." {
+		t.Fatalf("mensagem de bloqueio = %v", m)
 	}
 	if b := r.Cells["ACCOUNTING_RECONCILIATION"].BlockedBy; len(b) != 4 || b[0].Code != "ACCOUNTING_MOVEMENT_RECEIVED" || b[3].Code != "ACCOUNTING_PROCESSED" {
 		t.Fatalf("blocked_by da Conciliação = %+v", b)

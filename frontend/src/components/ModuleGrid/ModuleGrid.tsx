@@ -110,6 +110,7 @@ function ObligationCell({ row, col }: { row: GridRow; col: GridColumn }) {
         }
         onChanged={ui.onChanged}
         onDependencyError={ui.onDependency}
+        blockedMessage={cell.blocked_message}
       />
       <CellDetailsPopover
         instance={cell}

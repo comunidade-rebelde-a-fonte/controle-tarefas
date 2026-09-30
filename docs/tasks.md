@@ -753,7 +753,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E CA-011: com eSocial pendente, concluir a DCTFWeb exibe o alerta; com exceção, o histórico mostra o motivo.
 
 ### T-M4-05 — FE: tela Contábil
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01, T-M3-09
 - **Ref:** PRD §18, §32 · CA-010
 - **Arquivos:** `frontend/src/features/accounting/*`
