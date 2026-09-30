@@ -246,7 +246,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes table-driven cobrindo virada de ano, `00.000.001/0001-01` → `00000001000101`, CNPJ inválido e CNPJ com espaços/pontuação.
 
 ### T-M1-04 — Migrations de catálogo, calendário, credenciais e settings
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-02
 - **Ref:** plan §4 (5–7, 12), D2, D3, D7 · PRD §11, §20, §21, §38.8–§38.9, §38.13–§38.19
 - **Arquivos:** `backend/migrations/0005_status.sql`, `0006_calendar.sql`, `0007_catalog.sql`, `0008_credentials_settings.sql`
