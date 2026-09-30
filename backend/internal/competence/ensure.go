@@ -2,6 +2,7 @@ package competence
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -359,3 +360,5 @@ func (e *Engine) generate(ctx context.Context, tx pgx.Tx, competenceID string, c
 	}
 	return br.Close()
 }
+
+func isNoRows(err error) bool { return errors.Is(err, pgx.ErrNoRows) }

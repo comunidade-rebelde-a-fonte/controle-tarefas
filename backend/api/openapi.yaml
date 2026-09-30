@@ -31,6 +31,8 @@ tags:
     description: Configurações
   - name: demo
     description: Dados fictícios de demonstração (somente fora de produção)
+  - name: competencies
+    description: Competências mensais
 
 paths:
   /health:
@@ -568,6 +570,42 @@ paths:
                 properties:
                   companies: { type: integer, description: "Total de empresas após a carga" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /competencies:
+    get:
+      tags: [competencies]
+      operationId: listCompetencies
+      summary: Competências geradas (mais recente primeiro) com totais
+      responses:
+        "200":
+          description: Competências
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompetenceList" }
+
+  /competencies/latest:
+    get:
+      tags: [competencies]
+      operationId: getLatestCompetence
+      summary: Competência mais recente (garante a corrente antes)
+      responses:
+        "200":
+          description: Competência mais recente e corrente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LatestCompetence" }
+
+  /competencies/ensure-current:
+    post:
+      tags: [competencies]
+      operationId: ensureCurrentCompetence
+      summary: Garante a competência corrente (idempotente)
+      responses:
+        "200":
+          description: Resumo da execução
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EnsureSummary" }
 
 components:
   parameters:
@@ -1123,6 +1161,39 @@ components:
           type: array
           description: Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60)
           items: { type: integer, minimum: 1, maximum: 365 }
+
+    CompetenceInfo:
+      type: object
+      required: [competence, created_at, companies, instances, open_periods, closed_periods]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        created_at: { type: string, format: date-time }
+        companies: { type: integer }
+        instances: { type: integer }
+        open_periods: { type: integer }
+        closed_periods: { type: integer }
+
+    CompetenceList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/CompetenceInfo" } }
+
+    LatestCompetence:
+      type: object
+      required: [competence, current]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        current: { $ref: "#/components/schemas/Competence" }
+
+    EnsureSummary:
+      type: object
+      required: [competence, companies_processed, periods_created, instances_created]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        companies_processed: { type: integer }
+        periods_created: { type: integer }
+        instances_created: { type: integer }
 
     UserRole:
       type: string

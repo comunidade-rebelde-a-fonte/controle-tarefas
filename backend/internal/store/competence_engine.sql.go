@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+const competenceExists = `-- name: CompetenceExists :one
+SELECT EXISTS (SELECT 1 FROM competencies WHERE competence_key = $1)
+`
+
+func (q *Queries) CompetenceExists(ctx context.Context, competenceKey string) (bool, error) {
+	row := q.db.QueryRow(ctx, competenceExists, competenceKey)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const eligibleCompaniesWithoutSnapshot = `-- name: EligibleCompaniesWithoutSnapshot :many
 SELECT c.id, c.payroll_type, c.factor_r, c.city, c.state,
        c.fiscal_responsible_user_id, c.accounting_responsible_user_id,
@@ -299,6 +310,53 @@ func (q *Queries) LatestCompetence(ctx context.Context) (string, error) {
 	var competence_key string
 	err := row.Scan(&competence_key)
 	return competence_key, err
+}
+
+const listCompetenciesWithCounts = `-- name: ListCompetenciesWithCounts :many
+SELECT k.competence_key, k.created_at,
+       (SELECT count(*) FROM company_competence_snapshots s WHERE s.competence_id = k.id) AS companies,
+       (SELECT count(*) FROM obligation_instances i WHERE i.competence_id = k.id) AS instances,
+       (SELECT count(*) FROM company_module_periods p WHERE p.competence_id = k.id AND p.state = 'OPEN') AS open_periods,
+       (SELECT count(*) FROM company_module_periods p WHERE p.competence_id = k.id AND p.state = 'CLOSED') AS closed_periods
+FROM competencies k
+ORDER BY k.first_day DESC
+`
+
+type ListCompetenciesWithCountsRow struct {
+	CompetenceKey string
+	CreatedAt     time.Time
+	Companies     int64
+	Instances     int64
+	OpenPeriods   int64
+	ClosedPeriods int64
+}
+
+// Competências geradas com totais para navegação e histórico.
+func (q *Queries) ListCompetenciesWithCounts(ctx context.Context) ([]ListCompetenciesWithCountsRow, error) {
+	rows, err := q.db.Query(ctx, listCompetenciesWithCounts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListCompetenciesWithCountsRow{}
+	for rows.Next() {
+		var i ListCompetenciesWithCountsRow
+		if err := rows.Scan(
+			&i.CompetenceKey,
+			&i.CreatedAt,
+			&i.Companies,
+			&i.Instances,
+			&i.OpenPeriods,
+			&i.ClosedPeriods,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const lockCompetence = `-- name: LockCompetence :exec

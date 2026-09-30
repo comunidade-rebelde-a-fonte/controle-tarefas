@@ -3,6 +3,7 @@
 package app
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 
@@ -12,6 +13,7 @@ import (
 	"controle/internal/calendar"
 	"controle/internal/catalog"
 	"controle/internal/company"
+	"controle/internal/competence"
 	"controle/internal/demo"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
@@ -28,8 +30,35 @@ type Deps struct {
 	Logger *slog.Logger
 }
 
-// NewRouter cria o roteador completo da API.
-func NewRouter(d Deps) http.Handler {
+// App é a aplicação montada: roteador HTTP e motor de competências.
+type App struct {
+	Handler http.Handler
+	Engine  *competence.Engine
+	deps    Deps
+}
+
+// NewRouter cria o roteador completo da API (sem os gatilhos de boot).
+func NewRouter(d Deps) http.Handler { return New(d).Handler }
+
+// Boot executa os gatilhos de inicialização [PRD §10.2]: garante a competência corrente e
+// inicia o agendador diário (00:05 no fuso de negócio), encerrado quando ctx é cancelado.
+// Falha de banco no boot não derruba a API: é registrada e o agendador tenta de novo.
+func (a *App) Boot(ctx context.Context) {
+	if s, err := a.Engine.EnsureCurrent(ctx); err != nil {
+		a.deps.Logger.Error("boot: falha ao garantir a competência corrente", "error", err)
+	} else {
+		a.deps.Logger.Info("boot: competência garantida", "competence", s.Competence.String(),
+			"companies", s.CompaniesProcessed, "instances", s.InstancesCreated)
+	}
+	go competence.RunDaily(ctx, a.Engine, a.deps.Clock, a.deps.Logger)
+}
+
+// New monta a aplicação.
+func New(d Deps) *App {
+	engine := competence.NewEngine(d.Pool, d.Clock)
+	companies := company.NewService(d.Pool, d.Clock)
+	companies.SetLatestGenerated(engine.LatestGenerated)
+
 	r := chi.NewRouter()
 	r.Use(httpx.RequestID(d.Logger))
 	r.Use(httpx.Recoverer)
@@ -42,7 +71,8 @@ func NewRouter(d Deps) http.Handler {
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Get("/health", httpx.Health(d.Pool))
 		user.NewHandler(d.Pool).Routes(api)
-		company.NewHandler(company.NewService(d.Pool, d.Clock)).Routes(api)
+		company.NewHandler(companies).Routes(api)
+		competence.NewHandler(d.Pool, engine).Routes(api)
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
@@ -51,5 +81,5 @@ func NewRouter(d Deps) http.Handler {
 			demo.NewHandler(d.Pool, d.Clock).Routes(api)
 		}
 	})
-	return r
+	return &App{Handler: r, Engine: engine, deps: d}
 }
