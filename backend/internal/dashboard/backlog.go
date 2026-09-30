@@ -154,7 +154,7 @@ WITH items AS (
       AND (i.kind = 'OBLIGATION' OR ($13::text IS NULL AND $5::text IS NULL))
 )
 SELECT f.kind, CASE WHEN f.kind = 'OBLIGATION' THEN f.instance_id END AS instance_id, f.competence_key, f.company_id,
-       f.internal_code, f.legal_name, f.trade_name, f.cnpj, f.module,
+       f.internal_code, f.legal_name, f.trade_name, f.cnpj, f.module, f.regime_group,
        CASE WHEN f.kind = 'OBLIGATION' THEN f.type_code END AS type_code,
        CASE WHEN f.kind = 'OBLIGATION' THEN f.type_name END AS type_name,
        CASE WHEN f.kind = 'OBLIGATION' THEN f.status_code END AS status_code,
@@ -194,14 +194,14 @@ func (s *Service) Backlog(ctx context.Context, p BacklogParams) (Backlog, error)
 	}
 	out := Backlog{Items: []BacklogItem{}, Page: p.Page, PageSize: p.PageSize}
 	type row struct {
-		kind, key, companyID, code, legal, cnpjDigits, module, label string
-		instanceID, trade, typeCode, typeName, status, respID, resp  *string
-		due                                                          *time.Time
-		days, total                                                  int32
+		kind, key, companyID, code, legal, cnpjDigits, module, group, label string
+		instanceID, trade, typeCode, typeName, status, respID, resp         *string
+		due                                                                 *time.Time
+		days, total                                                         int32
 	}
 	items, err := pgx.CollectRows(rows, func(r pgx.CollectableRow) (row, error) {
 		var x row
-		err := r.Scan(&x.kind, &x.instanceID, &x.key, &x.companyID, &x.code, &x.legal, &x.trade, &x.cnpjDigits, &x.module,
+		err := r.Scan(&x.kind, &x.instanceID, &x.key, &x.companyID, &x.code, &x.legal, &x.trade, &x.cnpjDigits, &x.module, &x.group,
 			&x.typeCode, &x.typeName, &x.status, &x.label, &x.due, &x.days, &x.respID, &x.resp, &x.total)
 		return x, err
 	})
@@ -218,7 +218,7 @@ func (s *Service) Backlog(ctx context.Context, p BacklogParams) (Backlog, error)
 			Kind: x.kind, InstanceID: x.instanceID, Competence: c,
 			Company: BacklogCompany{ID: x.companyID, InternalCode: x.code, LegalName: x.legal, TradeName: x.trade, Cnpj: x.cnpjDigits},
 			Module:  x.module, StatusCode: x.status, StatusLabel: x.label, DueDate: civil.Ptr(x.due), DaysOverdue: int(x.days),
-			Drilldown: &Drilldown{Path: modulePaths[x.module], Query: map[string]string{"competence": c.String(), "q": x.code}},
+			Drilldown: companyGrid(x.module, x.code, x.group, c),
 		}
 		if x.typeCode != nil && x.typeName != nil {
 			it.ObligationType = &BacklogType{Code: *x.typeCode, Name: *x.typeName}

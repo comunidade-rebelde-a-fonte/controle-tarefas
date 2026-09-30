@@ -3,6 +3,7 @@
 package httpx
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -43,7 +44,17 @@ func NoContent(w http.ResponseWriter) {
 // WriteError converte err no envelope padrão. Erros de domínio (*apperr.Error)
 // mantêm status, código e mensagem; qualquer outro erro vira 500 genérico,
 // registrado no log sem expor detalhes ao cliente.
+// StatusClientClosedRequest indica que o cliente encerrou a requisição antes da resposta.
+const StatusClientClosedRequest = 499
+
 func WriteError(w http.ResponseWriter, r *http.Request, err error) {
+	// Cliente desistiu da requisição (ex.: navegação cancelou a consulta): não é erro do
+	// servidor; responde 499 (convenção do nginx) sem registrar como erro.
+	if errors.Is(err, context.Canceled) && r.Context().Err() != nil {
+		logger(r).Debug("requisição cancelada pelo cliente")
+		w.WriteHeader(StatusClientClosedRequest)
+		return
+	}
 	if ae, ok := apperr.As(err); ok {
 		if ae.Status >= http.StatusInternalServerError {
 			logger(r).Error("erro interno", "code", ae.Code, "error", err)

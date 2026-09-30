@@ -98,14 +98,15 @@ func (q *Queries) AttentionBlockedDependencies(ctx context.Context, arg Attentio
 const attentionObligations = `-- name: AttentionObligations :many
 
 SELECT y.category::text AS category, y.total::int AS total, y.instance_id, y.company_id, y.internal_code, y.legal_name,
-       y.module, y.type_name, y.status_label, y.due_date_effective
+       y.module, y.type_name, y.status_label, y.due_date_effective, y.regime_group
 FROM (
-    SELECT x.category, x.instance_id, x.company_id, x.internal_code, x.legal_name, x.module, x.type_name, x.status_label, x.due_date_effective, x.type_sort_order,
+    SELECT x.category, x.instance_id, x.company_id, x.internal_code, x.legal_name, x.module, x.type_name, x.status_label, x.due_date_effective, x.type_sort_order, x.regime_group,
            row_number() OVER (PARTITION BY x.category ORDER BY x.due_date_effective NULLS LAST, x.internal_code, x.type_sort_order) AS rn,
            count(*) OVER (PARTITION BY x.category) AS total
     FROM (
         SELECT cat AS category, v.id AS instance_id, c.id AS company_id, c.internal_code, c.legal_name,
-               v.primary_module AS module, t.name AS type_name, v.status_label, v.due_date_effective, v.type_sort_order
+               v.primary_module AS module, t.name AS type_name, v.status_label, v.due_date_effective, v.type_sort_order,
+               s.regime_group
         FROM v_obligation_instances v
         JOIN obligation_types t ON t.id = v.obligation_type_id
         JOIN companies c ON c.id = v.company_id
@@ -147,6 +148,7 @@ type AttentionObligationsRow struct {
 	TypeName         string
 	StatusLabel      string
 	DueDateEffective *time.Time
+	RegimeGroup      string
 }
 
 // "Exige atenção" [PRD §24.6]: contagem e amostra (5 primeiros) por categoria.
@@ -178,6 +180,7 @@ func (q *Queries) AttentionObligations(ctx context.Context, arg AttentionObligat
 			&i.TypeName,
 			&i.StatusLabel,
 			&i.DueDateEffective,
+			&i.RegimeGroup,
 		); err != nil {
 			return nil, err
 		}
