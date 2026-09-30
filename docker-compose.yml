@@ -60,8 +60,41 @@ services:
       retries: 60
       start_period: 30s
 
+  web:
+    image: node:22.23.3-bookworm
+    working_dir: /app/frontend
+    # node_modules fica em volume nomeado (binários Linux), nunca montado do host.
+    # Reinstala apenas quando o package-lock.json muda.
+    command:
+      - sh
+      - -c
+      - |
+        H=$$(sha256sum package-lock.json | cut -d' ' -f1)
+        if [ "$$(cat node_modules/.lockhash 2>/dev/null)" != "$$H" ]; then
+          npm install --no-audit --no-fund && echo "$$H" > node_modules/.lockhash
+        fi
+        exec npm run dev -- --host 0.0.0.0 --port 5173
+    environment:
+      VITE_API_PROXY_TARGET: http://api:${HTTP_PORT:-8080}
+      VITE_POLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - web_node_modules:/app/frontend/node_modules
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5173/ >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 60s
+
 volumes:
   pgdata:
+  web_node_modules:
   gomodcache:
   gobuildcache:
   gobin:

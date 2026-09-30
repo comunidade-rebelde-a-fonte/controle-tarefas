@@ -159,7 +159,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `make migrate` aplica e `make migrate-down` reverte sem erro no banco `controle`; `make migrate DB=e2e` funciona; `make gen` gera código compilável.
 
 ### T-M0-05 — Esqueleto da SPA
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-02, T-M0-03
 - **Ref:** plan §3 · PRD §6, §42.1, §44
 - **Arquivos:** `frontend/` (Vite, `src/app`, `src/components`, `src/features/*`, `src/lib`, `src/services`, `src/types`)
