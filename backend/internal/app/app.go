@@ -19,6 +19,7 @@ import (
 	"controle/internal/dashboard"
 	"controle/internal/demo"
 	"controle/internal/grid"
+	"controle/internal/importer"
 	"controle/internal/obligation"
 	"controle/internal/period"
 	"controle/internal/platform/clock"
@@ -87,6 +88,7 @@ func New(d Deps) *App {
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
+		importer.NewHandler().Routes(api)
 		credentials := credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)
 		credential.NewHandler(credentials).Routes(api)
 		dashboard.NewHandler(dashboard.NewService(d.Pool, d.Clock, credentials)).Routes(api)

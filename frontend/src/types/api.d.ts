@@ -469,6 +469,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/imports/companies/template": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Modelo XLSX de importação de empresas [PRD §35.3]
+         * @description Aba "Empresas" com os cabeçalhos do §7.1, regime inicial, tipo de folha e módulos (listas de
+         *     validação para regime, UF, tipo de folha e Sim/Não) e aba "Instruções".
+         */
+        get: operations["downloadImportTemplate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/seed": {
         parameters: {
             query?: never;
@@ -2668,6 +2689,28 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    downloadImportTemplate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Planilha modelo */
+            200: {
+                headers: {
+                    /** @description attachment; filename="modelo-importacao-empresas.xlsx" */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
         };
     };
     loadDemoData: {

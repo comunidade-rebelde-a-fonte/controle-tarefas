@@ -29,6 +29,8 @@ tags:
     description: Calendários e feriados
   - name: settings
     description: Configurações
+  - name: imports
+    description: Importação de empresas por planilha
   - name: credentials
     description: Procurações RFB e certificados digitais
   - name: demo
@@ -688,6 +690,25 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CredentialControl" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /imports/companies/template:
+    get:
+      tags: [imports]
+      operationId: downloadImportTemplate
+      summary: Modelo XLSX de importação de empresas [PRD §35.3]
+      description: |
+        Aba "Empresas" com os cabeçalhos do §7.1, regime inicial, tipo de folha e módulos (listas de
+        validação para regime, UF, tipo de folha e Sim/Não) e aba "Instruções".
+      responses:
+        "200":
+          description: Planilha modelo
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              description: attachment; filename="modelo-importacao-empresas.xlsx"
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
 
   /demo/seed:
     post:
