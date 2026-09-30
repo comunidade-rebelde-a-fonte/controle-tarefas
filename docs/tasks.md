@@ -869,7 +869,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA021_BacklogShowsPreviousOpen`.
 
 ### T-M5-05 — FE: Dashboard
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-01, T-M5-03, T-M3-02
 - **Ref:** PRD §24 · UC-01, UC-03
 - **Arquivos:** `frontend/src/features/dashboard/*`
@@ -888,7 +888,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente com categorias vazias ocultas e links corretos.
 
 ### T-M5-07 — FE: Backlog e lista de obrigações filtrada
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-04, T-M3-03
 - **Ref:** PRD §25 · UC-03
 - **Arquivos:** `frontend/src/features/backlog/*`

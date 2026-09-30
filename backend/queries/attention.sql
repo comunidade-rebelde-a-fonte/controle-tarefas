@@ -4,14 +4,15 @@
 -- Atrasadas, pendências, documentos faltantes e erros na competência, com os filtros do
 -- dashboard. Amostra: vencimento mais antigo primeiro.
 SELECT y.category::text AS category, y.total::int AS total, y.instance_id, y.company_id, y.internal_code, y.legal_name,
-       y.module, y.type_name, y.status_label, y.due_date_effective
+       y.module, y.type_name, y.status_label, y.due_date_effective, y.regime_group
 FROM (
     SELECT x.*,
            row_number() OVER (PARTITION BY x.category ORDER BY x.due_date_effective NULLS LAST, x.internal_code, x.type_sort_order) AS rn,
            count(*) OVER (PARTITION BY x.category) AS total
     FROM (
         SELECT cat AS category, v.id AS instance_id, c.id AS company_id, c.internal_code, c.legal_name,
-               v.primary_module AS module, t.name AS type_name, v.status_label, v.due_date_effective, v.type_sort_order
+               v.primary_module AS module, t.name AS type_name, v.status_label, v.due_date_effective, v.type_sort_order,
+               s.regime_group
         FROM v_obligation_instances v
         JOIN obligation_types t ON t.id = v.obligation_type_id
         JOIN companies c ON c.id = v.company_id

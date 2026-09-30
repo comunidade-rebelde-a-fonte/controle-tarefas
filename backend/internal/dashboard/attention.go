@@ -87,9 +87,17 @@ var attentionOrder = []string{
 	AttentionPreviousOpen, AttentionDctfwebBlocked, AttentionAccountingBlocked,
 }
 
-// companyGrid leva à grade do módulo na competência, com a busca na empresa.
-func companyGrid(module, code string, c comp.Competence) *Drilldown {
-	return &Drilldown{Path: modulePaths[module], Query: map[string]string{"competence": c.String(), "q": code}}
+// companyGrid leva à grade do módulo na competência, com a busca na empresa; no Fiscal, no
+// agrupamento (Normais ou Simples) do regime da empresa naquela competência.
+func companyGrid(module, code, regimeGroup string, c comp.Competence) *Drilldown {
+	q := map[string]string{"competence": c.String(), "q": code}
+	if module == "FISCAL" {
+		q["group"] = "normal"
+		if regimeGroup == "SIMPLES" {
+			q["group"] = "simples"
+		}
+	}
+	return &Drilldown{Path: modulePaths[module], Query: q}
 }
 
 // Attention monta as 11 categorias do §24.6 com contagem, amostra e drill-down.
@@ -124,7 +132,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 		cat.Sample = append(cat.Sample, AttentionItem{
 			Company: AttentionCompany{ID: r.CompanyID, InternalCode: r.InternalCode, LegalName: r.LegalName},
 			Title:   fmt.Sprintf("%s — %s", moduleLabels[r.Module], r.TypeName), Detail: detail,
-			Date: civil.Ptr(r.DueDateEffective), Drilldown: companyGrid(r.Module, r.InternalCode, c),
+			Date: civil.Ptr(r.DueDateEffective), Drilldown: companyGrid(r.Module, r.InternalCode, r.RegimeGroup, c),
 		})
 	}
 	cats[AttentionOverdue].Drilldown = obligationsLink(base, StateOverdue, "")
@@ -175,7 +183,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 		}
 		cat := cats[key]
 		cat.Count = int(r.Total)
-		dd := companyGrid(module, r.InternalCode, c)
+		dd := companyGrid(module, r.InternalCode, "", c)
 		if key == AttentionDctfwebBlocked {
 			dd = &Drilldown{Path: "/dctfweb", Query: map[string]string{"competence": c.String(), "q": r.InternalCode}}
 		}

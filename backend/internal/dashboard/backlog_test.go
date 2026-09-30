@@ -111,6 +111,12 @@ func TestBacklog_ModuleItemsFiltersSortAndPaging(t *testing.T) {
 			t.Fatalf("filtro de módulo devolveu %s", it.Module)
 		}
 	}
+	// No Fiscal, o drill-down leva o agrupamento do regime da empresa (Normais ou Simples).
+	for _, it := range backlog(t, srv, "before=2026-10&module=FISCAL&page_size=500").Items {
+		if g := it.Drilldown.Query["group"]; g != "normal" && g != "simples" {
+			t.Fatalf("drill-down do Fiscal sem agrupamento: %+v", it.Drilldown)
+		}
+	}
 	for _, it := range backlog(t, srv, "before=2026-10&q=00.000.001/0001-01&page_size=500").Items {
 		if it.Company.InternalCode != "101" {
 			t.Fatalf("busca por CNPJ devolveu %s", it.Company.InternalCode)
