@@ -8,6 +8,7 @@ import { PayrollPage } from "@/features/payroll/PayrollPage";
 import { DctfwebPage } from "@/features/dctfweb/DctfwebPage";
 import { CredentialsPage } from "@/features/credentials/CredentialsPage";
 import { BacklogPage } from "@/features/backlog/BacklogPage";
+import { ObligationsListPage } from "@/features/obligations/ObligationsListPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ImportsPage } from "@/features/imports/ImportsPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
@@ -31,6 +32,7 @@ export const routes = [
       { path: "dctfweb", element: <DctfwebPage /> },
       { path: "credentials", element: <CredentialsPage /> },
       { path: "backlog", element: <BacklogPage /> },
+      { path: "obligations", element: <ObligationsListPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "imports", element: <ImportsPage /> },
       { path: "reports", element: <ReportsPage /> },
