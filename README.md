@@ -57,8 +57,8 @@ Execute `make help` para a lista completa.
 | Carga | `backend/cmd/loadgen` | `make perf-generate` e `make perf-bench` |
 
 - **Integração Go:** `internal/testutil` sobe um Postgres descartável por pacote de teste, aplica as migrations num banco *template* e entrega a cada teste um banco clonado e isolado (`testutil.NewDB`). Há também servidor HTTP de teste (`testutil.NewServer`) e relógio fixo (`testutil.FixedClock`).
-- **E2E:** `make e2e` recria o banco `controle_e2e`, sobe uma API própria (porta 8091) e uma SPA própria (porta 5174) e roda o Playwright. **Nunca usa o banco de desenvolvimento `controle`.**
-- **Carga:** `make perf-generate` recria o banco `controle_perf` com massa sintética determinística (`COMPANIES=300 COMPETENCES=3 SEED=42`), e `make perf-bench` mede a grade Fiscal e o PATCH de status. O `loadgen` recusa qualquer banco que não seja o `controle_perf` local. Resultados e medição no navegador: `docs/perf.md`.
+- **E2E:** `make e2e` recria o banco `controle_e2e`, sobe uma API própria (porta 8091) e uma SPA própria (porta 5174) e roda o Playwright. **Nunca usa o banco de desenvolvimento `controle`.** Seed e API usam o relógio fixo `E2E_FIXED_TIME` (padrão `2026-09-15T12:00:00-03:00`), então as datas não dependem do dia real. A suíte cobre os 11 fluxos do PRD §53.3 (títulos `§53.3-N`) e a acessibilidade (`e2e/specs/a11y.spec.ts`: axe WCAG 2.2 A/AA sem violações serious/critical e grade operável pelo teclado).
+- **Carga:** `make perf-generate` recria o banco `controle_perf` com massa sintética determinística (`COMPANIES=300 COMPETENCES=3 SEED=42`), e `make perf-bench` mede as grades, o dashboard, o backlog, as exportações, o `ensure`, o PATCH de status e a alteração em massa. O `loadgen` recusa qualquer banco que não seja o `controle_perf` local. Resultados e medição no navegador: `docs/perf.md`.
 - **Compatibilidade do testcontainers:** funciona com o Docker Desktop sem configuração. No Colima, exporte `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock` e `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`.
 
 ## Portas locais
@@ -78,6 +78,22 @@ Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare 
 - `make seed-demo` carrega também as **20 empresas fictícias** do PRD §37 e os responsáveis de exemplo. Empresas já existentes (mesmo CNPJ) não são alteradas.
 - **Bypass de CNPJ, restrito ao seed:** os CNPJs fictícios do PRD não têm dígitos verificadores válidos. Por isso o seed de demonstração grava as empresas direto no banco, sempre com 14 dígitos. Todo cadastro pela API (tela, importação) continua validando os dígitos verificadores.
 - Valores provisórios (vencimentos, "Sem folha", matriz de declarações, feriados locais) estão marcados `A VALIDAR (Qn)` e listados em `docs/pendencias.md`.
+
+## Operação diária
+
+O ciclo mensal do escritório [PRD §58] acontece todo dentro do sistema: cadastrar, configurar, abrir a competência, executar as obrigações, acompanhar prazos, tratar pendências, fechar cada setor, consultar o histórico e exportar ou relatar.
+
+| Quando | O que fazer | Onde |
+|---|---|---|
+| Virada do mês | Nada manual. A competência nova é gerada sozinha na verificação diária (00:05, no fuso `APP_TIMEZONE`) ou quando a aplicação sobe. Competências já geradas não são reescritas. | Dashboard (seletor de competência) |
+| Empresa nova | Cadastre pela tela Empresas ou pela Importação (planilha com pré-validação). Na ficha, configure regime, módulos, aplicabilidade, folha e responsáveis. A empresa entra na competência corrente na próxima geração; veja `docs/operacao.md` §2. | Empresas, Importação/Exportação |
+| Dia a dia | Atualize os status nas grades de cada setor, com o mouse ou pelo teclado (Tab até a grade, setas, Enter abre o status, Esc fecha). O atraso é calculado sozinho. Busque por nome, código ou CNPJ; o CNPJ copiado vai sem máscara. | Fiscal, Declarações, Folha, Contábil, DCTFWeb |
+| Acompanhar | Indicadores e "Atenção agora" no Dashboard (cada número abre a lista que o explica); pendências de meses anteriores no Backlog; vencimentos de procurações e certificados. | Dashboard, Backlog, Procurações e Certificados |
+| Fechar o setor | Quando a linha mostrar "Pronto para fechar", use **Fechar**. Cada módulo fecha por empresa, independente dos outros. Para corrigir depois, **Reabrir** exige motivo e fica registrado no histórico da empresa. | Grades dos setores; ficha → Histórico de competências |
+| Relatar | **Exportar** baixa o XLSX da grade com a competência, os filtros e a busca atuais. Relatórios gera os 6 PDFs (situação geral, pendências, atrasadas, backlog, credenciais e controle do módulo). | Grades, Relatórios |
+| Servidor, todo dia | Backup no cron do host (`scripts/backup.sh`): confira o log e mantenha uma cópia fora do servidor. | `docs/operacao.md` §4 |
+
+Prazos, a matriz de declarações por regime e outros valores ainda provisórios (`A VALIDAR`) estão em `docs/pendencias.md`, até a resposta do escritório (T-000).
 
 ## Produção
 

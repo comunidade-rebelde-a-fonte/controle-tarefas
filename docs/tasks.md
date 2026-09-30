@@ -1115,25 +1115,32 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 
 ### 4.2 Critérios de pronto do MVP (§54)
 
+Evidências conferidas na T-M7-07 (30/09/2026), sobre a `develop` recriada do zero (`make db-reset`, `migrate`, `seed`, `seed-demo`). Resultado: `make lint` limpo; `make test` verde (Go: 24 pacotes, sem cache; Vitest: 142 testes); `make e2e` com 29 testes verdes, relógio fixo em `E2E_FIXED_TIME`. Os nomes entre crases são testes Go; "E2E §53.3-N" são specs Playwright.
+
 | Critério | Tarefas | Evidência |
 |---|---|---|
-| 20 empresas fictícias carregadas | T-M1-12 | seed + E2E |
-| Todos os módulos sobre o mesmo cadastro | T-M4-01, T-M4-06 | integração |
-| Sem duplicação de obrigação compartilhada | T-M2-02, T-M4-06 | UNIQUE + auditoria |
-| Nova competência gerada automaticamente | T-M2-04, T-M2-05 | idempotência + boot |
-| Fechamento individual por módulo | T-M2-13, T-M3-09 | CA-013 |
-| Reabertura com histórico | T-M2-13, T-M3-05 | CA-015 |
-| Filtros por empresa, código e CNPJ | T-M1-08, T-M3-08 | E2E |
-| CNPJ copiado sem máscara | T-M1-13 | CA-003 |
-| Dashboard reflete o estado real | T-M5-01, T-M5-09 | teste de consistência |
-| Atrasos automáticos | T-M2-07 | CA-012 |
-| Backlog | T-M5-04, T-M5-07 | CA-021 |
-| Dependências contábeis respeitadas | T-M2-09, T-M4-05 | CA-010 |
-| DCTFWeb sinaliza componentes pendentes | T-M2-10, T-M4-04 | CA-011 |
-| Importação com pré-validação | T-M6-02, T-M6-03, T-M6-04 | CA-018 |
-| Exportação Excel | T-M6-05 | CA-017 |
-| Relatórios PDF básicos | T-M6-06, T-M6-07 | testes de geração |
-| ~300 empresas sem lentidão | T-M3-10, T-M7-01, T-M7-02 | `docs/perf.md` |
+| 20 empresas fictícias carregadas | T-M1-12 | `TestDemoSeed_LoadsTwentyCompaniesOnEmptyDatabase`, `TestDemoSeed_TwentyCompaniesIdempotent`; `make seed-demo` ("20 empresas fictícias ok"); toda a suíte E2E roda sobre esse seed |
+| Todos os módulos sobre o mesmo cadastro | T-M4-01, T-M4-06 | `TestCA008_MitShared`, `TestCA009_EsocialShared`; E2E §53.3-3 (a empresa nova aparece em Fiscal, Folha, Contábil e Declarações) e §53.3-5 (Folha e DCTFWeb leem a mesma instância) |
+| Sem duplicação de obrigação compartilhada | T-M2-02, T-M4-06 | `TestSchema_InstanceUniquePreventsDuplication` (UNIQUE), `TestEnsure_IdempotentSequentialAndParallel`, CA-008 e CA-009 |
+| Nova competência gerada automaticamente | T-M2-04, T-M2-05 | `TestBoot_CreatesCurrentCompetenceWithoutManualCall`, `TestCompetencies_LatestTriggersGenerationAndListCounts`, `TestEnsure_CompanyCreatedAfterGenerationReceivesInstancesOnNextRun`; E2E §53.3-3 (geração idempotente) |
+| Fechamento individual por módulo | T-M2-13, T-M3-09 | `TestCA013_IndependentClose`; E2E §53.3-4 (Fiscal) e §53.3-8 (Folha e Declarações fechadas, Fiscal aberto, edição recusada com 423) |
+| Reabertura com histórico | T-M2-13, T-M3-05 | `TestCA015_ReopenRequiresReason`, `TestCompanyHistory_ShowsReopenEvents`; Vitest "CA-015 não confirma a reabertura sem motivo"; E2E §53.3-9 |
+| Filtros por empresa, código e CNPJ | T-M1-08, T-M3-08 | `TestCompanies_SearchByCnpjWithAndWithoutMask`, `TestFiscalGrid_FiltersAndDerived`, `TestDashboard_Filters`; E2E §53.3-1 (CNPJ), §53.3-3 (código) e §53.3-4 (nome) |
+| CNPJ copiado sem máscara | T-M1-13 | Vitest "CA-003 copia CNPJ só com dígitos"; E2E §53.3-1 (a área de transferência recebe os 14 dígitos) |
+| Dashboard reflete o estado real | T-M5-01, T-M5-09 | `TestDashboardConsistency_DemoSeed`, `TestDashboardConsistency_LoadgenSeed42`, `TestDashboard_KPIsMatchSeed`, `TestList_MatchesDashboardKPIs`; E2E §53.3-10 UC-03 (Atrasadas: N → lista com N itens → N−1 depois de atualizar) |
+| Atrasos automáticos | T-M2-07 | `TestCA012_OverdueComputed`, `TestCA012_OverdueComputed_Integration`; E2E T-M7-04 §28.3 (ícone "Atrasada: venceu em …") |
+| Backlog | T-M5-04, T-M5-07 | `TestCA021_BacklogShowsPreviousOpen`, `TestBacklog_ModuleItemsFiltersSortAndPaging`; E2E §53.3-10 Backlog (R8) |
+| Dependências contábeis respeitadas | T-M2-09, T-M4-05 | `TestCA010_ContabilDependency`, `TestAccountingGrid_SequenceAndBlockedBy`; E2E CA-010 e §53.3-7 (sequência completa) |
+| DCTFWeb sinaliza componentes pendentes | T-M2-10, T-M4-04 | `TestCA011_DctfwebWarning`, `TestCA011_NoWarningWhenComponentsFinal`; Vitest "CA-011 …"; E2E §53.3-6 |
+| Importação com pré-validação | T-M6-02, T-M6-03, T-M6-04 | `TestCA018_ImportRejectsInvalidBeforeCommit`, `TestImportPreview_Errors`, `TestImportCommit_ExpiredTokenIs410`; E2E T-M6-04 |
+| Exportação Excel | T-M6-05 | `TestCA017_ExportRespectsFilters`, `TestExport_FreeSearchAndOtherModules`; E2E §53.3-11 |
+| Relatórios PDF básicos | T-M6-06, T-M6-07 | `TestReport_General`, `TestReport_Module`, `TestReport_Pending`, `TestReport_Overdue`, `TestReport_Backlog`, `TestReport_Credentials`; E2E T-M6-08 (os 6 PDFs); PDF gerado pela imagem de produção no ensaio da T-M7-06 |
+| ~300 empresas sem lentidão | T-M3-10, T-M7-01, T-M7-02 | `docs/perf.md`, verificação final da T-M7-07: grades com p50 entre 15 e 22 ms na API; PATCH com p95 de 3 ms; `ensure` de competência nova em ~0,5 s. No navegador, a grade de 300 linhas abre em ~0,5 s (T-M7-01). Meta: ~2 s |
+
+**Pendente fora do alcance do agente:**
+
+- o job E2E do CI (`.github/workflows/ci.yml`) só roda no GitHub depois de um push, que não está autorizado (DT-02). O mesmo comando (`make e2e`) está verde localmente;
+- os valores provisórios Q1–Q8 aguardam a T-000 (`docs/pendencias.md`).
 
 ### 4.3 Testes obrigatórios (§53)
 

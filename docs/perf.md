@@ -213,3 +213,37 @@ Pontos de atenção para a T-M7-02 (otimização de consultas), sem meta violada
 
 As grades ficaram alguns milissegundos mais lentas porque agora há histórico real e cada consulta é planejada com os valores; seguem em cerca de 20 ms, contra a meta de ~2 s. O dashboard, o histórico e o backlog ficaram 2 a 4 vezes mais rápidos. Todas as metas (grades ≤ ~2 s, PATCH p95 < 200 ms, `ensure` < 10 s) continuam atendidas.
 
+
+## Verificação final — 30/09/2026 (T-M7-07)
+
+Massa padrão recriada depois do `make db-reset` (`make perf-generate`: 300 empresas, 23.385 instâncias em 3 competências; `ensure` de cada competência nova entre 501 e 516 ms), na `develop` com as T-M7-02 a T-M7-06. `make perf-bench` com os parâmetros padrão:
+
+| Medição | Linhas/itens | Tamanho (gzip) | n | p50 | p95 | máx |
+|---|---|---|---|---|---|---|
+| GET grade Fiscal simples | 179 | 81 KB | 20 | 19 ms | 25 ms | 25 ms |
+| GET grade Fiscal normal | 121 | 76 KB | 20 | 18 ms | 19 ms | 19 ms |
+| GET grade Declarações | 300 | 92 KB | 20 | 22 ms | 39 ms | 39 ms |
+| GET grade Folha | 257 | 60 KB | 20 | 15 ms | 16 ms | 16 ms |
+| GET grade Contábil | 227 | 81 KB | 20 | 18 ms | 19 ms | 19 ms |
+| GET grade DCTFWeb | 300 | 81 KB | 20 | 21 ms | 22 ms | 22 ms |
+| GET dashboard | — | 1 KB | 20 | 16 ms | 21 ms | 21 ms |
+| GET dashboard/attention | 11 categorias | 1 KB | 20 | 43 ms | 45 ms | 45 ms |
+| GET dashboard/history | — | 0 KB | 20 | 11 ms | 12 ms | 12 ms |
+| GET backlog (página de 100) | 100 de 1988 | 7 KB | 20 | 21 ms | 24 ms | 24 ms |
+| GET backlog (página de 500) | 500 de 1988 | 33 KB | 20 | 26 ms | 30 ms | 30 ms |
+| GET backlog atrasadas da competência | 0 de 0 | 0 KB | 20 | 9 ms | 12 ms | 12 ms |
+| GET exportação XLSX Fiscal simples | — | 35 KB | 20 | 21 ms | 23 ms | 23 ms |
+| GET exportação XLSX Fiscal normal | — | 31 KB | 20 | 19 ms | 19 ms | 19 ms |
+| GET exportação XLSX Declarações | — | 51 KB | 20 | 27 ms | 35 ms | 35 ms |
+| GET exportação XLSX Folha | — | 33 KB | 20 | 17 ms | 21 ms | 21 ms |
+| GET exportação XLSX Contábil | — | 33 KB | 20 | 19 ms | 20 ms | 20 ms |
+| GET exportação XLSX DCTFWeb | — | 41 KB | 20 | 24 ms | 24 ms | 24 ms |
+| POST ensure-current (já gerada) | — | — | 20 | 1 ms | 2 ms | 2 ms |
+| PATCH status (com agregado da linha) | — | — | 100 | 2 ms | 3 ms | 5 ms |
+| POST bulk-status (300 itens) | 300 alteradas | — | 10 | 120 ms | 134 ms | 134 ms |
+
+Todas as metas do PRD §45.1 continuam atendidas com folga:
+
+- grades de até 300 linhas: p50 entre 15 e 22 ms na API, contra a meta de ~2 s;
+- PATCH de status: p95 de 3 ms, contra a meta de 200 ms;
+- `ensure` de competência nova: ~0,5 s, contra a meta de 10 s.
