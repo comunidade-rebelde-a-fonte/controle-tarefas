@@ -646,7 +646,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de componente: rollback em erro de API; indicadores têm `aria-label`.
 
 ### T-M3-05 — FE: modais operacionais
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-04, T-M2-10, T-M2-11, T-M2-13
 - **Ref:** PRD §10.4, §10.6, §13.6, §16.4, §21.3, §23 · CA-011, CA-015
 - **Arquivos:** `frontend/src/components/dialogs/*`
@@ -660,7 +660,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de componente: não é possível confirmar a reabertura ou a exceção sem motivo.
 
 ### T-M3-06 — FE: NoteCell
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-03, T-M2-13
 - **Ref:** PRD §22 · RN-016
 - **Arquivos:** `frontend/src/components/NoteCell.tsx`
