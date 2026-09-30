@@ -193,9 +193,48 @@ func (s *Service) ChangeStatus(ctx context.Context, id string, in StatusChangeIn
 	return s.result(ctx, id, companyID, competenceID, module)
 }
 
-// checkDependencies aplica as dependências do tipo (HARD em T-M2-09, SOFT em T-M2-10).
+// loadDependencyState carrega as dependências ativas e as instâncias da mesma empresa e
+// competência (estado usado por CheckHard/CheckSoft).
+func loadDependencyState(ctx context.Context, q *store.Queries, companyID, competenceID string) ([]Dependency, map[string]DepInstance, error) {
+	rows, err := q.ListActiveDependencies(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	deps := make([]Dependency, len(rows))
+	for i, r := range rows {
+		deps[i] = Dependency{TypeID: r.ObligationTypeID, PrereqID: r.PrerequisiteObligationTypeID, Mode: r.DependencyMode}
+	}
+	insts, err := q.CompanyCompetenceInstances(ctx, store.CompanyCompetenceInstancesParams{CompanyID: companyID, CompetenceID: competenceID})
+	if err != nil {
+		return nil, nil, err
+	}
+	byType := make(map[string]DepInstance, len(insts))
+	for _, r := range insts {
+		byType[r.ObligationTypeID] = DepInstance{
+			TypeID: r.ObligationTypeID, Code: r.TypeCode, Name: r.TypeName, StatusCode: r.StatusCode,
+			Applicable: r.Applicable, IsFinal: r.IsFinal, Order: int(r.TypeSortOrder),
+		}
+	}
+	return deps, byType, nil
+}
+
+// checkDependencies aplica as dependências do tipo ao concluir (status final):
+//   - HARD (Contábil): etapa anterior aplicável não final bloqueia com 422 DEPENDENCY_BLOCKED;
+//     "Sem movimento" pode ser marcado sem checar e satisfaz as etapas seguintes [PRD §18.2].
+//
 // Devolve o motivo de exceção a registrar no histórico, se houver.
-func (s *Service) checkDependencies(_ context.Context, _ *store.Queries, _ store.GetInstanceForUpdateRow, _ store.StatusDefinition, _ StatusChangeInput) (*string, error) {
+func (s *Service) checkDependencies(ctx context.Context, q *store.Queries, inst store.GetInstanceForUpdateRow, def store.StatusDefinition, _ StatusChangeInput) (*string, error) {
+	if !def.IsFinal || def.Code == StatusNoMovement {
+		return nil, nil
+	}
+	deps, byType, err := loadDependencyState(ctx, q, inst.CompanyID, inst.CompetenceID)
+	if err != nil {
+		return nil, err
+	}
+	if pending := CheckHard(inst.ObligationTypeID, deps, byType); len(pending) > 0 {
+		return nil, apperr.Unprocessable("DEPENDENCY_BLOCKED", BlockedMessage(inst.TypeName, pending)).
+			WithDetails(map[string]any{"pending": pending})
+	}
 	return nil, nil
 }
 

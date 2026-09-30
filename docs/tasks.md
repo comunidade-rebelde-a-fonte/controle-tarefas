@@ -517,7 +517,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de status inválido, conflito de versão, período fechado e registro correto no histórico.
 
 ### T-M2-09 — Dependências HARD (Contábil)
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-08
 - **Ref:** PRD §18.2–§18.3, §38.15 · CA-010 · RN-011
 - **Arquivos:** `backend/internal/obligation/dependencies.go`

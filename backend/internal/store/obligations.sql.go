@@ -10,6 +10,57 @@ import (
 	"time"
 )
 
+const companyCompetenceInstances = `-- name: CompanyCompetenceInstances :many
+SELECT v.obligation_type_id, v.type_code, t.name AS type_name, v.status_code, v.applicable, v.is_final, v.type_sort_order
+FROM v_obligation_instances v
+JOIN obligation_types t ON t.id = v.obligation_type_id
+WHERE v.company_id = $1 AND v.competence_id = $2
+`
+
+type CompanyCompetenceInstancesParams struct {
+	CompanyID    string
+	CompetenceID string
+}
+
+type CompanyCompetenceInstancesRow struct {
+	ObligationTypeID string
+	TypeCode         string
+	TypeName         string
+	StatusCode       string
+	Applicable       bool
+	IsFinal          bool
+	TypeSortOrder    int32
+}
+
+// Instâncias da empresa na competência, para checar dependências.
+func (q *Queries) CompanyCompetenceInstances(ctx context.Context, arg CompanyCompetenceInstancesParams) ([]CompanyCompetenceInstancesRow, error) {
+	rows, err := q.db.Query(ctx, companyCompetenceInstances, arg.CompanyID, arg.CompetenceID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CompanyCompetenceInstancesRow{}
+	for rows.Next() {
+		var i CompanyCompetenceInstancesRow
+		if err := rows.Scan(
+			&i.ObligationTypeID,
+			&i.TypeCode,
+			&i.TypeName,
+			&i.StatusCode,
+			&i.Applicable,
+			&i.IsFinal,
+			&i.TypeSortOrder,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getInstanceForUpdate = `-- name: GetInstanceForUpdate :one
 
 SELECT i.id, i.company_id, i.competence_id, i.obligation_type_id, i.status_code, i.applicable,
@@ -207,6 +258,37 @@ func (q *Queries) InsertStatusHistory(ctx context.Context, arg InsertStatusHisto
 		arg.CreatedAt,
 	)
 	return err
+}
+
+const listActiveDependencies = `-- name: ListActiveDependencies :many
+SELECT obligation_type_id, prerequisite_obligation_type_id, dependency_mode
+FROM obligation_dependencies WHERE active
+`
+
+type ListActiveDependenciesRow struct {
+	ObligationTypeID             string
+	PrerequisiteObligationTypeID string
+	DependencyMode               string
+}
+
+func (q *Queries) ListActiveDependencies(ctx context.Context) ([]ListActiveDependenciesRow, error) {
+	rows, err := q.db.Query(ctx, listActiveDependencies)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveDependenciesRow{}
+	for rows.Next() {
+		var i ListActiveDependenciesRow
+		if err := rows.Scan(&i.ObligationTypeID, &i.PrerequisiteObligationTypeID, &i.DependencyMode); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateInstanceStatus = `-- name: UpdateInstanceStatus :execrows
