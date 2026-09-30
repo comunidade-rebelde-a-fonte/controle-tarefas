@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderResult } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createMemoryRouter, RouterProvider, type RouteObject } from "react-router";
+import { ToastProvider } from "@/components/ui/toast";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 /** QueryClient isolado por teste, sem retentativas. */
 export function createTestQueryClient(): QueryClient {
@@ -19,7 +21,11 @@ export function renderWithProviders(
   const router = createMemoryRouter(routes ?? [{ path, element: ui }], { initialEntries: [route] });
   const result = render(
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
+      <TooltipProvider>
+        <ToastProvider>
+          <RouterProvider router={router} />
+        </ToastProvider>
+      </TooltipProvider>
     </QueryClientProvider>,
   );
   return { ...result, queryClient, router };
