@@ -1,3 +1,4 @@
+import { Check } from "lucide-react";
 import { DropdownMenu as Menu } from "radix-ui";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,26 @@ export function DropdownMenuItem({ className, ...props }: ComponentProps<typeof 
       )}
       {...props}
     />
+  );
+}
+
+export const DropdownMenuRadioGroup = Menu.RadioGroup;
+
+/** Opção exclusiva (menuitemradio com aria-checked); o marcador fica à direita. */
+export function DropdownMenuRadioItem({ className, children, ...props }: ComponentProps<typeof Menu.RadioItem>) {
+  return (
+    <Menu.RadioItem
+      className={cn(
+        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-none select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-accent [&_svg]:size-4",
+        className,
+      )}
+      {...props}
+    >
+      {children}
+      <Menu.ItemIndicator className="absolute right-2 flex items-center">
+        <Check aria-hidden="true" />
+      </Menu.ItemIndicator>
+    </Menu.RadioItem>
   );
 }
 

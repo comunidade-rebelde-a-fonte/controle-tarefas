@@ -632,7 +632,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente de teclado e seleção; render de 300 × 20 com dados falsos sem travar (virtualização ativa).
 
 ### T-M3-04 — FE: StatusCell
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-03, T-M2-08
 - **Ref:** PRD §26.2, §28.3, §45.4, §49.3–§49.4
 - **Arquivos:** `frontend/src/components/StatusCell.tsx`, `frontend/src/services/obligations.ts`
