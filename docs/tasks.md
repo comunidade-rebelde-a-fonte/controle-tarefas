@@ -314,7 +314,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA001_CreateCompany`, `TestCA002_DuplicateCnpj`; busca por `00.000.001/0001-01` e por `00000001000101` retorna a mesma empresa.
 
 ### T-M1-09 — API de regime tributário
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-08
 - **Ref:** PRD §8, §41.2 · UC-04 · RN-003
 - **Arquivos:** `backend/internal/company/regime.go`, `backend/queries/regimes.sql`

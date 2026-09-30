@@ -219,6 +219,39 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "409": { $ref: "#/components/responses/Conflict" }
 
+  /companies/{id}/tax-regimes:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: listTaxRegimes
+      summary: Linha do tempo de regimes tributários
+      responses:
+        "200":
+          description: Linha do tempo (ordem cronológica)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaxRegimeTimeline" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [companies]
+      operationId: changeTaxRegime
+      summary: Inclui novo regime a partir de uma competência (encerra o anterior no mês anterior)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TaxRegimeChange" }
+      responses:
+        "201":
+          description: Linha do tempo atualizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TaxRegimeTimeline" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
 components:
   parameters:
     IdPath:
@@ -421,6 +454,34 @@ components:
         id: { $ref: "#/components/schemas/Uuid" }
         internal_code: { type: string }
         legal_name: { type: string }
+
+    TaxRegimePeriod:
+      type: object
+      required: [id, tax_regime, regime_group, effective_from, effective_to, created_by, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+        regime_group: { $ref: "#/components/schemas/RegimeGroup" }
+        effective_from: { $ref: "#/components/schemas/Competence" }
+        effective_to: { oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }] }
+        created_by: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+
+    TaxRegimeTimeline:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/TaxRegimePeriod" }
+
+    TaxRegimeChange:
+      type: object
+      additionalProperties: false
+      required: [tax_regime, effective_from]
+      properties:
+        tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+        effective_from: { $ref: "#/components/schemas/Competence" }
 
     UserRole:
       type: string
