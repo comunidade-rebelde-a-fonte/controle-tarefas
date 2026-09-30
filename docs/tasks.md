@@ -259,7 +259,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** migrations sobem e descem; constraints testadas (tipo com status set inexistente falha).
 
 ### T-M1-05 — Seed dos conjuntos de status
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-04
 - **Ref:** PRD §11.1–§11.5, §38.13–§38.14
 - **Arquivos:** `backend/seed/status.sql` (ou `seed/*.go`), `make seed`
