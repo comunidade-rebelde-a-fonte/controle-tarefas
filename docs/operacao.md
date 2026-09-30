@@ -100,7 +100,7 @@ O script executa, em ordem:
 
 Em servidor novo, faça a primeira implantação (seção 2, sem o `seed`) e depois rode o `restore.sh`.
 
-**Ensaio (T-M7-06, 30/09/2026):** backup gerado, `down -v` (volumes apagados), stack recriada vazia e backup restaurado. Empresas, competências, histórico e o documento enviado conferiram.
+**Ensaio (T-M7-06, 30/09/2026, com as T-M7-02 e M6 já na develop):** subida do zero com o UC-01; relatório PDF e exportação XLSX funcionando na imagem final; backup, `down -v` (volumes apagados), stack recriada vazia e backup restaurado. Empresas, competências, histórico e o documento enviado conferiram (SHA-256 idêntico).
 
 ## 6. Rotação da senha do banco
 

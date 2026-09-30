@@ -1054,7 +1054,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** checklist completo sem itens em aberto de severidade alta.
 
 ### T-M7-06 — Empacotamento e implantação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-08, T-M7-02 · Q8
 - **Ref:** plan M7 · PRD §42.4, §45.2
 - **Arquivos:** `Dockerfile`, `.dockerignore`, `docker-compose.prod.yml`, `.env.prod.example`, `scripts/backup.sh`, `scripts/restore.sh`, `docs/operacao.md`
