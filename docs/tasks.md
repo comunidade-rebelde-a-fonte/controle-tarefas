@@ -223,7 +223,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** toda requisição tem usuário no contexto (teste); responsáveis podem ser criados e listados; não há endpoint de delete.
 
 ### T-M1-02 — Migrations de empresas e configurações com vigência
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-01
 - **Ref:** plan §4 (2–4), D8 · PRD §7, §8, §9, §38.2–§38.4, §38.10
 - **Arquivos:** `backend/migrations/0003_companies.sql`, `0004_company_settings.sql`
