@@ -880,7 +880,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E UC-03 (parte 1): clicar em "Atrasadas: N" abre a lista filtrada com N itens.
 
 ### T-M5-06 — FE: "Exige atenção"
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M5-02, T-M5-05
 - **Ref:** PRD §24.6–§24.7
 - **Arquivos:** `frontend/src/features/dashboard/AttentionPanel.tsx`
