@@ -799,7 +799,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA020_RejectPrivateKey` com fixtures de `.pfx`, `.p12` renomeado para `.cer`, PEM só com chave, PEM com certificado + chave, `.cer` válido (aceito) e PDF válido (aceito).
 
 ### T-M4-09 — Seed de credenciais
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-07, T-M1-12
 - **Ref:** PRD §19, §37
 - **Arquivos:** `backend/seed/credentials.go`
