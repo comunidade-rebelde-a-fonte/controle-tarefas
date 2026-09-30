@@ -41,3 +41,14 @@ JOIN obligation_types t ON t.id = v.obligation_type_id
 JOIN competencies k ON k.id = v.competence_id
 LEFT JOIN users u ON u.id = v.last_changed_by
 WHERE v.id = $1;
+
+-- name: ListActiveDependencies :many
+SELECT obligation_type_id, prerequisite_obligation_type_id, dependency_mode
+FROM obligation_dependencies WHERE active;
+
+-- name: CompanyCompetenceInstances :many
+-- Instâncias da empresa na competência, para checar dependências.
+SELECT v.obligation_type_id, v.type_code, t.name AS type_name, v.status_code, v.applicable, v.is_final, v.type_sort_order
+FROM v_obligation_instances v
+JOIN obligation_types t ON t.id = v.obligation_type_id
+WHERE v.company_id = $1 AND v.competence_id = $2;
