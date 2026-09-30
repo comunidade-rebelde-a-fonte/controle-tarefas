@@ -580,7 +580,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA013_IndependentClose` (fechar o Fiscal não altera os outros 3 módulos); `TestCA015_ReopenRequiresReason`.
 
 ### T-M2-14 — Teste de integração: mudança de regime futura
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-04, T-M1-09
 - **Ref:** PRD §8.3 · CA-004 · RN-003, RN-004
 - **Arquivos:** `backend/internal/competence/regime_change_test.go`
