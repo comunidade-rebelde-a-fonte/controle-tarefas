@@ -6,7 +6,7 @@ function display(key: string): string {
   return `${m ?? ""}/${y ?? ""}`;
 }
 
-test("UC-03 dashboard → Atrasadas: N → lista com N itens → grade da empresa → atualizar status", async ({ page, request }) => {
+test("§53.3-10 UC-03 dashboard → Atrasadas: N → lista com N itens → grade da empresa → atualizar status", async ({ page, request }) => {
   const competence = await latestCompetence(request);
   await page.goto(`/dashboard?competence=${competence}`);
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();

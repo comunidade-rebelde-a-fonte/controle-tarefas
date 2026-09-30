@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { fixedToday } from "../support/api";
 
 /**
  * UC-05 — Renovar certificado [PRD §19, §33]. O seed de demonstração deixa o certificado da
@@ -7,10 +8,10 @@ import { expect, test } from "@playwright/test";
 const GAMA = "Empresa Fictícia Gama Indústria Ltda";
 const DELTA = "Empresa Fictícia Delta Tecnologia Ltda";
 
+/** Um ano depois do "hoje" fixo do E2E (o mesmo relógio da API). */
 function nextYear(): string {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() + 1);
-  return d.toISOString().slice(0, 10);
+  const [y, rest] = [fixedToday().slice(0, 4), fixedToday().slice(4)];
+  return `${Number(y) + 1}${rest}`;
 }
 
 test("UC-05 filtra vencimentos, avança as etapas e renova o certificado com nova validade", async ({ page }) => {

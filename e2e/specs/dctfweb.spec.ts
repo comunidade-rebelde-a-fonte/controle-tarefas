@@ -3,7 +3,7 @@ import { bulkStatus, latestCompetence, openGridRow } from "../support/api";
 
 const COMPANY = "Empresa Fictícia Alfa Comércio Ltda";
 
-test("CA-011 concluir a DCTFWeb com eSocial pendente exige exceção com motivo, registrado no histórico", async ({ page, request }) => {
+test("§53.3-6 CA-011 concluir a DCTFWeb com eSocial pendente exige exceção com motivo, registrado no histórico", async ({ page, request }) => {
   const competence = await latestCompetence(request);
   // Períodos de Declarações e Folha abertos (a DCTFWeb reúne instâncias dos dois módulos).
   await openGridRow(request, "payroll", competence, "101");

@@ -47,6 +47,8 @@ COMPETENCES ?= 3
 SEED ?= 42
 E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
+# Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
+E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
 .PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
@@ -160,8 +162,8 @@ perf-bench: ## Mede grades, dashboard, backlog, exportações, ensure, PATCH e b
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
 	$(COMPOSE) up -d --wait db
-	@$(MAKE) --no-print-directory db-clean DB=e2e
+	@APP_FIXED_TIME='$(E2E_FIXED_TIME)' $(MAKE) --no-print-directory db-clean DB=e2e
 	@test -d e2e/node_modules || (cd e2e && npm ci --no-audit --no-fund)
 	@cd e2e && npx playwright install chromium >/dev/null
-	@echo ">>> playwright (API :$(E2E_API_PORT) e SPA :$(E2E_WEB_PORT) sobre controle_e2e)"
-	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) npx playwright test $(ARGS)
+	@echo ">>> playwright (API :$(E2E_API_PORT) e SPA :$(E2E_WEB_PORT) sobre controle_e2e, relógio fixo em $(E2E_FIXED_TIME))"
+	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_FIXED_TIME='$(E2E_FIXED_TIME)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) npx playwright test $(ARGS)
