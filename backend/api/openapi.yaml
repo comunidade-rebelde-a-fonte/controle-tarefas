@@ -2072,12 +2072,15 @@ components:
       allOf:
         - $ref: "#/components/schemas/ObligationInstance"
         - type: object
-          required: [blocked_by, dependency_status, locked]
+          required: [blocked_by, blocked_message, dependency_status, locked]
           properties:
             blocked_by:
               type: array
               description: Etapas anteriores (HARD) aplicáveis e não finais que impedem concluir
               items: { $ref: "#/components/schemas/DependencyRef" }
+            blocked_message:
+              type: [string, "null"]
+              description: Mensagem do bloqueio (PRD §18.3); null quando nada bloqueia
             dependency_status:
               description: Indicador SOFT (DCTFWeb); null quando o tipo não tem dependência SOFT
               oneOf:

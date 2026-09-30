@@ -15,7 +15,14 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useId, useState } from "react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useToast } from "@/components/ui/toast-context";
 import { type ApiError, api, isApiError } from "@/lib/api";
@@ -57,6 +64,11 @@ export interface StatusCellProps {
   onChanged?: (result: StatusChangeResult) => void;
   /** Dependência pendente: tratada pelos modais de T-M3-05. Sem handler, vira aviso. */
   onDependencyError?: (event: DependencyErrorEvent) => void;
+  /**
+   * Mensagem de bloqueio da API (etapa anterior pendente, PRD §18.3): as opções finais ficam
+   * desabilitadas no menu, exceto "Sem movimento", que satisfaz a sequência. A API revalida.
+   */
+  blockedMessage?: string | null;
 }
 
 const NOT_APPLICABLE_REASON = "Não se aplica a esta empresa nesta competência.";
@@ -94,11 +106,13 @@ export function StatusCell({
   onOpenChange,
   onChanged,
   onDependencyError,
+  blockedMessage,
 }: StatusCellProps) {
   const toast = useToast();
   const qc = useQueryClient();
   const change = useChangeStatus();
   const reasonId = useId();
+  const blockedId = useId();
   // Resposta mais nova que a prop (a tela pode demorar a repassar a linha atualizada).
   const [confirmed, setConfirmed] = useState<ObligationInstance | null>(null);
   // Status otimista, válido só enquanto a versão-base for a exibida.
@@ -209,12 +223,19 @@ export function StatusCell({
               <ChevronDown aria-hidden="true" className="ml-auto opacity-50" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="start" aria-describedby={blockedMessage ? blockedId : undefined}>
+            {blockedMessage ? (
+              <DropdownMenuLabel id={blockedId} className="flex max-w-72 items-start gap-1.5 text-xs font-normal text-amber-800">
+                <TriangleAlert aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+                {blockedMessage}
+              </DropdownMenuLabel>
+            ) : null}
             <DropdownMenuRadioGroup value={code} onValueChange={select}>
               {statuses.map((s) => {
                 const v = visualOf(s.code, s, true);
+                const blocked = !!blockedMessage && s.is_final && s.code !== "NO_MOVEMENT";
                 return (
-                  <DropdownMenuRadioItem key={s.code} value={s.code}>
+                  <DropdownMenuRadioItem key={s.code} value={s.code} disabled={blocked}>
                     <v.Icon aria-hidden="true" className={v.tone} />
                     {s.label}
                   </DropdownMenuRadioItem>

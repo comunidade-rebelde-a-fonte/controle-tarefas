@@ -1483,6 +1483,8 @@ export interface components {
         GridCell: components["schemas"]["ObligationInstance"] & {
             /** @description Etapas anteriores (HARD) aplicáveis e não finais que impedem concluir */
             blocked_by: components["schemas"]["DependencyRef"][];
+            /** @description Mensagem do bloqueio (PRD §18.3); null quando nada bloqueia */
+            blocked_message: string | null;
             /** @description Indicador SOFT (DCTFWeb); null quando o tipo não tem dependência SOFT */
             dependency_status: components["schemas"]["DependencyStatus"] | null;
             /** @description Módulo principal da instância fechado na competência (edição bloqueada até reabrir) */
