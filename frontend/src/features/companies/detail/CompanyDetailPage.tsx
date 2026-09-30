@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCnpj } from "@/lib/cnpj";
 import { TAX_REGIME_LABELS } from "@/lib/labels";
 import { useCompany } from "@/services/companies";
+import { CredentialsTab } from "./CredentialsTab";
 import { GeneralTab } from "./GeneralTab";
 import { ModulesTab } from "./ModulesTab";
 import { OverridesTab } from "./OverridesTab";
@@ -118,7 +119,7 @@ export function CompanyDetailPage() {
           <ResponsiblesTab key={company.version} company={company} />
         </TabsContent>
         <TabsContent value="credentials">
-          <Placeholder text="Procurações e certificados da empresa — disponível a partir de T-M4-11." />
+          <CredentialsTab companyId={company.id} />
         </TabsContent>
         <TabsContent value="history">
           <Placeholder text="Histórico de competências (estado aberto/fechado por módulo) — disponível a partir de T-M5-08." />

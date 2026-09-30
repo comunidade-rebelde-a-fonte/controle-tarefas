@@ -45,7 +45,7 @@ export function SituationCell({ row, type }: { row: CredentialRow; type: Credent
 }
 
 /** Vencimento editável na célula; grava ao sair do campo ou com Enter. */
-export function ExpiresCell({ row, type, columnId }: { row: CredentialRow; type: CredentialType; columnId: string }) {
+export function ExpiresCell({ row, type, columnId, tabIndex = -1 }: { row: CredentialRow; type: CredentialType; columnId: string; tabIndex?: number }) {
   const ctl = controlOf(row, type);
   const { save, isPending } = useSaveCredential();
   const [draft, setDraft] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function ExpiresCell({ row, type, columnId }: { row: CredentialRow; type:
     <input
       type="date"
       data-edit={editId(row.company.id, columnId)}
-      tabIndex={-1}
+      tabIndex={tabIndex}
       aria-label={`Vencimento — ${CREDENTIAL_TYPE_LABELS[type]} — ${row.company.legal_name}`}
       className="h-7 w-full rounded border border-transparent bg-transparent px-1 text-xs hover:border-input focus:border-input focus:outline-none"
       value={draft ?? ctl.expires_at ?? ""}
@@ -80,7 +80,7 @@ export function ExpiresCell({ row, type, columnId }: { row: CredentialRow; type:
 const STAGES: RenewalStatus[] = ["CURRENT", "RENEWAL_REQUESTED", "AWAITING_CLIENT", "RENEWED"];
 
 /** Etapa de renovação; "Renovado" abre o diálogo que pede a nova validade [PRD §19.4]. */
-export function RenewalCell({ row, type, columnId }: { row: CredentialRow; type: CredentialType; columnId: string }) {
+export function RenewalCell({ row, type, columnId, tabIndex = -1 }: { row: CredentialRow; type: CredentialType; columnId: string; tabIndex?: number }) {
   const ctl = controlOf(row, type);
   const { save, isPending } = useSaveCredential();
   const { openRenewed } = useCredentialsActions();
@@ -89,7 +89,7 @@ export function RenewalCell({ row, type, columnId }: { row: CredentialRow; type:
   return (
     <NativeSelect
       data-edit={editId(row.company.id, columnId)}
-      tabIndex={-1}
+      tabIndex={tabIndex}
       aria-label={`Etapa de renovação — ${CREDENTIAL_TYPE_LABELS[type]} — ${row.company.legal_name}`}
       className="h-7 w-full text-xs"
       value={pending ?? ctl.renewal_status}
