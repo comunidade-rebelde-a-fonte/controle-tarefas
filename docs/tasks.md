@@ -929,7 +929,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** o arquivo abre no Excel/LibreOffice; teste que reabre o XLSX e confere os cabeçalhos.
 
 ### T-M6-02 — Parser e validação da importação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-01, T-M1-03
 - **Ref:** PRD §35.2–§35.5
 - **Arquivos:** `backend/internal/importer/{parse,validate}.go`
