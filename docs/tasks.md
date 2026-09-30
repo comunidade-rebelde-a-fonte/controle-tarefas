@@ -81,7 +81,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M0 — Infraestrutura do repositório
 
 ### T-M0-01 — Estrutura do monorepo
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** —
 - **Ref:** plan §3, M0
 - **Arquivos:** `/backend`, `/frontend`, `/e2e`, `Makefile`, `.gitignore`, `.editorconfig`, `README.md`
