@@ -65,7 +65,9 @@ func Reference(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, out io.
 
 // DemoSteps são os dados fictícios de demonstração (empresas e histórico).
 func DemoSteps() []Step {
-	return nil
+	return []Step{
+		companiesStep(),
+	}
 }
 
 // Demo carrega os dados de demonstração (supõe os dados de referência já carregados).

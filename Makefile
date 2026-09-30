@@ -98,8 +98,8 @@ migrate-status: ## Mostra o estado das migrations (DB=e2e|perf para os outros ba
 seed: ## Carrega os dados de referência (status, catálogo, feriados) — idempotente
 	@$(API) seed
 
-seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração
-	@echo "disponível a partir de T-M1-12"
+seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração — idempotente
+	@$(API) seed --demo
 
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	cd backend && $(BIN)/sqlc generate
