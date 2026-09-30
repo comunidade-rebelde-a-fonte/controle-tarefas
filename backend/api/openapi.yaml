@@ -1,0 +1,136 @@
+openapi: 3.1.0
+info:
+  title: Controle de Obrigações — API
+  version: 0.1.0
+  description: |
+    API REST do Sistema de Controle de Obrigações para Escritório Contábil.
+
+    Convenções [AGENTS.md §8.4]:
+    - prefixo `/api/v1`, JSON, campos em inglês `snake_case`;
+    - competência no formato `AAAA-MM`; datas civis `AAAA-MM-DD`; instantes em UTC (RFC 3339);
+    - erros no envelope `{code, message, details}`, com `message` em português;
+    - entidades editáveis usam `version` para concorrência otimista (divergência → `409`).
+
+    Este arquivo é a fonte única do contrato. Os tipos TypeScript do frontend são gerados
+    a partir dele (`make gen`).
+servers:
+  - url: /api/v1
+
+tags:
+  - name: system
+    description: Estado da aplicação
+
+paths:
+  /health:
+    get:
+      tags: [system]
+      operationId: getHealth
+      summary: Estado da API e do banco de dados
+      responses:
+        "200":
+          description: API e banco disponíveis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+        "503":
+          description: Banco de dados indisponível
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+components:
+  schemas:
+    Error:
+      type: object
+      description: Envelope padrão de erro.
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Código estável, em inglês (ex.`VERSION_CONFLICT`).
+          examples: [VERSION_CONFLICT]
+        message:
+          type: string
+          description: Mensagem para o usuário, em português.
+        details:
+          type: object
+          additionalProperties: true
+
+    Health:
+      type: object
+      required: [status, database]
+      properties:
+        status:
+          type: string
+          enum: [ok, unavailable]
+        database:
+          type: string
+          enum: [ok, unavailable]
+
+    Competence:
+      type: string
+      description: Competência mensal no formato `AAAA-MM` (exibida como `MM/AAAA`).
+      pattern: "^[0-9]{4}-(0[1-9]|1[0-2])$"
+      examples: ["2026-09"]
+
+    Date:
+      type: string
+      format: date
+      description: Data civil `AAAA-MM-DD`, sem fuso.
+      examples: ["2026-10-20"]
+
+    Cnpj:
+      type: string
+      description: CNPJ armazenado somente com os 14 dígitos.
+      pattern: "^[0-9]{14}$"
+      examples: ["00000001000101"]
+
+    Version:
+      type: integer
+      format: int32
+      minimum: 1
+      description: Versão para controle de concorrência otimista.
+
+    Uuid:
+      type: string
+      format: uuid
+
+  responses:
+    BadRequest:
+      description: Payload inválido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Conflict:
+      description: Conflito de versão, unicidade ou alerta que exige confirmação
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Gone:
+      description: Recurso expirado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unprocessable:
+      description: Regra de negócio violada
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Locked:
+      description: Período fechado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

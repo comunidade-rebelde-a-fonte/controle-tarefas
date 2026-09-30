@@ -98,6 +98,7 @@ seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração
 
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	cd backend && $(BIN)/sqlc generate
+	cd frontend && npm run --silent gen:api
 
 lint: lint-backend lint-frontend ## Lint do backend e do frontend
 

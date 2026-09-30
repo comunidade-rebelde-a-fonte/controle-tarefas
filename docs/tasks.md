@@ -176,7 +176,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `make dev` sobe os 3 serviços; a SPA em `http://localhost:5173` navega entre as 12 áreas e o health da API é visível via proxy; `tsc --noEmit` e `eslint` limpos.
 
 ### T-M0-06 — Contrato OpenAPI e cliente HTTP
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-03, T-M0-05
 - **Ref:** plan §3 (Contrato)
 - **Arquivos:** `backend/api/openapi.yaml`, `frontend/src/types/api.d.ts`, `frontend/src/lib/api.ts`
