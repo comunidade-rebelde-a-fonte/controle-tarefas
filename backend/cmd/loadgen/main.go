@@ -4,9 +4,10 @@
 //	    migra o banco, carrega os dados de referência, cria N empresas fictícias com
 //	    distribuição realista (~60% Simples, módulos e overrides variados), gera K
 //	    competências e aplica status determinísticos pela semente;
-//	loadgen bench [-iterations 20] [-patches 100]
-//	    sobe a API em processo (HTTP real em 127.0.0.1) e mede a grade Fiscal e o PATCH
-//	    de status, imprimindo a tabela para docs/perf.md.
+//	loadgen bench [-iterations 20] [-patches 100] [-bulks 10] [-bulk-size 300]
+//	    sobe a API em processo (HTTP real em 127.0.0.1) e mede todas as grades, dashboard,
+//	    attention, backlog, exportações XLSX, ensure-current, PATCH e bulk de status,
+//	    imprimindo a tabela para docs/perf.md [T-M7-01].
 //
 // Só roda contra o banco local controle_perf (DATABASE_URL); recusa qualquer outro.
 package main
@@ -70,12 +71,15 @@ func run(args []string, out io.Writer) error {
 		return generate(ctx, dbURL, loc, *n, *k, *s, out)
 	case "bench":
 		fs := flag.NewFlagSet("bench", flag.ContinueOnError)
-		iterations := fs.Int("iterations", 20, "requisições medidas por grade")
-		patches := fs.Int("patches", 100, "PATCHs de status medidos")
+		var bc benchConfig
+		fs.IntVar(&bc.iterations, "iterations", 20, "requisições medidas por rota de leitura")
+		fs.IntVar(&bc.patches, "patches", 100, "PATCHs de status medidos")
+		fs.IntVar(&bc.bulks, "bulks", 10, "lotes de bulk-status medidos")
+		fs.IntVar(&bc.bulkSize, "bulk-size", 300, "instâncias por lote de bulk-status")
 		if err := fs.Parse(args[1:]); err != nil {
 			return err
 		}
-		return bench(ctx, dbURL, loc, *iterations, *patches, out)
+		return bench(ctx, dbURL, loc, bc, out)
 	}
 	return fmt.Errorf("comando desconhecido %q (use: generate, bench)", args[0])
 }
@@ -119,6 +123,11 @@ func generate(ctx context.Context, dbURL string, loc *time.Location, n, k int, s
 	if err != nil {
 		return err
 	}
+	// Estatísticas do planejador após a carga em massa, como o autovacuum faria num banco em
+	// uso; sem isso as estimativas ficam erradas e a medição reflete um estado irreal.
+	if _, err := pool.Exec(ctx, "ANALYZE"); err != nil {
+		return err
+	}
 	var companies, instances int
 	if err := pool.QueryRow(ctx, `SELECT (SELECT count(*) FROM companies WHERE internal_code LIKE 'P%'),
 		(SELECT count(*) FROM obligation_instances)`).Scan(&companies, &instances); err != nil {
@@ -153,6 +162,27 @@ type gridBody struct {
 	} `json:"rows"`
 }
 
+// listBody cobre as respostas medidas por GET: grades (rows), backlog (items/total) e
+// attention (categories); o que não se aplica fica vazio.
+type listBody struct {
+	Rows       []json.RawMessage `json:"rows"`
+	Items      []json.RawMessage `json:"items"`
+	Categories []json.RawMessage `json:"categories"`
+	Total      *int              `json:"total"`
+}
+
+func (b listBody) count() string {
+	switch {
+	case b.Rows != nil:
+		return fmt.Sprint(len(b.Rows))
+	case b.Total != nil:
+		return fmt.Sprintf("%d de %d", len(b.Items), *b.Total)
+	case b.Categories != nil:
+		return fmt.Sprintf("%d categorias", len(b.Categories))
+	}
+	return "—"
+}
+
 type stats struct {
 	n                  int
 	p50, p95, max, avg time.Duration
@@ -170,7 +200,36 @@ func summarize(d []time.Duration) stats {
 
 func ms(d time.Duration) string { return fmt.Sprintf("%.0f ms", float64(d.Microseconds())/1000) }
 
-func bench(ctx context.Context, dbURL string, loc *time.Location, iterations, patches int, out io.Writer) error {
+func row(out io.Writer, label, count, size string, st stats) {
+	_, _ = fmt.Fprintf(out, "| %s | %s | %s | %d | %s | %s | %s |\n", label, count, size, st.n, ms(st.p50), ms(st.p95), ms(st.max))
+}
+
+// measure repete fn (após 2 aquecimentos) e devolve as durações.
+func measure(iterations int, fn func() error) ([]time.Duration, error) {
+	for range 2 {
+		if err := fn(); err != nil {
+			return nil, err
+		}
+	}
+	d := make([]time.Duration, 0, iterations)
+	for range iterations {
+		start := time.Now()
+		if err := fn(); err != nil {
+			return nil, err
+		}
+		d = append(d, time.Since(start))
+	}
+	return d, nil
+}
+
+type benchConfig struct {
+	iterations, patches, bulks, bulkSize int
+}
+
+// bench sobe a API em processo e mede, na competência mais recente: todas as grades, o
+// dashboard, attention, histórico, backlog, as exportações XLSX (quando existirem), o
+// ensure-current idempotente, o PATCH de status e o bulk-status [T-M3-10, T-M7-01].
+func bench(ctx context.Context, dbURL string, loc *time.Location, bc benchConfig, out io.Writer) error {
 	pool, err := db.NewPool(ctx, dbURL, 10)
 	if err != nil {
 		return err
@@ -187,66 +246,115 @@ func bench(ctx context.Context, dbURL string, loc *time.Location, iterations, pa
 	go func() { _ = srv.Serve(ln) }()
 	defer func() { _ = srv.Shutdown(ctx) }()
 	base := "http://" + ln.Addr().String() + "/api/v1"
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: 60 * time.Second}
 
 	var latest struct {
 		Competence string `json:"competence"`
 	}
-	if _, err := getJSON(ctx, client, base+"/competencies/latest", &latest); err != nil {
+	if _, _, err := get(ctx, client, base+"/competencies/latest", &latest); err != nil {
 		return err
 	}
-	_, _ = fmt.Fprintf(out, "| Medição | Linhas | Tamanho (gzip) | n | p50 | p95 | máx |\n|---|---|---|---|---|---|---|\n")
+	c := latest.Competence
+	_, _ = fmt.Fprintf(out, "Competência medida: %s\n\n", c)
+	_, _ = fmt.Fprintf(out, "| Medição | Linhas/itens | Tamanho (gzip) | n | p50 | p95 | máx |\n|---|---|---|---|---|---|---|\n")
 
-	var sample gridBody
-	for _, group := range []string{"simples", "normal"} {
-		u := fmt.Sprintf("%s/modules/fiscal/grid?competence=%s&group=%s", base, latest.Competence, group)
-		var g gridBody
-		for range 2 { // aquecimento
-			if _, err := getJSON(ctx, client, u, &g); err != nil {
-				return err
-			}
-		}
-		durations := make([]time.Duration, 0, iterations)
+	gets := []struct{ label, path string }{
+		{"GET grade Fiscal simples", "/modules/fiscal/grid?group=simples&competence=" + c},
+		{"GET grade Fiscal normal", "/modules/fiscal/grid?group=normal&competence=" + c},
+		{"GET grade Declarações", "/modules/declarations/grid?competence=" + c},
+		{"GET grade Folha", "/modules/payroll/grid?competence=" + c},
+		{"GET grade Contábil", "/modules/accounting/grid?competence=" + c},
+		{"GET grade DCTFWeb", "/modules/dctfweb/grid?competence=" + c},
+		{"GET dashboard", "/dashboard?competence=" + c},
+		{"GET dashboard/attention", "/dashboard/attention?competence=" + c},
+		{"GET dashboard/history", "/dashboard/history?competence=" + c},
+		{"GET backlog (página de 100)", "/backlog?before=" + c},
+		{"GET backlog (página de 500)", "/backlog?page_size=500&before=" + c},
+		{"GET backlog atrasadas da competência", "/backlog?state=overdue&competence=" + c},
+	}
+	for _, g := range gets {
+		var b listBody
 		var size int64
-		for range iterations {
-			start := time.Now()
-			n, err := getJSON(ctx, client, u, &g)
-			if err != nil {
-				return err
-			}
-			durations = append(durations, time.Since(start))
+		d, err := measure(bc.iterations, func() error {
+			b = listBody{}
+			n, _, err := get(ctx, client, base+g.path, &b)
 			size = n
+			return err
+		})
+		if err != nil {
+			return err
 		}
-		st := summarize(durations)
-		_, _ = fmt.Fprintf(out, "| GET grade Fiscal %s | %d | %d KB | %d | %s | %s | %s |\n", group, len(g.Rows), size/1024, st.n, ms(st.p50), ms(st.p95), ms(st.max))
-		if len(g.Rows) > len(sample.Rows) {
-			sample = g
-		}
+		row(out, g.label, b.count(), fmt.Sprintf("%d KB", size/1024), summarize(d))
 	}
 
-	// PATCH de status em células abertas e não finais (Fiscal não tem dependências), alternando
-	// entre "A iniciar" e "Baixadas" com a versão atual.
+	// Exportações XLSX (T-M6-05): medidas só se a rota existir nesta build.
+	exports := []struct{ label, path string }{
+		{"GET exportação XLSX Fiscal simples", "/exports/fiscal.xlsx?group=simples&competence=" + c},
+		{"GET exportação XLSX Fiscal normal", "/exports/fiscal.xlsx?group=normal&competence=" + c},
+		{"GET exportação XLSX Declarações", "/exports/declarations.xlsx?competence=" + c},
+		{"GET exportação XLSX Folha", "/exports/payroll.xlsx?competence=" + c},
+		{"GET exportação XLSX Contábil", "/exports/accounting.xlsx?competence=" + c},
+		{"GET exportação XLSX DCTFWeb", "/exports/dctfweb.xlsx?competence=" + c},
+	}
+	for _, e := range exports {
+		if _, status, err := get(ctx, client, base+e.path, nil); status == http.StatusNotFound {
+			_, _ = fmt.Fprintf(out, "| %s | — | — | 0 | rota indisponível nesta build | — | — |\n", e.label)
+			continue
+		} else if err != nil {
+			return err
+		}
+		var size int64
+		d, err := measure(bc.iterations, func() error {
+			n, _, err := get(ctx, client, base+e.path, nil)
+			size = n
+			return err
+		})
+		if err != nil {
+			return err
+		}
+		row(out, e.label, "—", fmt.Sprintf("%d KB", size/1024), summarize(d))
+	}
+
+	// ensure-current com a competência já gerada (caminho de toda abertura de tela). A geração
+	// de uma competência nova é medida pelo loadgen generate.
+	d, err := measure(bc.iterations, func() error {
+		return send(ctx, client, http.MethodPost, base+"/competencies/ensure-current", "", nil)
+	})
+	if err != nil {
+		return err
+	}
+	row(out, "POST ensure-current (já gerada)", "—", "—", summarize(d))
+
+	// Células abertas e não finais das duas grades Fiscais (o Fiscal não tem dependências).
 	type target struct {
 		id      string
 		version int
 		status  string
 	}
 	var targets []target
-	for _, row := range sample.Rows {
-		if row.Period.State != "OPEN" {
-			continue
+	for _, group := range []string{"simples", "normal"} {
+		var g gridBody
+		if _, _, err := get(ctx, client, fmt.Sprintf("%s/modules/fiscal/grid?group=%s&competence=%s", base, group, c), &g); err != nil {
+			return err
 		}
-		for code, c := range row.Cells {
-			if code != "FISCAL_FECHAMENTO" && c.Applicable && !c.IsFinal && (c.StatusCode == "NOT_STARTED" || c.StatusCode == "DOWNLOADED") {
-				targets = append(targets, target{c.ID, c.Version, c.StatusCode})
+		for _, r := range g.Rows {
+			if r.Period.State != "OPEN" {
+				continue
+			}
+			for code, cell := range r.Cells {
+				if code != "FISCAL_FECHAMENTO" && cell.Applicable && !cell.IsFinal && (cell.StatusCode == "NOT_STARTED" || cell.StatusCode == "DOWNLOADED") {
+					targets = append(targets, target{cell.ID, cell.Version, cell.StatusCode})
+				}
 			}
 		}
 	}
 	if len(targets) == 0 {
 		return errors.New("nenhuma célula aberta para o PATCH (gere a massa com loadgen generate)")
 	}
-	durations := make([]time.Duration, 0, patches)
-	for i := range patches {
+
+	// PATCH de status alternando entre "A iniciar" e "Baixadas" com a versão atual.
+	durations := make([]time.Duration, 0, bc.patches)
+	for i := range bc.patches {
 		t := &targets[i%len(targets)]
 		next := "DOWNLOADED"
 		if t.status == "DOWNLOADED" {
@@ -259,14 +367,40 @@ func bench(ctx context.Context, dbURL string, loc *time.Location, iterations, pa
 				Version int `json:"version"`
 			} `json:"instance"`
 		}
-		if err := patchJSON(ctx, client, base+"/obligation-instances/"+t.id+"/status", body, &res); err != nil {
+		if err := send(ctx, client, http.MethodPatch, base+"/obligation-instances/"+t.id+"/status", body, &res); err != nil {
 			return err
 		}
 		durations = append(durations, time.Since(start))
 		t.version, t.status = res.Instance.Version, next
 	}
-	st := summarize(durations)
-	_, _ = fmt.Fprintf(out, "| PATCH status (com agregado da linha) | — | — | %d | %s | %s | %s |\n", st.n, ms(st.p50), ms(st.p95), ms(st.max))
+	row(out, "PATCH status (com agregado da linha)", "—", "—", summarize(durations))
+
+	// bulk-status com bulkSize instâncias, alternando o status do lote inteiro.
+	size := min(bc.bulkSize, len(targets))
+	ids := make([]string, size)
+	for i := range size {
+		ids[i] = targets[i].id
+	}
+	idsJSON, _ := json.Marshal(ids)
+	durations = durations[:0]
+	var updated int
+	for i := range bc.bulks {
+		next := "DOWNLOADED"
+		if i%2 == 1 {
+			next = "NOT_STARTED"
+		}
+		body := fmt.Sprintf(`{"instance_ids":%s,"status_code":%q}`, idsJSON, next)
+		var res struct {
+			Updated int `json:"updated"`
+		}
+		start := time.Now()
+		if err := send(ctx, client, http.MethodPost, base+"/obligation-instances/bulk-status", body, &res); err != nil {
+			return err
+		}
+		durations = append(durations, time.Since(start))
+		updated = res.Updated
+	}
+	row(out, fmt.Sprintf("POST bulk-status (%d itens)", size), fmt.Sprintf("%d alteradas", updated), "—", summarize(durations))
 	return nil
 }
 
@@ -282,44 +416,50 @@ func (c *countingReader) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// getJSON faz o GET como o navegador (Accept-Encoding: gzip) e devolve o tamanho transferido.
-func getJSON(ctx context.Context, client *http.Client, u string, v any) (int64, error) {
+// get faz o GET como o navegador (Accept-Encoding: gzip) e devolve o tamanho transferido e o
+// status. Com v nil, só consome o corpo (ex.: XLSX).
+func get(ctx context.Context, client *http.Client, u string, v any) (int64, int, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	req.Header.Set("Accept-Encoding", "gzip")
 	res, err := client.Do(req)
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(res.Body)
-		return 0, fmt.Errorf("GET %s: %d %s", u, res.StatusCode, b)
+		return 0, res.StatusCode, fmt.Errorf("GET %s: %d %s", u, res.StatusCode, b)
 	}
 	cr := &countingReader{r: res.Body}
 	var body io.Reader = cr
 	if res.Header.Get("Content-Encoding") == "gzip" {
 		gz, err := gzip.NewReader(cr)
 		if err != nil {
-			return 0, err
+			return 0, res.StatusCode, err
 		}
 		body = gz
 	}
-	if err := json.NewDecoder(body).Decode(v); err != nil {
-		return 0, err
+	if v != nil {
+		if err := json.NewDecoder(body).Decode(v); err != nil {
+			return 0, res.StatusCode, err
+		}
 	}
-	_, _ = io.Copy(io.Discard, cr)
-	return cr.n, nil
+	_, _ = io.Copy(io.Discard, body)
+	return cr.n, res.StatusCode, nil
 }
 
-func patchJSON(ctx context.Context, client *http.Client, u, body string, v any) error {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPatch, u, strings.NewReader(body))
+// send faz PATCH/POST com corpo JSON e decodifica a resposta em v (se não for nil).
+func send(ctx context.Context, client *http.Client, method, u, body string, v any) error {
+	req, err := http.NewRequestWithContext(ctx, method, u, strings.NewReader(body))
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	res, err := client.Do(req)
 	if err != nil {
 		return err
@@ -327,7 +467,11 @@ func patchJSON(ctx context.Context, client *http.Client, u, body string, v any) 
 	defer func() { _ = res.Body.Close() }()
 	if res.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(res.Body)
-		return fmt.Errorf("PATCH %s: %d %s", u, res.StatusCode, b)
+		return fmt.Errorf("%s %s: %d %s", method, u, res.StatusCode, b)
+	}
+	if v == nil {
+		_, _ = io.Copy(io.Discard, res.Body)
+		return nil
 	}
 	return json.NewDecoder(res.Body).Decode(v)
 }
