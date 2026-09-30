@@ -78,3 +78,13 @@ Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare 
 - `make seed-demo` carrega também as **20 empresas fictícias** do PRD §37 e os responsáveis de exemplo. Empresas já existentes (mesmo CNPJ) não são alteradas.
 - **Bypass de CNPJ, restrito ao seed:** os CNPJs fictícios do PRD não têm dígitos verificadores válidos. Por isso o seed de demonstração grava as empresas direto no banco, sempre com 14 dígitos. Todo cadastro pela API (tela, importação) continua validando os dígitos verificadores.
 - Valores provisórios (vencimentos, "Sem folha", matriz de declarações, feriados locais) estão marcados `A VALIDAR (Qn)` e listados em `docs/pendencias.md`.
+
+## Produção
+
+Imagem única (`Dockerfile`: SPA + API no mesmo binário, usuário não-root) e `docker-compose.prod.yml` (Postgres sem porta publicada no host). Implantação, atualização, backup (`scripts/backup.sh`), restauração (`scripts/restore.sh`) e rotação de senha: `docs/operacao.md`.
+
+```bash
+cp .env.prod.example .env.prod   # defina a senha do banco (openssl rand -hex 24)
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+```
+

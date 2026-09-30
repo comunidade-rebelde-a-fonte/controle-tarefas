@@ -48,7 +48,7 @@ SEED ?= 42
 E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench audit
+.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -140,6 +140,16 @@ db-clean: ## Recria vazio o schema de controle_e2e ou controle_perf (DB=e2e|perf
 	@$(COMPOSE) exec -T db psql -q -U $(POSTGRES_USER) -d $(DB_NAME) -c "SET client_min_messages TO warning; DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 	@$(API) migrate up
 	@if [ "$(DB)" = "e2e" ]; then $(API) seed --demo; else $(API) seed; fi
+
+db-dump: ## Dump do banco de dev (pg_dump -Fc) em backups/dev-<data>.dump
+	@mkdir -p backups
+	@f=backups/dev-$$(date +%Y%m%d-%H%M%S).dump; \
+	$(COMPOSE) exec -T db pg_dump -Fc -U $(POSTGRES_USER) -d $(DB_NAME) > $$f && echo ">>> $$f"
+
+db-restore: ## Restaura um dump no banco de dev (FILE=backups/dev-....dump; APAGA os dados atuais)
+	@test -n "$(FILE)" || { echo "informe FILE=backups/...dump"; exit 1; }
+	@$(COMPOSE) exec -T db pg_restore --clean --if-exists --no-owner -U $(POSTGRES_USER) -d $(DB_NAME) < $(FILE)
+	@echo ">>> $(FILE) restaurado em $(DB_NAME)"
 
 perf-generate: ## Massa sintética no controle_perf (COMPANIES=300 COMPETENCES=3 SEED=42; recria o schema)
 	@$(MAKE) --no-print-directory db-clean DB=perf

@@ -30,8 +30,10 @@ type Config struct {
 	Location       *time.Location
 	CORSOrigins    []string
 	FileStorageDir string
-	MigrateOnBoot  bool
-	LogLevel       slog.Level
+	// StaticDir é o build da SPA servido pelo binário (imagem de produção); vazio = só a API.
+	StaticDir     string
+	MigrateOnBoot bool
+	LogLevel      slog.Level
 	// FixedTime congela o relógio da aplicação (somente fora de produção).
 	// Usado pelos testes E2E para datas determinísticas.
 	FixedTime *time.Time
@@ -89,6 +91,7 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 
 	cfg.FileStorageDir = orDefault(getenv("FILE_STORAGE_DIR"), "./storage")
+	cfg.StaticDir = strings.TrimSpace(getenv("STATIC_DIR"))
 
 	defaultMigrate := "false"
 	if cfg.Env == EnvProduction {

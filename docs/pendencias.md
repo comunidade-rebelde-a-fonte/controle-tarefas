@@ -11,3 +11,4 @@ Valores usados no código ou nos seeds enquanto o escritório não responde às 
 | Q2 | T-M2-07 | Coluna Fechamento do Fiscal fora dos percentuais e do "pronto para fechar" (R2/R3): regra de regime com `counts_in_progress = false` e `is_closing_stage` | `backend/internal/obligation/derived.go` (`InDenominator`), `backend/seed/catalog.sql` |
 | Q3 | T-M2-07 | ICMS do Simples fora do progresso também não bloqueia o "pronto para fechar" (R4) | `backend/internal/obligation/derived.go` (`InDenominator`), `backend/seed/catalog.sql` |
 | Q4 | T-M2-08 | Módulo fechado bloqueia a edição das instâncias (`423 PERIOD_CLOSED`) até a reabertura (R9) | `backend/internal/obligation/service.go` (`errPeriodClosed`) |
+| Q8 | T-M7-06 | Produção começa na competência corrente do primeiro boot; competências retroativas não são geradas (as pendências anteriores seguem nas planilhas até a resposta) | `docs/operacao.md` §2 (Competência inicial de produção) |

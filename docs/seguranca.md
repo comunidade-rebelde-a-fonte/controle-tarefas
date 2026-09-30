@@ -93,7 +93,7 @@ Saída final: `Your code is affected by 0 vulnerabilities.`
 
 ## 9. Recomendações (severidade baixa, para a T-M7-06)
 
-1. **Senha de exemplo em produção.** `docker-compose.prod.yml` e `.env.prod.example` (T-M7-06) devem exigir `POSTGRES_PASSWORD` sem valor padrão, por exemplo com `${POSTGRES_PASSWORD:?}`, e não publicar a porta do Postgres [AGENTS §6.3].
-2. **Cabeçalhos de segurança** ao servir a SPA pelo binário: `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin`, `X-Frame-Options: DENY`. Sem autenticação e sem conteúdo de terceiros, o risco atual é baixo.
-3. **Imagem final** com usuário não-root e `FILE_STORAGE_DIR` num volume fora do diretório dos estáticos (já previsto na T-M7-06).
+1. **Senha de exemplo em produção — aplicada (T-M7-06).** `docker-compose.prod.yml` exige `POSTGRES_USER` e `POSTGRES_PASSWORD` com `${VAR:?}`, sem valor padrão; `.env.prod.example` vem com a senha vazia; a porta do Postgres não é publicada [AGENTS §6.3].
+2. **Cabeçalhos de segurança — aplicada (T-M7-06).** O middleware `httpx.SecurityHeaders` envia `X-Content-Type-Options: nosniff`, `Referrer-Policy: same-origin` e `X-Frame-Options: DENY` em todas as respostas, da API e da SPA servida pelo binário.
+3. **Imagem final — aplicada (T-M7-06).** Usuário não-root (UID 10001) e `FILE_STORAGE_DIR=/data/storage` num volume separado dos estáticos (`/app/web`).
 4. **x/crypto GO-2026-5932:** refazer `make audit` quando sair a correção e atualizar o módulo.
