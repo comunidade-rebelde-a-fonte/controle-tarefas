@@ -897,6 +897,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/{file}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Relatório PDF [PRD §36.2-§36.3]
+         * @description `file` é `{report}.pdf`. Todos trazem título, competência, data de geração, filtros, resumo de indicadores e a tabela (empresas, obrigações, status e atrasos), sobre as mesmas consultas das telas. `general`: situação geral da competência (filtros do dashboard). `pending`: pendências da competência por módulo (padrão: aplicáveis não finais; `state` restringe à classe). `overdue`: obrigações atrasadas da competência. `backlog`: pendências de competências anteriores à informada. `credentials`: procurações e certificados vencidos ou a vencer (`competence` opcional; `filter` e `type` como na tela). `module`: controle completo de um módulo (`module` obrigatório; no Fiscal, sem `group`, traz Normais e Simples), com os filtros e a busca da grade.
+         */
+        get: operations["downloadReport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboard": {
         parameters: {
             query?: never;
@@ -3741,6 +3761,57 @@ export interface operations {
                 };
                 content: {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    downloadReport: {
+        parameters: {
+            query?: {
+                /** @description AAAA-MM. Obrigatória, exceto em credentials. */
+                competence?: string;
+                /** @description module.pdf: fiscal, declarations, payroll, accounting ou dctfweb. pending, overdue e backlog: FISCAL, DECLARATIONS, PAYROLL ou ACCOUNTING (opcional). */
+                module?: string;
+                /** @description module.pdf com module=fiscal (opcional). */
+                group?: "normal" | "simples";
+                regime_group?: "NORMAL" | "SIMPLES";
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description pending, backlog. */
+                state?: "open" | "applicable" | "done" | "in_progress" | "not_started" | "pending" | "overdue";
+                status?: string;
+                /** @description Busca livre (empresa, código ou CNPJ com ou sem máscara). */
+                q?: string;
+                overdue_min?: number;
+                overdue_max?: number;
+                /** @description backlog.pdf (padrão days_overdue). */
+                sort?: "days_overdue" | "due_date" | "competence" | "company";
+                /** @description credentials.pdf — expired, due_N (1 a 365), awaiting_client ou no_date. */
+                filter?: string;
+                /** @description credentials.pdf. */
+                type?: "RFB_POWER_OF_ATTORNEY" | "DIGITAL_CERTIFICATE";
+            };
+            header?: never;
+            path: {
+                file: "general.pdf" | "pending.pdf" | "overdue.pdf" | "backlog.pdf" | "credentials.pdf" | "module.pdf";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description PDF do relatório */
+            200: {
+                headers: {
+                    /** @description attachment; filename="relatorio-{report}-{sufixo}.pdf" */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
                 };
             };
             400: components["responses"]["BadRequest"];

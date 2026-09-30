@@ -13,16 +13,14 @@ import (
 	"github.com/xuri/excelize/v2"
 	"golang.org/x/text/unicode/norm"
 
+	"controle/internal/company"
 	"controle/internal/grid"
 	"controle/internal/platform/civil"
 )
 
 // Rótulos exibidos no cabeçalho da planilha (a regra está toda no BuildGrid).
 var (
-	regimeLabels = map[string]string{
-		"SIMPLES_NACIONAL": "Simples Nacional", "LUCRO_PRESUMIDO": "Lucro Presumido", "LUCRO_REAL": "Lucro Real",
-		"LUCRO_ARBITRADO": "Lucro Arbitrado", "IMUNE_ISENTA": "Imune/Isenta",
-	}
+	regimeLabels  = company.RegimeLabels
 	payrollLabels = map[string]string{"NO_PAYROLL": "Sem folha", "PRO_LABORE": "Pró-labore", "PAYROLL": "Folha"}
 	periodLabels  = map[string]string{"OPEN": "Aberto", "CLOSED": "Fechado"}
 )

@@ -1228,6 +1228,86 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /reports/{file}:
+    get:
+      tags: [exports]
+      operationId: downloadReport
+      summary: Relatório PDF [PRD §36.2-§36.3]
+      description: >-
+        `file` é `{report}.pdf`. Todos trazem título, competência, data de geração, filtros, resumo de
+        indicadores e a tabela (empresas, obrigações, status e atrasos), sobre as mesmas consultas das
+        telas. `general`: situação geral da competência (filtros do dashboard). `pending`: pendências da
+        competência por módulo (padrão: aplicáveis não finais; `state` restringe à classe). `overdue`:
+        obrigações atrasadas da competência. `backlog`: pendências de competências anteriores à
+        informada. `credentials`: procurações e certificados vencidos ou a vencer (`competence`
+        opcional; `filter` e `type` como na tela). `module`: controle completo de um módulo (`module`
+        obrigatório; no Fiscal, sem `group`, traz Normais e Simples), com os filtros e a busca da grade.
+      parameters:
+        - name: file
+          in: path
+          required: true
+          schema: { type: string, enum: [general.pdf, pending.pdf, overdue.pdf, backlog.pdf, credentials.pdf, module.pdf] }
+        - name: competence
+          in: query
+          description: AAAA-MM. Obrigatória, exceto em credentials.
+          schema: { type: string, pattern: "^\\d{4}-(0[1-9]|1[0-2])$", example: "2026-09" }
+        - name: module
+          in: query
+          description: >-
+            module.pdf: fiscal, declarations, payroll, accounting ou dctfweb. pending, overdue e backlog:
+            FISCAL, DECLARATIONS, PAYROLL ou ACCOUNTING (opcional).
+          schema: { type: string }
+        - name: group
+          in: query
+          description: module.pdf com module=fiscal (opcional).
+          schema: { type: string, enum: [normal, simples] }
+        - name: regime_group
+          in: query
+          schema: { type: string, enum: [NORMAL, SIMPLES] }
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - name: state
+          in: query
+          description: pending, backlog.
+          schema: { type: string, enum: [open, applicable, done, in_progress, not_started, pending, overdue] }
+        - name: status
+          in: query
+          schema: { type: string }
+        - name: q
+          in: query
+          description: Busca livre (empresa, código ou CNPJ com ou sem máscara).
+          schema: { type: string }
+        - name: overdue_min
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: overdue_max
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: sort
+          in: query
+          description: backlog.pdf (padrão days_overdue).
+          schema: { type: string, enum: [days_overdue, due_date, competence, company] }
+        - name: filter
+          in: query
+          description: credentials.pdf — expired, due_N (1 a 365), awaiting_client ou no_date.
+          schema: { type: string }
+        - name: type
+          in: query
+          description: credentials.pdf.
+          schema: { type: string, enum: [RFB_POWER_OF_ATTORNEY, DIGITAL_CERTIFICATE] }
+      responses:
+        "200":
+          description: PDF do relatório
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              description: attachment; filename="relatorio-{report}-{sufixo}.pdf"
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /dashboard:
     get:
       tags: [dashboard]

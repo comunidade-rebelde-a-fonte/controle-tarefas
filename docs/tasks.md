@@ -982,7 +982,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste gera um PDF de exemplo e verifica o texto extraído (título, acentos).
 
 ### T-M6-07 — Os 6 relatórios PDF
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-06, T-M5-01, T-M5-04, T-M4-07, T-M6-05
 - **Ref:** PRD §36.3, §41.13
 - **Arquivos:** `backend/internal/report/{general,pending,overdue,backlog,credentials,module}.go`
@@ -996,7 +996,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste por relatório gera o PDF com o seed e confere a presença das seções mínimas do §36.2.
 
 ### T-M6-08 — FE: tela de Relatórios
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-07
 - **Ref:** PRD §6 (item 12), §36
 - **Arquivos:** `frontend/src/features/reports/*`
@@ -1008,7 +1008,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M7 — QA, carga e implantação
 
 ### T-M7-01 — Teste de carga com 300 empresas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-10, T-M4-06, T-M5-09
 - **Ref:** PRD §45.1, §52 (Fase 6), §54
 - **Arquivos:** `backend/cmd/loadgen`, `docs/perf.md`
@@ -1016,7 +1016,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** metas registradas em `docs/perf.md`: grades ≤ ~2 s, PATCH p95 < 200 ms, `ensure` < 10 s.
 
 ### T-M7-02 — Otimização de consultas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M7-01
 - **Ref:** PRD §51
 - **Arquivos:** `backend/migrations/00xx_indexes.sql`, `docs/perf.md`

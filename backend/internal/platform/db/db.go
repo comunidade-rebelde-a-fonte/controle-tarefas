@@ -12,6 +12,11 @@ import (
 )
 
 // NewPool cria o pool (sem conectar imediatamente) com timezone=UTC em todas as conexões.
+//
+// plan_cache_mode=force_custom_plan: o pgx prepara e reutiliza as consultas, e o PostgreSQL
+// passa a usar um plano genérico após algumas execuções. Nas consultas com filtros opcionais
+// (`$n IS NULL OR ...`), como grades, dashboard e backlog, o plano genérico é de 2 a 4 vezes
+// mais lento; o plano com os valores reais custa poucos milissegundos de planejamento [T-M7-02].
 func NewPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, error) {
 	cfg, err := pgxpool.ParseConfig(url)
 	if err != nil {
@@ -20,6 +25,7 @@ func NewPool(ctx context.Context, url string, maxConns int32) (*pgxpool.Pool, er
 	cfg.MaxConns = maxConns
 	cfg.ConnConfig.RuntimeParams["timezone"] = "UTC"
 	cfg.ConnConfig.RuntimeParams["application_name"] = "controle-api"
+	cfg.ConnConfig.RuntimeParams["plan_cache_mode"] = "force_custom_plan"
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
 		return nil, fmt.Errorf("criar pool: %w", err)

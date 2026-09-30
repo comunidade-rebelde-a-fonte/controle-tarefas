@@ -21,6 +21,12 @@ const (
 // Regimes lista os regimes válidos.
 var Regimes = []string{RegimeSimples, RegimePresumido, RegimeReal, RegimeArbitrado, RegimeImune}
 
+// RegimeLabels são os nomes dos regimes para exportações e relatórios.
+var RegimeLabels = map[string]string{
+	RegimeSimples: "Simples Nacional", RegimePresumido: "Lucro Presumido", RegimeReal: "Lucro Real",
+	RegimeArbitrado: "Lucro Arbitrado", RegimeImune: "Imune/Isenta",
+}
+
 // Agrupamentos do Fiscal [PRD §5.1-§5.2]: "Normal" é agrupamento de interface, não regime.
 const (
 	GroupNormal  = "NORMAL"

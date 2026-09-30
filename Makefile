@@ -155,7 +155,7 @@ perf-generate: ## Massa sintética no controle_perf (COMPANIES=300 COMPETENCES=3
 	@$(MAKE) --no-print-directory db-clean DB=perf
 	@$(LOADGEN) generate -companies $(COMPANIES) -competences $(COMPETENCES) -seed $(SEED)
 
-perf-bench: ## Mede a grade Fiscal e o PATCH de status no controle_perf (BENCH_ARGS="-iterations 50")
+perf-bench: ## Mede grades, dashboard, backlog, exportações, ensure, PATCH e bulk no controle_perf (BENCH_ARGS="-iterations 50")
 	@$(LOADGEN) bench $(BENCH_ARGS)
 
 e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)

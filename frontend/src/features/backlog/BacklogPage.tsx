@@ -1,10 +1,12 @@
 import { CompetenceNav } from "@/components/CompetenceNav";
+import { GeneratePdf } from "@/components/GeneratePdf";
 import { ObligationList } from "@/components/ObligationList";
 import { PageHeader } from "@/components/PageHeader";
 import { displayCompetence } from "@/lib/competence";
 import { useCompetence } from "@/lib/useCompetence";
 import { useUrlParams } from "@/lib/useUrlParams";
 import { useBacklog } from "@/services/dashboard";
+import { backlogReportUrl } from "@/services/reports";
 import { BacklogFilters } from "./BacklogFilters";
 import { backlogQueryFromParams } from "./query";
 
@@ -23,7 +25,12 @@ export function BacklogPage() {
       <PageHeader
         title="Backlog"
         description={before ? `Pendências de competências anteriores a ${displayCompetence(before)}.` : "Pendências de competências anteriores."}
-        actions={<CompetenceNav />}
+        actions={
+          <>
+            <CompetenceNav />
+            <GeneratePdf href={query ? backlogReportUrl(query) : null} label="Backlog" />
+          </>
+        }
       />
       <div className="grid gap-3 p-4">
         <BacklogFilters />

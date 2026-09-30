@@ -27,6 +27,7 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
 	"controle/internal/platform/settings"
+	"controle/internal/report"
 	"controle/internal/user"
 )
 
@@ -99,7 +100,9 @@ func New(d Deps) *App {
 		importer.NewHandler(importer.NewService(d.Pool, d.Clock, companies)).Routes(api)
 		credentials := credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)
 		credential.NewHandler(credentials).Routes(api)
-		dashboard.NewHandler(dashboard.NewService(d.Pool, d.Clock, credentials)).Routes(api)
+		dash := dashboard.NewService(d.Pool, d.Clock, credentials)
+		dashboard.NewHandler(dash).Routes(api)
+		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {
 			demo.NewHandler(d.Pool, d.Clock).Routes(api)

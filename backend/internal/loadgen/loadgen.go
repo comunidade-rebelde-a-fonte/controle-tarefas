@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -118,12 +119,15 @@ func Generate(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, n, k int
 	var out2 []comp.Competence
 	for age := k - 1; age >= 0; age-- {
 		c := cur.AddMonths(-age)
+		started := time.Now()
 		sum, err := engine.Ensure(ctx, c)
 		if err != nil {
 			return nil, fmt.Errorf("competência %s: %w", c, err)
 		}
 		out2 = append(out2, c)
-		_, _ = fmt.Fprintf(out, "competência %s: %d empresas, %d instâncias novas\n", c.Display(), sum.CompaniesProcessed, sum.InstancesCreated)
+		// O tempo do Ensure de cada competência nova é a medição de "ensure" do T-M7-01.
+		_, _ = fmt.Fprintf(out, "competência %s: %d empresas, %d instâncias novas, ensure em %d ms\n",
+			c.Display(), sum.CompaniesProcessed, sum.InstancesCreated, time.Since(started).Milliseconds())
 	}
 	if err := ApplyStatuses(ctx, pool, cur.String(), s); err != nil {
 		return nil, err
@@ -136,6 +140,9 @@ func Generate(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, n, k int
 // Competências anteriores ficam majoritariamente concluídas; a corrente, em andamento.
 func ApplyStatuses(ctx context.Context, pool *pgxpool.Pool, current string, s uint64) error {
 	return pgx.BeginFunc(ctx, pool, func(tx pgx.Tx) error {
+		const admin = "00000000-0000-0000-0000-000000000001"
+		// Cada status aplicado gera a linha de histórico, como numa alteração real (a massa
+		// precisa do volume de obligation_status_history de produção para os planos).
 		if _, err := tx.Exec(ctx, `
 			WITH defs AS (
 			    SELECT status_set_id,
@@ -143,26 +150,30 @@ func ApplyStatuses(ctx context.Context, pool *pgxpool.Pool, current string, s ui
 			           array_agg(code ORDER BY sort_order) FILTER (WHERE is_final AND code NOT IN ('NOT_APPLICABLE', 'NO_MOVEMENT')) AS finals
 			    FROM status_definitions GROUP BY status_set_id
 			), cand AS (
-			    SELECT i.id, t.status_set_id, k.competence_key,
+			    SELECT i.id, i.status_code AS old_status, t.status_set_id, k.competence_key,
 			           abs(hashtextextended(c.internal_code || '|' || t.code || '|' || k.competence_key, $1::bigint)) AS h
 			    FROM obligation_instances i
 			    JOIN companies c ON c.id = i.company_id
 			    JOIN obligation_types t ON t.id = i.obligation_type_id
 			    JOIN competencies k ON k.id = i.competence_id
 			    WHERE i.applicable AND i.version = 1 AND c.internal_code LIKE 'P%'
+			), upd AS (
+			    UPDATE obligation_instances i SET
+			        status_code = CASE
+			            WHEN cand.competence_key < $2 AND cand.h % 10 < 8 AND cardinality(defs.finals) > 0
+			                THEN defs.finals[1 + (cand.h / 10) % cardinality(defs.finals)]
+			            ELSE defs.codes[1 + (cand.h / 10) % cardinality(defs.codes)]
+			        END,
+			        version = i.version + 1, last_changed_by = $3, last_changed_at = now()
+			    FROM cand JOIN defs USING (status_set_id)
+			    WHERE i.id = cand.id
+			    RETURNING i.id, cand.old_status, i.status_code AS new_status
 			)
-			UPDATE obligation_instances i SET
-			    status_code = CASE
-			        WHEN cand.competence_key < $2 AND cand.h % 10 < 8 AND cardinality(defs.finals) > 0
-			            THEN defs.finals[1 + (cand.h / 10) % cardinality(defs.finals)]
-			        ELSE defs.codes[1 + (cand.h / 10) % cardinality(defs.codes)]
-			    END,
-			    version = i.version + 1
-			FROM cand JOIN defs USING (status_set_id)
-			WHERE i.id = cand.id`, int64(s&0x7fffffffffffffff), current); err != nil {
+			INSERT INTO obligation_status_history (obligation_instance_id, field, old_value, new_value, user_id, change_source, created_at)
+			SELECT id, 'STATUS', old_status, new_status, $3, 'SYSTEM', now() FROM upd WHERE old_status <> new_status`,
+			int64(s&0x7fffffffffffffff), current, admin); err != nil {
 			return fmt.Errorf("status sintéticos: %w", err)
 		}
-		const admin = "00000000-0000-0000-0000-000000000001"
 		if _, err := tx.Exec(ctx, `
 			WITH closed AS (
 			    UPDATE company_module_periods p SET state = 'CLOSED', closed_at = now(), closed_by = $3, version = p.version + 1, updated_at = now()
