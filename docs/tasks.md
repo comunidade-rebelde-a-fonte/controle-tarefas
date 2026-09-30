@@ -962,7 +962,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** E2E: importar um arquivo com uma linha inválida mostra o erro e importa só as válidas.
 
 ### T-M6-05 — Exportação XLSX das grades
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01, T-M3-08
 - **Ref:** PRD §36.1, §41.13 · CA-017
 - **Arquivos:** `backend/internal/exporter/xlsx.go`, botão "Exportar" nas telas

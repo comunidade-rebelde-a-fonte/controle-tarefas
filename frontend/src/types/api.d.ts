@@ -877,6 +877,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/exports/{file}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Exporta a grade do módulo em XLSX com os filtros atuais da tela [PRD §36.1, CA-017]
+         * @description `file` é `{module}.xlsx` com module em fiscal (exige group), declarations, payroll, accounting ou dctfweb. Reaproveita a grade com os mesmos filtros (inclusive a busca livre `q`); cabeçalho com módulo, competência, filtros e data de geração; status em texto, vencimento e atraso por obrigação; cabeçalho congelado e autofiltro.
+         */
+        get: operations["exportModuleGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/dashboard": {
         parameters: {
             query?: never;
@@ -3668,6 +3688,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    exportModuleGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                /** @description Obrigatório para fiscal. */
+                group?: "normal" | "simples";
+                /** @description Busca livre (nome, razão social, nome fantasia, código ou CNPJ com ou sem máscara). */
+                q?: string;
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
+                /** @description Status do estágio de fechamento do módulo (Fiscal - coluna Fechamento) */
+                closing_status?: components["parameters"]["GridClosingStatus"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path: {
+                file: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Planilha da grade */
+            200: {
+                headers: {
+                    /** @description attachment; filename="{module}[-{group}]-AAAA-MM.xlsx" */
+                    "Content-Disposition"?: string;
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             400: components["responses"]["BadRequest"];

@@ -31,6 +31,8 @@ tags:
     description: Configurações
   - name: imports
     description: Importação de empresas por planilha
+  - name: exports
+    description: Exportação das grades em XLSX
   - name: credentials
     description: Procurações RFB e certificados digitais
   - name: demo
@@ -1175,6 +1177,54 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ModuleGrid" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /exports/{file}:
+    get:
+      tags: [exports]
+      operationId: exportModuleGrid
+      summary: Exporta a grade do módulo em XLSX com os filtros atuais da tela [PRD §36.1, CA-017]
+      description: >-
+        `file` é `{module}.xlsx` com module em fiscal (exige group), declarations, payroll, accounting
+        ou dctfweb. Reaproveita a grade com os mesmos filtros (inclusive a busca livre `q`); cabeçalho
+        com módulo, competência, filtros e data de geração; status em texto, vencimento e atraso por
+        obrigação; cabeçalho congelado e autofiltro.
+      parameters:
+        - name: file
+          in: path
+          required: true
+          schema: { type: string, example: fiscal.xlsx }
+        - $ref: "#/components/parameters/GridCompetence"
+        - name: group
+          in: query
+          description: Obrigatório para fiscal.
+          schema: { type: string, enum: [normal, simples] }
+        - name: q
+          in: query
+          description: Busca livre (nome, razão social, nome fantasia, código ou CNPJ com ou sem máscara).
+          schema: { type: string }
+        - $ref: "#/components/parameters/GridTaxRegime"
+        - $ref: "#/components/parameters/GridResponsible"
+        - $ref: "#/components/parameters/GridStatus"
+        - $ref: "#/components/parameters/GridObligationType"
+        - $ref: "#/components/parameters/GridClosingStatus"
+        - $ref: "#/components/parameters/GridPeriodState"
+        - $ref: "#/components/parameters/GridNote"
+        - $ref: "#/components/parameters/GridOverdue"
+        - $ref: "#/components/parameters/GridPending"
+        - $ref: "#/components/parameters/GridNotStarted"
+        - $ref: "#/components/parameters/GridReadyToClose"
+      responses:
+        "200":
+          description: Planilha da grade
+          headers:
+            Content-Disposition:
+              schema: { type: string }
+              description: attachment; filename="{module}[-{group}]-AAAA-MM.xlsx"
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
