@@ -212,7 +212,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M1 — Fundação de domínio
 
 ### T-M1-01 — Usuários, usuário implícito e responsáveis
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-04, T-M0-06
 - **Ref:** plan D9 · PRD §34, §38.20, §7.1
 - **Arquivos:** `backend/migrations/0002_users.sql`, `backend/internal/user/`

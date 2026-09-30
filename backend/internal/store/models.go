@@ -3,3 +3,17 @@
 //   sqlc v1.31.1
 
 package store
+
+import (
+	"time"
+)
+
+type User struct {
+	ID        string
+	Name      string
+	Email     *string
+	Role      string
+	Active    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}

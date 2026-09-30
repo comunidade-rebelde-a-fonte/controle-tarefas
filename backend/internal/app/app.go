@@ -12,6 +12,7 @@ import (
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
+	"controle/internal/user"
 )
 
 // Deps são as dependências compartilhadas pelos domínios.
@@ -29,11 +30,13 @@ func NewRouter(d Deps) http.Handler {
 	r.Use(httpx.Recoverer)
 	r.Use(httpx.AccessLog)
 	r.Use(httpx.CORS(httpx.NormalizeOrigins(d.Config.CORSOrigins)))
+	r.Use(user.Middleware)
 	r.NotFound(httpx.NotFoundHandler)
 	r.MethodNotAllowed(httpx.MethodNotAllowedHandler)
 
 	r.Route("/api/v1", func(api chi.Router) {
 		api.Get("/health", httpx.Health(d.Pool))
+		user.NewHandler(d.Pool).Routes(api)
 	})
 	return r
 }

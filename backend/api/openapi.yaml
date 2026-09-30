@@ -19,6 +19,8 @@ servers:
 tags:
   - name: system
     description: Estado da aplicação
+  - name: users
+    description: Usuários e responsáveis (sem login no MVP)
 
 paths:
   /health:
@@ -40,7 +42,88 @@ paths:
               schema:
                 $ref: "#/components/schemas/Health"
 
+  /users:
+    get:
+      tags: [users]
+      operationId: listUsers
+      summary: Lista usuários/responsáveis
+      parameters:
+        - name: active
+          in: query
+          schema: { type: boolean }
+      responses:
+        "200":
+          description: Lista
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+    post:
+      tags: [users]
+      operationId: createUser
+      summary: Cadastra um responsável (sem login)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [users]
+      operationId: getUser
+      summary: Detalha um usuário
+      responses:
+        "200":
+          description: Usuário
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [users]
+      operationId: updateUser
+      summary: Altera um usuário (não há exclusão)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
 components:
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        $ref: "#/components/schemas/Uuid"
+
   schemas:
     Error:
       type: object
@@ -96,6 +179,49 @@ components:
     Uuid:
       type: string
       format: uuid
+
+    UserRole:
+      type: string
+      enum: [ADMIN, MANAGER, OPERATOR, READ_ONLY]
+      description: Perfil (preparado para permissões futuras).
+
+    User:
+      type: object
+      required: [id, name, email, role, active, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        name: { type: string }
+        email: { type: [string, "null"] }
+        role: { $ref: "#/components/schemas/UserRole" }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    UserList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/User" }
+
+    UserCreate:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 120 }
+        email: { type: [string, "null"], maxLength: 200 }
+        role: { $ref: "#/components/schemas/UserRole" }
+
+    UserUpdate:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 120 }
+        email: { type: [string, "null"], maxLength: 200 }
+        role: { $ref: "#/components/schemas/UserRole" }
+        active: { type: boolean }
 
   responses:
     BadRequest:
