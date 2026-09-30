@@ -4,3 +4,6 @@ Valores usados no código ou nos seeds enquanto o escritório não responde às 
 
 | Pergunta | Tarefa | Valor provisório | Onde está no código |
 |---|---|---|---|
+| Q1 | T-M1-06 | Regras de vencimento genéricas e provisórias ("Provisória — dia 10/15/20/25 do mês seguinte", "5º dia útil do mês seguinte", "último dia útil do mês seguinte"), atribuídas por tipo. Não são prazos legais. | `backend/seed/catalog.sql` (seção "Regras de vencimento" e coluna de regra dos tipos) |
+| Q5 | T-M1-06 | Empresa "Sem folha": Folha e eSocial = Sem movimento; FGTS e INSS/IRRF = Não se aplica | `backend/seed/catalog.sql` (UPDATE `status_when_no_payroll`) |
+| Q6 | T-M1-06 | Declarações × regime: REINF, SINTEGRA, DCTFWeb, REINF Retidos e REINF Lucros em todos os regimes; EFD Contribuições, SPED Fiscal e MIT só nos Normais; PGDAS e DeSTDA só no Simples | `backend/seed/catalog.sql` (CTE `regras`, bloco Declarações) |
