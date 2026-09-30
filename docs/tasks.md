@@ -456,7 +456,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes unitários (§53.1 aplicabilidade e ICMS/Simples): o Simples gera ICMS com `counts_in_progress=false`; a empresa com IPI dispensado gera IPI `applicable=false`; Fiscal desativado não gera tipos fiscais; Sem folha aplica o status configurado.
 
 ### T-M2-04 — `ensureCurrentCompetence`
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-01, T-M2-02, T-M2-03
 - **Ref:** plan M2, R5 · PRD §10.1–§10.2, §39 · CA-005, CA-006, CA-007 · RN-004, RN-005
 - **Arquivos:** `backend/internal/competence/ensure.go`, `ensure_test.go`
