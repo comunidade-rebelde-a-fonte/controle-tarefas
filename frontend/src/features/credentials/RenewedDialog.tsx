@@ -46,11 +46,13 @@ function RenewedForm({ target, onClose }: { target: RenewedTarget; onClose: () =
       row,
       type,
       { renewal_status: "RENEWED", expires_at: date },
-      (c) => {
-        toast({ title: "Renovação registrada", description: `Vigente até ${formatDate(c.expires_at)}.`, variant: "success" });
-        onClose();
+      {
+        onDone: (c) => {
+          toast({ title: "Renovação registrada", description: `Vigente até ${formatDate(c.expires_at)}.`, variant: "success" });
+          onClose();
+        },
+        onFail: setError,
       },
-      setError,
     );
   };
 

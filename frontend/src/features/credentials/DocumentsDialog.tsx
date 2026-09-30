@@ -180,7 +180,7 @@ function TypeSection({ row, type }: { row: CredentialRow; type: CredentialType }
         className="grid gap-2"
         onSubmit={(e) => {
           e.preventDefault();
-          save(row, type, { notes: notes.trim() || null }, () => toast({ title: "Observação salva", variant: "success" }));
+          save(row, type, { notes: notes.trim() || null }, { onDone: () => toast({ title: "Observação salva", variant: "success" }) });
         }}
       >
         <label className="grid gap-1 text-xs font-medium">

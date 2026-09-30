@@ -84,18 +84,23 @@ export function RenewalCell({ row, type, columnId }: { row: CredentialRow; type:
   const ctl = controlOf(row, type);
   const { save, isPending } = useSaveCredential();
   const { openRenewed } = useCredentialsActions();
+  // Valor escolhido enquanto grava (a grade só é recarregada depois da resposta).
+  const [pending, setPending] = useState<RenewalStatus | null>(null);
   return (
     <NativeSelect
       data-edit={editId(row.company.id, columnId)}
       tabIndex={-1}
       aria-label={`Etapa de renovação — ${CREDENTIAL_TYPE_LABELS[type]} — ${row.company.legal_name}`}
       className="h-7 w-full text-xs"
-      value={ctl.renewal_status}
+      value={pending ?? ctl.renewal_status}
       disabled={isPending}
       onChange={(e) => {
         const next = e.target.value as RenewalStatus;
         if (next === "RENEWED") openRenewed(row, type);
-        else if (next !== ctl.renewal_status) save(row, type, { renewal_status: next });
+        else if (next !== ctl.renewal_status) {
+          setPending(next);
+          save(row, type, { renewal_status: next }, { onSettled: () => setPending(null) });
+        }
       }}
       onKeyDown={(e) => {
         if (e.key === "Escape") backToGrid(e);

@@ -11,6 +11,13 @@ import {
   useUpdateCredential,
 } from "@/services/credentials";
 
+export interface SaveCallbacks {
+  onDone?: (c: CredentialControl) => void;
+  /** Mostra o erro no próprio formulário (sem aviso flutuante). */
+  onFail?: (message: string) => void;
+  onSettled?: () => void;
+}
+
 export interface CredentialPatch {
   expires_at?: string | null;
   renewal_status?: RenewalStatus;
@@ -26,7 +33,8 @@ export function useSaveCredential() {
   const toast = useToast();
   const qc = useQueryClient();
 
-  const save = (row: CredentialRow, type: CredentialType, patch: CredentialPatch, onDone?: (c: CredentialControl) => void, onFail?: (msg: string) => void) => {
+  const save = (row: CredentialRow, type: CredentialType, patch: CredentialPatch, callbacks: SaveCallbacks = {}) => {
+    const { onDone, onFail, onSettled } = callbacks;
     const ctl = controlOf(row, type);
     update.mutate(
       {
@@ -41,6 +49,7 @@ export function useSaveCredential() {
       },
       {
         onSuccess: (c) => onDone?.(c),
+        onSettled: () => onSettled?.(),
         onError: (err) => {
           if (isApiError(err) && err.code === "VERSION_CONFLICT") {
             void qc.invalidateQueries({ queryKey: credentialKeys.all });
