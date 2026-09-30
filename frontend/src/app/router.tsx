@@ -11,6 +11,7 @@ import { BacklogPage } from "@/features/backlog/BacklogPage";
 import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ImportsPage } from "@/features/imports/ImportsPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
+import { CompanyDetailPage } from "@/features/companies/detail/CompanyDetailPage";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -22,6 +23,7 @@ export const routes = [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: "dashboard", element: <DashboardPage /> },
       { path: "companies", element: <CompaniesPage /> },
+      { path: "companies/:id", element: <CompanyDetailPage /> },
       { path: "fiscal", element: <FiscalPage /> },
       { path: "declarations", element: <DeclarationsPage /> },
       { path: "accounting", element: <AccountingPage /> },

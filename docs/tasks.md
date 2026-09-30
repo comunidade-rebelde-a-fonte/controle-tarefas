@@ -364,7 +364,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** após o seed, `GET /companies` retorna 20; os CNPJs do seed são armazenados com 14 dígitos. Os CNPJs fictícios do PRD podem não ter DV válido: o seed usa um bypass explícito e documentado, sem afrouxar a validação da API.
 
 ### T-M1-13 — FE: listagem de empresas e CopyButton
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-08, T-M0-06
 - **Ref:** PRD §7.3, §27.1–§27.2, §26.5 · CA-003 · RN-014
 - **Arquivos:** `frontend/src/features/companies/CompaniesPage.tsx`, `frontend/src/components/CopyButton.tsx`, `frontend/src/services/companies.ts`
