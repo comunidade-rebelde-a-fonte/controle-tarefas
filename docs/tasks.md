@@ -609,7 +609,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** o teste de integração com o seed retorna 10 linhas em cada grupo; o Simples tem 8 colunas de controle + Fechamento.
 
 ### T-M3-02 — FE: CompetenceNav
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-05, T-M2-05
 - **Ref:** PRD §10.7, §24.1
 - **Arquivos:** `frontend/src/components/CompetenceNav.tsx`, `frontend/src/lib/useCompetence.ts`
