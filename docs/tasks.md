@@ -338,7 +338,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes de vigência (override de 10/2026 não aparece em 09/2026) e de persistência da dispensa nas competências seguintes.
 
 ### T-M1-11 — API de catálogo, calendário e settings
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-06, T-M1-07
 - **Ref:** PRD §20, §21, §19.3, §41.10
 - **Arquivos:** `backend/internal/catalog/`, `backend/internal/calendar/handler.go`, `backend/internal/platform/settings/`
