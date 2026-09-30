@@ -490,6 +490,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/imports/companies/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lê, valida e classifica a planilha (nada é gravado) [PRD §35.3, CA-018]
+         * @description Aceita .xlsx ou .csv (";" ou ",", UTF-8 ou Windows-1252), até 10 MB, no campo `file`.
+         *     Guarda o resultado por 1 hora e devolve o token para a confirmação.
+         */
+        post: operations["previewCompanyImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/imports/companies/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importa, numa transação, as linhas novas e as existentes confirmadas
+         * @description Linhas com erro e empresas existentes não confirmadas ficam de fora. Em empresa existente
+         *     confirmada, só os dados cadastrais preenchidos são atualizados; regime, módulos e situação
+         *     não mudam pela importação.
+         */
+        post: operations["commitCompanyImport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/seed": {
         parameters: {
             query?: never;
@@ -1347,6 +1390,65 @@ export interface components {
             expires_at?: components["schemas"]["Date"] | null;
             renewal_status: components["schemas"]["RenewalStatus"];
             notes?: string | null;
+        };
+        /**
+         * @description Classificação da linha [PRD §35.5]; só NEW e EXISTING (confirmada) são importadas.
+         * @enum {string}
+         */
+        ImportRowStatus: "NEW" | "EXISTING" | "INVALID_CNPJ" | "DUPLICATE_CODE" | "MISSING_REQUIRED" | "INVALID_VALUE";
+        ImportFieldError: {
+            field: string;
+            /** @description Cabeçalho da coluna na planilha */
+            column: string;
+            message: string;
+        };
+        ImportRow: {
+            /** @description Linha na planilha (cabeçalho = 1) */
+            line: number;
+            status: components["schemas"]["ImportRowStatus"];
+            status_label: string;
+            errors: components["schemas"]["ImportFieldError"][];
+            internal_code: string;
+            legal_name: string;
+            /** @description Somente dígitos */
+            cnpj: string;
+            existing_company_id: components["schemas"]["Uuid"] | null;
+        };
+        ImportSummary: {
+            total: number;
+            importable: number;
+            by_status: {
+                [key: string]: number;
+            };
+        };
+        ImportPreview: {
+            token: components["schemas"]["Uuid"];
+            file_name: string;
+            /** Format: date-time */
+            expires_at: string;
+            summary: components["schemas"]["ImportSummary"];
+            /** @description Colunas ignoradas */
+            unknown_headers: string[];
+            rows: components["schemas"]["ImportRow"][];
+        };
+        ImportCommit: {
+            token: components["schemas"]["Uuid"];
+            /** @description Linhas de empresas existentes cuja atualização foi confirmada */
+            update_existing_rows?: number[];
+        };
+        ImportResult: {
+            created: number;
+            updated: number;
+            skipped_existing: number;
+            skipped_invalid: number;
+            companies: {
+                line: number;
+                company_id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+                /** @enum {string} */
+                action: "CREATED" | "UPDATED";
+            }[];
         };
         CredentialThresholds: {
             /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
@@ -2790,6 +2892,63 @@ export interface operations {
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
+        };
+    };
+    previewCompanyImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Linhas classificadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportPreview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    commitCompanyImport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ImportCommit"];
+            };
+        };
+        responses: {
+            /** @description Resumo da importação */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["Unprocessable"];
         };
     };
     loadDemoData: {

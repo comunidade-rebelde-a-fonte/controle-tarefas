@@ -197,17 +197,58 @@ func validatePeriod(start civil.Date, end *civil.Date) error {
 
 // Create cadastra a empresa com regime inicial e módulos, numa transação [CA-001].
 func (s *Service) Create(ctx context.Context, in CreateInput) (Company, error) {
+	var id string
+	var p preparedCreate
+	err := db.WithTx(ctx, s.pool, func(tx pgx.Tx) error {
+		var err error
+		p, err = s.prepareCreate(ctx, in)
+		if err != nil {
+			return err
+		}
+		id, err = s.insertPrepared(ctx, s.q.WithTx(tx), p)
+		return err
+	})
+	if err != nil {
+		return Company{}, s.mapWriteErr(ctx, err, p.digits, p.code, "")
+	}
+	return s.Get(ctx, id)
+}
+
+// CreateTx cadastra a empresa dentro de uma transação existente (importação em lote, que
+// grava todas as linhas ou nenhuma). Aplica as mesmas validações de Create.
+func (s *Service) CreateTx(ctx context.Context, tx pgx.Tx, in CreateInput) (string, error) {
+	p, err := s.prepareCreate(ctx, in)
+	if err != nil {
+		return "", err
+	}
+	id, err := s.insertPrepared(ctx, s.q.WithTx(tx), p)
+	if err != nil {
+		return "", s.mapWriteErr(ctx, err, p.digits, p.code, "")
+	}
+	return id, nil
+}
+
+// preparedCreate é a entrada de Create já validada e normalizada.
+type preparedCreate struct {
+	in      CreateInput
+	digits  string
+	code    string
+	resp    map[string]*string
+	modules []string
+}
+
+func (s *Service) prepareCreate(ctx context.Context, in CreateInput) (preparedCreate, error) {
 	in.State = upperPtr(clean(in.State))
 	if err := validate.Struct(in); err != nil {
-		return Company{}, err
+		return preparedCreate{}, err
 	}
 	digits, err := normalizeCnpj(in.Cnpj)
 	if err != nil {
-		return Company{}, err
+		return preparedCreate{}, err
 	}
 	code := strings.TrimSpace(in.InternalCode)
 	if err := validatePeriod(in.ServiceStartDate, in.ServiceEndDate); err != nil {
-		return Company{}, err
+		return preparedCreate{}, err
 	}
 	resp := map[string]*string{
 		"fiscal_responsible_user_id":       clean(in.FiscalResponsibleUserID),
@@ -216,63 +257,59 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (Company, error) {
 		"declarations_responsible_user_id": clean(in.DeclarationsResponsibleUserID),
 	}
 	if err := s.checkResponsibles(ctx, resp); err != nil {
-		return Company{}, err
+		return preparedCreate{}, err
 	}
 	if err := s.conflictFor(ctx, digits, code, ""); err != nil {
-		return Company{}, err
+		return preparedCreate{}, err
 	}
 	modules := Modules
 	if in.Modules != nil {
 		modules = *in.Modules
 	}
+	return preparedCreate{in: in, digits: digits, code: code, resp: resp, modules: modules}, nil
+}
+
+// insertPrepared grava empresa, regime inicial e módulos com as queries da transação.
+func (s *Service) insertPrepared(ctx context.Context, q *store.Queries, p preparedCreate) (string, error) {
+	in := p.in
 	userID := user.FromContext(ctx)
 	from := competence.FromDate(in.ServiceStartDate.Time).FirstDay()
-
-	var id string
-	err = db.WithTx(ctx, s.pool, func(tx pgx.Tx) error {
-		q := s.q.WithTx(tx)
-		c, err := q.InsertCompany(ctx, store.InsertCompanyParams{
-			InternalCode:                  code,
-			LegalName:                     strings.TrimSpace(in.LegalName),
-			TradeName:                     clean(in.TradeName),
-			Cnpj:                          digits,
-			City:                          clean(in.City),
-			State:                         in.State,
-			StateRegistration:             clean(in.StateRegistration),
-			MunicipalRegistration:         clean(in.MunicipalRegistration),
-			ServiceStartDate:              in.ServiceStartDate.Time,
-			ServiceEndDate:                civil.TimePtr(in.ServiceEndDate),
-			PayrollType:                   in.PayrollType,
-			FactorR:                       in.FactorR,
-			FiscalResponsibleUserID:       resp["fiscal_responsible_user_id"],
-			AccountingResponsibleUserID:   resp["accounting_responsible_user_id"],
-			PayrollResponsibleUserID:      resp["payroll_responsible_user_id"],
-			DeclarationsResponsibleUserID: resp["declarations_responsible_user_id"],
-			Notes:                         clean(in.Notes),
-			CreatedBy:                     userID,
-		})
-		if err != nil {
-			return err
-		}
-		id = c.ID
-		if _, err := q.InsertRegime(ctx, store.InsertRegimeParams{
-			CompanyID: id, TaxRegime: in.TaxRegime, EffectiveFromCompetence: from, CreatedBy: userID,
-		}); err != nil {
-			return err
-		}
-		for _, m := range dedupe(modules) {
-			if _, err := q.InsertModuleSetting(ctx, store.InsertModuleSettingParams{
-				CompanyID: id, ModuleCode: m, Enabled: true, EffectiveFromCompetence: from, CreatedBy: userID,
-			}); err != nil {
-				return err
-			}
-		}
-		return nil
+	c, err := q.InsertCompany(ctx, store.InsertCompanyParams{
+		InternalCode:                  p.code,
+		LegalName:                     strings.TrimSpace(in.LegalName),
+		TradeName:                     clean(in.TradeName),
+		Cnpj:                          p.digits,
+		City:                          clean(in.City),
+		State:                         in.State,
+		StateRegistration:             clean(in.StateRegistration),
+		MunicipalRegistration:         clean(in.MunicipalRegistration),
+		ServiceStartDate:              in.ServiceStartDate.Time,
+		ServiceEndDate:                civil.TimePtr(in.ServiceEndDate),
+		PayrollType:                   in.PayrollType,
+		FactorR:                       in.FactorR,
+		FiscalResponsibleUserID:       p.resp["fiscal_responsible_user_id"],
+		AccountingResponsibleUserID:   p.resp["accounting_responsible_user_id"],
+		PayrollResponsibleUserID:      p.resp["payroll_responsible_user_id"],
+		DeclarationsResponsibleUserID: p.resp["declarations_responsible_user_id"],
+		Notes:                         clean(in.Notes),
+		CreatedBy:                     userID,
 	})
 	if err != nil {
-		return Company{}, s.mapWriteErr(ctx, err, digits, code, "")
+		return "", err
 	}
-	return s.Get(ctx, id)
+	if _, err := q.InsertRegime(ctx, store.InsertRegimeParams{
+		CompanyID: c.ID, TaxRegime: in.TaxRegime, EffectiveFromCompetence: from, CreatedBy: userID,
+	}); err != nil {
+		return "", err
+	}
+	for _, m := range dedupe(p.modules) {
+		if _, err := q.InsertModuleSetting(ctx, store.InsertModuleSettingParams{
+			CompanyID: c.ID, ModuleCode: m, Enabled: true, EffectiveFromCompetence: from, CreatedBy: userID,
+		}); err != nil {
+			return "", err
+		}
+	}
+	return c.ID, nil
 }
 
 func dedupe(in []string) []string {

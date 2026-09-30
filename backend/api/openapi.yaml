@@ -710,6 +710,57 @@ paths:
             application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema: { type: string, format: binary }
 
+  /imports/companies/preview:
+    post:
+      tags: [imports]
+      operationId: previewCompanyImport
+      summary: Lê, valida e classifica a planilha (nada é gravado) [PRD §35.3, CA-018]
+      description: |
+        Aceita .xlsx ou .csv (";" ou ",", UTF-8 ou Windows-1252), até 10 MB, no campo `file`.
+        Guarda o resultado por 1 hora e devolve o token para a confirmação.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "200":
+          description: Linhas classificadas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportPreview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /imports/companies/commit:
+    post:
+      tags: [imports]
+      operationId: commitCompanyImport
+      summary: Importa, numa transação, as linhas novas e as existentes confirmadas
+      description: |
+        Linhas com erro e empresas existentes não confirmadas ficam de fora. Em empresa existente
+        confirmada, só os dados cadastrais preenchidos são atualizados; regime, módulos e situação
+        não mudam pela importação.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ImportCommit" }
+      responses:
+        "200":
+          description: Resumo da importação
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ImportResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "410": { $ref: "#/components/responses/Gone" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
   /demo/seed:
     post:
       tags: [demo]
@@ -1879,6 +1930,79 @@ components:
         expires_at: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
         renewal_status: { $ref: "#/components/schemas/RenewalStatus" }
         notes: { type: [string, "null"], maxLength: 2000 }
+
+    ImportRowStatus:
+      type: string
+      enum: [NEW, EXISTING, INVALID_CNPJ, DUPLICATE_CODE, MISSING_REQUIRED, INVALID_VALUE]
+      description: Classificação da linha [PRD §35.5]; só NEW e EXISTING (confirmada) são importadas.
+
+    ImportFieldError:
+      type: object
+      required: [field, column, message]
+      properties:
+        field: { type: string }
+        column: { type: string, description: "Cabeçalho da coluna na planilha" }
+        message: { type: string }
+
+    ImportRow:
+      type: object
+      required: [line, status, status_label, errors, internal_code, legal_name, cnpj, existing_company_id]
+      properties:
+        line: { type: integer, description: "Linha na planilha (cabeçalho = 1)" }
+        status: { $ref: "#/components/schemas/ImportRowStatus" }
+        status_label: { type: string }
+        errors: { type: array, items: { $ref: "#/components/schemas/ImportFieldError" } }
+        internal_code: { type: string }
+        legal_name: { type: string }
+        cnpj: { type: string, description: "Somente dígitos" }
+        existing_company_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+
+    ImportSummary:
+      type: object
+      required: [total, importable, by_status]
+      properties:
+        total: { type: integer }
+        importable: { type: integer }
+        by_status: { type: object, additionalProperties: { type: integer } }
+
+    ImportPreview:
+      type: object
+      required: [token, file_name, expires_at, summary, unknown_headers, rows]
+      properties:
+        token: { $ref: "#/components/schemas/Uuid" }
+        file_name: { type: string }
+        expires_at: { type: string, format: date-time }
+        summary: { $ref: "#/components/schemas/ImportSummary" }
+        unknown_headers: { type: array, items: { type: string }, description: "Colunas ignoradas" }
+        rows: { type: array, items: { $ref: "#/components/schemas/ImportRow" } }
+
+    ImportCommit:
+      type: object
+      additionalProperties: false
+      required: [token]
+      properties:
+        token: { $ref: "#/components/schemas/Uuid" }
+        update_existing_rows: { type: array, items: { type: integer }, description: "Linhas de empresas existentes cuja atualização foi confirmada" }
+
+    ImportResult:
+      type: object
+      required: [created, updated, skipped_existing, skipped_invalid, companies]
+      properties:
+        created: { type: integer }
+        updated: { type: integer }
+        skipped_existing: { type: integer }
+        skipped_invalid: { type: integer }
+        companies:
+          type: array
+          items:
+            type: object
+            required: [line, company_id, internal_code, legal_name, action]
+            properties:
+              line: { type: integer }
+              company_id: { $ref: "#/components/schemas/Uuid" }
+              internal_code: { type: string }
+              legal_name: { type: string }
+              action: { type: string, enum: [CREATED, UPDATED] }
 
     CredentialThresholds:
       type: object
