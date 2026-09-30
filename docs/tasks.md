@@ -406,7 +406,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** editar uma regra de vencimento e reler o valor atualizado; teste de componente do formulário de regra.
 
 ### T-M1-17 — FE: estado vazio sem empresas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-13
 - **Ref:** PRD §49.1
 - **Arquivos:** `frontend/src/components/EmptyState.tsx`, `CompaniesPage.tsx`

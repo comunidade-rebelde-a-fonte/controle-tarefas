@@ -23,6 +23,7 @@ import { formatDate } from "@/lib/format";
 import { MODULE_LABELS, MODULE_SHORT, MODULES, TAX_REGIME_LABELS, TAX_REGIMES, type ModuleCode, type TaxRegime } from "@/lib/labels";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { type Company, type CompanyFilters, useCompanies } from "@/services/companies";
+import { CompaniesEmptyState } from "./CompaniesEmptyState";
 import { DeactivateCompanyDialog, EditCompanyDialog } from "./CompanyActions";
 import { CompanyFormDialog } from "./CompanyForm";
 
@@ -58,7 +59,7 @@ function toApiFilters(q: string, status: StatusFilter, regime: string, module: s
   return f;
 }
 
-export function CompaniesPage({ emptyState }: { emptyState?: (openCreate: () => void) => ReactNode }) {
+export function CompaniesPage() {
   const { status, regime, module, q, set } = useCompanyFilters();
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState(q);
@@ -151,12 +152,12 @@ export function CompaniesPage({ emptyState }: { emptyState?: (openCreate: () => 
             ))}
           </div>
         ) : data.items.length === 0 ? (
-          hasFilters || !emptyState ? (
+          hasFilters ? (
             <p className="rounded-md border border-dashed bg-card p-8 text-center text-sm text-muted-foreground">
               Nenhuma empresa encontrada para os filtros selecionados.
             </p>
           ) : (
-            emptyState(() => setCreating(true))
+            <CompaniesEmptyState onCreate={() => setCreating(true)} />
           )
         ) : (
           <CompaniesTable items={data.items} />
