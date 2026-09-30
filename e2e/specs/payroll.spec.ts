@@ -3,7 +3,7 @@ import { bulkStatus, latestCompetence, openGridRow } from "../support/api";
 
 const COMPANY = "Empresa Fictícia Alfa Comércio Ltda";
 
-test("T-M4-03 altera o eSocial na Folha e a DCTFWeb lê a mesma instância", async ({ page, request }) => {
+test("§53.3-5 T-M4-03 altera o eSocial na Folha e a DCTFWeb lê a mesma instância", async ({ page, request }) => {
   const competence = await latestCompetence(request);
   const row = await openGridRow(request, "payroll", competence, "101");
   const esocial = row.cells.ESOCIAL;

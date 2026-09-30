@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("UC-04 troca de regime com vigência futura atualiza a linha do tempo", async ({ page }) => {
+test("§53.3-2 UC-04 troca de regime com vigência futura atualiza a linha do tempo", async ({ page }) => {
   await page.goto("/companies");
   await page.getByRole("searchbox", { name: "Buscar empresa" }).fill("00.000.001/0001-01");
   await page.getByRole("link", { name: "Empresa Fictícia Alfa Comércio Ltda" }).click();

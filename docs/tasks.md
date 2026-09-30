@@ -1024,7 +1024,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** nenhuma consulta crítica com seq scan em tabelas grandes; métricas de T-M7-01 mantidas ou melhores.
 
 ### T-M7-03 — E2E dos fluxos mínimos
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-08, T-M5-07, T-M4-11
 - **Ref:** PRD §53.3 · UC-01…UC-05
 - **Arquivos:** `e2e/specs/*.spec.ts`

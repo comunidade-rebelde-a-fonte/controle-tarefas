@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * E2E contra uma instância própria da API (porta E2E_API_PORT) apontada para o
  * banco controle_e2e e uma SPA própria (porta E2E_WEB_PORT). Nunca usa o banco de dev.
- * `make e2e` recria o controle_e2e (reset + migrate + seed) antes da suíte.
+ * `make e2e` recria o controle_e2e (reset + migrate + seed) antes da suíte, com o relógio
+ * fixo em E2E_FIXED_TIME tanto no seed quanto na API.
  */
 const apiPort = process.env.E2E_API_PORT ?? "8091";
 const webPort = process.env.E2E_WEB_PORT ?? "5174";
@@ -11,6 +12,11 @@ const databaseUrl = process.env.E2E_DATABASE_URL ?? "";
 
 if (!/\/controle_e2e(\?|$)/.test(databaseUrl)) {
   throw new Error("E2E_DATABASE_URL deve apontar para o banco controle_e2e (use `make e2e`).");
+}
+// Relógio fixo da API (APP_FIXED_TIME), o mesmo com que o seed de demonstração foi carregado.
+const fixedTime = process.env.E2E_FIXED_TIME ?? "";
+if (Number.isNaN(Date.parse(fixedTime))) {
+  throw new Error("E2E_FIXED_TIME deve ser um instante RFC 3339, o mesmo do seed (use `make e2e`).");
 }
 
 const webURL = `http://localhost:${webPort}`;
@@ -49,7 +55,7 @@ export default defineConfig({
         CORS_ORIGINS: webURL,
         FILE_STORAGE_DIR: process.env.E2E_STORAGE_DIR ?? "../e2e/.cache/storage",
         LOG_LEVEL: "warn",
-        ...(process.env.E2E_FIXED_TIME ? { APP_FIXED_TIME: process.env.E2E_FIXED_TIME } : {}),
+        APP_FIXED_TIME: fixedTime,
       },
     },
     {

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("T-M6-05 Exportar baixa o XLSX com a competência, os filtros e a busca da tela", async ({ page, request }) => {
+test("§53.3-11 T-M6-05 Exportar baixa o XLSX com a competência, os filtros e a busca da tela", async ({ page, request }) => {
   const { competence } = (await (await request.get("/api/v1/competencies/latest")).json()) as { competence: string };
 
   await page.goto(`/fiscal?competence=${competence}&group=normal&tax_regime=LUCRO_REAL&q=Alfa`);

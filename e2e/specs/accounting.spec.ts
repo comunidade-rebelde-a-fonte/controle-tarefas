@@ -40,3 +40,48 @@ test("CA-010 Conciliação com a etapa anterior A iniciar é bloqueada com a men
   await page.getByRole("menuitemradio", { name: "OK" }).click();
   await expect(grid.getByRole("button", { name: `Conciliação — ${COMPANY}: OK` })).toBeVisible();
 });
+
+const ETA = "Empresa Fictícia Eta Varejo Ltda";
+const STEPS = [
+  ["ACCOUNTING_MOVEMENT_RECEIVED", "Movimento recebido"],
+  ["ACCOUNTING_PAYROLL_POSTED", "Contabilização da folha"],
+  ["ACCOUNTING_TAXES_POSTED", "Contabilização dos impostos"],
+  ["ACCOUNTING_PROCESSED", "Contábil digitado/processado"],
+  ["ACCOUNTING_RECONCILIATION", "Conciliação"],
+  ["ACCOUNTING_TRIAL_BALANCE_CLOSED", "Fechamento do balancete"],
+] as const;
+
+test("§53.3-7 CA-010 concluir o Contábil em sequência: cada etapa libera a seguinte até a empresa ficar pronta para fechar", async ({ page, request }) => {
+  const competence = await latestCompetence(request);
+  const row = await openGridRow(request, "accounting", competence, "107");
+  await bulkStatus(
+    request,
+    STEPS.map(([code]) => row.cells[code]?.id ?? ""),
+    "NOT_STARTED",
+  );
+
+  await page.goto(`/accounting?competence=${competence}`);
+  await page.getByRole("searchbox", { name: "Buscar empresa" }).fill("Eta Varejo");
+  const grid = page.getByRole("grid", { name: "Grade Contábil" });
+  await expect(grid.getByRole("rowheader")).toHaveCount(1);
+  await expect(grid.getByRole("rowheader")).toHaveText(ETA);
+  await expect(grid.getByText("Pronto para fechar")).toHaveCount(0);
+
+  for (const [i, [, name]] of STEPS.entries()) {
+    const next = STEPS[i + 1];
+    // A etapa seguinte ainda está bloqueada: o OK dela fica desabilitado.
+    if (next) {
+      await grid.getByRole("button", { name: `${next[1]} — ${ETA}: A iniciar` }).click();
+      await expect(page.getByRole("menuitemradio", { name: "OK" })).toHaveAttribute("aria-disabled", "true");
+      await page.keyboard.press("Escape");
+    }
+    await grid.getByRole("button", { name: `${name} — ${ETA}: A iniciar` }).click();
+    await page.getByRole("menuitemradio", { name: "OK" }).click();
+    const done = grid.getByRole("button", { name: `${name} — ${ETA}: OK` });
+    await expect(done).toBeVisible();
+    await expect(done).not.toHaveAttribute("aria-busy"); // confirmado pela API (a célula é otimista)
+  }
+
+  await expect(grid.getByLabel("Conclusão final: 100%")).toBeVisible();
+  await expect(grid.getByText("Pronto para fechar")).toBeVisible();
+});

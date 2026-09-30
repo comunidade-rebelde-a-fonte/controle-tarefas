@@ -39,7 +39,7 @@ No boot, a aplicação:
 2. garante a competência corrente (UC-01);
 3. agenda a verificação diária de virada de mês, às 00:05 no fuso `APP_TIMEZONE`.
 
-Depois do seed, cadastre as empresas pela tela Empresas ou pela importação. A competência corrente é completada com as empresas cadastradas na próxima geração: abrir o dashboard ou reiniciar a aplicação.
+Depois do seed, cadastre as empresas pela tela Empresas ou pela importação. As empresas cadastradas depois da geração entram na competência corrente na próxima execução do `ensureCurrentCompetence` [PRD §10.2]. Isso acontece na verificação diária (00:05), ao reiniciar a aplicação ou por `curl -fsS -X POST http://127.0.0.1:8080/api/v1/competencies/ensure-current`.
 
 > Nunca rode `api seed --demo` em produção. O comando recusa carregar dados fictícios quando `APP_ENV=production`.
 
