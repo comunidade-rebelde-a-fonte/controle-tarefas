@@ -97,6 +97,8 @@ type Cell struct {
 	Locked bool `json:"locked"`
 	// Etapas anteriores (HARD) que impedem concluir; vazio se nada bloqueia.
 	BlockedBy []obligation.DepInstance `json:"blocked_by"`
+	// Mensagem do bloqueio [PRD §18.3], para a UI exibir; null se nada bloqueia.
+	BlockedMessage *string `json:"blocked_message"`
 	// Indicador SOFT (DCTFWeb): apto/pendente com a lista; null se o tipo não tem SOFT.
 	DependencyStatus *obligation.DependencyStatus `json:"dependency_status"`
 }
@@ -323,6 +325,9 @@ func buildRows(spec Spec, rows []store.GridRowsRow, cols []Column, cells []store
 			}
 			if gc.BlockedBy == nil {
 				gc.BlockedBy = []obligation.DepInstance{}
+			} else {
+				msg := obligation.BlockedMessage(cell.TypeName, gc.BlockedBy)
+				gc.BlockedMessage = &msg
 			}
 			gc.DependencyStatus = obligation.SoftDependencyStatus(cell.ObligationTypeID, deps, state)
 			if spec.DependencyColumn != "" && cell.TypeCode == spec.DependencyColumn {

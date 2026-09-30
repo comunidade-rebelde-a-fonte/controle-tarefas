@@ -45,6 +45,8 @@ export interface ModuleGridProps {
   extraColumns?: DataGridColumn<GridRow>[];
   /** Colunas extras depois das obrigações (ex.: dependências da DCTFWeb). */
   trailingColumns?: DataGridColumn<GridRow>[];
+  /** Colunas de progresso e conclusão (a visão DCTFWeb não tem agregado próprio). */
+  showProgress?: boolean;
   /** Cabeçalho da coluna de obrigação (ex.: etapa numerada no Contábil). Estável entre renders. */
   columnHeader?: (column: GridColumn, index: number) => string;
   /** Texto do "pronto para fechar" (ex.: PRD §13.5). */
@@ -108,6 +110,7 @@ function ObligationCell({ row, col }: { row: GridRow; col: GridColumn }) {
         }
         onChanged={ui.onChanged}
         onDependencyError={ui.onDependency}
+        blockedMessage={cell.blocked_message}
       />
       <CellDetailsPopover
         instance={cell}
@@ -205,6 +208,7 @@ export function ModuleGrid({
   error,
   extraColumns = NO_COLUMNS,
   trailingColumns = NO_COLUMNS,
+  showProgress = true,
   columnHeader,
   readyToCloseText,
 }: ModuleGridProps) {
@@ -293,33 +297,39 @@ export function ModuleGrid({
       ...extraColumns,
       ...(gridColumns ?? []).map((col, index): DataGridColumn<GridRow> => ({
         id: OB + col.obligation_type.code,
-        header: columnHeader ? columnHeader(col, index) : col.obligation_type.name,
+        header: columnHeader
+          ? columnHeader(col, index)
+          : col.obligation_type.name,
         width: 168,
         cell: (row) => <ObligationCell row={row} col={col} />,
       })),
       ...trailingColumns,
-      {
-        id: "progress",
-        header: "Progresso operacional",
-        width: 110,
-        cell: (row) => (
-          <Percent
-            value={row.progress.operational_progress}
-            label="Progresso operacional"
-          />
-        ),
-      },
-      {
-        id: "completion",
-        header: "Conclusão final",
-        width: 110,
-        cell: (row) => (
-          <Percent
-            value={row.progress.final_completion}
-            label="Conclusão final"
-          />
-        ),
-      },
+      ...(showProgress
+        ? ([
+            {
+              id: "progress",
+              header: "Progresso operacional",
+              width: 110,
+              cell: (row) => (
+                <Percent
+                  value={row.progress.operational_progress}
+                  label="Progresso operacional"
+                />
+              ),
+            },
+            {
+              id: "completion",
+              header: "Conclusão final",
+              width: 110,
+              cell: (row) => (
+                <Percent
+                  value={row.progress.final_completion}
+                  label="Conclusão final"
+                />
+              ),
+            },
+          ] satisfies DataGridColumn<GridRow>[])
+        : []),
       {
         id: "deadline",
         header: "Prazo crítico",
@@ -361,7 +371,16 @@ export function ModuleGrid({
         ),
       },
     ];
-  }, [gridColumns, extraColumns, trailingColumns, columnHeader, closable, moduleLabel, readyToCloseText]);
+  }, [
+    gridColumns,
+    extraColumns,
+    trailingColumns,
+    showProgress,
+    columnHeader,
+    closable,
+    moduleLabel,
+    readyToCloseText,
+  ]);
 
   const ui: GridUi = {
     openCell,

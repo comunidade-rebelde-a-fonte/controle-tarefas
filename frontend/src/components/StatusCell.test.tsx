@@ -215,4 +215,22 @@ describe("StatusCell", () => {
     renderCell();
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
   });
+  it("CA-010 etapa anterior pendente: desabilita as opções finais (exceto Sem movimento) e mostra a mensagem", async () => {
+    const fetchFn = stubFetch(() => undefined);
+    const user = userEvent.setup();
+    const accounting = [
+      def("NOT_STARTED", "A iniciar", 1),
+      def("PENDING", "Pendente", 2, { counts_as_started: true, is_blocking: true }),
+      def("NO_MOVEMENT", "Sem movimento", 3, { counts_as_started: true, is_final: true }),
+      def("OK", "OK", 4, { counts_as_started: true, is_final: true }),
+    ];
+    const message = "Não é possível concluir Conciliação. A etapa Contábil digitado/processado ainda não foi concluída.";
+    renderCell({ instance: inst({ status_code: "NOT_STARTED", status_label: "A iniciar" }), statuses: accounting, label: "Conciliação — Alfa", blockedMessage: message });
+    await user.click(screen.getByRole("button", { name: "Conciliação — Alfa: A iniciar" }));
+    expect(await screen.findByText(message)).toBeInTheDocument();
+    expect(screen.getByRole("menuitemradio", { name: "OK" })).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByRole("menuitemradio", { name: "Sem movimento" })).not.toHaveAttribute("aria-disabled");
+    await user.click(screen.getByRole("menuitemradio", { name: "OK" }));
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
 });
