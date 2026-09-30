@@ -921,7 +921,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M6 — Entrada e saída de dados
 
 ### T-M6-01 — Template de importação
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-08
 - **Ref:** PRD §35.3, §41.12
 - **Arquivos:** `backend/internal/importer/template.go`
