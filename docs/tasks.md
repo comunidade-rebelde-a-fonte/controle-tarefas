@@ -745,7 +745,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente da coluna Fator R condicional; E2E de alteração do eSocial.
 
 ### T-M4-04 — FE: tela DCTFWeb
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-01, T-M3-09
 - **Ref:** PRD §16, §31 · CA-011
 - **Arquivos:** `frontend/src/features/dctfweb/*`

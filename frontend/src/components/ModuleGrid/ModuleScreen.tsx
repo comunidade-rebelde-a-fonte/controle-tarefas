@@ -40,6 +40,7 @@ export interface ModuleScreenProps {
   /** Estáveis entre renders (constantes de módulo): as colunas da grade não podem ser recriadas. */
   extraColumns?: DataGridColumn<GridRow>[];
   trailingColumns?: DataGridColumn<GridRow>[];
+  showProgress?: boolean;
   columnHeader?: (column: GridColumn, index: number) => string;
   readyToCloseText?: string;
 }
@@ -57,6 +58,7 @@ export function ModuleScreen({
   toolbar,
   extraColumns,
   trailingColumns,
+  showProgress,
   columnHeader,
   readyToCloseText,
 }: ModuleScreenProps) {
@@ -117,6 +119,7 @@ export function ModuleScreen({
           error={grid.error}
           {...(extraColumns ? { extraColumns } : {})}
           {...(trailingColumns ? { trailingColumns } : {})}
+          {...(showProgress !== undefined ? { showProgress } : {})}
           {...(columnHeader ? { columnHeader } : {})}
           {...(readyToCloseText ? { readyToCloseText } : {})}
         />
