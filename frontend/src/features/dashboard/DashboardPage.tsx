@@ -1,11 +1,13 @@
 import { CompetenceNav } from "@/components/CompetenceNav";
 import { ErrorAlert } from "@/components/ErrorAlert";
+import { GeneratePdf } from "@/components/GeneratePdf";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPercent } from "@/lib/format";
 import { useCompetence } from "@/lib/useCompetence";
 import { useUrlParams } from "@/lib/useUrlParams";
 import { useAttention, useDashboard, useDashboardHistory } from "@/services/dashboard";
+import { dashboardReportUrl } from "@/services/reports";
 import { AttentionPanel } from "./AttentionPanel";
 import { CredentialCards } from "./CredentialCards";
 import { DashboardFilters } from "./DashboardFilters";
@@ -31,7 +33,16 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Visão da competência: prazos, pendências e fechamento por módulo." actions={<CompetenceNav />} />
+      <PageHeader
+        title="Dashboard"
+        description="Visão da competência: prazos, pendências e fechamento por módulo."
+        actions={
+          <>
+            <CompetenceNav />
+            <GeneratePdf href={query ? dashboardReportUrl(query) : null} label="Situação geral da competência" />
+          </>
+        }
+      />
       <div className="grid gap-4 p-4">
         <DashboardFilters />
         <ErrorAlert error={competenceError ?? dashboard.error} fallback="Não foi possível carregar o dashboard." />

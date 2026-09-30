@@ -1283,6 +1283,10 @@ paths:
         - name: overdue_max
           in: query
           schema: { type: integer, minimum: 0 }
+        - name: sort
+          in: query
+          description: backlog.pdf (padrão days_overdue).
+          schema: { type: string, enum: [days_overdue, due_date, competence, company] }
         - name: filter
           in: query
           description: credentials.pdf — expired, due_N (1 a 365), awaiting_client ou no_date.

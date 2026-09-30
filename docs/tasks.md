@@ -996,7 +996,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste por relatório gera o PDF com o seed e confere a presença das seções mínimas do §36.2.
 
 ### T-M6-08 — FE: tela de Relatórios
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M6-07
 - **Ref:** PRD §6 (item 12), §36
 - **Arquivos:** `frontend/src/features/reports/*`
