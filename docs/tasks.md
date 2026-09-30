@@ -690,7 +690,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** recarregar a página mantém os filtros; testes do hook de serialização.
 
 ### T-M3-09 — FE: tela Fiscal
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-01, T-M3-02, T-M3-04, T-M3-05, T-M3-06, T-M3-07, T-M3-08
 - **Ref:** PRD §13, §14, §28 · UC-02 · CA-014
 - **Arquivos:** `frontend/src/features/fiscal/*`
