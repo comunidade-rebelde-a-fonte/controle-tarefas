@@ -200,7 +200,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** um teste de integração exemplo (health + DB), um de componente exemplo e um E2E exemplo passam localmente; rodar `make e2e` não altera os dados do banco `controle`.
 
 ### T-M0-08 — CI
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-07
 - **Ref:** plan M0
 - **Arquivos:** `.github/workflows/ci.yml`

@@ -1,0 +1,90 @@
+# CI: lint, testes e build. Os mesmos comandos rodam localmente (make lint, make test).
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GOLANGCI_LINT_VERSION: v2.14.0
+  SQLC_VERSION: v1.31.1
+
+jobs:
+  backend-lint:
+    name: Backend — lint e contrato gerado
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Ferramentas (versões fixadas)
+        run: |
+          GOBIN="$PWD/.bin" go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+          GOBIN="$PWD/.bin" go install github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}
+      - name: golangci-lint
+        working-directory: backend
+        run: ../.bin/golangci-lint run ./...
+      - name: Código gerado está atualizado (sqlc + openapi-typescript)
+        run: |
+          (cd frontend && npm ci --no-audit --no-fund)
+          (cd backend && ../.bin/sqlc generate)
+          (cd frontend && npm run --silent gen:api)
+          git diff --exit-code -- backend/internal/store frontend/src/types
+
+  backend-test:
+    name: Backend — testes (testcontainers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+      - name: go test
+        working-directory: backend
+        run: go test -count=1 ./...
+
+  frontend:
+    name: Frontend — lint, tipos, testes e build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            e2e/package-lock.json
+      - name: Instalar dependências
+        run: |
+          (cd frontend && npm ci --no-audit --no-fund)
+          (cd e2e && npm ci --no-audit --no-fund)
+      - name: ESLint
+        working-directory: frontend
+        run: npm run lint
+      - name: TypeScript
+        run: |
+          (cd frontend && npm run typecheck)
+          (cd e2e && npm run typecheck)
+      - name: Vitest
+        working-directory: frontend
+        run: npm test
+      - name: Build
+        working-directory: frontend
+        run: npx vite build
