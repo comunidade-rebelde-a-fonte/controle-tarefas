@@ -1184,6 +1184,37 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /backlog:
+    get:
+      tags: [dashboard]
+      operationId: listBacklog
+      summary: Backlog de competências anteriores (plan R8) ou lista de obrigações da competência por classe (drill-down)
+      parameters:
+        - { name: before, in: query, description: "Backlog: competências anteriores a esta (AAAA-MM)", schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: competence, in: query, description: "Lista: obrigações desta competência (AAAA-MM)", schema: { $ref: "#/components/schemas/Competence" } }
+        - name: state
+          in: query
+          description: Classe das obrigações (padrão open = aplicáveis não finais)
+          schema: { type: string, enum: [open, applicable, done, in_progress, not_started, pending, overdue] }
+        - { name: module, in: query, schema: { type: string, enum: [FISCAL, DECLARATIONS, PAYROLL, ACCOUNTING] } }
+        - { name: status, in: query, schema: { type: string } }
+        - $ref: "#/components/parameters/DashboardResponsible"
+        - $ref: "#/components/parameters/DashboardRegimeGroup"
+        - $ref: "#/components/parameters/DashboardTaxRegime"
+        - { name: q, in: query, description: "Empresa, código ou CNPJ (com ou sem máscara)", schema: { type: string } }
+        - { name: overdue_min, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: overdue_max, in: query, schema: { type: integer, minimum: 0 } }
+        - { name: sort, in: query, schema: { type: string, enum: [days_overdue, due_date, competence, company], default: days_overdue } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - { name: page_size, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+      responses:
+        "200":
+          description: Itens
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Backlog" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
 components:
   parameters:
     IdPath:
@@ -2432,6 +2463,50 @@ components:
           type: array
           description: Até 6 competências geradas, da mais antiga à selecionada
           items: { $ref: "#/components/schemas/HistoryPoint" }
+
+    BacklogItem:
+      type: object
+      required: [kind, instance_id, competence, company, module, obligation_type, status_code, status_label, due_date, days_overdue, responsible, drilldown]
+      properties:
+        kind: { type: string, enum: [OBLIGATION, MODULE], description: "MODULE = módulo aberto sem obrigação pendente" }
+        instance_id: { type: [string, "null"], format: uuid }
+        competence: { $ref: "#/components/schemas/Competence" }
+        company:
+          type: object
+          required: [id, internal_code, legal_name, trade_name, cnpj]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            internal_code: { type: string }
+            legal_name: { type: string }
+            trade_name: { type: [string, "null"] }
+            cnpj: { $ref: "#/components/schemas/Cnpj" }
+        module: { type: string }
+        obligation_type:
+          oneOf:
+            - type: object
+              required: [code, name]
+              properties:
+                code: { type: string }
+                name: { type: string }
+            - type: "null"
+        status_code: { type: [string, "null"] }
+        status_label: { type: string }
+        due_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        days_overdue: { type: integer }
+        responsible:
+          oneOf:
+            - $ref: "#/components/schemas/UserRef"
+            - type: "null"
+        drilldown: { $ref: "#/components/schemas/Drilldown" }
+
+    Backlog:
+      type: object
+      required: [items, total, page, page_size]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BacklogItem" } }
+        total: { type: integer }
+        page: { type: integer }
+        page_size: { type: integer }
 
     UserRole:
       type: string
