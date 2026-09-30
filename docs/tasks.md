@@ -567,7 +567,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA016_BulkUpdate`: 20 selecionadas geram 20 históricos; um item bloqueado é pulado sem abortar o lote.
 
 ### T-M2-13 — Fechamento, reabertura e observação geral
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-08
 - **Ref:** plan R1 · PRD §10.3–§10.6, §13.6, §22, §41.8 · CA-013, CA-015 · RN-006, RN-007, RN-016
 - **Arquivos:** `backend/internal/period/`

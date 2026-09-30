@@ -83,6 +83,7 @@ type CompanyModulePeriodEvent struct {
 	Reason                *string
 	UserID                string
 	CreatedAt             time.Time
+	Seq                   *int64
 }
 
 type CompanyModuleSetting struct {
@@ -215,6 +216,7 @@ type ObligationStatusHistory struct {
 	ChangeSource         string
 	OverrideReason       *string
 	CreatedAt            time.Time
+	Seq                  *int64
 }
 
 type ObligationType struct {

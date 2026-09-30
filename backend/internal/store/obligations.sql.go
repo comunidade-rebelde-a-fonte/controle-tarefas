@@ -448,7 +448,7 @@ JOIN obligation_types t ON t.id = i.obligation_type_id
 LEFT JOIN status_definitions old_d ON h.field = 'STATUS' AND old_d.status_set_id = t.status_set_id AND old_d.code = h.old_value
 LEFT JOIN status_definitions new_d ON h.field = 'STATUS' AND new_d.status_set_id = t.status_set_id AND new_d.code = h.new_value
 WHERE h.obligation_instance_id = $1
-ORDER BY h.created_at DESC, h.id DESC
+ORDER BY h.created_at DESC, h.seq DESC
 `
 
 type ListInstanceHistoryRow struct {
