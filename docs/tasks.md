@@ -1016,7 +1016,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** metas registradas em `docs/perf.md`: grades ≤ ~2 s, PATCH p95 < 200 ms, `ensure` < 10 s.
 
 ### T-M7-02 — Otimização de consultas
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M7-01
 - **Ref:** PRD §51
 - **Arquivos:** `backend/migrations/00xx_indexes.sql`, `docs/perf.md`
