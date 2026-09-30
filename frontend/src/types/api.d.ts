@@ -851,6 +851,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Exige atenção — 11 categorias com contagem, amostra (5) e drill-down (PRD §24.6) */
+        get: operations["getDashboardAttention"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1649,6 +1666,29 @@ export interface components {
             modules: components["schemas"]["DashboardModuleCard"][];
             credentials: components["schemas"]["DashboardCredentialCard"][];
             responsibles: components["schemas"]["DashboardResponsible"][];
+        };
+        AttentionItem: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            };
+            title: string;
+            detail: string;
+            date: components["schemas"]["Date"] | null;
+            drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        AttentionCategory: {
+            /** @enum {string} */
+            key: "OVERDUE" | "PENDING" | "MISSING_DOCUMENTS" | "ERROR" | "CERTIFICATE_EXPIRED" | "CERTIFICATE_DUE_SOON" | "POWER_OF_ATTORNEY_EXPIRED" | "POWER_OF_ATTORNEY_DUE_SOON" | "PREVIOUS_OPEN" | "DCTFWEB_BLOCKED" | "ACCOUNTING_BLOCKED";
+            label: string;
+            count: number;
+            sample: components["schemas"]["AttentionItem"][];
+            drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        Attention: {
+            competence: components["schemas"]["Competence"];
+            categories: components["schemas"]["AttentionCategory"][];
         };
         /**
          * @description Perfil (preparado para permissões futuras).
@@ -3362,6 +3402,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDashboardAttention: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                regime_group?: components["parameters"]["DashboardRegimeGroup"];
+                tax_regime?: components["parameters"]["DashboardTaxRegime"];
+                /** @description Responsável do módulo da obrigação (snapshot da competência) */
+                responsible_id?: components["parameters"]["DashboardResponsible"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Categorias de atenção */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Attention"];
                 };
             };
             400: components["responses"]["BadRequest"];

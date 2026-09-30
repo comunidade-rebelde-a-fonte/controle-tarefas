@@ -47,8 +47,18 @@ func TestDemoHistory_BacklogComparisonAndReopen(t *testing.T) {
 	if n := count(t, pool, `SELECT count(*) FROM company_module_periods WHERE state = 'CLOSED'`); n == 0 {
 		t.Fatal("deveria haver módulos fechados no histórico")
 	}
-	if n := count(t, pool, `SELECT count(*) FROM obligation_instances WHERE due_date_override_reason IS NOT NULL`); n != 1 {
-		t.Fatalf("overrides de vencimento = %d, want 1", n)
+	// Uma prorrogação (competência anterior) e dois vencimentos antecipados (atrasadas na
+	// corrente, para o "Exige atenção").
+	if n := count(t, pool, `SELECT count(*) FROM obligation_instances WHERE due_date_override_reason IS NOT NULL`); n != 3 {
+		t.Fatalf("overrides de vencimento = %d, want 3", n)
+	}
+	if n := count(t, pool, `SELECT count(*) FROM obligation_instances i JOIN competencies k ON k.id = i.competence_id
+		WHERE k.competence_key = '2026-10' AND i.due_date_override_reason = '`+seed.AttentionDueReason+`'
+		AND i.due_date_effective < '2026-10-15'`); n != 2 {
+		t.Fatalf("atrasadas de demonstração na corrente = %d, want 2", n)
+	}
+	if n := count(t, pool, `SELECT count(*) FROM obligation_instances WHERE status_code = 'ERROR'`); n != 1 {
+		t.Fatalf("Fechamentos com Erro = %d, want 1", n)
 	}
 	if n := count(t, pool, `SELECT count(*) FROM obligation_status_history WHERE change_source = 'SYSTEM'`); n == 0 {
 		t.Fatal("histórico SYSTEM ausente")
