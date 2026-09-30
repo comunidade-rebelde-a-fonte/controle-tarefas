@@ -282,3 +282,37 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type VObligationInstance struct {
+	ID                          string
+	CompanyID                   string
+	CompetenceID                string
+	ObligationTypeID            string
+	StatusCode                  string
+	Applicable                  bool
+	CountsInProgress            bool
+	RegimeSnapshot              string
+	DueDateOriginal             *time.Time
+	DueDateEffective            *time.Time
+	DueDateOverrideReason       *string
+	DueDateOverriddenBy         *string
+	DueDateOverriddenAt         *time.Time
+	TransmissionDate            *time.Time
+	Protocol                    *string
+	Version                     int32
+	LastChangedBy               *string
+	LastChangedAt               *time.Time
+	CreatedAt                   time.Time
+	UpdatedAt                   time.Time
+	TypeCode                    string
+	PrimaryModule               string
+	IsClosingStage              bool
+	TypeSortOrder               int32
+	StatusLabel                 string
+	CountsAsStarted             bool
+	CountsAsOperationalProgress bool
+	IsFinal                     bool
+	IsBlocking                  bool
+	ExcludedFromDenominator     bool
+	InDenominator               *bool
+}

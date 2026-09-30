@@ -491,7 +491,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** após `make seed-demo`, há backlog não vazio, a comparação com a competência anterior tem dados e existe ao menos um evento `REOPENED`.
 
 ### T-M2-07 — Cálculos derivados
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-04 · Q2 e Q3 (provisório)
 - **Ref:** plan R2, R3, R4, D10 · PRD §12, §10.5, §13.5 · CA-007, CA-012, CA-014 · RN-013
 - **Arquivos:** `backend/internal/obligation/derived.go`, `backend/queries/derived.sql` (ou view `v_obligation_instances`)
