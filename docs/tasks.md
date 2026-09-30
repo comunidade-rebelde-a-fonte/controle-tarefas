@@ -668,7 +668,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste de componente de edição e de cancelamento.
 
 ### T-M3-07 — FE: BulkActionBar
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M3-03, T-M2-12
 - **Ref:** PRD §26.3 · CA-016
 - **Arquivos:** `frontend/src/components/BulkActionBar.tsx`

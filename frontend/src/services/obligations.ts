@@ -6,6 +6,8 @@ export type StatusChangeResult = Schemas["StatusChangeResult"];
 export type StatusDefinition = Schemas["StatusDefinition"];
 export type HistoryEntry = Schemas["HistoryEntry"];
 export type InstanceDetails = Schemas["InstanceDetails"];
+export type BulkStatusChange = Schemas["BulkStatusChange"];
+export type BulkStatusResult = Schemas["BulkStatusResult"];
 
 /** Chaves das consultas de obrigações. As grades (T-M3-01) usam o prefixo `obligations`. */
 export const obligationKeys = {
@@ -82,6 +84,17 @@ export function useUpdateDetails() {
       qc.setQueryData(obligationKeys.instance(res.instance.id), res.instance);
       // Grades usam o prefixo `obligations`: a linha e os indicadores são recarregados.
       void qc.invalidateQueries({ queryKey: obligationKeys.all });
+    },
+  });
+}
+
+/** POST /obligation-instances/bulk-status (com dry_run para a prévia) [PRD §26.3, CA-016]. */
+export function useBulkStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: BulkStatusChange) => api.post("/obligation-instances/bulk-status", { body }),
+    onSuccess: (res) => {
+      if (!res.dry_run) void qc.invalidateQueries({ queryKey: obligationKeys.all });
     },
   });
 }
