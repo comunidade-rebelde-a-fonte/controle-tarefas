@@ -41,6 +41,8 @@ tags:
     description: Fechamento por empresa + módulo + competência, reabertura e observação geral
   - name: grids
     description: Grades dos módulos (colunas do catálogo, linhas por empresa, células com derivados)
+  - name: dashboard
+    description: Gestão — KPIs, cards, exige atenção, comparação histórica e backlog
 
 paths:
   /health:
@@ -1104,6 +1106,25 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /dashboard:
+    get:
+      tags: [dashboard]
+      operationId: getDashboard
+      summary: KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5)
+      parameters:
+        - $ref: "#/components/parameters/GridCompetence"
+        - $ref: "#/components/parameters/DashboardRegimeGroup"
+        - $ref: "#/components/parameters/DashboardTaxRegime"
+        - $ref: "#/components/parameters/DashboardResponsible"
+      responses:
+        "200":
+          description: Dashboard da competência
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Dashboard" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
 components:
   parameters:
     IdPath:
@@ -1112,6 +1133,19 @@ components:
       required: true
       schema:
         $ref: "#/components/schemas/Uuid"
+    DashboardRegimeGroup:
+      name: regime_group
+      in: query
+      schema: { $ref: "#/components/schemas/RegimeGroup" }
+    DashboardTaxRegime:
+      name: tax_regime
+      in: query
+      schema: { $ref: "#/components/schemas/TaxRegime" }
+    DashboardResponsible:
+      name: responsible_id
+      in: query
+      description: Responsável do módulo da obrigação (snapshot da competência)
+      schema: { $ref: "#/components/schemas/Uuid" }
     GridCompetence:
       name: competence
       in: query
@@ -2158,6 +2192,109 @@ components:
         columns: { type: array, items: { $ref: "#/components/schemas/GridColumn" } }
         rows: { type: array, items: { $ref: "#/components/schemas/GridRow" } }
         total: { type: integer }
+
+    Drilldown:
+      type: object
+      description: Rota da interface que explica o número, com os filtros na query (PRD §24.7)
+      required: [path, query]
+      properties:
+        path: { type: string, examples: ["/obligations"] }
+        query:
+          type: object
+          additionalProperties: { type: string }
+
+    Metric:
+      type: object
+      required: [value, drilldown]
+      properties:
+        value: { type: integer }
+        drilldown:
+          oneOf:
+            - $ref: "#/components/schemas/Drilldown"
+            - type: "null"
+
+    DashboardCounts:
+      type: object
+      description: Concluídas, em andamento, não iniciadas e pendentes particionam as aplicáveis que contam no progresso
+      required: [applicable, done, in_progress, not_started, pending, overdue, operational_progress, final_completion]
+      properties:
+        applicable: { $ref: "#/components/schemas/Metric" }
+        done: { $ref: "#/components/schemas/Metric" }
+        in_progress: { $ref: "#/components/schemas/Metric" }
+        not_started: { $ref: "#/components/schemas/Metric" }
+        pending: { $ref: "#/components/schemas/Metric" }
+        overdue: { $ref: "#/components/schemas/Metric" }
+        operational_progress: { type: number }
+        final_completion: { type: number }
+
+    DashboardKPIs:
+      allOf:
+        - $ref: "#/components/schemas/DashboardCounts"
+        - type: object
+          required: [ready_to_close, previous_open]
+          properties:
+            ready_to_close:
+              $ref: "#/components/schemas/Metric"
+            previous_open:
+              $ref: "#/components/schemas/Metric"
+
+    DashboardModuleCard:
+      allOf:
+        - $ref: "#/components/schemas/DashboardCounts"
+        - type: object
+          required: [module, label, companies, ready_to_close, closed]
+          properties:
+            module: { type: string, enum: [FISCAL, DECLARATIONS, PAYROLL, ACCOUNTING] }
+            label: { type: string }
+            companies: { type: integer }
+            ready_to_close: { $ref: "#/components/schemas/Metric" }
+            closed: { $ref: "#/components/schemas/Metric" }
+
+    DashboardCredentialCard:
+      type: object
+      required: [type, label, expired, due_soon, due_soon_days, current, no_date]
+      properties:
+        type: { type: string, enum: [RFB_POWER_OF_ATTORNEY, DIGITAL_CERTIFICATE] }
+        label: { type: string }
+        expired: { $ref: "#/components/schemas/Metric" }
+        due_soon: { $ref: "#/components/schemas/Metric" }
+        due_soon_days: { type: integer, description: "Maior faixa configurada de vencimento próximo" }
+        current: { $ref: "#/components/schemas/Metric" }
+        no_date: { $ref: "#/components/schemas/Metric" }
+
+    DashboardResponsible:
+      type: object
+      required: [user, module, applicable, done, pending, overdue, operational_progress, final_completion]
+      properties:
+        user:
+          oneOf:
+            - $ref: "#/components/schemas/UserRef"
+            - type: "null"
+        module: { type: string }
+        applicable: { type: integer }
+        done: { type: integer }
+        pending: { type: integer }
+        overdue: { type: integer }
+        operational_progress: { type: number }
+        final_completion: { type: number }
+
+    Dashboard:
+      type: object
+      required: [competence, today, filters, kpis, modules, credentials, responsibles]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        today: { $ref: "#/components/schemas/Date" }
+        filters:
+          type: object
+          required: [regime_group, tax_regime, responsible_id]
+          properties:
+            regime_group: { type: [string, "null"] }
+            tax_regime: { type: [string, "null"] }
+            responsible_id: { type: [string, "null"] }
+        kpis: { $ref: "#/components/schemas/DashboardKPIs" }
+        modules: { type: array, items: { $ref: "#/components/schemas/DashboardModuleCard" } }
+        credentials: { type: array, items: { $ref: "#/components/schemas/DashboardCredentialCard" } }
+        responsibles: { type: array, items: { $ref: "#/components/schemas/DashboardResponsible" } }
 
     UserRole:
       type: string

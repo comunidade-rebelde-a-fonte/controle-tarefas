@@ -813,6 +813,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5) */
+        get: operations["getDashboard"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1543,6 +1560,75 @@ export interface components {
             rows: components["schemas"]["GridRow"][];
             total: number;
         };
+        /** @description Rota da interface que explica o número, com os filtros na query (PRD §24.7) */
+        Drilldown: {
+            /** @example /obligations */
+            path: string;
+            query: {
+                [key: string]: string;
+            };
+        };
+        Metric: {
+            value: number;
+            drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @description Concluídas, em andamento, não iniciadas e pendentes particionam as aplicáveis que contam no progresso */
+        DashboardCounts: {
+            applicable: components["schemas"]["Metric"];
+            done: components["schemas"]["Metric"];
+            in_progress: components["schemas"]["Metric"];
+            not_started: components["schemas"]["Metric"];
+            pending: components["schemas"]["Metric"];
+            overdue: components["schemas"]["Metric"];
+            operational_progress: number;
+            final_completion: number;
+        };
+        DashboardKPIs: components["schemas"]["DashboardCounts"] & {
+            ready_to_close: components["schemas"]["Metric"];
+            previous_open: components["schemas"]["Metric"];
+        };
+        DashboardModuleCard: components["schemas"]["DashboardCounts"] & {
+            /** @enum {string} */
+            module: "FISCAL" | "DECLARATIONS" | "PAYROLL" | "ACCOUNTING";
+            label: string;
+            companies: number;
+            ready_to_close: components["schemas"]["Metric"];
+            closed: components["schemas"]["Metric"];
+        };
+        DashboardCredentialCard: {
+            /** @enum {string} */
+            type: "RFB_POWER_OF_ATTORNEY" | "DIGITAL_CERTIFICATE";
+            label: string;
+            expired: components["schemas"]["Metric"];
+            due_soon: components["schemas"]["Metric"];
+            /** @description Maior faixa configurada de vencimento próximo */
+            due_soon_days: number;
+            current: components["schemas"]["Metric"];
+            no_date: components["schemas"]["Metric"];
+        };
+        DashboardResponsible: {
+            user: components["schemas"]["UserRef"] | null;
+            module: string;
+            applicable: number;
+            done: number;
+            pending: number;
+            overdue: number;
+            operational_progress: number;
+            final_completion: number;
+        };
+        Dashboard: {
+            competence: components["schemas"]["Competence"];
+            today: components["schemas"]["Date"];
+            filters: {
+                regime_group: string | null;
+                tax_regime: string | null;
+                responsible_id: string | null;
+            };
+            kpis: components["schemas"]["DashboardKPIs"];
+            modules: components["schemas"]["DashboardModuleCard"][];
+            credentials: components["schemas"]["DashboardCredentialCard"][];
+            responsibles: components["schemas"]["DashboardResponsible"][];
+        };
         /**
          * @description Perfil (preparado para permissões futuras).
          * @enum {string}
@@ -1632,6 +1718,10 @@ export interface components {
     };
     parameters: {
         IdPath: components["schemas"]["Uuid"];
+        DashboardRegimeGroup: components["schemas"]["RegimeGroup"];
+        DashboardTaxRegime: components["schemas"]["TaxRegime"];
+        /** @description Responsável do módulo da obrigação (snapshot da competência) */
+        DashboardResponsible: components["schemas"]["Uuid"];
         GridCompetence: components["schemas"]["Competence"];
         /** @description Regime do snapshot da competência */
         GridTaxRegime: components["schemas"]["TaxRegime"];
@@ -3201,6 +3291,34 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getDashboard: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                regime_group?: components["parameters"]["DashboardRegimeGroup"];
+                tax_regime?: components["parameters"]["DashboardTaxRegime"];
+                /** @description Responsável do módulo da obrigação (snapshot da competência) */
+                responsible_id?: components["parameters"]["DashboardResponsible"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Dashboard da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Dashboard"];
                 };
             };
             400: components["responses"]["BadRequest"];
