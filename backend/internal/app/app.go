@@ -14,6 +14,7 @@ import (
 	"controle/internal/catalog"
 	"controle/internal/company"
 	"controle/internal/competence"
+	"controle/internal/credential"
 	"controle/internal/demo"
 	"controle/internal/obligation"
 	"controle/internal/period"
@@ -80,6 +81,7 @@ func New(d Deps) *App {
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
+		credential.NewHandler(credential.NewService(d.Pool, d.Clock)).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {
 			demo.NewHandler(d.Pool, d.Clock).Routes(api)

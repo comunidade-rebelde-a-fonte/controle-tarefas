@@ -382,6 +382,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/credential-controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grade de procurações e certificados (empresas ativas com o módulo) [PRD §33] */
+        get: operations["listCredentialControls"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/credential-controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Procuração e certificado da empresa (mesmo sem o módulo ativo) */
+        get: operations["getCompanyCredentialControls"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/credential-controls/{type}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                type: components["schemas"]["CredentialType"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Altera vencimento, etapa de renovação e observação [UC-05]
+         * @description `version = 0` cria o registro do tipo (item ainda sem dados). `RENEWED` exige uma nova
+         *     `expires_at` e grava o item como `CURRENT` (volta ao acompanhamento normal) [PRD §19.4].
+         */
+        put: operations["updateCredentialControl"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/demo/seed": {
         parameters: {
             query?: never;
@@ -1029,6 +1089,77 @@ export interface components {
             city?: string | null;
             date: components["schemas"]["Date"];
             name: string;
+        };
+        /**
+         * @description Procuração RFB ou certificado digital.
+         * @enum {string}
+         */
+        CredentialType: "RFB_POWER_OF_ATTORNEY" | "DIGITAL_CERTIFICATE";
+        /**
+         * @description Etapa de renovação [PRD §19.4]. RENEWED só é aceito na entrada e gravado como CURRENT.
+         * @enum {string}
+         */
+        RenewalStatus: "CURRENT" | "RENEWAL_REQUESTED" | "AWAITING_CLIENT" | "RENEWED";
+        CredentialSituation: {
+            /** @enum {string} */
+            code: "EXPIRED" | "DUE_SOON" | "CURRENT" | "NO_DATE";
+            /** @example Vence em até 7 dias */
+            label: string;
+            /** @description Faixa "vence em até N dias" (só em DUE_SOON) */
+            threshold_days: number | null;
+            /** @description Dias até o vencimento; negativo se vencido */
+            days_left: number | null;
+        };
+        CredentialFile: {
+            name: string;
+            mime_type: string | null;
+            /** Format: int64 */
+            size_bytes: number | null;
+            /** Format: date-time */
+            uploaded_at: string;
+        };
+        CredentialControl: {
+            type: components["schemas"]["CredentialType"];
+            expires_at: components["schemas"]["Date"] | null;
+            renewal_status: components["schemas"]["RenewalStatus"];
+            renewal_label: string;
+            situation: components["schemas"]["CredentialSituation"];
+            notes: string | null;
+            file: components["schemas"]["CredentialFile"] | null;
+            /**
+             * Format: int32
+             * @description 0 = ainda sem registro gravado
+             */
+            version: number;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        CredentialCompany: {
+            id: components["schemas"]["Uuid"];
+            internal_code: string;
+            legal_name: string;
+            trade_name: string | null;
+            cnpj: components["schemas"]["Cnpj"];
+            /** @description Regime vigente na competência corrente (vazio se não houver) */
+            tax_regime: string;
+        };
+        CredentialRow: {
+            company: components["schemas"]["CredentialCompany"];
+            rfb_power_of_attorney: components["schemas"]["CredentialControl"];
+            digital_certificate: components["schemas"]["CredentialControl"];
+        };
+        CredentialList: {
+            items: components["schemas"]["CredentialRow"][];
+            total: number;
+            /** @description Faixas configuradas, em dias */
+            thresholds: number[];
+        };
+        CredentialUpdate: {
+            /** Format: int32 */
+            version: number;
+            expires_at?: components["schemas"]["Date"] | null;
+            renewal_status: components["schemas"]["RenewalStatus"];
+            notes?: string | null;
         };
         CredentialThresholds: {
             /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
@@ -2070,6 +2201,94 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+        };
+    };
+    listCredentialControls: {
+        parameters: {
+            query?: {
+                /** @description Filtro rápido: expired, due_N (não vencido e vence em até N dias, 1 a 365), awaiting_client ou no_date. */
+                filter?: string;
+                /** @description Tipo considerado pelo filtro; sem ele, a procuração ou o certificado. */
+                type?: components["schemas"]["CredentialType"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linhas da grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getCompanyCredentialControls: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Procuração e certificado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialRow"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateCredentialControl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                type: components["schemas"]["CredentialType"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CredentialUpdate"];
+            };
+        };
+        responses: {
+            /** @description Item atualizado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CredentialControl"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Renovado sem nova data de validade (RENEWAL_DATE_REQUIRED) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     loadDemoData: {

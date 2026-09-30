@@ -29,6 +29,8 @@ tags:
     description: Calendários e feriados
   - name: settings
     description: Configurações
+  - name: credentials
+    description: Procurações RFB e certificados digitais
   - name: demo
     description: Dados fictícios de demonstração (somente fora de produção)
   - name: competencies
@@ -557,6 +559,79 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/CredentialThresholds" }
         "400": { $ref: "#/components/responses/BadRequest" }
+
+  /credential-controls:
+    get:
+      tags: [credentials]
+      operationId: listCredentialControls
+      summary: Grade de procurações e certificados (empresas ativas com o módulo) [PRD §33]
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          description: "Filtro rápido: expired, due_N (não vencido e vence em até N dias, 1 a 365), awaiting_client ou no_date."
+          schema: { type: string, pattern: "^(expired|awaiting_client|no_date|due_[1-9][0-9]{0,2})$", examples: ["due_30"] }
+        - name: type
+          in: query
+          required: false
+          description: Tipo considerado pelo filtro; sem ele, a procuração ou o certificado.
+          schema: { $ref: "#/components/schemas/CredentialType" }
+      responses:
+        "200":
+          description: Linhas da grade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /companies/{id}/credential-controls:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [credentials]
+      operationId: getCompanyCredentialControls
+      summary: Procuração e certificado da empresa (mesmo sem o módulo ativo)
+      responses:
+        "200":
+          description: Procuração e certificado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialRow" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/credential-controls/{type}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: type
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/CredentialType" }
+    put:
+      tags: [credentials]
+      operationId: updateCredentialControl
+      summary: Altera vencimento, etapa de renovação e observação [UC-05]
+      description: |
+        `version = 0` cria o registro do tipo (item ainda sem dados). `RENEWED` exige uma nova
+        `expires_at` e grava o item como `CURRENT` (volta ao acompanhamento normal) [PRD §19.4].
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CredentialUpdate" }
+      responses:
+        "200":
+          description: Item atualizado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialControl" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Renovado sem nova data de validade (RENEWAL_DATE_REQUIRED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /demo/seed:
     post:
@@ -1380,6 +1455,85 @@ components:
         city: { type: [string, "null"] }
         date: { $ref: "#/components/schemas/Date" }
         name: { type: string }
+
+    CredentialType:
+      type: string
+      enum: [RFB_POWER_OF_ATTORNEY, DIGITAL_CERTIFICATE]
+      description: Procuração RFB ou certificado digital.
+
+    RenewalStatus:
+      type: string
+      enum: [CURRENT, RENEWAL_REQUESTED, AWAITING_CLIENT, RENEWED]
+      description: Etapa de renovação [PRD §19.4]. RENEWED só é aceito na entrada e gravado como CURRENT.
+
+    CredentialSituation:
+      type: object
+      required: [code, label, threshold_days, days_left]
+      properties:
+        code: { type: string, enum: [EXPIRED, DUE_SOON, CURRENT, NO_DATE] }
+        label: { type: string, examples: ["Vence em até 7 dias"] }
+        threshold_days: { type: [integer, "null"], description: "Faixa \"vence em até N dias\" (só em DUE_SOON)" }
+        days_left: { type: [integer, "null"], description: "Dias até o vencimento; negativo se vencido" }
+
+    CredentialFile:
+      type: object
+      required: [name, mime_type, size_bytes, uploaded_at]
+      properties:
+        name: { type: string }
+        mime_type: { type: [string, "null"] }
+        size_bytes: { type: [integer, "null"], format: int64 }
+        uploaded_at: { type: string, format: date-time }
+
+    CredentialControl:
+      type: object
+      required: [type, expires_at, renewal_status, renewal_label, situation, notes, file, version, updated_at]
+      properties:
+        type: { $ref: "#/components/schemas/CredentialType" }
+        expires_at: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        renewal_status: { $ref: "#/components/schemas/RenewalStatus" }
+        renewal_label: { type: string }
+        situation: { $ref: "#/components/schemas/CredentialSituation" }
+        notes: { type: [string, "null"] }
+        file: { oneOf: [{ $ref: "#/components/schemas/CredentialFile" }, { type: "null" }] }
+        version: { type: integer, format: int32, minimum: 0, description: "0 = ainda sem registro gravado" }
+        updated_at: { type: [string, "null"], format: date-time }
+
+    CredentialCompany:
+      type: object
+      required: [id, internal_code, legal_name, trade_name, cnpj, tax_regime]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        internal_code: { type: string }
+        legal_name: { type: string }
+        trade_name: { type: [string, "null"] }
+        cnpj: { $ref: "#/components/schemas/Cnpj" }
+        tax_regime: { type: string, description: "Regime vigente na competência corrente (vazio se não houver)" }
+
+    CredentialRow:
+      type: object
+      required: [company, rfb_power_of_attorney, digital_certificate]
+      properties:
+        company: { $ref: "#/components/schemas/CredentialCompany" }
+        rfb_power_of_attorney: { $ref: "#/components/schemas/CredentialControl" }
+        digital_certificate: { $ref: "#/components/schemas/CredentialControl" }
+
+    CredentialList:
+      type: object
+      required: [items, total, thresholds]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/CredentialRow" } }
+        total: { type: integer }
+        thresholds: { type: array, items: { type: integer }, description: "Faixas configuradas, em dias" }
+
+    CredentialUpdate:
+      type: object
+      additionalProperties: false
+      required: [version, renewal_status]
+      properties:
+        version: { type: integer, format: int32, minimum: 0 }
+        expires_at: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        renewal_status: { $ref: "#/components/schemas/RenewalStatus" }
+        notes: { type: [string, "null"], maxLength: 2000 }
 
     CredentialThresholds:
       type: object
