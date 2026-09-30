@@ -398,7 +398,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** teste E2E curto: trocar o regime com vigência futura e ver a linha do tempo atualizada.
 
 ### T-M1-16 — FE: Configurações
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M1-11
 - **Ref:** PRD §20, §21, §19.3, §6 (item 10)
 - **Arquivos:** `frontend/src/features/settings/*`
