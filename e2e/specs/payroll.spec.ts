@@ -19,7 +19,10 @@ test("T-M4-03 altera o eSocial na Folha e a DCTFWeb lê a mesma instância", asy
   await expect(grid.getByRole("columnheader", { name: "Fator R" })).toBeVisible();
 
   await grid.getByRole("button", { name: `eSocial — ${COMPANY}: A iniciar` }).click();
+  // A célula muda de forma otimista: espera o PATCH gravar antes de ler a API.
+  const saved = page.waitForResponse((r) => r.url().includes(`/obligation-instances/${esocial.id}/status`) && r.request().method() === "PATCH");
   await page.getByRole("menuitemradio", { name: "Fechada" }).click();
+  expect((await saved).ok()).toBeTruthy();
   await expect(grid.getByRole("button", { name: `eSocial — ${COMPANY}: Fechada` })).toBeVisible();
 
   // Mesma instância na visão DCTFWeb [CA-009].

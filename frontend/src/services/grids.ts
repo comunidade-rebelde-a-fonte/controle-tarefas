@@ -1,5 +1,5 @@
 import { keepPreviousData, type QueryClient, useQuery } from "@tanstack/react-query";
-import { api, type Schemas } from "@/lib/api";
+import { api, buildUrl, type Schemas } from "@/lib/api";
 import type { GridFilters } from "@/lib/useGridFilters";
 import type { paths } from "@/types/api";
 import { obligationKeys, type StatusChangeResult } from "./obligations";
@@ -31,6 +31,11 @@ export function gridFilterQuery(f: GridFilters): Omit<FiscalGridQuery, "competen
 
 /** Grades disponíveis (segmento da rota /modules/{module}/grid). */
 export type GridModule = "fiscal" | "declarations" | "payroll" | "accounting" | "dctfweb";
+
+/** GET /exports/{module}.xlsx com a competência, os filtros e a busca atuais da tela [CA-017]. */
+export function gridExportUrl(module: GridModule, query: GridQuery, q: string): string {
+  return buildUrl("/exports/{file}", { file: `${module}.xlsx` }, { ...query, q: q.trim() });
+}
 
 /** Query das grades: competência, filtros derivados e, no Fiscal, o agrupamento. */
 export type GridQuery = Omit<FiscalGridQuery, "group"> & { group?: FiscalGroup };

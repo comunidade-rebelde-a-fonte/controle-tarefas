@@ -18,6 +18,7 @@ import (
 	"controle/internal/credential"
 	"controle/internal/dashboard"
 	"controle/internal/demo"
+	"controle/internal/exporter"
 	"controle/internal/grid"
 	"controle/internal/importer"
 	"controle/internal/obligation"
@@ -84,7 +85,9 @@ func New(d Deps) *App {
 		competence.NewHandler(d.Pool, engine).Routes(api)
 		obligation.NewHandler(obligation.NewService(d.Pool, d.Clock)).Routes(api)
 		period.NewHandler(period.NewService(d.Pool, d.Clock)).Routes(api)
-		grid.NewHandler(grid.NewBuilder(d.Pool, d.Clock)).Routes(api)
+		grids := grid.NewBuilder(d.Pool, d.Clock)
+		grid.NewHandler(grids).Routes(api)
+		exporter.NewHandler(grids, d.Pool, d.Clock).Routes(api)
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)

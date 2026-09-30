@@ -6,10 +6,9 @@ import { ErrorAlert } from "@/components/ErrorAlert";
 import { GridFilters, type Option } from "@/components/GridFilters";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
-import { Tooltip } from "@/components/ui/tooltip";
 import { useCompetence } from "@/lib/useCompetence";
 import { filterBySearch, useGridFilters } from "@/lib/useGridFilters";
-import { type FiscalGroup, type GridColumn, type GridModule, type GridRow, gridFilterQuery, useModuleGrid } from "@/services/grids";
+import { type FiscalGroup, type GridColumn, type GridModule, type GridRow, gridExportUrl, gridFilterQuery, useModuleGrid } from "@/services/grids";
 import { ModuleGrid } from "./ModuleGrid";
 
 function filterOptions(columns: GridColumn[]): { status: Option[]; columns: Option[]; closing: Option[] } {
@@ -79,13 +78,17 @@ export function ModuleScreen({
         actions={
           <>
             <CompetenceNav />
-            <Tooltip content="Exportação disponível em breve.">
-              <span>
-                <Button variant="outline" disabled>
+            {query ? (
+              <Button variant="outline" asChild>
+                <a href={gridExportUrl(module, query, filters.q)} download title="Exporta a grade com a competência, os filtros e a busca atuais">
                   <Download aria-hidden /> Exportar
-                </Button>
-              </span>
-            </Tooltip>
+                </a>
+              </Button>
+            ) : (
+              <Button variant="outline" disabled>
+                <Download aria-hidden /> Exportar
+              </Button>
+            )}
           </>
         }
       />
