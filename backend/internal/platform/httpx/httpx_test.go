@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -77,6 +78,22 @@ func TestWriteError_UnknownErrorIsGeneric500(t *testing.T) {
 	body := decodeError(t, rec)
 	if body.Code != "INTERNAL_ERROR" || strings.Contains(body.Message, "segredo") {
 		t.Fatalf("envelope vazou detalhes internos: %+v", body)
+	}
+}
+
+func TestWriteError_ClientCanceledIsNot500(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	rec := httptest.NewRecorder()
+	WriteError(rec, httptest.NewRequest(http.MethodGet, "/", nil).WithContext(ctx), fmt.Errorf("consulta: %w", context.Canceled))
+	if rec.Code != StatusClientClosedRequest || rec.Body.Len() != 0 {
+		t.Fatalf("status = %d, corpo = %q", rec.Code, rec.Body.String())
+	}
+	// Cancelamento que não veio do cliente continua sendo erro interno.
+	rec = httptest.NewRecorder()
+	WriteError(rec, httptest.NewRequest(http.MethodGet, "/", nil), context.Canceled)
+	if rec.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d", rec.Code)
 	}
 }
 
