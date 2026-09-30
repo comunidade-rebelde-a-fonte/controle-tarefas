@@ -830,7 +830,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 ## M5 — Gestão
 
 ### T-M5-01 — API do dashboard: KPIs e cards
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-07
 - **Ref:** PRD §24.1–§24.5, §41.9
 - **Arquivos:** `backend/internal/dashboard/{handler,kpis}.go`, `backend/queries/dashboard.sql`
