@@ -698,6 +698,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/modules/fiscal/grid": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Grade Fiscal (Normais ou Simples Nacional) com filtros server-side do §26.4
+         * @description Colunas vindas do catálogo (display context FISCAL + sort_order); linhas pelas empresas com o módulo na competência e o agrupamento pelo regime do snapshot. Atraso, progresso, conclusão, "pronto para fechar" e dependências são calculados pela API. A busca livre fica no cliente.
+         */
+        get: operations["getFiscalGrid"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1344,6 +1364,79 @@ export interface components {
         CompanyModulePeriodEvents: {
             items: components["schemas"]["CompanyModulePeriodEvent"][];
         };
+        DependencyRef: {
+            obligation_type_id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            status_code: string;
+        };
+        DependencyStatus: {
+            /** @description Todos os componentes SOFT aplicáveis estão finais */
+            ready: boolean;
+            pending: components["schemas"]["DependencyRef"][];
+        };
+        GridColumn: {
+            obligation_type: components["schemas"]["ObligationTypeRef"];
+            sort_order: number;
+            /** @description Estágio de fechamento do módulo (Fiscal - Fechamento) */
+            is_closing_stage: boolean;
+            allows_transmission_date: boolean;
+            allows_protocol: boolean;
+            status_set_code: string;
+            statuses: components["schemas"]["StatusDefinition"][];
+        };
+        GridCell: components["schemas"]["ObligationInstance"] & {
+            /** @description Etapas anteriores (HARD) aplicáveis e não finais que impedem concluir */
+            blocked_by: components["schemas"]["DependencyRef"][];
+            /** @description Indicador SOFT (DCTFWeb); null quando o tipo não tem dependência SOFT */
+            dependency_status: components["schemas"]["DependencyStatus"] | null;
+        };
+        GridRow: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+                trade_name: string | null;
+                cnpj: components["schemas"]["Cnpj"];
+            };
+            /** @description Configuração usada na geração da competência (D4) */
+            snapshot: {
+                tax_regime: components["schemas"]["TaxRegime"];
+                regime_group: components["schemas"]["RegimeGroup"];
+                payroll_type: components["schemas"]["PayrollType"];
+                factor_r: boolean | null;
+                responsible: components["schemas"]["UserRef"] | null;
+            };
+            period: {
+                id: components["schemas"]["Uuid"];
+                /** @enum {string} */
+                state: "OPEN" | "CLOSED";
+                /** Format: date-time */
+                closed_at: string | null;
+                closed_by: components["schemas"]["UserRef"] | null;
+                general_note: string | null;
+                version: components["schemas"]["Version"];
+            };
+            progress: components["schemas"]["Progress"];
+            overdue: number;
+            nearest_deadline: components["schemas"]["Date"] | null;
+            /** @description Todos os itens relevantes finais e módulo aberto (sugerir fechamento) */
+            ready_to_close: boolean;
+            /** @description Células por código do tipo de obrigação (colunas sem instância ficam ausentes) */
+            cells: {
+                [key: string]: components["schemas"]["GridCell"];
+            };
+        };
+        ModuleGrid: {
+            module: string;
+            competence: components["schemas"]["Competence"];
+            /** @enum {string|null} */
+            group: "normal" | "simples" | null;
+            today: components["schemas"]["Date"];
+            columns: components["schemas"]["GridColumn"][];
+            rows: components["schemas"]["GridRow"][];
+            total: number;
+        };
         /**
          * @description Perfil (preparado para permissões futuras).
          * @enum {string}
@@ -1433,6 +1526,28 @@ export interface components {
     };
     parameters: {
         IdPath: components["schemas"]["Uuid"];
+        GridCompetence: components["schemas"]["Competence"];
+        /** @description Regime do snapshot da competência */
+        GridTaxRegime: components["schemas"]["TaxRegime"];
+        /** @description Responsável do módulo no snapshot da competência */
+        GridResponsible: components["schemas"]["Uuid"];
+        /** @description Linhas com ao menos uma obrigação aplicável neste status */
+        GridStatus: string;
+        /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+        GridObligationType: components["schemas"]["Uuid"];
+        /** @description Status do estágio de fechamento do módulo (Fiscal - coluna Fechamento) */
+        GridClosingStatus: string;
+        GridPeriodState: "OPEN" | "CLOSED";
+        /** @description Com ou sem observação geral */
+        GridNote: "with" | "without";
+        /** @description Somente linhas com obrigações atrasadas */
+        GridOverdue: boolean;
+        /** @description Somente linhas com pendências (status que bloqueiam) */
+        GridPending: boolean;
+        /** @description Somente linhas com obrigações não iniciadas */
+        GridNotStarted: boolean;
+        /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+        GridReadyToClose: boolean;
     };
     requestBodies: never;
     headers: never;
@@ -2697,6 +2812,52 @@ export interface operations {
                     "application/json": components["schemas"]["CompanyModulePeriodEvents"];
                 };
             };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getFiscalGrid: {
+        parameters: {
+            query: {
+                competence: components["parameters"]["GridCompetence"];
+                group: "normal" | "simples";
+                /** @description Regime do snapshot da competência */
+                tax_regime?: components["parameters"]["GridTaxRegime"];
+                /** @description Responsável do módulo no snapshot da competência */
+                responsible_id?: components["parameters"]["GridResponsible"];
+                /** @description Linhas com ao menos uma obrigação aplicável neste status */
+                status?: components["parameters"]["GridStatus"];
+                /** @description Restringe o filtro `status` a uma coluna (exige `status`) */
+                obligation_type_id?: components["parameters"]["GridObligationType"];
+                /** @description Status do estágio de fechamento do módulo (Fiscal - coluna Fechamento) */
+                closing_status?: components["parameters"]["GridClosingStatus"];
+                period_state?: components["parameters"]["GridPeriodState"];
+                /** @description Com ou sem observação geral */
+                note?: components["parameters"]["GridNote"];
+                /** @description Somente linhas com obrigações atrasadas */
+                overdue?: components["parameters"]["GridOverdue"];
+                /** @description Somente linhas com pendências (status que bloqueiam) */
+                pending?: components["parameters"]["GridPending"];
+                /** @description Somente linhas com obrigações não iniciadas */
+                not_started?: components["parameters"]["GridNotStarted"];
+                /** @description Somente linhas prontas para fechar (todos os itens relevantes finais e módulo aberto) */
+                ready_to_close?: components["parameters"]["GridReadyToClose"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Grade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleGrid"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
         };
     };
