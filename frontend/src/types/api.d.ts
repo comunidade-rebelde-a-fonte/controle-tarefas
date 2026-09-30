@@ -140,6 +140,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/modules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Estado dos módulos na competência de referência e histórico de vigências */
+        get: operations["getCompanyModules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/modules/{module}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                module: components["schemas"]["ModuleCode"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Liga/desliga o módulo a partir de uma competência (não reescreve competências geradas) */
+        put: operations["setCompanyModule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/obligation-overrides": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Aplicabilidade de cada tipo do catálogo para a empresa */
+        get: operations["getObligationOverrides"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/obligation-overrides/{obligationTypeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                obligationTypeId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Define Padrão / Aplicável / Não se aplica a partir de uma competência */
+        put: operations["setObligationOverride"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -312,6 +390,64 @@ export interface components {
         };
         TaxRegimeChange: {
             tax_regime: components["schemas"]["TaxRegime"];
+            effective_from: components["schemas"]["Competence"];
+        };
+        /**
+         * @description Padrão / Aplicável / Não se aplica [PRD §9.2].
+         * @enum {string}
+         */
+        Applicability: "DEFAULT" | "APPLICABLE" | "NOT_APPLICABLE";
+        SettingPeriod: {
+            effective_from: components["schemas"]["Competence"];
+            effective_to: components["schemas"]["Competence"] | null;
+            created_by: components["schemas"]["UserRef"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        ModulePeriod: components["schemas"]["SettingPeriod"] & {
+            enabled: boolean;
+        };
+        ModuleState: {
+            module: components["schemas"]["ModuleCode"];
+            /** @description Estado na competência de referência */
+            enabled: boolean;
+            timeline: components["schemas"]["ModulePeriod"][];
+        };
+        CompanyModules: {
+            reference_competence: components["schemas"]["Competence"];
+            suggested_effective_from: components["schemas"]["Competence"];
+            items: components["schemas"]["ModuleState"][];
+        };
+        CompanyModuleChange: {
+            enabled: boolean;
+            effective_from: components["schemas"]["Competence"];
+        };
+        ObligationTypeRef: {
+            id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            primary_module: string;
+        };
+        OverridePeriod: components["schemas"]["SettingPeriod"] & {
+            applicability: components["schemas"]["Applicability"];
+        };
+        OverrideState: {
+            obligation_type: components["schemas"]["ObligationTypeRef"];
+            applicability: components["schemas"]["Applicability"];
+            /** @description Regra padrão para o regime vigente; null = tipo não gerado no regime */
+            default_applicable: boolean | null;
+            /** @description Resultado override > padrão; null = não gerado no regime */
+            effective_applicable: boolean | null;
+            timeline: components["schemas"]["OverridePeriod"][];
+        };
+        ObligationOverrides: {
+            reference_competence: components["schemas"]["Competence"];
+            suggested_effective_from: components["schemas"]["Competence"];
+            tax_regime: components["schemas"]["TaxRegime"] | null;
+            items: components["schemas"]["OverrideState"][];
+        };
+        ObligationOverrideChange: {
+            applicability: components["schemas"]["Applicability"];
             effective_from: components["schemas"]["Competence"];
         };
         /**
@@ -730,6 +866,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TaxRegimeTimeline"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+        };
+    };
+    getCompanyModules: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Módulos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModules"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    setCompanyModule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                module: components["schemas"]["ModuleCode"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompanyModuleChange"];
+            };
+        };
+        responses: {
+            /** @description Módulos atualizados */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyModules"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+        };
+    };
+    getObligationOverrides: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Aplicabilidade */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationOverrides"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    setObligationOverride: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                obligationTypeId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ObligationOverrideChange"];
+            };
+        };
+        responses: {
+            /** @description Aplicabilidade atualizada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationOverrides"];
                 };
             };
             400: components["responses"]["BadRequest"];

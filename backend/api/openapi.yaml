@@ -252,6 +252,88 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
         "422": { $ref: "#/components/responses/Unprocessable" }
 
+  /companies/{id}/modules:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: getCompanyModules
+      summary: Estado dos módulos na competência de referência e histórico de vigências
+      responses:
+        "200":
+          description: Módulos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModules" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/modules/{module}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: module
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/ModuleCode" }
+    put:
+      tags: [companies]
+      operationId: setCompanyModule
+      summary: Liga/desliga o módulo a partir de uma competência (não reescreve competências geradas)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CompanyModuleChange" }
+      responses:
+        "200":
+          description: Módulos atualizados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyModules" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
+  /companies/{id}/obligation-overrides:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: getObligationOverrides
+      summary: Aplicabilidade de cada tipo do catálogo para a empresa
+      responses:
+        "200":
+          description: Aplicabilidade
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationOverrides" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/obligation-overrides/{obligationTypeId}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: obligationTypeId
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/Uuid" }
+    put:
+      tags: [companies]
+      operationId: setObligationOverride
+      summary: Define Padrão / Aplicável / Não se aplica a partir de uma competência
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ObligationOverrideChange" }
+      responses:
+        "200":
+          description: Aplicabilidade atualizada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationOverrides" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+
 components:
   parameters:
     IdPath:
@@ -481,6 +563,109 @@ components:
       required: [tax_regime, effective_from]
       properties:
         tax_regime: { $ref: "#/components/schemas/TaxRegime" }
+        effective_from: { $ref: "#/components/schemas/Competence" }
+
+    Applicability:
+      type: string
+      enum: [DEFAULT, APPLICABLE, NOT_APPLICABLE]
+      description: Padrão / Aplicável / Não se aplica [PRD §9.2].
+
+    SettingPeriod:
+      type: object
+      required: [effective_from, effective_to, created_by, created_at]
+      properties:
+        effective_from: { $ref: "#/components/schemas/Competence" }
+        effective_to: { oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }] }
+        created_by: { $ref: "#/components/schemas/UserRef" }
+        created_at: { type: string, format: date-time }
+
+    ModulePeriod:
+      allOf:
+        - $ref: "#/components/schemas/SettingPeriod"
+        - type: object
+          required: [enabled]
+          properties:
+            enabled: { type: boolean }
+
+    ModuleState:
+      type: object
+      required: [module, enabled, timeline]
+      properties:
+        module: { $ref: "#/components/schemas/ModuleCode" }
+        enabled: { type: boolean, description: "Estado na competência de referência" }
+        timeline:
+          type: array
+          items: { $ref: "#/components/schemas/ModulePeriod" }
+
+    CompanyModules:
+      type: object
+      required: [reference_competence, suggested_effective_from, items]
+      properties:
+        reference_competence: { $ref: "#/components/schemas/Competence" }
+        suggested_effective_from:
+          $ref: "#/components/schemas/Competence"
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ModuleState" }
+
+    CompanyModuleChange:
+      type: object
+      additionalProperties: false
+      required: [enabled, effective_from]
+      properties:
+        enabled: { type: boolean }
+        effective_from: { $ref: "#/components/schemas/Competence" }
+
+    ObligationTypeRef:
+      type: object
+      required: [id, code, name, primary_module]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        code: { type: string }
+        name: { type: string }
+        primary_module: { type: string }
+
+    OverridePeriod:
+      allOf:
+        - $ref: "#/components/schemas/SettingPeriod"
+        - type: object
+          required: [applicability]
+          properties:
+            applicability: { $ref: "#/components/schemas/Applicability" }
+
+    OverrideState:
+      type: object
+      required: [obligation_type, applicability, default_applicable, effective_applicable, timeline]
+      properties:
+        obligation_type: { $ref: "#/components/schemas/ObligationTypeRef" }
+        applicability: { $ref: "#/components/schemas/Applicability" }
+        default_applicable:
+          type: [boolean, "null"]
+          description: Regra padrão para o regime vigente; null = tipo não gerado no regime
+        effective_applicable:
+          type: [boolean, "null"]
+          description: Resultado override > padrão; null = não gerado no regime
+        timeline:
+          type: array
+          items: { $ref: "#/components/schemas/OverridePeriod" }
+
+    ObligationOverrides:
+      type: object
+      required: [reference_competence, suggested_effective_from, tax_regime, items]
+      properties:
+        reference_competence: { $ref: "#/components/schemas/Competence" }
+        suggested_effective_from: { $ref: "#/components/schemas/Competence" }
+        tax_regime: { oneOf: [{ $ref: "#/components/schemas/TaxRegime" }, { type: "null" }] }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OverrideState" }
+
+    ObligationOverrideChange:
+      type: object
+      additionalProperties: false
+      required: [applicability, effective_from]
+      properties:
+        applicability: { $ref: "#/components/schemas/Applicability" }
         effective_from: { $ref: "#/components/schemas/Competence" }
 
     UserRole:
