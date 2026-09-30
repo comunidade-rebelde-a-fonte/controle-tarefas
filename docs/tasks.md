@@ -187,7 +187,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** o frontend chama `/health` com tipos gerados; alterar o YAML e rodar `make gen` atualiza os tipos.
 
 ### T-M0-07 — Harness de testes
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M0-04, T-M0-05
 - **Ref:** plan §6
 - **Arquivos:** `backend/internal/testutil/`, `frontend/vitest.config.ts`, `e2e/playwright.config.ts`
