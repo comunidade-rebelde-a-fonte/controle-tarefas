@@ -46,3 +46,26 @@ Execute `make help` para a lista completa.
 | `make lint` | Lint do backend e do frontend |
 | `make test` | Testes do backend e do frontend |
 | `make e2e` | Testes ponta a ponta |
+
+## Testes
+
+| Nível | Ferramenta | Como rodar |
+|---|---|---|
+| Unidade e integração Go | `go test` + testcontainers (Postgres 16 real, mesma imagem do compose) | `make test` (exige Docker rodando) |
+| Componentes | Vitest + Testing Library | `make test` |
+| E2E | Playwright | `make e2e` |
+
+- **Integração Go:** `internal/testutil` sobe um Postgres descartável por pacote de teste, aplica as migrations num banco *template* e entrega a cada teste um banco clonado e isolado (`testutil.NewDB`). Há também servidor HTTP de teste (`testutil.NewServer`) e relógio fixo (`testutil.FixedClock`).
+- **E2E:** `make e2e` recria o banco `controle_e2e`, sobe uma API própria (porta 8091) e uma SPA própria (porta 5174) e roda o Playwright. **Nunca usa o banco de desenvolvimento `controle`.**
+- **Compatibilidade do testcontainers:** funciona com o Docker Desktop sem configuração. No Colima, exporte `DOCKER_HOST=unix://$HOME/.colima/default/docker.sock` e `TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE=/var/run/docker.sock`.
+
+## Portas locais
+
+| Serviço | Porta padrão | Variável |
+|---|---|---|
+| Postgres | 5432 | `POSTGRES_PORT` |
+| API | 8080 | `HTTP_PORT` |
+| SPA (Vite) | 5173 | — |
+| API/SPA do E2E | 8091 / 5174 | `E2E_API_PORT` / `E2E_WEB_PORT` |
+
+Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare o outro serviço).

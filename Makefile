@@ -38,7 +38,12 @@ GOVULNCHECK_VERSION := v1.8.0
 DB_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(DB_NAME)?sslmode=disable
 API := cd backend && DATABASE_URL='$(DB_URL)' go run ./cmd/api
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status seed seed-demo gen
+# Banco e portas exclusivos do E2E (nunca o banco de dev).
+E2E_DB_URL := postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/controle_e2e?sslmode=disable
+E2E_API_PORT ?= 8091
+E2E_WEB_PORT ?= 5174
+
+.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -108,6 +113,8 @@ lint-backend:
 
 lint-frontend:
 	cd frontend && npm run lint && npm run typecheck
+	@test -d e2e/node_modules || (cd e2e && npm ci --no-audit --no-fund)
+	cd e2e && npm run typecheck
 
 test: test-backend test-frontend ## Testes do backend e do frontend
 
@@ -117,5 +124,16 @@ test-backend:
 test-frontend:
 	cd frontend && npm test
 
-e2e: ## Testes E2E (Playwright) contra o banco controle_e2e
-	@echo "disponível a partir de T-M0-07"
+db-clean: ## Recria vazio o schema de controle_e2e ou controle_perf (DB=e2e|perf) e aplica as migrations
+	@if [ "$(DB)" = "dev" ]; then echo "db-clean não se aplica ao banco de dev; use make db-reset"; exit 1; fi
+	@echo ">>> recriando o schema do banco $(DB_NAME)"
+	@$(COMPOSE) exec -T db psql -q -U $(POSTGRES_USER) -d $(DB_NAME) -c "SET client_min_messages TO warning; DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
+	@$(API) migrate up
+
+e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
+	$(COMPOSE) up -d --wait db
+	@$(MAKE) --no-print-directory db-clean DB=e2e
+	@test -d e2e/node_modules || (cd e2e && npm ci --no-audit --no-fund)
+	@cd e2e && npx playwright install chromium >/dev/null
+	@echo ">>> playwright (API :$(E2E_API_PORT) e SPA :$(E2E_WEB_PORT) sobre controle_e2e)"
+	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) npx playwright test $(ARGS)
