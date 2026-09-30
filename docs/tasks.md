@@ -784,7 +784,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** testes da função de situação em todas as faixas e "sem data"; Renovado sem data → `422`.
 
 ### T-M4-08 — Upload seguro de documentos
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M4-07
 - **Ref:** PRD §19.1–§19.2, §45.3 · CA-020 · RN-018
 - **Arquivos:** `backend/internal/credential/{upload,validate}.go`, `validate_test.go`

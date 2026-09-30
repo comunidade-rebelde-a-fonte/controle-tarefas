@@ -49,3 +49,26 @@ UPDATE credential_controls
 SET expires_at = $4, renewal_status = $5, notes = $6, updated_by = $7, updated_at = $8, version = version + 1
 WHERE company_id = $1 AND type = $2 AND version = $3
 RETURNING *;
+
+-- name: EnsureCredentialControl :exec
+-- Cria o registro padrão do tipo (sem data, Vigente) se ainda não existir.
+INSERT INTO credential_controls (company_id, type, updated_by, updated_at)
+VALUES ($1, $2, $3, $4)
+ON CONFLICT (company_id, type) DO NOTHING;
+
+-- name: GetCredentialControlForUpdate :one
+SELECT * FROM credential_controls WHERE company_id = $1 AND type = $2 FOR UPDATE;
+
+-- name: SetCredentialFile :one
+UPDATE credential_controls
+SET file_storage_key = $3, file_name = $4, file_mime_type = $5, file_size_bytes = $6,
+    file_uploaded_at = $7, updated_by = $8, updated_at = $7, version = version + 1
+WHERE company_id = $1 AND type = $2
+RETURNING *;
+
+-- name: ClearCredentialFile :one
+UPDATE credential_controls
+SET file_storage_key = NULL, file_name = NULL, file_mime_type = NULL, file_size_bytes = NULL,
+    file_uploaded_at = NULL, updated_by = $3, updated_at = $4, version = version + 1
+WHERE company_id = $1 AND type = $2
+RETURNING *;

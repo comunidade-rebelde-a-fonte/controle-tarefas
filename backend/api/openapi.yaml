@@ -635,6 +635,58 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /companies/{id}/credential-controls/{type}/file:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: type
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/CredentialType" }
+    put:
+      tags: [credentials]
+      operationId: uploadCredentialFile
+      summary: Envia o documento vigente (substitui o anterior) [PRD §19.1, CA-020]
+      description: |
+        Limite de 10 MB. Procuração: PDF, PNG ou JPEG (pelo conteúdo). Certificado: somente o
+        certificado público (.cer/.crt DER, ou PEM só com blocos CERTIFICATE). `.pfx`, `.p12`,
+        contêineres PKCS#12 e qualquer chave privada são recusados com `PRIVATE_KEY_REJECTED`
+        ("Chaves privadas não são armazenadas pelo sistema.").
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                version: { type: integer, minimum: 0, description: "Opcional: versão esperada (divergência → 409)" }
+      responses:
+        "200":
+          description: Documento gravado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialControl" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Chave privada (PRIVATE_KEY_REJECTED) ou formato não aceito (UNSUPPORTED_FILE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [credentials]
+      operationId: deleteCredentialFile
+      summary: Remove o documento vigente (os demais dados permanecem)
+      responses:
+        "200":
+          description: Item sem documento
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CredentialControl" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /demo/seed:
     post:
       tags: [demo]

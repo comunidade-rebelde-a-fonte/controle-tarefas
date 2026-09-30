@@ -86,7 +86,7 @@ func New(d Deps) *App {
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
-		credential.NewHandler(credential.NewService(d.Pool, d.Clock)).Routes(api)
+		credential.NewHandler(credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {
 			demo.NewHandler(d.Pool, d.Clock).Routes(api)
