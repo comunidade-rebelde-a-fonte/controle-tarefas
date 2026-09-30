@@ -504,7 +504,7 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──┐
 - **Aceite:** `TestCA012_OverdueComputed`, `TestCA014_ReadyToClose`, `TestCA007_NotApplicableKeepsPercent`; teste de ICMS no Simples fora dos percentuais.
 
 ### T-M2-08 — Alteração de status individual
-- [ ] Concluída
+- [x] Concluída
 - **Depende de:** T-M2-07 · Q4 (provisório)
 - **Ref:** plan D8, R9 · PRD §23, §41.7, §49.4
 - **Arquivos:** `backend/internal/obligation/{handler,service}.go`

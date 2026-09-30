@@ -33,6 +33,8 @@ tags:
     description: Dados fictícios de demonstração (somente fora de produção)
   - name: competencies
     description: Competências mensais
+  - name: obligations
+    description: Instâncias de obrigação (status, detalhes, histórico)
 
 paths:
   /health:
@@ -606,6 +608,53 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/EnsureSummary" }
+
+  /obligation-instances/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [obligations]
+      operationId: getObligationInstance
+      summary: Instância com os derivados (atraso, final, iniciado)
+      responses:
+        "200":
+          description: Instância
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ObligationInstance" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /obligation-instances/{id}/status:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    patch:
+      tags: [obligations]
+      operationId: changeObligationStatus
+      summary: Altera o status (valida conjunto, versão, período e dependências; grava histórico)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StatusChange" }
+      responses:
+        "200":
+          description: Instância e agregado da linha atualizados
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatusChangeResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Conflito de versão (VERSION_CONFLICT) ou pré-requisitos SOFT pendentes (DEPENDENCY_WARNING)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "422":
+          description: Status inválido, instância não aplicável ou dependência HARD pendente (DEPENDENCY_BLOCKED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423": { $ref: "#/components/responses/Locked" }
 
 components:
   parameters:
@@ -1194,6 +1243,73 @@ components:
         companies_processed: { type: integer }
         periods_created: { type: integer }
         instances_created: { type: integer }
+
+    Progress:
+      type: object
+      required: [denominator, operational_done, final_done, blocking, operational_progress, final_completion, ready_to_close]
+      properties:
+        denominator: { type: integer, description: "Itens aplicáveis que contam no progresso" }
+        operational_done: { type: integer }
+        final_done: { type: integer }
+        blocking: { type: integer, description: "Pendências (status que bloqueiam)" }
+        operational_progress: { type: number, description: "0..1" }
+        final_completion: { type: number, description: "0..1" }
+        ready_to_close: { type: boolean }
+
+    ObligationInstance:
+      type: object
+      required: [id, company_id, competence, obligation_type, status_code, status_label, applicable, counts_in_progress,
+                 is_final, is_started, is_blocking, is_overdue, due_date_original, due_date_effective, due_overridden,
+                 due_date_override_reason, transmission_date, protocol, has_history, version, last_changed_at, last_changed_by]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        competence: { $ref: "#/components/schemas/Competence" }
+        obligation_type: { $ref: "#/components/schemas/ObligationTypeRef" }
+        status_code: { type: string }
+        status_label: { type: string }
+        applicable: { type: boolean }
+        counts_in_progress: { type: boolean }
+        is_final: { type: boolean }
+        is_started: { type: boolean }
+        is_blocking: { type: boolean }
+        is_overdue: { type: boolean, description: "Calculado: aplicável, não final e vencimento efetivo < hoje" }
+        due_date_original: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        due_date_effective: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        due_overridden: { type: boolean }
+        due_date_override_reason: { type: [string, "null"] }
+        transmission_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        protocol: { type: [string, "null"] }
+        has_history: { type: boolean }
+        version: { $ref: "#/components/schemas/Version" }
+        last_changed_at: { type: [string, "null"], format: date-time }
+        last_changed_by: { type: [string, "null"] }
+
+    RowSummary:
+      type: object
+      required: [module, progress, overdue, nearest_deadline]
+      properties:
+        module: { type: string }
+        progress: { $ref: "#/components/schemas/Progress" }
+        overdue: { type: integer }
+        nearest_deadline: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+
+    StatusChange:
+      type: object
+      additionalProperties: false
+      required: [status_code, version]
+      properties:
+        status_code: { type: string }
+        version: { $ref: "#/components/schemas/Version" }
+        confirm_exception: { type: boolean, description: "Confirma exceção de dependência SOFT (DCTFWeb)" }
+        exception_reason: { type: [string, "null"] }
+
+    StatusChangeResult:
+      type: object
+      required: [instance, row]
+      properties:
+        instance: { $ref: "#/components/schemas/ObligationInstance" }
+        row: { $ref: "#/components/schemas/RowSummary" }
 
     UserRole:
       type: string

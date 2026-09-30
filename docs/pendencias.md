@@ -10,3 +10,4 @@ Valores usados no código ou nos seeds enquanto o escritório não responde às 
 | Q7 | T-M1-07 | Somente feriados nacionais (fixos + móveis) de 2025 a 2030; calendários de UF e município vazios, cadastráveis pela tela de feriados | `backend/seed/calendar.go`, `backend/internal/calendar/holidays.go` |
 | Q2 | T-M2-07 | Coluna Fechamento do Fiscal fora dos percentuais e do "pronto para fechar" (R2/R3): regra de regime com `counts_in_progress = false` e `is_closing_stage` | `backend/internal/obligation/derived.go` (`InDenominator`), `backend/seed/catalog.sql` |
 | Q3 | T-M2-07 | ICMS do Simples fora do progresso também não bloqueia o "pronto para fechar" (R4) | `backend/internal/obligation/derived.go` (`InDenominator`), `backend/seed/catalog.sql` |
+| Q4 | T-M2-08 | Módulo fechado bloqueia a edição das instâncias (`423 PERIOD_CLOSED`) até a reabertura (R9) | `backend/internal/obligation/service.go` (`errPeriodClosed`) |
