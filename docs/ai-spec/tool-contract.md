@@ -1,0 +1,61 @@
+# Tool Contract — Agentes
+
+## 1. Regras gerais
+
+Ferramentas são funções tipadas expostas aos agentes. O agente não recebe acesso arbitrário a SQL, filesystem ou shell.
+
+## 2. Conciliação
+
+### `extrair_texto_pdf`
+Entrada: referência do documento/páginas.  
+Saída: texto por página + metadados.  
+Sem escrita de domínio.
+
+### `renderizar_pagina`
+Entrada: documento, página, DPI permitido.  
+Saída: referência segura da imagem/render.  
+Sem escrita de domínio.
+
+### `validar_saldo`
+Entrada: schema extraído.  
+Saída: exatamente o mesmo `ResultadoValidacao` usado pelo portão de persistência.  
+Regra: não duplicar implementação de cálculo.
+
+### `buscar_candidatos`
+Entrada: company/conta/período/valor/data/sentido conforme contrato.  
+Saída: candidatos somente leitura.
+
+### `historico_classificacao`
+Entrada: company + contraparte/descritivo.  
+Saída: histórico somente leitura.
+
+### `consultar_cnpj`
+Entrada: identificação parcial permitida.  
+Saída: dados de apoio.  
+Para demo/local, se integração externa não existir no projeto original, usar fonte/fixture prevista; não inventar chamada externa nova sem decisão.
+
+## 3. Fator R
+
+### `obter_factor_r`
+Entrada: company + PA.  
+Saída: resultado do motor determinístico.
+
+### `simular_correcao`
+Entrada: company + PA + parâmetros.  
+Saída: resultado determinístico persistível.
+
+### `obter_carteira`
+Entrada: PA/filtros.  
+Saída: carteira calculada.
+
+### `obter_empresa_factor_r`
+Entrada: company.  
+Saída: settings/série/resumo necessários ao agente, sem secrets.
+
+## 4. Escritas
+
+Por padrão, agentes não recebem tools que alteram dados finais. Se um fluxo exigir gravação de proposta/trace, a escrita é executada pelo serviço orquestrador após validar schema e regras.
+
+## 5. Erros
+
+Tools retornam erros estruturados e sanitizados. O agente não deve receber stack trace com secret/DSN.

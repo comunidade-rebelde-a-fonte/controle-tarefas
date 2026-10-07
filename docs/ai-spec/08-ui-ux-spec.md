@@ -1,0 +1,206 @@
+# 08 — UI/UX Spec
+
+## 1. Direção
+
+Aplicação desktop-first, densa e operacional, com uma única navegação para os três domínios. A UI deve seguir o **Design System InovaSala** fornecido pelo usuário.
+
+[PENDING] O arquivo/anexo oficial do Design System não está disponível no contexto atual. Portanto:
+
+- não inventar paleta;
+- não inventar tipografia;
+- não inventar tokens de spacing/radius/shadow;
+- não substituir pelo visual atual como decisão definitiva;
+- implementar estrutura semântica e componentes funcionais;
+- bloquear apenas o styling final/QA visual até o material ser disponibilizado.
+
+## 2. Navegação principal
+
+Ordem aprovada:
+
+1. Dashboard
+2. Empresas
+3. Fiscal
+4. Declarações
+5. Contábil
+6. Folha
+7. DCTFWeb
+8. Fator R
+9. Conciliação
+10. Procurações/Certificados
+11. Backlog
+12. Documentos
+13. Relatórios
+14. Configurações
+
+A arquitetura visual (sidebar/topbar/submenus) deve ser derivada do Design System InovaSala quando disponível.
+
+## 3. Dashboard
+
+Preservar cards/indicadores do sistema-base e adicionar seções:
+
+### Fator R
+- Monitoradas.
+- Anexo V / vermelho.
+- 28–30% / amarelo.
+- Seguras / verde.
+- Economia em jogo.
+- Ação sugerida/prioridades.
+
+### Conciliação
+- Processando.
+- Revisão de triagem/extração.
+- Extrato sem comprovante.
+- Comprovante sem extrato.
+- Divergências.
+- Competências prontas para fechamento.
+
+Todos com drill-down.
+
+## 4. Empresas
+
+Listagem atual preservada. Acrescentar indicadores compactos:
+- Fator R atual, quando aplicável.
+- estado da conciliação da competência selecionada.
+- alertas críticos.
+
+Não sobrecarregar a listagem com todos os dados; detalhes ficam na ficha.
+
+## 5. Ficha da empresa
+
+Cabeçalho único com nome, código, CNPJ, regime e ações rápidas existentes.
+
+Subáreas:
+- Visão geral.
+- Obrigações.
+- Fator R.
+- Conciliação.
+- Documentos.
+- Procurações/Certificados.
+- Histórico.
+
+### Visão geral
+
+Cards operacionais:
+- progresso por módulo;
+- próximos vencimentos;
+- Fator R atual e tendência;
+- estado da conciliação;
+- pendências recentes.
+
+## 6. Fator R
+
+### Carteira
+
+Tabela densa com:
+- ação sugerida;
+- empresa;
+- Fator R;
+- anexo;
+- RBT12;
+- FS12;
+- reforço mensal;
+- economia 12 meses;
+- pacote/honorário quando aplicável.
+
+Ordenação padrão original.
+
+### Ficha Fator R
+
+- gráfico/série dos 12+ meses;
+- valores do PA;
+- janela usada;
+- cálculo explicável;
+- simulador;
+- documentos PGDAS;
+- traces/avaliações relacionados.
+
+### Inbox PGDAS
+
+Estados visuais claros:
+- recebido;
+- processando;
+- parsed;
+- precisa revisão;
+- vinculado;
+- rejeitado.
+
+## 7. Conciliação
+
+### Documentos
+
+Lista com status, tipo, banco, período, empresa e diagnóstico.
+
+### Fila de revisão — tela prioritária
+
+Preservar o objetivo original da UI:
+- documento/render à esquerda;
+- dados/candidatos/ações à direita;
+- filtros por bucket, empresa e competência;
+- ações de teclado onde úteis;
+- justificativa do resolvedor visível como sugestão, não como fato.
+
+### Razão
+
+Tabela com filtros e drill-down em cadeia:
+`razão → classificação → conciliação → transação → documento`.
+
+## 8. Documentos consolidados
+
+A área Documentos é um agregador de navegação, não uma promessa de backend de storage único.
+
+Filtros:
+- módulo/origem;
+- empresa;
+- competência/período;
+- tipo;
+- status;
+- banco quando aplicável.
+
+A ação “abrir” leva à experiência específica do módulo.
+
+## 9. Configurações → IA
+
+Tabela de aliases:
+- alias/agente;
+- provider;
+- modelo;
+- status;
+- versão;
+- última alteração.
+
+Edição:
+- provider/model string;
+- parâmetros permitidos conforme capability;
+- botão validar configuração;
+- sem campo de API key.
+
+Exibir texto: “Credenciais são configuradas no ambiente e não ficam salvas nesta tela.”
+
+## 10. Estados obrigatórios
+
+Toda tela nova deve prever:
+- loading;
+- empty;
+- success;
+- validation error;
+- domain error;
+- service unavailable;
+- processing assíncrono;
+- needs review;
+- period closed quando aplicável.
+
+## 11. Acessibilidade
+
+- Preservar suporte por teclado nas grades atuais.
+- Não usar apenas cor para semáforo/status.
+- Foco visível.
+- Labels em controles.
+- Axe sem violações serious/critical no conjunto E2E definido.
+
+## 12. Responsividade
+
+Prioridade desktop/notebook. Telas de tabela e revisão podem exigir viewport largo; em viewport menor devem degradar de forma utilizável, sem ser requisito de operação mobile completa.
+
+## 13. Critério visual
+
+**AC-035** só pode ser concluído com o Design System InovaSala real disponível. Claude Code deve registrar screenshots/evidência visual após aplicar tokens/componentes oficiais.
