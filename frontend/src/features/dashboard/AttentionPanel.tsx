@@ -24,9 +24,11 @@ function CategoryBlock({ category }: { category: Category }) {
       </div>
       <ul className="grid gap-0.5 pl-5.5 text-xs">
         {category.sample.map((it, i) => (
-          <li key={`${it.company.id}:${i}`} className="flex flex-wrap gap-x-1.5">
+          <li key={`${it.company.id}:${i}`} className="flex flex-wrap items-center gap-x-1.5">
+            {/* Alvo de clique com 24 px de altura (WCAG 2.5.8): sem isso, o espaçamento entre as
+                linhas depende da fonte do sistema e o axe acusa target-size fora do macOS. */}
             {it.drilldown ? (
-              <Link className="font-medium hover:underline" to={drilldownHref(it.drilldown)}>
+              <Link className="inline-flex min-h-6 items-center font-medium hover:underline" to={drilldownHref(it.drilldown)}>
                 {it.company.legal_name}
               </Link>
             ) : (
@@ -40,7 +42,7 @@ function CategoryBlock({ category }: { category: Category }) {
         ))}
       </ul>
       {category.drilldown ? (
-        <Link className="pl-5.5 text-xs text-primary hover:underline" to={drilldownHref(category.drilldown)}>
+        <Link className="inline-flex min-h-6 items-center pl-5.5 text-xs text-primary hover:underline" to={drilldownHref(category.drilldown)}>
           Ver todos ({category.count})
         </Link>
       ) : null}

@@ -38,7 +38,7 @@ Mesmos comandos do `Makefile` e do `.github/workflows/ci.yml`.
 |---|---|---|---|
 | Lint | `make lint` | **verde**: golangci-lint com 0 issues; ESLint; `tsc` do frontend e do e2e | 2m48s |
 | Código gerado em dia | `sqlc generate` + `npm run gen:api` + `git diff --exit-code` | **sem diferenças** | — |
-| Testes Go (unidade + integração) | `go test -count=1 ./...` (testcontainers) | **verde**: 25 pacotes `ok`, 0 falhas; 200 funções `Test*`, 28 delas `TestCA*` | 1m41s |
+| Testes Go (unidade + integração) | `go test -count=1 ./...` (testcontainers) | **verde**: 24 pacotes `ok` (mais 11 sem arquivos de teste), 0 falhas; 200 funções `Test*`, 28 delas `TestCA*` | 1m41s |
 | Testes do frontend | `npm test` (Vitest) | **verde**: 31 arquivos, 142/142 testes | 1m27s |
 | Build do frontend | `npx vite build` | **verde** (aviso: chunk maior que 500 kB) | 5s |
 | E2E | `make e2e` | **28 de 29**: os 11 fluxos do PRD §53.3 passam; 1 falha de acessibilidade pré-existente (BL-001) | 3m09s |
@@ -71,6 +71,8 @@ Nenhum foi corrigido na TASK-001: a spec manda registrar falhas pré-existentes 
 
 ### BL-001 — Acessibilidade: `target-size` no Dashboard
 
+**Resolvido** pelo commit `fix(baseline)` (D-010; seção 7).
+
 - **Teste:** `e2e/specs/a11y.spec.ts:27`, "T-M7-04 axe: todas as telas sem violações serious/critical".
 - **Violação:** `target-size [serious]` em `/dashboard?competence=2026-09`. Quatro links de empresa na amostra das categorias do painel "Exige atenção" ficam abaixo de 24 px e sem o espaçamento mínimo.
 - **Origem no código:** `frontend/src/features/dashboard/AttentionPanel.tsx:29`. Os links estão em `text-xs`, dentro de linhas `flex-wrap` com 2 px entre elas (`gap-0.5`).
@@ -83,6 +85,8 @@ Nenhum foi corrigido na TASK-001: a spec manda registrar falhas pré-existentes 
 - **Os outros 4 testes de acessibilidade passam:** diálogos, menus, teclado na grade e status com texto ou ícone.
 
 ### BL-002 — Dependência com vulnerabilidade alta (npm audit)
+
+**Resolvido** pelo commit `fix(baseline)` (D-010; seção 7).
 
 - `source-map-js` 1.0.0–1.2.1, GHSA-68fv-2mgg-jv7q: negação de serviço ao processar source maps.
 - Entra só por dependências de build e teste: `@tailwindcss/vite` → `@tailwindcss/node`; `vite` → `postcss`; `jsdom` → `css-tree`.
@@ -98,16 +102,16 @@ Nenhum foi corrigido na TASK-001: a spec manda registrar falhas pré-existentes 
 
 ## 5. Critério de regressão para as próximas TASKs (AC-004)
 
-Uma TASK não pode piorar nenhum destes números. Teste novo soma; teste removido ou quebrado é regressão.
+Uma TASK não pode piorar nenhum destes números. Teste novo soma; teste removido ou quebrado é regressão. Valores vigentes depois da correção do baseline (seção 7); antes dela, BL-001 e BL-002 eram as únicas falhas toleradas.
 
 | Suíte | Baseline |
 |---|---|
 | `make lint` | 0 issues; ESLint e `tsc` limpos |
 | Código gerado | sem diferenças após `make gen` |
-| `go test -count=1 ./...` | 25 pacotes `ok`, 0 falhas |
-| Vitest | 142 testes passando |
-| `make e2e` | 28 passando; 11 fluxos §53.3 verdes; única falha permitida: BL-001, até ser tratada |
-| `make audit` | govulncheck limpo; npm audit: só o BL-002, até ser tratado |
+| `make test` (Go) | 24 pacotes `ok`, 0 falhas |
+| `make test` (Vitest) | 142 testes passando |
+| `make e2e` | **29 de 29**; 11 fluxos §53.3 verdes |
+| `make audit` | govulncheck limpo; npm audit sem vulnerabilidade alta (frontend e e2e) |
 
 ## 6. Como reproduzir
 
@@ -130,3 +134,27 @@ Para rodar o E2E com o Chromium Linux (mesmo ambiente do CI), com API e SPA no h
 MSYS_NO_PATHCONV=1 docker run -d --rm --init --name pw-linux -p 127.0.0.1:3000:3000 --workdir /home/pwuser --user pwuser mcr.microsoft.com/playwright:v1.63.0-noble /bin/sh -c "npx -y playwright@1.63.0 run-server --port 3000 --host 0.0.0.0"
 PW_TEST_CONNECT_WS_ENDPOINT=ws://127.0.0.1:3000/ PW_TEST_CONNECT_EXPOSE_NETWORK='<loopback>' make e2e
 ```
+
+## 7. Correção do baseline (D-010, 07/10/2026)
+
+Feita antes da TASK-003, num commit `fix(baseline)` separado, para que a régua de regressão comece toda verde. Durante a verificação apareceram mais dois problemas pré-existentes (BL-003 e BL-004), corrigidos no mesmo commit.
+
+| ID | Problema | Correção |
+|---|---|---|
+| BL-001 | `target-size` no painel "Exige atenção" | `AttentionPanel.tsx`: links da amostra e "Ver todos" com altura mínima de 24 px (`inline-flex min-h-6 items-center`, o mesmo padrão de `ModuleGrid.tsx`); a linha alinha o texto auxiliar ao centro |
+| BL-002 | `source-map-js` 1.2.1 (GHSA-68fv-2mgg-jv7q) | `package-lock.json`: só a entrada do `source-map-js` passa para 1.2.2. O `npm audit fix` do npm 11 também apagava as entradas de peer opcional (`ajv`, `fast-uri`) por diferença de versão do npm; isso foi descartado para não gerar ruído |
+| BL-003 | E2E instável: `company-config.spec.ts:44` falhou numa execução com "strict mode violation" | O Toast do Radix anuncia "Notification …" num `role="status"` por cerca de 1 s, e o `getByText` sem `exact` casava com os dois elementos quando a checagem caía nessa janela. Agora usa `{ exact: true }`, como os outros specs que verificam avisos |
+| BL-004 | Testes Go instáveis no Windows: `rootless Docker is not supported on Windows` em pacotes aleatórios | Com ~20 pacotes subindo Postgres em paralelo, o `os.Stat` do testcontainers em `\.\pipe\docker_engine` falha quando o pipe está momentaneamente ocupado e a detecção cai na estratégia rootless. Com `DOCKER_HOST=npipe:////./pipe/docker_engine`, o testcontainers usa o cliente Docker direto (que trata pipe ocupado com nova tentativa). Documentado no README (Testes) e no `.env.example`; definido no `.env` local |
+
+Evidência da correção (Windows, mesmo ambiente da seção 1):
+
+| Suíte | Resultado |
+|---|---|
+| `make lint` | 0 issues; ESLint e `tsc` limpos |
+| `make test`, duas execuções seguidas com paralelismo máximo | 24/24 pacotes Go `ok` nas duas; Vitest 142/142 |
+| `npx vite build` | verde |
+| `make e2e` | **29/29** |
+| `a11y.spec.ts` + `company-config.spec.ts` com Chromium **Linux** (imagem `playwright:v1.63.0-noble`) | 6/6 |
+| `make audit` | govulncheck limpo; npm audit: 0 vulnerabilidades (frontend e e2e) |
+
+Errata: a primeira versão deste documento dizia "25 pacotes `ok`" no Go; o log da execução original mostra 24 (mais 11 pacotes sem arquivos de teste). O conjunto de pacotes é o mesmo antes e depois da correção.

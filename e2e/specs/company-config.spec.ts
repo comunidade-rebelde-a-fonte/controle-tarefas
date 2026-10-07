@@ -41,7 +41,8 @@ test("§53.3-2 configurar regime e módulos: nova vigência de regime e ativaç�
   const payroll = modules.getByRole("row", { name: /^Folha/ });
   await expect(payroll).toContainText("Inativo");
   await payroll.getByRole("button", { name: `Ativar a partir de ${displayCompetence(next)}` }).click();
-  await expect(page.getByText(`Folha ativado a partir de ${displayCompetence(next)}`)).toBeVisible();
+  // exact: o Toast do Radix anuncia "Notification …" num status aria-live por ~1 s (mesmo texto).
+  await expect(page.getByText(`Folha ativado a partir de ${displayCompetence(next)}`, { exact: true })).toBeVisible();
   await expect(payroll).toContainText(`${displayCompetence(next)} – atual: ativo`);
 
   // Persistido: a configuração volta igual depois de recarregar.

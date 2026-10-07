@@ -26,6 +26,11 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 - **Decisão do usuário:** corrigir BL-001 (acessibilidade `target-size` no Dashboard) e BL-002 (`source-map-js`) agora, num commit `fix` separado, antes da TASK-003.
 - **Motivo:** o teste de acessibilidade varre todas as telas num caso só, então enquanto falha esconde violações novas. Com o baseline todo verde, qualquer falha futura é regressão.
+- **Execução:** a verificação da correção revelou mais dois problemas pré-existentes que também impediam um baseline verde e confiável. Os dois entraram no mesmo commit, com a mesma finalidade:
+  - BL-003: asserção instável de aviso no E2E;
+  - BL-004: detecção do Docker pelo testcontainers no Windows sob paralelismo.
+
+  Detalhes e evidências em `baseline.md` §7.
 
 ### D-009 — Parser PGDAS-D determinístico: C-001 resolvido com a opção A (07/10/2026)
 
