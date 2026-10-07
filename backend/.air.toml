@@ -6,7 +6,7 @@ tmp_dir = "tmp"
   cmd = "go build -o ./tmp/api ./cmd/api"
   entrypoint = ["./tmp/api", "serve"]
   include_ext = ["go", "sql", "yaml"]
-  exclude_dir = ["tmp", "bin", "testdata"]
+  exclude_dir = ["tmp", "tmp-worker", "bin", "testdata"]
   exclude_regex = ["_test\\.go$"]
   delay = 500
   # Bind mount no macOS: polling é mais confiável que eventos do sistema de arquivos.

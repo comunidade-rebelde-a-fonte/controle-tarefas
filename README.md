@@ -21,12 +21,15 @@ Documentação do projeto:
 ## Estrutura
 
 ```text
-backend/    API Go (cmd/api, internal/<domínio>, migrations, queries, seed, api/openapi.yaml)
+backend/    API Go (cmd/api, internal/<domínio>, migrations, queries, seed, api/openapi.yaml);
+            o mesmo binário roda o worker dos jobs assíncronos (`api worker`)
 frontend/   SPA React + TypeScript + Vite
 e2e/        testes Playwright
-docker/     scripts de inicialização do Postgres
-scripts/    backup e restauração
-docs/       PRD, plano, tarefas, decisões, pendências
+docker/     inicialização do Postgres, do MinIO (bucket versionado) e configuração do Langfuse
+litellm/    aliases de modelo do gateway LiteLLM
+n8n/        workflows de ingestão e a pasta monitorada (n8n/inbox, não versionada)
+scripts/    backup, restauração e saúde dos serviços
+docs/       PRD, plano, tarefas, decisões, pendências; docs/ai-spec e docs/consolidacao (consolidação)
 ```
 
 ## Comandos
@@ -36,7 +39,10 @@ Execute `make help` para a lista completa.
 | Comando | O que faz |
 |---|---|
 | `make tools` | Instala as ferramentas de desenvolvimento (sqlc, goose, golangci-lint, air) |
-| `make dev` | Sobe banco, API e SPA |
+| `make dev` | Sobe banco, API, SPA, worker, MinIO, LiteLLM e n8n (e inicializa o bucket do MinIO) |
+| `make langfuse-up` / `make langfuse-down` | Sobe ou para o Langfuse self-hosted (compose dedicado, mais pesado) |
+| `make dev-all` | `make dev` + `make langfuse-up` |
+| `make health` | Saúde de cada serviço local; sai com erro se um obrigatório estiver fora |
 | `make db-up` / `make db-down` | Sobe ou para somente o banco |
 | `make db-reset` | **Apaga** e recria os bancos locais |
 | `make db-psql` | Abre o `psql` no banco de desenvolvimento |
@@ -69,8 +75,25 @@ Execute `make help` para a lista completa.
 | API | 8080 | `HTTP_PORT` |
 | SPA (Vite) | 5173 | — |
 | API/SPA do E2E | 8091 / 5174 | `E2E_API_PORT` / `E2E_WEB_PORT` |
+| MinIO (API S3 / console) | 9000 / 9001 | `MINIO_PORT` / `MINIO_CONSOLE_PORT` |
+| LiteLLM | 4000 | `LITELLM_PORT` |
+| n8n | 5678 | `N8N_PORT` |
+| Langfuse (web / MinIO interno) | 3100 / 9190 | `LANGFUSE_WEB_PORT` / `LANGFUSE_MINIO_PORT` |
+| Worker (healthcheck, só dentro do container) | 8090 | — |
 
-Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare o outro serviço).
+Se alguma porta estiver ocupada por outro programa, mude-a no `.env` (não pare o outro serviço). As portas dos serviços auxiliares ficam publicadas só em `127.0.0.1`.
+
+## Serviços auxiliares (consolidação)
+
+O produto consolida o Controle de Tarefas com a Plataforma Fator R e a Conciliação Contábil (`docs/ai-spec/`). Os serviços dos módulos de origem continuam fazendo parte do funcionamento [ADR-002]:
+
+| Serviço | Para quê | Observações |
+|---|---|---|
+| worker | Jobs assíncronos (fila em PostgreSQL a partir da TASK-005) | Mesmo binário da API (`api worker`), processo e container separados; healthcheck em `/health` |
+| MinIO | Originais da Conciliação, imutáveis | Bucket `S3_BUCKET` versionado; o usuário da aplicação (`S3_ACCESS_KEY`) não tem permissão de apagar (`docker/minio/init.sh`). Imagem da Chainguard fixada por digest (a MinIO deixou de publicar imagens da edição comunitária) |
+| LiteLLM | Gateway de modelos dos agentes, por alias | Chaves dos provedores só no `.env` (`OPENAI_API_KEY`); nunca no repositório, banco ou interface |
+| n8n | Ingestão automatizada: arquivos colocados em `n8n/inbox/` são enviados à API | A demonstração usa upload manual; o workflow (`n8n/workflows/ingestao.json`) é adaptado ao endpoint novo na TASK-015 |
+| Langfuse | Traces e avaliações dos agentes (self-hosted) | Compose próprio (`docker-compose.langfuse.yml`); informativo: fora do ar, o domínio continua |
 
 ## Dados de referência e demonstração
 

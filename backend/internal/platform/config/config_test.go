@@ -23,6 +23,19 @@ func TestLoad_Defaults(t *testing.T) {
 	if cfg.MigrateOnBoot {
 		t.Fatal("MIGRATE_ON_BOOT deve ser false em dev")
 	}
+	if cfg.WorkerID != "worker-local" || cfg.WorkerHealthPort != 8090 {
+		t.Fatalf("worker = %q:%d", cfg.WorkerID, cfg.WorkerHealthPort)
+	}
+}
+
+func TestLoad_Worker(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "WORKER_ID": " worker-dev ", "WORKER_HEALTH_PORT": "9191"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.WorkerID != "worker-dev" || cfg.WorkerHealthPort != 9191 {
+		t.Fatalf("worker = %q:%d", cfg.WorkerID, cfg.WorkerHealthPort)
+	}
 }
 
 func TestLoad_ProductionMigratesOnBoot(t *testing.T) {
@@ -45,6 +58,7 @@ func TestLoad_Invalid(t *testing.T) {
 		"fixed mal formatado": {"DATABASE_URL": "x", "APP_FIXED_TIME": "01/10/2026"},
 		"env desconhecido":    {"DATABASE_URL": "x", "APP_ENV": "staging"},
 		"max conns zero":      {"DATABASE_URL": "x", "DB_MAX_CONNS": "0"},
+		"porta do worker":     {"DATABASE_URL": "x", "WORKER_HEALTH_PORT": "70000"},
 	}
 	for name, m := range cases {
 		t.Run(name, func(t *testing.T) {

@@ -25,6 +25,8 @@ $(error DB inválido: "$(DB)". Use dev, e2e ou perf)
 endif
 
 COMPOSE := docker compose
+# Langfuse self-hosted em compose dedicado (pesado: Postgres, ClickHouse, Redis e MinIO próprios).
+COMPOSE_LF := docker compose -f docker-compose.langfuse.yml
 
 # Ferramentas de desenvolvimento, instaladas em .bin/ com versões fixadas (make tools).
 BIN := $(CURDIR)/.bin
@@ -50,7 +52,7 @@ E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -64,15 +66,34 @@ tools: ## Instala as ferramentas de desenvolvimento (sqlc, goose, golangci-lint,
 	GOBIN=$(BIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 	@echo "ferramentas instaladas em $(BIN)"
 
-dev: ## Sobe o ambiente completo (db + api + web) e espera ficar healthy
-	$(COMPOSE) up -d --wait db api web
+dev: ## Sobe o ambiente (db, api, web, worker, MinIO, LiteLLM, n8n) e espera ficar healthy
+	$(COMPOSE) up -d --wait db api web worker minio litellm n8n
+	$(COMPOSE) run --rm minio-init
 	@echo ">>> SPA: http://localhost:5173  |  API: http://localhost:$${HTTP_PORT:-8080}/api/v1/health"
+	@echo ">>> MinIO: http://localhost:$${MINIO_CONSOLE_PORT:-9001}  |  LiteLLM: http://localhost:$${LITELLM_PORT:-4000}  |  n8n: http://localhost:$${N8N_PORT:-5678}"
+	@echo ">>> Langfuse (opcional, pesado): make langfuse-up  |  saúde de tudo: make health"
+
+dev-all: dev langfuse-up ## Sobe o ambiente de desenvolvimento e o Langfuse
 
 dev-logs: ## Acompanha os logs do ambiente de desenvolvimento
 	$(COMPOSE) logs -f --tail=100
 
-dev-down: ## Para o ambiente de desenvolvimento (dados preservados)
+dev-down: ## Para o ambiente de desenvolvimento e o Langfuse (dados preservados)
 	$(COMPOSE) stop
+	-@$(COMPOSE_LF) stop
+
+langfuse-up: ## Sobe o Langfuse self-hosted (traces e evals dos agentes) e espera ficar healthy
+	$(COMPOSE_LF) up -d --wait
+	@echo ">>> Langfuse: http://localhost:$${LANGFUSE_WEB_PORT:-3100} (usuário: LANGFUSE_ADMIN_EMAIL do .env)"
+
+langfuse-down: ## Para o Langfuse (dados preservados)
+	$(COMPOSE_LF) stop
+
+langfuse-logs: ## Acompanha os logs do Langfuse
+	$(COMPOSE_LF) logs -f --tail=100
+
+health: ## Mostra a saúde de cada serviço local (API, banco, worker, MinIO, LiteLLM, n8n, Langfuse)
+	@scripts/health.sh
 
 db-up: ## Sobe somente o banco e espera ficar healthy
 	$(COMPOSE) up -d --wait db

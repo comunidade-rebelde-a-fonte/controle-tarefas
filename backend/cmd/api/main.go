@@ -2,6 +2,7 @@
 //
 //	api                               inicia o servidor (padrão)
 //	api serve                         inicia o servidor
+//	api worker                        inicia o worker dos jobs assíncronos (processo separado)
 //	api migrate up|down|status|reset  gerencia as migrations embutidas
 //	api seed [--demo]                 carrega dados de referência (e de demonstração)
 package main
@@ -12,6 +13,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -25,6 +27,7 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
 	"controle/internal/platform/migrate"
+	"controle/internal/worker"
 	"controle/seed"
 )
 
@@ -52,13 +55,29 @@ func run(ctx context.Context, args []string, getenv func(string) string, stdout 
 	switch cmd {
 	case "serve":
 		return serve(ctx, cfg, logger)
+	case "worker":
+		return runWorker(ctx, cfg, logger)
 	case "migrate":
 		return runMigrate(ctx, cfg, args, stdout)
 	case "seed":
 		return runSeed(ctx, cfg, args, stdout)
 	default:
-		return fmt.Errorf("comando desconhecido %q (use: serve, migrate, seed)", cmd)
+		return fmt.Errorf("comando desconhecido %q (use: serve, worker, migrate, seed)", cmd)
 	}
+}
+
+func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) error {
+	pool, err := db.NewPool(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
+	if err != nil {
+		return err
+	}
+	defer pool.Close()
+	var lc net.ListenConfig
+	ln, err := lc.Listen(ctx, "tcp", ":"+strconv.Itoa(cfg.WorkerHealthPort))
+	if err != nil {
+		return fmt.Errorf("worker: abrir a porta do healthcheck: %w", err)
+	}
+	return worker.Run(ctx, worker.Deps{ID: cfg.WorkerID, DB: pool, Logger: logger}, ln)
 }
 
 func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {

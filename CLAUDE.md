@@ -49,6 +49,8 @@ Confirme no Makefile real antes de usar. O baseline atual inclui comandos equiva
 - `make test`
 - `make e2e`
 
+Desde a TASK-003: `make dev` também sobe worker, MinIO, LiteLLM e n8n; `make langfuse-up` / `make dev-all` sobem o Langfuse (compose dedicado); `make health` mostra a saúde de todos os serviços.
+
 Não invente comando que não existe: crie/atualize Makefile quando a TASK exigir.
 
 ## Regras de engenharia

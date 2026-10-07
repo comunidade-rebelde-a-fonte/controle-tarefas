@@ -146,7 +146,7 @@ Preservado por inteiro (REQ-004, REQ-006). O inventário é a matriz do `docs/ta
 Registradas agora para não se perderem; cada uma é tratada na TASK indicada.
 
 1. **Extração de texto de PDF (TASK-012 e TASK-016).** O Fator R usa pdfplumber/pypdf e o Conciliador usa PyMuPDF. O parser do Fator R é por regex sobre o texto extraído, então outra biblioteca pode mudar espaços e ordem do texto e quebrar a equivalência. O golden das 14 fixtures de `fixtures/pgdas/` precisa passar com a biblioteca escolhida em Go.
-2. **Imagens sem versão fixa no Conciliador (TASK-003).** `quay.io/minio/minio:latest`, `minio/mc:latest`, `litellm:main-latest` e `n8nio/n8n:latest`. O `AGENTS.md` do projeto-base exige imagens com versão fixada.
+2. **Imagens sem versão fixa no Conciliador (TASK-003).** `quay.io/minio/minio:latest`, `minio/mc:latest`, `litellm:main-latest` e `n8nio/n8n:latest`. O `AGENTS.md` do projeto-base exige imagens com versão fixada. **Resolvido na TASK-003 (D-013).** Na verificação, as imagens `quay.io/minio/*` já não existiam: o compose de origem do Conciliador não sobe mais.
 3. **Modelos padrão do Conciliador eram Anthropic** (Haiku 4.5 no triador, Sonnet 4.5 no extrator e no resolvedor). A ADR-004 troca para OpenAI; os nomes concretos ficam em `.env` (Q-003).
 4. **Escalada do extrator:** na 3ª tentativa, o alias `extrator` resolve o modelo de `extrator_forte` (`app/agentes/llm.py`). Preservar.
 5. **O Fator R usa a Anthropic direto**, sem LiteLLM e só para `plan` e `render`. A ADR-004 passa esse uso para o LiteLLM.

@@ -4,6 +4,51 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-013 — Infraestrutura consolidada da TASK-003 (07/10/2026, decisões técnicas dentro da autonomia da spec)
+
+A spec autoriza alterar Docker Compose e Makefile sem aprovação prévia (15-agent-execution-prompt); as escolhas abaixo ficam registradas para revisão.
+
+- **MinIO.**
+  - **Imagem:** `cgr.dev/chainguard/minio`, fixada por digest (MinIO `RELEASE.2026-09-22`).
+  - **Motivo:** a MinIO deixou de publicar imagens da edição comunitária. `quay.io/minio/minio` e `quay.io/minio/mc` não existem mais, nem `latest` nem tags `RELEASE.*`. Por isso o compose do Conciliador de origem **não sobe hoje**.
+  - O Langfuse do Fator R já usava a imagem da Chainguard; a mesma imagem serve aos dois MinIO e ao `minio-init` (ela traz `sh` e `mc`).
+  - A Chainguard gratuita só publica `latest`, então a versão é fixada pelo digest.
+- **Original imutável também no storage.**
+  - Antes, o Conciliador usava a credencial raiz no app. Agora o `minio-init` cria um usuário da aplicação (`S3_ACCESS_KEY`).
+  - A política desse usuário permite gravar, ler e listar versões, e **nega** apagar objeto, apagar versão, apagar o bucket, suspender o versionamento e mudar ciclo de vida ou política.
+  - A credencial de administrador (`S3_ROOT_*`) só é usada pelo `minio-init`.
+- **`minio-init` avulso.** Roda como etapa do `make dev` (`docker compose run --rm minio-init`) e é idempotente. Nenhum serviço depende do MinIO para subir: com ele fora, API e worker continuam saudáveis e só o upload da Conciliação falha (runbook 11 §9; testado).
+- **Langfuse em compose dedicado** (`docker-compose.langfuse.yml`, projeto `controle-langfuse`).
+  - Comandos: `make langfuse-up` ou `make dev-all`; `make dev-down` para tudo.
+  - Motivo: são cerca de 2,4 GiB de RAM só para ele (RISK-008), e o domínio não depende dele (AC-030).
+  - Organização e projeto passam a "Controle Integrado" / `controle-integrado-dev`.
+  - Ganhou healthchecks no web e no worker.
+- **Worker:**
+  - subcomando `worker` do mesmo binário, em processo e container separados (04 §7);
+  - healthcheck HTTP próprio em `/health`, porta 8090 só dentro do container;
+  - hot reload com `.air.worker.toml` e diretório de build próprio (`tmp-worker/`).
+- **Portas novas** publicadas só em `127.0.0.1` (09 §8). As portas existentes (Postgres, API, SPA) ficaram como estavam.
+- **Versões fixadas:**
+
+  | Serviço | Imagem |
+  |---|---|
+  | LiteLLM | `ghcr.io/berriai/litellm:v1.104.0` |
+  | n8n | `n8nio/n8n:2.42.4` |
+  | Langfuse | `langfuse:4.53.0` e `langfuse-worker:4.53.0` |
+  | ClickHouse | `25.12.11.4` |
+  | Redis | `7.4.11-bookworm` |
+  | Postgres do Langfuse | `17.11-bookworm` |
+
+  A origem usava `latest`/`main-latest` no Conciliador e só a versão maior (`4`, `7`, `17`) no Langfuse.
+- **Preservado como na origem, adaptado depois:**
+  - `litellm/config.yaml` (aliases e padrões Anthropic do Conciliador) → OpenAI configurável na TASK-004;
+  - `n8n/workflows/ingestao.json`, que aponta para `http://app:8000/ingestao/arquivo` → endpoint novo na TASK-015. A pasta `n8n/inbox`, que o workflow observa e a origem não montava, agora é montada.
+- **`.env.example`:** valores `dev-only` que funcionam localmente, na convenção do projeto-base. Não são segredos reais; para qualquer uso fora da máquina local, gerar valores próprios.
+- **Ponto aberto para a TASK-009:**
+  - API e worker (projeto `controle`) precisam alcançar o Langfuse (projeto `controle-langfuse`). Hoje estão em redes diferentes, e o Langfuse só publica em `127.0.0.1`.
+  - Opções: rede externa compartilhada entre os dois projetos, ou `host.docker.internal`. Esta funciona no Docker Desktop, mas não no Linux com bind em loopback.
+  - A decisão vai junto com a sincronização dos traces.
+
 ### D-012 — Agente `echo` fora do porte (07/10/2026)
 
 - **Decisão do usuário:** o agente `echo` do Fator R (FR-23), ferramenta de dev para exercitar o tracer, não é portado. O tracer fica coberto por testes automatizados na TASK-009.

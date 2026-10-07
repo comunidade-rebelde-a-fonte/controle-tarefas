@@ -92,9 +92,136 @@ services:
       retries: 60
       start_period: 60s
 
+  # --- Consolidação (TASK-003): serviços auxiliares do Fator R e da Conciliação [ADR-002] ---
+  # Portas novas publicadas só em 127.0.0.1 [spec 09 §8]. Langfuse: docker-compose.langfuse.yml.
+
+  # Jobs assíncronos: mesmo binário da API, subcomando `worker`, processo separado [spec 04 §7].
+  worker:
+    image: golang:1.26.8-bookworm
+    working_dir: /app/backend
+    command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.worker.toml"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-controle}:${POSTGRES_PASSWORD:-dev-only-change-me}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+      APP_ENV: ${APP_ENV:-development}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      FILE_STORAGE_DIR: /app/storage
+      DB_MAX_CONNS: ${WORKER_DB_MAX_CONNS:-5}
+      WORKER_ID: ${WORKER_ID:-worker-dev}
+      WORKER_HEALTH_PORT: 8090
+      GOFLAGS: -buildvcs=false
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+      - gomodcache:/go/pkg/mod
+      - gobuildcache:/root/.cache/go-build
+      - gobin:/go/bin
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8090/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+  # Originais da Conciliação: bucket versionado; o usuário da aplicação não apaga [spec 09 §5].
+  # Imagem da Chainguard fixada por digest: a MinIO deixou de publicar imagens da edição
+  # comunitária (quay.io/minio/* não existe mais) [docs/consolidacao/decisoes.md D-013].
+  minio:
+    image: cgr.dev/chainguard/minio:latest@sha256:e7ca559d9f7c0b5f24f5f669bb92f40f3ca88d56273b808bf3a7c116c17d2ffa
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      MINIO_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:-dev-only-change-me}
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  # Execução avulsa e idempotente (make dev: compose run --rm minio-init). Nenhum serviço depende
+  # dela: com o MinIO fora, só o upload da Conciliação falha [spec 11 §9].
+  minio-init:
+    image: cgr.dev/chainguard/minio:latest@sha256:e7ca559d9f7c0b5f24f5f669bb92f40f3ca88d56273b808bf3a7c116c17d2ffa
+    entrypoint: ["sh", "/scripts/init.sh"]
+    environment:
+      S3_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      S3_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:-dev-only-change-me}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-only-change-me-app}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+    volumes:
+      - ./docker/minio/init.sh:/scripts/init.sh:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
+  # Gateway de modelos dos agentes [ADR-004]. Configuração: litellm/config.yaml.
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.104.0
+    restart: unless-stopped
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      TRIADOR_MODEL: ${TRIADOR_MODEL:-anthropic/claude-haiku-4-5}
+      EXTRATOR_MODEL: ${EXTRATOR_MODEL:-anthropic/claude-sonnet-4-5}
+      RESOLVEDOR_MODEL: ${RESOLVEDOR_MODEL:-anthropic/claude-sonnet-4-5}
+      EXTRATOR_FORTE_MODEL: ${EXTRATOR_FORTE_MODEL:-anthropic/claude-sonnet-4-5}
+    ports:
+      - "127.0.0.1:${LITELLM_PORT:-4000}:4000"
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # Ingestão automatizada (pasta monitorada → API). A demonstração usa upload manual [spec 04 DEC-008].
+  n8n:
+    image: n8nio/n8n:2.42.4
+    restart: unless-stopped
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:${N8N_PORT:-5678}/
+      GENERIC_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      TZ: ${APP_TIMEZONE:-America/Sao_Paulo}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      # O workflow de ingestão (n8n/workflows) observa /data/inbox.
+      N8N_RESTRICT_FILE_ACCESS_TO: /data/inbox
+    ports:
+      - "127.0.0.1:${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+      - ./n8n/inbox:/data/inbox
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5678/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+
 volumes:
   pgdata:
   web_node_modules:
   gomodcache:
   gobuildcache:
   gobin:
+  minio_data:
+  n8n_data:

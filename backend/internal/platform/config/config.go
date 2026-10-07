@@ -37,6 +37,10 @@ type Config struct {
 	// FixedTime congela o relógio da aplicação (somente fora de produção).
 	// Usado pelos testes E2E para datas determinísticas.
 	FixedTime *time.Time
+	// WorkerID identifica o processo worker (subcomando `worker`) nos logs.
+	WorkerID string
+	// WorkerHealthPort é a porta do healthcheck do worker, que roda separado da API.
+	WorkerHealthPort int
 }
 
 // IsProduction indica se a aplicação roda em produção.
@@ -128,6 +132,13 @@ func Load(getenv func(string) string) (Config, error) {
 			}
 		}
 	}
+
+	cfg.WorkerID = orDefault(getenv("WORKER_ID"), "worker-local")
+	workerPort, err := strconv.Atoi(orDefault(getenv("WORKER_HEALTH_PORT"), "8090"))
+	if err != nil || workerPort <= 0 || workerPort > 65535 {
+		errs = append(errs, fmt.Errorf("WORKER_HEALTH_PORT inválida: %q", getenv("WORKER_HEALTH_PORT")))
+	}
+	cfg.WorkerHealthPort = workerPort
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

@@ -1,0 +1,32 @@
+{
+  "name": "Vera ingestão pasta",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "/data/inbox",
+        "triggerOn": "add"
+      },
+      "name": "Watch folder",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://app:8000/ingestao/arquivo",
+        "sendBody": true,
+        "contentType": "multipart-form-data"
+      },
+      "name": "POST ingestão",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [260, 0]
+    }
+  ],
+  "connections": {
+    "Watch folder": {
+      "main": [[{ "node": "POST ingestão", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -15,7 +15,10 @@ e2e
 frontend/dist
 frontend/coverage
 backend/tmp
+backend/tmp-worker
 backend/bin
+# Documentos de clientes na pasta monitorada pelo n8n: nunca no contexto de build.
+n8n/inbox
 **/*.log
 **/*.test
 **/coverage.*

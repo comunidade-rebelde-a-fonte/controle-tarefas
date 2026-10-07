@@ -1,0 +1,25 @@
+# Aliases de modelo do LiteLLM (gateway dos agentes). Origem: conciliador-contabil@2bc6e26
+# (litellm/config.yaml), preservado na TASK-003. A TASK-004 adapta para OpenAI configurável.
+model_list:
+  - model_name: triador
+    litellm_params:
+      model: os.environ/TRIADOR_MODEL
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: extrator
+    litellm_params:
+      model: os.environ/EXTRATOR_MODEL
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: resolvedor
+    litellm_params:
+      model: os.environ/RESOLVEDOR_MODEL
+      api_key: os.environ/ANTHROPIC_API_KEY
+  - model_name: extrator_forte
+    litellm_params:
+      model: os.environ/EXTRATOR_FORTE_MODEL
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+litellm_settings:
+  drop_params: true
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY

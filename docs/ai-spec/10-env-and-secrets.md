@@ -27,12 +27,13 @@ Variáveis necessárias, sem valores:
 | Nome | Finalidade | Secret? |
 |---|---|---:|
 | `S3_ENDPOINT` | endpoint interno MinIO | não |
-| `S3_ACCESS_KEY` | usuário de storage | sim |
+| `S3_ACCESS_KEY` | usuário de storage da aplicação, sem permissão de apagar (TASK-003) | sim |
 | `S3_SECRET_KEY` | credencial de storage | sim |
 | `S3_BUCKET` | bucket de originais | não |
 | `S3_REGION` | compatibilidade S3 | não |
+| `S3_ROOT_USER` / `S3_ROOT_PASSWORD` | administrador do MinIO; usado só pelo `minio-init` (bucket, versionamento, usuário e política), nunca pela aplicação | sim |
 
-Preservar versionamento do bucket e ausência de delete no fluxo normal.
+Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a TASK-003, a ausência de delete também é garantida no storage: a política do usuário da aplicação nega exclusão de objeto, de versão e do bucket, e a suspensão do versionamento (`docker/minio/init.sh`, D-013).
 
 ## 4. LiteLLM / OpenAI
 
@@ -82,13 +83,18 @@ Preservar as variáveis do stack self-hosted atual, como:
 
 ## 7. n8n
 
-Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de canal externo até existir fluxo solicitado.
+Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de canal externo até existir fluxo solicitado. `N8N_PORT`: porta do editor no host (só 127.0.0.1).
 
 ## 8. Jobs
 
 - `WORKER_ID`
+- `WORKER_HEALTH_PORT` (healthcheck do worker; padrão 8090, só dentro do container) e `WORKER_DB_MAX_CONNS` (pool do worker no compose), desde a TASK-003
 - `JOB_MAX_TENTATIVAS`
 - parâmetros de polling/backoff se já existirem ou forem necessários.
+
+## 8.1 Portas dos serviços auxiliares (host, só 127.0.0.1)
+
+`MINIO_PORT`, `MINIO_CONSOLE_PORT`, `LITELLM_PORT`, `N8N_PORT`, `LANGFUSE_WEB_PORT`, `LANGFUSE_MINIO_PORT`. Valores padrão no `README.md` (Portas locais).
 
 ## 9. Regras
 

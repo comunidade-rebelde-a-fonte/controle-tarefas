@@ -1,0 +1,6 @@
+<clickhouse>
+    <!-- Habilita BACKUP/RESTORE nativo em /backups (usado por infra/backup/backup.sh). -->
+    <backups>
+        <allowed_path>/backups/</allowed_path>
+    </backups>
+</clickhouse>
