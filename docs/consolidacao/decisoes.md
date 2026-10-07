@@ -4,6 +4,34 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-012 — Agente `echo` fora do porte (07/10/2026)
+
+- **Decisão do usuário:** o agente `echo` do Fator R (FR-23), ferramenta de dev para exercitar o tracer, não é portado. O tracer fica coberto por testes automatizados na TASK-009.
+
+### D-011 — Capacidades não citadas pela spec entram no escopo (07/10/2026)
+
+- **Decisão do usuário:** "se precisamos das capacidades, temos que desenvolver." Toda capacidade da origem não citada pela spec (`fontes.md` §4) é desenvolvida.
+- **Distribuição:** `docs/ai-spec/13-implementation-plan.md` §12, assim:
+  - FR-03 → TASK-014;
+  - FR-07 → TASK-011/014;
+  - FR-15 → TASK-013;
+  - FR-19 → TASK-013/014;
+  - CC-08 → TASK-016;
+  - CC-09 → TASK-021;
+  - CC-12 → TASK-017/021;
+  - CC-22 → TASK-021/024.
+- **Nova TASK-031 (M6, antes da TASK-030):** execução local completa fora do modo dev + backup e restauração de todos os armazenamentos (FR-21). A lacuna veio do próprio projeto-base: o `docker-compose.prod.yml` sobe só `app` + `db`, e o `scripts/backup.sh` cobre só o banco e os arquivos de procurações. Sem essa TASK, o produto consolidado instalado fora do modo dev ficaria sem worker, MinIO, LiteLLM, n8n e Langfuse.
+
+### D-010 — Corrigir o baseline antes da TASK-003 (07/10/2026)
+
+- **Decisão do usuário:** corrigir BL-001 (acessibilidade `target-size` no Dashboard) e BL-002 (`source-map-js`) agora, num commit `fix` separado, antes da TASK-003.
+- **Motivo:** o teste de acessibilidade varre todas as telas num caso só, então enquanto falha esconde violações novas. Com o baseline todo verde, qualquer falha futura é regressão.
+
+### D-009 — Parser PGDAS-D determinístico: C-001 resolvido com a opção A (07/10/2026)
+
+- **Decisão do usuário:** opção A, ou seja, portar o parser determinístico (regex), sem chamada de modelo em nenhuma etapa. `parser_pgdas` continua sendo o agente de trace, decisão e avaliação, mas não tem alias no LiteLLM.
+- **Registro:** ADR-006. Documentos da spec ajustados: `CLAUDE.md` (IA), `04-system-design` §8, `07-flows` F-002, `10-env-and-secrets` §5, `ai-behavior-spec` §2, `prompt-spec` §3, `eval-plan` §2, `13-implementation-plan` (TASK-004).
+
 ### D-008 — Alias `classificador` (proposta técnica, TASK-004)
 
 - **Contexto:** a spec lista `classificador` "quando necessário". No Conciliador, o agente de classificação usa o alias `resolvedor` (`app/agentes/classificador.py`).
@@ -66,9 +94,9 @@ C:\Desenvolvimento\controle-a-fonte\
   spec\                              pacote original da spec (cópia versionada aqui)
 ```
 
-## 2. Conflitos que aguardam decisão
+## 2. Conflitos
 
-### C-001 — `parser_pgdas`: extração por LLM (spec) × parser determinístico (origem)
+### C-001 — `parser_pgdas`: extração por LLM (spec) × parser determinístico (origem) — **resolvido (D-009, ADR-006)**
 
 - **Spec de consolidação:**
   - F-002 diz "Worker resolve alias `parser_pgdas` no LiteLLM → extrair campos + confiança";
@@ -85,16 +113,16 @@ C:\Desenvolvimento\controle-a-fonte\
   - **A (recomendada):** portar o parser determinístico para Go, com a mesma regex, confiança e versão, provado pelo golden das 14 fixtures. `parser_pgdas` continua sendo o nome do agente, mas sem chamada de modelo; o alias não é criado, ou fica reservado e desabilitado.
   - **B:** parser determinístico primeiro; LLM só como sugestão para documento que o regex não lê, sempre em `needs_review` e sem gravar nada. Isso é capacidade nova e exige ADR.
   - **C:** extração por LLM como a spec descreve. Exige ADR, golden novo e aceite explícito da troca de comportamento.
-- **Status:** aguardando decisão do usuário, antes da TASK-004.
+- **Status:** resolvido em 07/10/2026 com a opção A (D-009, ADR-006).
 
-## 3. Pendências abertas
+## 3. Pendências
 
-| ID | Pendência | Recomendação | Quando |
-|---|---|---|---|
-| P-001 | BL-001 (a11y `target-size` no Dashboard, `docs/consolidacao/baseline.md` §3) | Corrigir já, num commit `fix` separado antes da TASK-003. Enquanto o teste falha, ele esconde violações novas nas outras telas. | antes da TASK-003 |
-| P-002 | BL-002 (`source-map-js`, npm audit alto) | `npm audit fix` no frontend, no mesmo commit de correções do baseline | antes da TASK-003 |
-| P-003 | Capacidades não citadas pela spec (`fontes.md` §4): FR-15 rotina semanal do priorizador, FR-19 disclaimer em todas as telas do módulo, FR-21 backup completo, CC-08 importação determinística de extrato (CSV/TXT/texto do PDF), CC-12 lançamentos manuais/CSV, telas de playbooks e métricas | Incluir no escopo, nas TASKs indicadas, pela regra "preservar 100%" | confirmação do usuário |
-| P-004 | FR-23 agente `echo` (ferramenta de dev do Fator R) | Não portar como agente; cobrir o tracer com testes automatizados | confirmação do usuário |
+| ID | Pendência | Situação |
+|---|---|---|
+| P-001 | BL-001 (a11y `target-size` no Dashboard, `baseline.md` §3) | aprovado: corrigir antes da TASK-003 (D-010) |
+| P-002 | BL-002 (`source-map-js`, npm audit alto) | aprovado: corrigir antes da TASK-003 (D-010) |
+| P-003 | Capacidades não citadas pela spec | aprovado: entram no escopo (D-011) |
+| P-004 | FR-23 agente `echo` | aprovado: não portar (D-012) |
 
 ### Pendências herdadas (permanecem pendentes; não resolver por suposição)
 

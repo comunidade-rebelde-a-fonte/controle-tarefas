@@ -89,6 +89,9 @@
 - **TEST-028** exportação XLSX/CSV.
 - **TEST-029** Design System/visual/a11y.
 - **TEST-030** E2E consolidado + revisão final.
+- **TEST-031** execução local completa + backup e restauração de todos os armazenamentos (adendo D-011, `13-implementation-plan.md` §12).
+
+As capacidades incluídas pelo adendo D-011 (FR-03, FR-07, FR-15, FR-19, FR-21, CC-08, CC-09, CC-12, CC-22) entram no aceite das TASKs indicadas em `13-implementation-plan.md` §12 e são conferidas na TASK-030 contra `docs/consolidacao/fontes.md` §4.
 
 ## Baseline de fontes
 

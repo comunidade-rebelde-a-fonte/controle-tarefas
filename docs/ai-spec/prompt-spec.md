@@ -24,6 +24,8 @@ Todo prompt deve conter:
 
 ## 3. Parser PGDAS
 
+Não há prompt: o parser é determinístico (ADR-006). As regras abaixo valem para o código do parser.
+
 Deve extrair somente os campos definidos no PRD de origem e distinguir:
 - campo presente;
 - campo ausente;

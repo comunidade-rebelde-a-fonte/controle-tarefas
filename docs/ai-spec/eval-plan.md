@@ -8,6 +8,8 @@ Provar que o porte para Go/LiteLLM/OpenAI preserva ou melhora o comportamento ob
 
 ### Parser PGDAS
 
+O parser é determinístico (ADR-006). O golden compara a implementação Go com o parser de referência do Fator R nas 14 fixtures de `apps/api/fixtures/pgdas/`, campo a campo, com confiança e lacunas conhecidas.
+
 Golden por documento:
 - CNPJ;
 - PA;

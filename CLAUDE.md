@@ -85,10 +85,11 @@ Aliases esperados:
 - `extrator`
 - `extrator_forte`
 - `resolvedor`
-- `parser_pgdas`
 - `consultor`
 - `priorizador`
 - `classificador` quando necessário
+
+`parser_pgdas` é agente **determinístico**: regex, sem chamada de modelo e sem alias no LiteLLM (ADR-006).
 
 Provider inicial: OpenAI, mas modelo concreto não é hardcoded.
 

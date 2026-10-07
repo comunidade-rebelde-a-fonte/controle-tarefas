@@ -169,10 +169,11 @@ Manter aliases e expandir para todos os agentes:
 - `extrator`
 - `extrator_forte`
 - `resolvedor`
-- `parser_pgdas`
 - `consultor`
 - `priorizador`
 - `classificador` (se o fluxo original exigir sugestão agentic separada)
+
+O `parser_pgdas` não tem alias de modelo: o parser do PGDAS-D é determinístico (ADR-006).
 
 Configuração efetiva deve poder ser derivada de defaults `.env` e overrides persistidos pela UI. Secrets permanecem no processo LiteLLM/provedor.
 

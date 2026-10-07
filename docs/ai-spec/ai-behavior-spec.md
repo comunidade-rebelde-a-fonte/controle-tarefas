@@ -10,8 +10,9 @@ O LLM nunca é autoridade final para cálculos tributários, fechamento, saldo, 
 
 ### `parser_pgdas`
 
-**Entrada:** documento PGDAS-D já armazenado + conteúdo extraível/renderizações.  
-**Saída:** campos estruturados, confiança, indícios de vínculo/cadastro.  
+**Natureza:** agente **determinístico**, sem chamada de modelo (ADR-006). O parse é por regras (regex), como na origem; o agente existe para trace, decisão e avaliação.  
+**Entrada:** documento PGDAS-D já armazenado + texto extraído.  
+**Saída:** campos estruturados, confiança calculada por regra, indícios de vínculo/cadastro.  
 **Não pode:** calcular Fator R como fonte oficial, sobrescrever movimentos existentes, criar empresa sem confirmação.
 
 ### `consultor`

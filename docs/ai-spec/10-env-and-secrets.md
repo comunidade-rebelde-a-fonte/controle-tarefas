@@ -54,7 +54,6 @@ Variáveis de bootstrap, caso o LiteLLM continue usando env para defaults:
 - `EXTRATOR_MODEL`
 - `EXTRATOR_FORTE_MODEL`
 - `RESOLVEDOR_MODEL`
-- `PARSER_PGDAS_MODEL`
 - `CONSULTOR_MODEL`
 - `PRIORIZADOR_MODEL`
 - `CLASSIFICADOR_MODEL`

@@ -55,7 +55,7 @@ Preferir manter Langfuse em compose dedicado se isso preservar melhor o stack at
 
 **Requisitos:** REQ-038, REQ-039, REQ-040.  
 - manter aliases existentes;
-- adicionar aliases de Fator R;
+- adicionar aliases de Fator R (`consultor`, `priorizador`; o `parser_pgdas` é determinístico e não tem alias, ADR-006);
 - remover dependência de API key hardcoded por alias;
 - aceitar provider/model string configurável;
 - não remover compatibilidade que não conflite com a decisão atual.
@@ -275,8 +275,42 @@ Parar e pedir decisão humana se:
 
 ## 11. Definition of Done final
 
-- TASK-001 a TASK-030 concluídas ou explicitamente dispensadas por decisão humana.
-- TEST-001 a TEST-030 com evidência aplicável.
+- TASK-001 a TASK-031 concluídas ou explicitamente dispensadas por decisão humana.
+- TEST-001 a TEST-031 com evidência aplicável.
 - AC-001 a AC-035 atendidos; AC-035 não pode ser falsamente marcado se o anexo visual continuar ausente.
 - Regressões proibidas inexistentes.
 - Documentação atualizada.
+
+## 12. Adendo de 07/10/2026 — capacidades incluídas (D-011)
+
+O inventário da TASK-002 (`docs/consolidacao/fontes.md` §4) encontrou capacidades da origem que este plano não citava. Por decisão do usuário (D-011), todas entram no escopo. Cada uma passa a fazer parte do aceite da TASK indicada.
+
+| ID | Capacidade | TASK |
+|---|---|---|
+| FR-03 | Grade mensal: nas linhas `origem=pgdas`, célula única "Folha declarada no PGDAS-D" com "Detalhar folha" | 014 |
+| FR-07 | Carteira: ação sugerida por linha e coluna "Aumento de folha por mês" rotulada (28% e meta), com a meta vinda da política | 011, 014 |
+| FR-15 | Rotina semanal do priorizador (todo domingo, gatilho `rotina`, sem LLM no `plan`), agendada pelo worker | 013 |
+| FR-19 | Disclaimer "o PGDAS-D da Receita Federal prevalece" em todas as telas do Fator R e em toda resposta de agente | 013, 014 |
+| FR-21 | Backup e restauração de todos os armazenamentos | 031 |
+| CC-08 | Importação determinística de extrato (CSV/TXT e texto nativo do PDF), paralela ao agente e sujeita ao mesmo portão | 016 |
+| CC-09 | Tela de playbooks (versão, validade, taxa de sucesso por banco) | 021 |
+| CC-12 | Lançamentos do cliente inseridos à mão (formulário + importação CSV) | 017 (API), 021 (UI) |
+| CC-22 | Painel de métricas da Conciliação | 021 (tela), 024 (KPIs no Dashboard) |
+
+Fica de fora, também por decisão do usuário (D-012): o agente `echo` do Fator R (ferramenta de desenvolvimento). O tracer é coberto por testes automatizados na TASK-009.
+
+`consultar_cnpj` (CC-15) nunca foi implementada na origem; a forma de implementação sem chamada externa nova (tool-contract §2) é decidida na TASK-017.
+
+### TASK-031 — Execução local completa e backup de todos os armazenamentos
+
+**Marco:** M6, executada antes da TASK-030.  
+**Requisitos:** REQ-001, REQ-004, REQ-006, REQ-043, REQ-044, REQ-045.  
+**Motivo:** o `docker-compose.prod.yml` do projeto-base sobe só `app` + `db`, e o `scripts/backup.sh` cobre só o banco e os arquivos de procurações. O produto consolidado depende também de worker, MinIO, LiteLLM, n8n e Langfuse; o backup completo é capacidade do Fator R (FR-21, origem T-701).  
+**Fazer:**
+- execução local fora do modo dev (compose de execução) com todos os serviços, preservando o que o compose atual garante (Postgres sem porta publicada, imagem única, usuário não-root);
+- backup e restauração do banco da aplicação, dos arquivos locais (procurações e PGDAS-D), do bucket MinIO versionado (com versões) e do Langfuse (Postgres e ClickHouse), com somas SHA-256 e retenção;
+- teste de restauração em ambiente descartável;
+- `docs/operacao.md` atualizado.
+
+**Aceite:** a instalação local sobe com todos os serviços; um backup completo é restaurado em ambiente limpo e as contagens conferem.  
+**Validação:** TEST-031.

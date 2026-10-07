@@ -22,8 +22,8 @@ Regra: todas as áreas usam o mesmo `company_id`.
 flowchart TD
   A[Upload manual] --> B[Persistir original + metadados]
   B --> C[Enfileirar job]
-  C --> D[Worker resolve alias parser_pgdas no LiteLLM]
-  D --> E[Extrair campos + confiança]
+  C --> D[Worker executa o parser determinístico, sem LLM]
+  D --> E[Extrair campos + confiança por regra]
   E --> F{CNPJ conhecido e confiança suficiente?}
   F -- não --> G[needs_review]
   F -- sim --> H[Vincular empresa]
