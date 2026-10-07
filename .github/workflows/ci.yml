@@ -39,7 +39,7 @@ jobs:
           GOBIN="$PWD/.bin" go install github.com/sqlc-dev/sqlc/cmd/sqlc@${SQLC_VERSION}
       - name: golangci-lint
         working-directory: backend
-        run: ../.bin/golangci-lint run ./...
+        run: ../.bin/golangci-lint run --build-tags litellm ./...
       - name: Código gerado está atualizado (sqlc + openapi-typescript)
         run: |
           (cd frontend && npm ci --no-audit --no-fund)

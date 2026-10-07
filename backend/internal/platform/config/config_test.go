@@ -1,8 +1,13 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log/slog"
 	"strings"
 	"testing"
+	"time"
 )
 
 func env(m map[string]string) func(string) string {
@@ -25,6 +30,56 @@ func TestLoad_Defaults(t *testing.T) {
 	}
 	if cfg.WorkerID != "worker-local" || cfg.WorkerHealthPort != 8090 {
 		t.Fatalf("worker = %q:%d", cfg.WorkerID, cfg.WorkerHealthPort)
+	}
+}
+
+func TestLoad_LiteLLM(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.LiteLLMBaseURL != "" || cfg.LiteLLMAPIKey != "" || cfg.LiteLLMTimeout != 120*time.Second {
+		t.Fatalf("padrões do LiteLLM = %q %q %s", cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey.Reveal(), cfg.LiteLLMTimeout)
+	}
+
+	cfg, err = Load(env(map[string]string{
+		"DATABASE_URL": "x", "LITELLM_BASE_URL": " http://litellm:4000/ ", "LITELLM_API_KEY": "sk-gateway", "LITELLM_TIMEOUT_SECONDS": "30",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.LiteLLMBaseURL != "http://litellm:4000" || cfg.LiteLLMAPIKey.Reveal() != "sk-gateway" || cfg.LiteLLMTimeout != 30*time.Second {
+		t.Fatalf("LiteLLM = %q %s", cfg.LiteLLMBaseURL, cfg.LiteLLMTimeout)
+	}
+}
+
+// A chave do gateway nunca aparece em print, log ou JSON [spec 09 §4].
+func TestSecret_NeverPrinted(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "LITELLM_API_KEY": "sk-segredo-real-123"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var logged bytes.Buffer
+	slog.New(slog.NewJSONHandler(&logged, nil)).Info("config", "key", cfg.LiteLLMAPIKey, "cfg", cfg)
+	asJSON, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outputs := map[string]string{
+		"%v":     fmt.Sprintf("%v", cfg),
+		"%+v":    fmt.Sprintf("%+v", cfg),
+		"%#v":    fmt.Sprintf("%#v", cfg),
+		"Sprint": fmt.Sprint(cfg.LiteLLMAPIKey),
+		"slog":   logged.String(),
+		"json":   string(asJSON),
+	}
+	for name, out := range outputs {
+		if strings.Contains(out, "segredo-real") {
+			t.Errorf("%s expõe a chave: %s", name, out)
+		}
+	}
+	if cfg.LiteLLMAPIKey.Reveal() != "sk-segredo-real-123" {
+		t.Fatal("Reveal deve devolver o valor real")
 	}
 }
 
@@ -59,6 +114,8 @@ func TestLoad_Invalid(t *testing.T) {
 		"env desconhecido":    {"DATABASE_URL": "x", "APP_ENV": "staging"},
 		"max conns zero":      {"DATABASE_URL": "x", "DB_MAX_CONNS": "0"},
 		"porta do worker":     {"DATABASE_URL": "x", "WORKER_HEALTH_PORT": "70000"},
+		"litellm sem esquema": {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
+		"litellm timeout":     {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
 	}
 	for name, m := range cases {
 		t.Run(name, func(t *testing.T) {

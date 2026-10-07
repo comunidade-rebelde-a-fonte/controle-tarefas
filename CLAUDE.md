@@ -95,7 +95,9 @@ Aliases esperados:
 
 Provider inicial: OpenAI, mas modelo concreto não é hardcoded.
 
-Testes normais nunca chamam provider real.
+Desde a TASK-004 (D-014): catálogo de aliases e resolução em `backend/internal/ai`; cliente do gateway em `backend/internal/ai/litellm`. O app resolve o alias no início da corrida e chama o gateway com o modelo concreto. A lista de aliases é conferida contra `litellm/config.yaml`, `docker-compose.yml` e `.env.example` por teste.
+
+Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM real com provedor simulado.
 
 ## UI
 

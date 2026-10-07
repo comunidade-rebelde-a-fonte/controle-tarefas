@@ -1,6 +1,18 @@
 # Ambiente de desenvolvimento local. Não usar em produção (ver docker-compose.prod.yml).
 name: controle
 
+# Modelo padrão de cada alias de agente [ADR-004], no formato provedor/modelo. Q-003 decidida em
+# 07/10/2026 (D-015); trocáveis no .env e (TASK-008) na tela Configurações → IA. Usado pelo LiteLLM, pela
+# API e pelo worker; TestCatalog_MatchesGatewayAndCompose confere esta lista com o código.
+x-ai-models: &ai-models
+  TRIADOR_MODEL: ${TRIADOR_MODEL:-openai/gpt-6-luna}
+  EXTRATOR_MODEL: ${EXTRATOR_MODEL:-openai/gpt-6-sol}
+  EXTRATOR_FORTE_MODEL: ${EXTRATOR_FORTE_MODEL:-openai/gpt-6-astra}
+  RESOLVEDOR_MODEL: ${RESOLVEDOR_MODEL:-openai/gpt-6-sol}
+  CLASSIFICADOR_MODEL: ${CLASSIFICADOR_MODEL:-openai/gpt-6-sol}
+  CONSULTOR_MODEL: ${CONSULTOR_MODEL:-openai/gpt-6-luna}
+  PRIORIZADOR_MODEL: ${PRIORIZADOR_MODEL:-openai/gpt-6-luna}
+
 services:
   db:
     # Imagem oficial Debian (não alpine) por causa das collations ICU.
@@ -42,6 +54,10 @@ services:
       FILE_STORAGE_DIR: /app/storage
       DB_MAX_CONNS: ${DB_MAX_CONNS:-10}
       GOFLAGS: -buildvcs=false
+      # Gateway de IA: só a chave do gateway; as dos provedores ficam no container do LiteLLM.
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      <<: *ai-models
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:
@@ -109,6 +125,9 @@ services:
       WORKER_ID: ${WORKER_ID:-worker-dev}
       WORKER_HEALTH_PORT: 8090
       GOFLAGS: -buildvcs=false
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      <<: *ai-models
     volumes:
       - ./backend:/app/backend
       - ./storage:/app/storage
@@ -165,19 +184,20 @@ services:
         condition: service_healthy
     restart: "no"
 
-  # Gateway de modelos dos agentes [ADR-004]. Configuração: litellm/config.yaml.
+  # Gateway de modelos dos agentes [ADR-004]. Configuração: litellm/config.yaml. As chaves dos
+  # provedores existem só aqui; a aplicação usa a chave do gateway (LITELLM_API_KEY).
   litellm:
     image: ghcr.io/berriai/litellm:v1.104.0
     restart: unless-stopped
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     environment:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      TRIADOR_MODEL: ${TRIADOR_MODEL:-anthropic/claude-haiku-4-5}
-      EXTRATOR_MODEL: ${EXTRATOR_MODEL:-anthropic/claude-sonnet-4-5}
-      RESOLVEDOR_MODEL: ${RESOLVEDOR_MODEL:-anthropic/claude-sonnet-4-5}
-      EXTRATOR_FORTE_MODEL: ${EXTRATOR_FORTE_MODEL:-anthropic/claude-sonnet-4-5}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Tabela de modelos embutida na versão fixada: sem download do GitHub a cada start e sem
+      # mudança de comportamento silenciosa (ex.: saída estruturada) [D-014].
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      <<: *ai-models
     ports:
       - "127.0.0.1:${LITELLM_PORT:-4000}:4000"
     volumes:

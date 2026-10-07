@@ -4,6 +4,52 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-015 — Q-003 decidida: modelos padrão dos aliases (07/10/2026)
+
+- **Decisão do usuário:** confirmados os modelos propostos na TASK-004.
+
+  | Uso | Modelo | Aliases |
+  |---|---|---|
+  | barato | `openai/gpt-6-luna` | triador, consultor, priorizador |
+  | forte com visão | `openai/gpt-6-sol` | extrator, resolvedor, classificador |
+  | mais forte | `openai/gpt-6-astra` | extrator_forte |
+
+- Continuam trocáveis no `.env` e, a partir da TASK-008, pela tela Configurações → IA.
+
+### D-014 — Roteamento de modelos de IA (TASK-004, 07/10/2026; decisões técnicas dentro da autonomia da spec)
+
+- **A aplicação resolve o alias e chama o gateway com o modelo concreto.**
+  - O `ai.Resolver` devolve `provedor/modelo` no início de cada corrida; o resultado é o snapshot gravado nela.
+  - O cliente (`internal/ai/litellm`) envia esse modelo pela rota `openai/*` (ou `anthropic/*`) do `litellm/config.yaml`.
+  - Com isso, a corrida em andamento mantém o modelo do início (F-010), e a troca feita na tela (TASK-008) vale para as novas corridas sem reiniciar nada (AC-027).
+  - Os aliases continuam declarados no gateway, também com o modelo do `.env`, como compatibilidade com o Conciliador.
+- **Chaves.**
+  - Nenhum alias tem chave própria (antes: `ANTHROPIC_API_KEY` fixa em todos). O LiteLLM usa a variável do provedor do modelo.
+  - As chaves dos provedores existem só no container do LiteLLM. API e worker usam a chave do gateway (`LITELLM_API_KEY`), guardada como `config.Secret`, que se mascara em print, log e JSON.
+  - Dois testes travam essas propriedades: `TestCompose_ProviderKeysOnlyInGateway` e `TestSecret_NeverPrinted`.
+- **Modelos padrão (Q-003; propostos aqui e confirmados pelo usuário no D-015).** Família OpenAI gpt-6, que é a mais nova no LiteLLM fixado, mantendo o escalonamento dos sistemas de origem:
+
+  | Uso | Modelo | Aliases |
+  |---|---|---|
+  | barato | `gpt-6-luna` | `triador`, `consultor`, `priorizador` |
+  | forte com visão | `gpt-6-sol` | `extrator`, `resolvedor`, `classificador` |
+  | mais forte, 3ª tentativa | `gpt-6-astra` | `extrator_forte` |
+
+  Todos têm visão e saída estruturada segundo o próprio gateway. Ficam num único lugar do compose (âncora `x-ai-models`, usada por LiteLLM, API e worker). `TestCatalog_MatchesGatewayAndCompose` confere que código, `litellm/config.yaml`, `docker-compose.yml` e `.env.example` não divergem.
+- **D-008 aplicado:** alias `classificador` com o mesmo modelo do `resolvedor`. No Conciliador, o agente de classificação usava o próprio alias `resolvedor`.
+- **Tabela de modelos do LiteLLM travada** (`LITELLM_LOCAL_MODEL_COST_MAP=True`).
+  - Sem isso, o gateway baixa a tabela do GitHub a cada início, ou seja, chamada externa e comportamento que muda sozinho.
+  - Evidência: a tabela embutida não conhece o `gpt-6.1-sol` e o trata como sem suporte a saída estruturada, o que, com `drop_params`, poderia descartar o JSON Schema em silêncio.
+  - **Regra para a TASK-008:** a validação da tela de IA deve consultar o gateway e avisar quando o modelo escolhido não tiver suporte a saída estruturada ou a visão, se o alias precisar.
+- **Teste de alias simulado (TEST-004).**
+  - O `mock_response` do LiteLLM vindo do cliente só funciona com chave virtual, que exige banco.
+  - Por isso a evidência é: testes unitários do resolver e do cliente (`make test`) mais `make test-litellm`, que sobe o LiteLLM real (mesma imagem e mesmo `config.yaml`) diante de um provedor OpenAI simulado no próprio teste. Sem chamada externa e sem custo.
+- **Cliente do gateway:**
+  - poucas novas tentativas só em falhas transitórias (rede, 408, 429, 5xx), como os clientes de origem;
+  - erro sempre sanitizado (sem chaves nem `Bearer`);
+  - custo do gateway guardado como decimal textual, nunca `float`;
+  - saída estruturada por JSON Schema (`strict`), que continua validada pelo código antes de qualquer uso.
+
 ### D-013 — Infraestrutura consolidada da TASK-003 (07/10/2026, decisões técnicas dentro da autonomia da spec)
 
 A spec autoriza alterar Docker Compose e Makefile sem aprovação prévia (15-agent-execution-prompt); as escolhas abaixo ficam registradas para revisão.
@@ -86,7 +132,7 @@ A spec autoriza alterar Docker Compose e Makefile sem aprovação prévia (15-ag
 
 - **Contexto:** a spec lista `classificador` "quando necessário". No Conciliador, o agente de classificação usa o alias `resolvedor` (`app/agentes/classificador.py`).
 - **Proposta:** criar o alias `classificador` apontando, por padrão, para o mesmo modelo do `resolvedor`. O comportamento de origem não muda, e o modelo passa a ser trocável de forma independente pela tela de IA.
-- **Status:** a confirmar na TASK-004.
+- **Status:** aplicado na TASK-004 (D-014).
 
 ### D-007 — Precedência sobre o `AGENTS.md` do projeto-base (07/10/2026)
 
@@ -179,7 +225,7 @@ C:\Desenvolvimento\controle-a-fonte\
 | Origem | Pendência |
 |---|---|
 | Controle de Tarefas | Q1–Q8 de `docs/decisoes.md` (valores provisórios em `docs/pendencias.md`), conforme Q-002 do intake |
-| Consolidação | Q-003: modelo OpenAI padrão de cada alias (vem do `.env`) |
+| Consolidação | ~~Q-003: modelo OpenAI padrão de cada alias~~ — **decidida em 07/10/2026 (D-015)** |
 | Fator R | P-04: conferência do CSV das tabelas do Simples contra a LC 123/2006 |
 | Fator R | P-05: proporcionalização de empresa com menos de 12 meses (hoje devolve `empresa_nova_regra_pendente`) |
 | Fator R | P-07: planilha de aceite (2 empresas × 12 meses); T-707: conferência com empresa real |

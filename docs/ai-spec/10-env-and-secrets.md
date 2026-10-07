@@ -44,8 +44,12 @@ Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a
 | `LITELLM_MASTER_KEY` | administração do proxy | sim |
 | `OPENAI_API_KEY` | provider inicial | sim |
 | `ANTHROPIC_API_KEY` | compatibilidade opcional futura/existente | sim |
+| `LITELLM_TIMEOUT_SECONDS` | limite de cada chamada da aplicação ao gateway (padrão 120) | não |
+| `LITELLM_LOCAL_MODEL_COST_MAP` | `True` no compose: o LiteLLM usa a tabela de modelos embutida na versão fixada, sem download a cada início (D-014) | não |
 
 Aliases/modelos devem ter defaults configuráveis por env e overrides não secretos pelo banco/UI. Não hardcode modelo no domínio.
+
+Desde a TASK-004 (D-014): `OPENAI_API_KEY` e `ANTHROPIC_API_KEY` só chegam ao container do LiteLLM; API e worker recebem `LITELLM_BASE_URL` e `LITELLM_API_KEY`. A aplicação resolve o alias e chama o gateway com o modelo concreto (`provedor/modelo`).
 
 ## 5. Aliases sugeridos
 
@@ -59,7 +63,7 @@ Variáveis de bootstrap, caso o LiteLLM continue usando env para defaults:
 - `PRIORIZADOR_MODEL`
 - `CLASSIFICADOR_MODEL`
 
-O valor é uma string de modelo suportada pelo LiteLLM; não faz parte da regra de negócio.
+O valor é uma string de modelo suportada pelo LiteLLM; não faz parte da regra de negócio. Formato `provedor/modelo` (ex.: `openai/gpt-6-luna`), validado pela aplicação (`internal/ai`). Valores padrão (Q-003, decidida em 07/10/2026, D-015) no `docker-compose.yml` (âncora `x-ai-models`) e no `.env.example`.
 
 ## 6. Langfuse
 

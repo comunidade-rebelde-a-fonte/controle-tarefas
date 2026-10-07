@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -41,7 +42,36 @@ type Config struct {
 	WorkerID string
 	// WorkerHealthPort é a porta do healthcheck do worker, que roda separado da API.
 	WorkerHealthPort int
+	// LiteLLMBaseURL é o gateway de modelos dos agentes [ADR-004]; vazio = IA não configurada.
+	LiteLLMBaseURL string
+	// LiteLLMAPIKey autentica a aplicação no gateway. As chaves dos provedores (OpenAI etc.)
+	// ficam só no ambiente do LiteLLM e nunca passam pela aplicação [spec 09 §4].
+	LiteLLMAPIKey Secret
+	// LiteLLMTimeout limita cada chamada ao gateway.
+	LiteLLMTimeout time.Duration
 }
+
+// Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
+// LogValue e MarshalJSON devolvem "[oculto]". O valor só sai por Reveal [spec 09 §4].
+type Secret string
+
+const redacted = "[oculto]"
+
+// Reveal devolve o valor real, para uso direto na chamada que precisa dele.
+func (s Secret) Reveal() string { return string(s) }
+
+func (s Secret) String() string {
+	if s == "" {
+		return ""
+	}
+	return redacted
+}
+
+func (s Secret) GoString() string { return s.String() }
+
+func (s Secret) LogValue() slog.Value { return slog.StringValue(s.String()) }
+
+func (s Secret) MarshalJSON() ([]byte, error) { return []byte(`"` + s.String() + `"`), nil }
 
 // IsProduction indica se a aplicação roda em produção.
 func (c Config) IsProduction() bool { return c.Env == EnvProduction }
@@ -139,6 +169,20 @@ func Load(getenv func(string) string) (Config, error) {
 		errs = append(errs, fmt.Errorf("WORKER_HEALTH_PORT inválida: %q", getenv("WORKER_HEALTH_PORT")))
 	}
 	cfg.WorkerHealthPort = workerPort
+
+	cfg.LiteLLMBaseURL = strings.TrimRight(strings.TrimSpace(getenv("LITELLM_BASE_URL")), "/")
+	if cfg.LiteLLMBaseURL != "" {
+		u, err := url.Parse(cfg.LiteLLMBaseURL)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			errs = append(errs, fmt.Errorf("LITELLM_BASE_URL inválida: %q (use http://host:porta)", cfg.LiteLLMBaseURL))
+		}
+	}
+	cfg.LiteLLMAPIKey = Secret(strings.TrimSpace(getenv("LITELLM_API_KEY")))
+	timeout, err := strconv.Atoi(orDefault(getenv("LITELLM_TIMEOUT_SECONDS"), "120"))
+	if err != nil || timeout < 1 || timeout > 3600 {
+		errs = append(errs, fmt.Errorf("LITELLM_TIMEOUT_SECONDS inválido: %q (1 a 3600)", getenv("LITELLM_TIMEOUT_SECONDS")))
+	}
+	cfg.LiteLLMTimeout = time.Duration(timeout) * time.Second
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

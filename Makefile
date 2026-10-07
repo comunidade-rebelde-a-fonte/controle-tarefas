@@ -52,7 +52,7 @@ E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
-.PHONY: help tools dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -137,7 +137,7 @@ lint: lint-backend lint-frontend ## Lint do backend e do frontend
 
 lint-backend:
 	@test -x $(BIN)/golangci-lint || { echo "golangci-lint ausente: rode 'make tools'"; exit 1; }
-	cd backend && $(BIN)/golangci-lint run ./...
+	cd backend && $(BIN)/golangci-lint run --build-tags litellm ./...
 
 lint-frontend:
 	cd frontend && npm run lint && npm run typecheck
@@ -151,6 +151,9 @@ test-backend:
 
 test-frontend:
 	cd frontend && npm test
+
+test-litellm: ## Integração com o LiteLLM real (container) e provedor simulado: alias → modelo → provedor, sem chamada externa
+	cd backend && go test -count=1 -tags litellm -run TestGateway ./internal/ai/litellm/
 
 audit: ## Vulnerabilidades conhecidas: govulncheck (Go) e npm audit (frontend e e2e) [docs/seguranca.md]
 	cd backend && $(BIN)/govulncheck ./...
