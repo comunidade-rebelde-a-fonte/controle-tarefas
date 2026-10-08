@@ -1004,6 +1004,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/factor-r/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Carteira do Fator R no PA, ordenada por semáforo e economia [REQ-011, AC-007]
+         * @description Empresas ativas, sujeitas ao Fator R (`companies.factor_r`) e no Simples Nacional no PA
+         *     (D-017). Ordem: vermelho, amarelo, verde e dados insuficientes; dentro de cada grupo, a
+         *     maior economia primeiro e depois o nome.
+         */
+        get: operations["getFactorRPortfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Configuração do Fator R da empresa (padrões e `version = 0` se ainda não gravada) */
+        get: operations["getFactorRSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Altera a configuração do Fator R da empresa
+         * @description Só os campos enviados mudam; `null` limpa. `version = 0` cria a configuração. "Sujeita ao
+         *     Fator R" não fica aqui: é o `factor_r` do cadastro (`PATCH /companies/{id}`, D-017).
+         */
+        patch: operations["updateFactorRSettings"];
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Série mensal de receita e folha da empresa, em ordem de competência [REQ-009] */
+        get: operations["listFactorRMovements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/movements/{competence}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                competence: components["schemas"]["Competence"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Lança o mês à mão (cria ou substitui a competência inteira, com origem manual)
+         * @description Valor ausente vale `0.00`. `version = 0` cria o mês. Um mês do PGDAS-D lançado de novo à
+         *     mão ("Detalhar folha") perde a folha total declarada e passa a ter a divisão informada.
+         */
+        put: operations["putFactorRMovement"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/calc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Fator R da empresa no PA — janela, RBT12, FS12, anexo, metas, gaps, alíquotas e economia [AC-005]
+         * @description Cálculo determinístico, por código (motor portado da origem, ADR-007). Com dados
+         *     insuficientes (`status = dados_insuficientes`), anexo, alíquotas e economia ficam nulos.
+         */
+        get: operations["getFactorRCalc"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1997,6 +2109,190 @@ export interface components {
             role?: components["schemas"]["UserRole"];
             active?: boolean;
         };
+        /**
+         * @description Número decimal exato, como string em notação de ponto fixo (nunca float) [06 §12]. A
+         *     quantidade de casas é a do cálculo (ex.: `43740.00000000`); a interface arredonda só
+         *     para exibir.
+         * @example 43740.00000000
+         * @example 0.2799
+         */
+        DecimalString: string;
+        /**
+         * @description Valor em reais não negativo, com até 12 dígitos inteiros e 2 casas decimais.
+         * @example 1234.56
+         */
+        MoneyInput: string;
+        /**
+         * @description Pacote comercial da carteira (null = sem pacote).
+         * @enum {string}
+         */
+        FactorRPackage: "monitoramento" | "correcao" | "retainer";
+        FactorRSettings: {
+            company_id: components["schemas"]["Uuid"];
+            cnae: string | null;
+            atividade: string | null;
+            /** Format: int32 */
+            quantidade_socios: number;
+            contato: string | null;
+            pacote_comercial: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal: components["schemas"]["DecimalString"];
+            /** @description Mês de início da atividade da empresa (não é o início do atendimento) */
+            inicio_atividade: components["schemas"]["Competence"] | null;
+            notas: string | null;
+            /**
+             * Format: int32
+             * @description 0 = ainda sem configuração gravada
+             */
+            version: number;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        FactorRSettingsUpdate: {
+            /** Format: int32 */
+            version: number;
+            cnae?: string | null;
+            atividade?: string | null;
+            /** Format: int32 */
+            quantidade_socios?: number;
+            contato?: string | null;
+            pacote_comercial?: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal?: components["schemas"]["MoneyInput"];
+            inicio_atividade?: components["schemas"]["Competence"] | null;
+            notas?: string | null;
+        };
+        /** @enum {string} */
+        FactorRMovementOrigin: "manual" | "pgdas" | "folha" | "agente";
+        FactorRMovement: {
+            competence: components["schemas"]["Competence"];
+            receita_bruta: components["schemas"]["DecimalString"];
+            pro_labore: components["schemas"]["DecimalString"];
+            salarios_13_ferias: components["schemas"]["DecimalString"];
+            cpp_recolhida: components["schemas"]["DecimalString"];
+            fgts_recolhido: components["schemas"]["DecimalString"];
+            /** @description Folha total declarada no PGDAS-D, sem divisão (só em mês de origem pgdas) */
+            folha_total_declarada_pgdas: components["schemas"]["DecimalString"] | null;
+            /** @description Folha do mês — a total declarada ou pró-labore + salários + CPP + FGTS */
+            folha_mes: components["schemas"]["DecimalString"];
+            origem: components["schemas"]["FactorRMovementOrigin"];
+            observacao: string | null;
+            pgdas_document_id: components["schemas"]["Uuid"] | null;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        FactorRMovementList: {
+            items: components["schemas"]["FactorRMovement"][];
+        };
+        FactorRMovementInput: {
+            /**
+             * Format: int32
+             * @description 0 = mês ainda sem lançamento
+             */
+            version: number;
+            receita_bruta?: components["schemas"]["MoneyInput"];
+            pro_labore?: components["schemas"]["MoneyInput"];
+            salarios_13_ferias?: components["schemas"]["MoneyInput"];
+            cpp_recolhida?: components["schemas"]["MoneyInput"];
+            fgts_recolhido?: components["schemas"]["MoneyInput"];
+            observacao?: string | null;
+        };
+        /** @enum {string} */
+        FactorRStatus: "ok" | "dados_insuficientes";
+        /**
+         * @description Motivo dos dados insuficientes, em ordem de precedência. `empresa_nova_regra_pendente`:
+         *     menos de 12 meses na janela (proporcionalização pendente, P-05 da origem).
+         * @enum {string}
+         */
+        FactorRReason: "empresa_nova_regra_pendente" | "rbt12_zero" | "rbt12_acima_do_limite_do_simples";
+        /** @enum {string} */
+        FactorRAnnex: "III" | "V";
+        /**
+         * @description Semáforo — vermelho abaixo de 28% (Anexo V), amarelo de 28% até a meta, verde na meta.
+         * @enum {string}
+         */
+        FactorRLight: "vermelho" | "amarelo" | "verde";
+        /** @enum {string} */
+        FactorRAction: "reuniao_correcao" | "vigiar_simular" | "manter" | "completar_lancamentos";
+        FactorRCalc: {
+            pa: components["schemas"]["Competence"];
+            janela_inicio: components["schemas"]["Competence"];
+            janela_fim: components["schemas"]["Competence"];
+            meses_preenchidos: components["schemas"]["Competence"][];
+            /** @description Meses válidos da janela sem lançamento (mês antes do início da atividade não conta) */
+            meses_faltantes: components["schemas"]["Competence"][];
+            status: components["schemas"]["FactorRStatus"];
+            motivo: components["schemas"]["FactorRReason"] | null;
+            rbt12: components["schemas"]["DecimalString"];
+            fs12: components["schemas"]["DecimalString"];
+            fator_r: components["schemas"]["DecimalString"] | null;
+            anexo: components["schemas"]["FactorRAnnex"] | null;
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            folha_minima_28: components["schemas"]["DecimalString"] | null;
+            folha_minima_meta: components["schemas"]["DecimalString"] | null;
+            gap_12m_28: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_28: components["schemas"]["DecimalString"] | null;
+            gap_12m_meta: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_meta: components["schemas"]["DecimalString"] | null;
+            aliquota_efetiva_iii: components["schemas"]["DecimalString"] | null;
+            aliquota_efetiva_v: components["schemas"]["DecimalString"] | null;
+            /** @description Economia estimada de DAS em 12 meses (Anexo V menos Anexo III); pode ser negativa na faixa 6 */
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            meta_operacional: components["schemas"]["DecimalString"];
+            /** @description Política do escritório: a CPP do DAS integra a FS12 */
+            cpp_integra_fs12: boolean;
+            tabela_vigencia_inicio: components["schemas"]["Date"];
+            regime_no_pa: components["schemas"]["TaxRegime"] | null;
+            /** @description Ativa, sujeita ao Fator R e no Simples Nacional no PA, ou seja, está na carteira */
+            monitorada: boolean;
+        };
+        FactorRPortfolioCompany: {
+            id: components["schemas"]["Uuid"];
+            internal_code: string;
+            legal_name: string;
+            trade_name: string | null;
+            cnpj: components["schemas"]["Cnpj"];
+        };
+        FactorRPortfolioLine: {
+            company: components["schemas"]["FactorRPortfolioCompany"];
+            pacote_comercial: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal: components["schemas"]["DecimalString"];
+            acao: components["schemas"]["FactorRAction"];
+            /** @example reunião de correção */
+            acao_texto: string;
+            status: components["schemas"]["FactorRStatus"];
+            motivo: components["schemas"]["FactorRReason"] | null;
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            fator_r: components["schemas"]["DecimalString"] | null;
+            anexo: components["schemas"]["FactorRAnnex"] | null;
+            rbt12: components["schemas"]["DecimalString"];
+            fs12: components["schemas"]["DecimalString"];
+            reforco_mensal_28: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_meta: components["schemas"]["DecimalString"] | null;
+            meta_operacional: components["schemas"]["DecimalString"];
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            meses_faltantes: components["schemas"]["Competence"][];
+        };
+        FactorRKPIs: {
+            monitoradas: number;
+            /** @description No Anexo V */
+            no_v: number;
+            /** @description Amarelo: de 28% até a meta */
+            no_limite: number;
+            /** @description Verde: na meta ou acima */
+            seguras: number;
+            dados_insuficientes: number;
+            /** @description Soma da economia positiva das empresas em vermelho e amarelo (12 meses) */
+            economia_em_jogo: components["schemas"]["DecimalString"];
+            /** @description Soma dos honorários mensais dos pacotes das empresas monitoradas */
+            honorarios_pacotes: components["schemas"]["DecimalString"];
+        };
+        FactorRPortfolio: {
+            pa: components["schemas"]["Competence"];
+            meta_operacional: components["schemas"]["DecimalString"];
+            kpis: components["schemas"]["FactorRKPIs"];
+            linhas: components["schemas"]["FactorRPortfolioLine"][];
+        };
     };
     responses: {
         /** @description Payload inválido */
@@ -2055,6 +2351,8 @@ export interface components {
         };
     };
     parameters: {
+        /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+        FactorRPA: components["schemas"]["Competence"];
         IdPath: components["schemas"]["Uuid"];
         DashboardRegimeGroup: components["schemas"]["RegimeGroup"];
         DashboardTaxRegime: components["schemas"]["TaxRegime"];
@@ -3964,6 +4262,186 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    getFactorRPortfolio: {
+        parameters: {
+            query?: {
+                /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+                pa?: components["parameters"]["FactorRPA"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Carteira */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRPortfolio"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getFactorRSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuração */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSettings"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateFactorRSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Configuração gravada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listFactorRMovements: {
+        parameters: {
+            query?: {
+                /** @description Primeira competência (inclusive); ausente = desde o início */
+                from?: components["schemas"]["Competence"];
+                /** @description Última competência (inclusive); ausente = até a última */
+                to?: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Movimentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRMovementList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    putFactorRMovement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                competence: components["schemas"]["Competence"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRMovementInput"];
+            };
+        };
+        responses: {
+            /** @description Mês gravado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRMovement"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getFactorRCalc: {
+        parameters: {
+            query?: {
+                /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+                pa?: components["parameters"]["FactorRPA"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado do cálculo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRCalc"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
 }

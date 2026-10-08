@@ -30,6 +30,12 @@ Retorna agregação para ficha:
 
 Retorna carteira ordenada por semáforo e economia.
 
+> **Como foi implementado (TASK-011).** O contrato completo está em `backend/api/openapi.yaml`, tag `factor-r`.
+> - `pa` é opcional; sem ele, vale a competência corrente.
+> - PA sem tabela do Simples vigente → `422 SIMPLES_TABLE_NOT_IN_FORCE`.
+> - Movimentos têm `version` (0 cria; divergência → 409); a listagem filtra por `from`/`to`.
+> - Valores decimais são strings exatas.
+
 ### `GET /companies/{id}/factor-r/settings`
 ### `PATCH /companies/{id}/factor-r/settings`
 

@@ -47,6 +47,11 @@ tags:
     description: Grades dos módulos (colunas do catálogo, linhas por empresa, células com derivados)
   - name: dashboard
     description: Gestão — KPIs, cards, exige atenção, comparação histórica e backlog
+  - name: factor-r
+    description: |
+      Fator R (consolidação, TASK-011) — configuração por empresa, série mensal de receita e
+      folha, cálculo do PA e carteira. Os campos do domínio usam os nomes do Fator R de origem e
+      do modelo de dados da consolidação (docs/ai-spec/05 §4); valores decimais são strings.
 
 paths:
   /health:
@@ -1411,8 +1416,153 @@ paths:
               schema: { $ref: "#/components/schemas/CompanyHistory" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /factor-r/portfolio:
+    get:
+      tags: [factor-r]
+      operationId: getFactorRPortfolio
+      summary: Carteira do Fator R no PA, ordenada por semáforo e economia [REQ-011, AC-007]
+      description: |
+        Empresas ativas, sujeitas ao Fator R (`companies.factor_r`) e no Simples Nacional no PA
+        (D-017). Ordem: vermelho, amarelo, verde e dados insuficientes; dentro de cada grupo, a
+        maior economia primeiro e depois o nome.
+      parameters:
+        - $ref: "#/components/parameters/FactorRPA"
+      responses:
+        "200":
+          description: Carteira
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRPortfolio" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "422":
+          description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}/factor-r/settings:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [factor-r]
+      operationId: getFactorRSettings
+      summary: Configuração do Fator R da empresa (padrões e `version = 0` se ainda não gravada)
+      responses:
+        "200":
+          description: Configuração
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRSettings" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [factor-r]
+      operationId: updateFactorRSettings
+      summary: Altera a configuração do Fator R da empresa
+      description: |
+        Só os campos enviados mudam; `null` limpa. `version = 0` cria a configuração. "Sujeita ao
+        Fator R" não fica aqui: é o `factor_r` do cadastro (`PATCH /companies/{id}`, D-017).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FactorRSettingsUpdate" }
+      responses:
+        "200":
+          description: Configuração gravada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRSettings" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /companies/{id}/factor-r/movements:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [factor-r]
+      operationId: listFactorRMovements
+      summary: Série mensal de receita e folha da empresa, em ordem de competência [REQ-009]
+      parameters:
+        - name: from
+          in: query
+          description: Primeira competência (inclusive); ausente = desde o início
+          schema: { $ref: "#/components/schemas/Competence" }
+        - name: to
+          in: query
+          description: Última competência (inclusive); ausente = até a última
+          schema: { $ref: "#/components/schemas/Competence" }
+      responses:
+        "200":
+          description: Movimentos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRMovementList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/factor-r/movements/{competence}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - name: competence
+        in: path
+        required: true
+        schema: { $ref: "#/components/schemas/Competence" }
+    put:
+      tags: [factor-r]
+      operationId: putFactorRMovement
+      summary: Lança o mês à mão (cria ou substitui a competência inteira, com origem manual)
+      description: |
+        Valor ausente vale `0.00`. `version = 0` cria o mês. Um mês do PGDAS-D lançado de novo à
+        mão ("Detalhar folha") perde a folha total declarada e passa a ter a divisão informada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FactorRMovementInput" }
+      responses:
+        "200":
+          description: Mês gravado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRMovement" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /companies/{id}/factor-r/calc:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [factor-r]
+      operationId: getFactorRCalc
+      summary: Fator R da empresa no PA — janela, RBT12, FS12, anexo, metas, gaps, alíquotas e economia [AC-005]
+      description: |
+        Cálculo determinístico, por código (motor portado da origem, ADR-007). Com dados
+        insuficientes (`status = dados_insuficientes`), anexo, alíquotas e economia ficam nulos.
+      parameters:
+        - $ref: "#/components/parameters/FactorRPA"
+      responses:
+        "200":
+          description: Resultado do cálculo
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRCalc" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
 components:
   parameters:
+    FactorRPA:
+      name: pa
+      in: query
+      description: Período de apuração `AAAA-MM`; ausente = competência corrente
+      schema: { $ref: "#/components/schemas/Competence" }
     IdPath:
       name: id
       in: path
@@ -2855,6 +3005,222 @@ components:
         email: { type: [string, "null"], maxLength: 200 }
         role: { $ref: "#/components/schemas/UserRole" }
         active: { type: boolean }
+
+    DecimalString:
+      type: string
+      description: |
+        Número decimal exato, como string em notação de ponto fixo (nunca float) [06 §12]. A
+        quantidade de casas é a do cálculo (ex.: `43740.00000000`); a interface arredonda só
+        para exibir.
+      pattern: "^-?[0-9]+(\\.[0-9]+)?$"
+      examples: ["43740.00000000", "0.2799"]
+
+    MoneyInput:
+      type: string
+      description: Valor em reais não negativo, com até 12 dígitos inteiros e 2 casas decimais.
+      examples: ["1234.56"]
+
+    FactorRPackage:
+      type: string
+      enum: [monitoramento, correcao, retainer]
+      description: Pacote comercial da carteira (null = sem pacote).
+
+    FactorRSettings:
+      type: object
+      required: [company_id, cnae, atividade, quantidade_socios, contato, pacote_comercial, honorario_mensal, inicio_atividade, notas, version, updated_at]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        cnae: { type: [string, "null"] }
+        atividade: { type: [string, "null"] }
+        quantidade_socios: { type: integer, format: int32, minimum: 0, maximum: 1000 }
+        contato: { type: [string, "null"] }
+        pacote_comercial: { oneOf: [{ $ref: "#/components/schemas/FactorRPackage" }, { type: "null" }] }
+        honorario_mensal: { $ref: "#/components/schemas/DecimalString" }
+        inicio_atividade:
+          description: Mês de início da atividade da empresa (não é o início do atendimento)
+          oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }]
+        notas: { type: [string, "null"] }
+        version: { type: integer, format: int32, minimum: 0, description: "0 = ainda sem configuração gravada" }
+        updated_at: { type: [string, "null"], format: date-time }
+
+    FactorRSettingsUpdate:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { type: integer, format: int32, minimum: 0 }
+        cnae: { type: [string, "null"], maxLength: 20 }
+        atividade: { type: [string, "null"], maxLength: 500 }
+        quantidade_socios: { type: integer, format: int32, minimum: 0, maximum: 1000 }
+        contato: { type: [string, "null"], maxLength: 500 }
+        pacote_comercial: { oneOf: [{ $ref: "#/components/schemas/FactorRPackage" }, { type: "null" }] }
+        honorario_mensal: { $ref: "#/components/schemas/MoneyInput" }
+        inicio_atividade: { oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }] }
+        notas: { type: [string, "null"], maxLength: 5000 }
+
+    FactorRMovementOrigin:
+      type: string
+      enum: [manual, pgdas, folha, agente]
+
+    FactorRMovement:
+      type: object
+      required: [competence, receita_bruta, pro_labore, salarios_13_ferias, cpp_recolhida, fgts_recolhido, folha_total_declarada_pgdas, folha_mes, origem, observacao, pgdas_document_id, version, updated_at]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        receita_bruta: { $ref: "#/components/schemas/DecimalString" }
+        pro_labore: { $ref: "#/components/schemas/DecimalString" }
+        salarios_13_ferias: { $ref: "#/components/schemas/DecimalString" }
+        cpp_recolhida: { $ref: "#/components/schemas/DecimalString" }
+        fgts_recolhido: { $ref: "#/components/schemas/DecimalString" }
+        folha_total_declarada_pgdas:
+          description: Folha total declarada no PGDAS-D, sem divisão (só em mês de origem pgdas)
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        folha_mes:
+          description: Folha do mês — a total declarada ou pró-labore + salários + CPP + FGTS
+          allOf: [{ $ref: "#/components/schemas/DecimalString" }]
+        origem: { $ref: "#/components/schemas/FactorRMovementOrigin" }
+        observacao: { type: [string, "null"] }
+        pgdas_document_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        version: { type: integer, format: int32, minimum: 1 }
+        updated_at: { type: string, format: date-time }
+
+    FactorRMovementList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FactorRMovement" } }
+
+    FactorRMovementInput:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { type: integer, format: int32, minimum: 0, description: "0 = mês ainda sem lançamento" }
+        receita_bruta: { $ref: "#/components/schemas/MoneyInput" }
+        pro_labore: { $ref: "#/components/schemas/MoneyInput" }
+        salarios_13_ferias: { $ref: "#/components/schemas/MoneyInput" }
+        cpp_recolhida: { $ref: "#/components/schemas/MoneyInput" }
+        fgts_recolhido: { $ref: "#/components/schemas/MoneyInput" }
+        observacao: { type: [string, "null"], maxLength: 1000 }
+
+    FactorRStatus:
+      type: string
+      enum: [ok, dados_insuficientes]
+
+    FactorRReason:
+      type: string
+      enum: [empresa_nova_regra_pendente, rbt12_zero, rbt12_acima_do_limite_do_simples]
+      description: |
+        Motivo dos dados insuficientes, em ordem de precedência. `empresa_nova_regra_pendente`:
+        menos de 12 meses na janela (proporcionalização pendente, P-05 da origem).
+
+    FactorRAnnex:
+      type: string
+      enum: [III, V]
+
+    FactorRLight:
+      type: string
+      enum: [vermelho, amarelo, verde]
+      description: Semáforo — vermelho abaixo de 28% (Anexo V), amarelo de 28% até a meta, verde na meta.
+
+    FactorRAction:
+      type: string
+      enum: [reuniao_correcao, vigiar_simular, manter, completar_lancamentos]
+
+    FactorRCalc:
+      type: object
+      required: [pa, janela_inicio, janela_fim, meses_preenchidos, meses_faltantes, status, motivo, rbt12, fs12, fator_r, anexo, semaforo, folha_minima_28, folha_minima_meta, gap_12m_28, reforco_mensal_28, gap_12m_meta, reforco_mensal_meta, aliquota_efetiva_iii, aliquota_efetiva_v, economia_12m, meta_operacional, cpp_integra_fs12, tabela_vigencia_inicio, regime_no_pa, monitorada]
+      properties:
+        pa: { $ref: "#/components/schemas/Competence" }
+        janela_inicio: { $ref: "#/components/schemas/Competence" }
+        janela_fim: { $ref: "#/components/schemas/Competence" }
+        meses_preenchidos: { type: array, items: { $ref: "#/components/schemas/Competence" } }
+        meses_faltantes:
+          description: Meses válidos da janela sem lançamento (mês antes do início da atividade não conta)
+          type: array
+          items: { $ref: "#/components/schemas/Competence" }
+        status: { $ref: "#/components/schemas/FactorRStatus" }
+        motivo: { oneOf: [{ $ref: "#/components/schemas/FactorRReason" }, { type: "null" }] }
+        rbt12: { $ref: "#/components/schemas/DecimalString" }
+        fs12: { $ref: "#/components/schemas/DecimalString" }
+        fator_r: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        anexo: { oneOf: [{ $ref: "#/components/schemas/FactorRAnnex" }, { type: "null" }] }
+        semaforo: { oneOf: [{ $ref: "#/components/schemas/FactorRLight" }, { type: "null" }] }
+        folha_minima_28: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        folha_minima_meta: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        gap_12m_28: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        reforco_mensal_28: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        gap_12m_meta: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        reforco_mensal_meta: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        aliquota_efetiva_iii: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        aliquota_efetiva_v: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        economia_12m:
+          description: Economia estimada de DAS em 12 meses (Anexo V menos Anexo III); pode ser negativa na faixa 6
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        meta_operacional: { $ref: "#/components/schemas/DecimalString" }
+        cpp_integra_fs12: { type: boolean, description: "Política do escritório: a CPP do DAS integra a FS12" }
+        tabela_vigencia_inicio: { $ref: "#/components/schemas/Date" }
+        regime_no_pa: { oneOf: [{ $ref: "#/components/schemas/TaxRegime" }, { type: "null" }] }
+        monitorada:
+          type: boolean
+          description: Ativa, sujeita ao Fator R e no Simples Nacional no PA, ou seja, está na carteira
+
+    FactorRPortfolioCompany:
+      type: object
+      required: [id, internal_code, legal_name, trade_name, cnpj]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        internal_code: { type: string }
+        legal_name: { type: string }
+        trade_name: { type: [string, "null"] }
+        cnpj: { $ref: "#/components/schemas/Cnpj" }
+
+    FactorRPortfolioLine:
+      type: object
+      required: [company, pacote_comercial, honorario_mensal, acao, acao_texto, status, motivo, semaforo, fator_r, anexo, rbt12, fs12, reforco_mensal_28, reforco_mensal_meta, meta_operacional, economia_12m, meses_faltantes]
+      properties:
+        company: { $ref: "#/components/schemas/FactorRPortfolioCompany" }
+        pacote_comercial: { oneOf: [{ $ref: "#/components/schemas/FactorRPackage" }, { type: "null" }] }
+        honorario_mensal: { $ref: "#/components/schemas/DecimalString" }
+        acao: { $ref: "#/components/schemas/FactorRAction" }
+        acao_texto: { type: string, examples: ["reunião de correção"] }
+        status: { $ref: "#/components/schemas/FactorRStatus" }
+        motivo: { oneOf: [{ $ref: "#/components/schemas/FactorRReason" }, { type: "null" }] }
+        semaforo: { oneOf: [{ $ref: "#/components/schemas/FactorRLight" }, { type: "null" }] }
+        fator_r: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        anexo: { oneOf: [{ $ref: "#/components/schemas/FactorRAnnex" }, { type: "null" }] }
+        rbt12: { $ref: "#/components/schemas/DecimalString" }
+        fs12: { $ref: "#/components/schemas/DecimalString" }
+        reforco_mensal_28: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        reforco_mensal_meta: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        meta_operacional: { $ref: "#/components/schemas/DecimalString" }
+        economia_12m: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        meses_faltantes: { type: array, items: { $ref: "#/components/schemas/Competence" } }
+
+    FactorRKPIs:
+      type: object
+      required: [monitoradas, no_v, no_limite, seguras, dados_insuficientes, economia_em_jogo, honorarios_pacotes]
+      properties:
+        monitoradas: { type: integer }
+        no_v: { type: integer, description: "No Anexo V" }
+        no_limite: { type: integer, description: "Amarelo: de 28% até a meta" }
+        seguras: { type: integer, description: "Verde: na meta ou acima" }
+        dados_insuficientes: { type: integer }
+        economia_em_jogo:
+          description: Soma da economia positiva das empresas em vermelho e amarelo (12 meses)
+          allOf: [{ $ref: "#/components/schemas/DecimalString" }]
+        honorarios_pacotes:
+          description: Soma dos honorários mensais dos pacotes das empresas monitoradas
+          allOf: [{ $ref: "#/components/schemas/DecimalString" }]
+
+    FactorRPortfolio:
+      type: object
+      required: [pa, meta_operacional, kpis, linhas]
+      properties:
+        pa: { $ref: "#/components/schemas/Competence" }
+        meta_operacional: { $ref: "#/components/schemas/DecimalString" }
+        kpis: { $ref: "#/components/schemas/FactorRKPIs" }
+        linhas: { type: array, items: { $ref: "#/components/schemas/FactorRPortfolioLine" } }
 
   responses:
     BadRequest:

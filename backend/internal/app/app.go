@@ -19,6 +19,7 @@ import (
 	"controle/internal/dashboard"
 	"controle/internal/demo"
 	"controle/internal/exporter"
+	"controle/internal/factorr"
 	"controle/internal/grid"
 	"controle/internal/importer"
 	"controle/internal/obligation"
@@ -102,6 +103,7 @@ func New(d Deps) *App {
 		credential.NewHandler(credentials).Routes(api)
 		dash := dashboard.NewService(d.Pool, d.Clock, credentials)
 		dashboard.NewHandler(dash).Routes(api)
+		factorr.NewHandler(factorr.NewService(d.Pool, d.Clock)).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {
