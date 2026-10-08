@@ -9,7 +9,7 @@ afterEach(() => {
 });
 
 describe("Layout", () => {
-  it("exibe as 12 áreas no menu e navega entre elas", async () => {
+  it("exibe as 13 áreas no menu (12 do PRD + Fator R) e navega entre elas", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ status: "ok", database: "ok" }), { status: 200 })),
@@ -17,7 +17,7 @@ describe("Layout", () => {
     renderWithProviders(<></>, { route: "/dashboard", routes });
 
     const nav = screen.getByRole("navigation");
-    expect(within(nav).getAllByRole("link")).toHaveLength(12);
+    expect(within(nav).getAllByRole("link")).toHaveLength(13);
     expect(await screen.findByRole("status", { name: "API disponível" })).toBeInTheDocument();
 
     await userEvent.click(within(nav).getByRole("link", { name: "Empresas" }));

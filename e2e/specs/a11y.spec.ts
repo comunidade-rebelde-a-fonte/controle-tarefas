@@ -36,6 +36,7 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     [`/accounting?competence=${competence}`, "Contábil"],
     [`/payroll?competence=${competence}`, "Folha"],
     [`/dctfweb?competence=${competence}`, "DCTFWeb"],
+    [`/factor-r?pa=${competence}`, "Fator R"],
     ["/credentials", "Procurações e Certificados"],
     [`/backlog?competence=${competence}`, "Backlog"],
     [`/obligations?competence=${competence}&state=overdue`, /Atrasadas/],
@@ -67,6 +68,7 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     "Módulos",
     "Obrigações/aplicabilidade",
     "Folha",
+    "Fator R",
     "Responsáveis",
     "Procurações/Certificados",
     "Histórico de competências",
@@ -75,6 +77,12 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await audit(page, `ficha da empresa — ${tab}`);
   }
+
+  // Fator R de uma empresa da carteira: painel, grade mensal editável e configuração.
+  await page.goto("/factor-r");
+  await page.getByRole("link", { name: "Brisa Serviços Digitais Ltda" }).click();
+  await ready(page, "Brisa Serviços Digitais Ltda");
+  await audit(page, "ficha da empresa — Fator R (Brisa, com mês do PGDAS-D)");
 });
 
 test("T-M7-04 axe: diálogos, menus e popovers sem violações serious/critical", async ({ page, request }) => {

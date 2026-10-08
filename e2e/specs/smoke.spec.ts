@@ -6,7 +6,8 @@ test("SPA abre no Dashboard, navega entre as áreas e enxerga a API", async ({ p
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
 
   const nav = page.getByRole("navigation");
-  await expect(nav.getByRole("link")).toHaveCount(12);
+  // 12 áreas do PRD §6 + Fator R (consolidação, TASK-014a).
+  await expect(nav.getByRole("link")).toHaveCount(13);
   await expect(page.getByRole("status", { name: "API disponível" })).toBeVisible();
 
   await nav.getByRole("link", { name: "Fiscal" }).click();

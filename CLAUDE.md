@@ -99,6 +99,14 @@ Desde a TASK-004 (D-014): catálogo de aliases e resolução em `backend/interna
 
 Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM real com provedor simulado.
 
+## Fator R
+
+Fatia da TASK-006a/010/011/014a (D-016 a D-018):
+- motor em `backend/internal/factorr/engine`: porte fiel do `fator_r/domain` da origem, travado por um golden gerado pelo próprio Python da origem (`testdata/golden_gen.py`);
+- API em `backend/internal/factorr`; dinheiro em `internal/platform/decimal` (ADR-007);
+- "sujeita ao Fator R" é o `companies.factor_r` (D-017);
+- simulador, inbox PGDAS-D e agentes ficam para a TASK-012/013/014b.
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).

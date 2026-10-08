@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatCnpj } from "@/lib/cnpj";
 import { TAX_REGIME_LABELS } from "@/lib/labels";
 import { useCompany } from "@/services/companies";
+import { FactorRTab } from "@/features/factor-r/FactorRTab";
 import { CredentialsTab } from "./CredentialsTab";
 import { GeneralTab } from "./GeneralTab";
 import { HistoryTab } from "./HistoryTab";
@@ -23,6 +24,7 @@ const TABS = [
   ["modules", "Módulos"],
   ["obligations", "Obrigações/aplicabilidade"],
   ["payroll", "Folha"],
+  ["factor-r", "Fator R"],
   ["responsibles", "Responsáveis"],
   ["credentials", "Procurações/Certificados"],
   ["history", "Histórico de competências"],
@@ -30,7 +32,7 @@ const TABS = [
 
 type TabId = (typeof TABS)[number][0];
 
-/** Ficha da empresa com as 8 abas [PRD §27.3]. A aba ativa fica na URL. */
+/** Ficha da empresa com as 8 abas do PRD §27.3 e a do Fator R (TASK-014a). A aba ativa fica na URL. */
 export function CompanyDetailPage() {
   const { id = "" } = useParams();
   const [params, setParams] = useSearchParams();
@@ -111,6 +113,9 @@ export function CompanyDetailPage() {
         </TabsContent>
         <TabsContent value="payroll">
           <PayrollTab key={company.version} company={company} />
+        </TabsContent>
+        <TabsContent value="factor-r">
+          <FactorRTab company={company} />
         </TabsContent>
         <TabsContent value="responsibles">
           <ResponsiblesTab key={company.version} company={company} />

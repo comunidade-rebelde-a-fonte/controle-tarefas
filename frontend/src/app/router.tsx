@@ -13,6 +13,7 @@ import { SettingsPage } from "@/features/settings/SettingsPage";
 import { ImportsPage } from "@/features/imports/ImportsPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
 import { CompanyDetailPage } from "@/features/companies/detail/CompanyDetailPage";
+import { FactorRPortfolioPage } from "@/features/factor-r/FactorRPortfolioPage";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -30,6 +31,7 @@ export const routes = [
       { path: "accounting", element: <AccountingPage /> },
       { path: "payroll", element: <PayrollPage /> },
       { path: "dctfweb", element: <DctfwebPage /> },
+      { path: "factor-r", element: <FactorRPortfolioPage /> },
       { path: "credentials", element: <CredentialsPage /> },
       { path: "backlog", element: <BacklogPage /> },
       { path: "obligations", element: <ObligationsListPage /> },

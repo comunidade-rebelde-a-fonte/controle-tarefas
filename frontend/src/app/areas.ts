@@ -8,13 +8,14 @@ import {
   KeyRound,
   LayoutDashboard,
   Layers,
+  Percent,
   Receipt,
   Settings,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
-/** As 12 áreas principais do sistema [PRD §6]. */
+/** Áreas principais: as 12 do PRD §6 e o Fator R da consolidação (08 §2, TASK-014a). */
 export interface Area {
   path: string;
   label: string;
@@ -30,6 +31,7 @@ export const AREAS: readonly Area[] = [
   { path: "/accounting", label: "Contábil", icon: Calculator, group: "operacao" },
   { path: "/payroll", label: "Folha", icon: Users, group: "operacao" },
   { path: "/dctfweb", label: "DCTFWeb", icon: Layers, group: "operacao" },
+  { path: "/factor-r", label: "Fator R", icon: Percent, group: "operacao" },
   { path: "/credentials", label: "Procurações e Certificados", icon: KeyRound, group: "operacao" },
   { path: "/backlog", label: "Backlog", icon: History, group: "gestao" },
   { path: "/settings", label: "Cadastros e Configurações", icon: Settings, group: "dados" },
