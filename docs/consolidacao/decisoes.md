@@ -4,6 +4,66 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-020 — Schema da Conciliação (TASK-007; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte do schema do Conciliador** (`app/db/models.py`, commit `2bc6e26`) para a migration `0020_reconciliation.sql`.
+  - Tabelas e colunas em inglês, na convenção do projeto-base. O 05 §5 nomeia as tabelas em inglês e descreve os campos sem fixar nomes.
+  - Os vocabulários da origem ficam como estavam:
+    - estados do documento (contrato congelado): `pendente`, `triado`, `extraido`, `importado`, `revisao_triagem`, `revisao_extracao`, `duplicado` e `pendencia_periodo_fechado`;
+    - sentido: `C` e `D`;
+    - métodos: `passe_1` a `passe_4`, `manual`, `sem_comprovante` e `resolvedor`;
+    - origem da conciliação: `auto` e `manual`;
+    - origem da classificação: `regra`, `historico`, `agente` e `manual`;
+    - tipos de regra: `cnpj`, `contraparte` e `regex_descritivo`;
+    - estados da proposta: `pendente`, `aceita` e `rejeitada`;
+    - estados do lançamento: `pendente`, `parcial`, `extraido` e `manual`;
+    - tipos de documento: `extrato`, `comprovante` e `desconhecido`.
+
+  | Origem | Consolidado |
+  |---|---|
+  | `cliente` | `companies` (canônica, REQ-002) |
+  | `usuario` | `users` |
+  | `conta_bancaria` | `bank_accounts` |
+  | `documento_origem` | `reconciliation_documents` |
+  | `extrato_importacao` | `statement_imports` |
+  | `extrato_transacao` | `statement_transactions` |
+  | `lancamento_cliente` | `client_entries` |
+  | `conciliacao` | `reconciliations` + `reconciliation_items` |
+  | `plano_contas` | `chart_accounts` |
+  | `regra_classificacao` | `classification_rules` |
+  | `playbook_banco` | `bank_playbooks` (schema lógico congelado mantido) |
+  | `extracao_log` | `extraction_logs` |
+  | `proposta_resolvedor` | `resolver_proposals` |
+  | `periodo_fechamento` | **não existe**: a trava é o fechamento do Contábil em `company_module_periods` (REQ-033, 05 §6) |
+  | `job` | `jobs` (TASK-005) |
+  | `cnpj_cache` | adiado: a consulta de CNPJ (CC-15) é decidida na TASK-017 |
+
+- **Empresa em tudo.**
+  - Toda entidade tem `company_id`. Só o documento pode ficar sem empresa durante a triagem; sem empresa definida, ele não é importado e fica em revisão.
+  - Transação, lançamento, conciliação, item e proposta usam FKs compostas com `company_id`, então um vínculo nunca cruza empresas.
+  - Na origem, a transação não tinha cliente, e o lançamento feito à mão ou por CSV podia ficar sem cliente.
+- **O portão também no banco.**
+  - `statement_imports.validation_ok` tem `CHECK (validation_ok)`: importação reprovada não existe (AC-015).
+  - `attempts` vai de 0 a 3; 0 é a importação determinística, como na origem.
+- **Dedupe.**
+  - A chave segue a origem: sha256 de `conta|data|valor|sentido|descrição normalizada|ordem no dia`, única no sistema.
+  - Foi portada para Go (`reconciliation.DedupeKey`). Um golden gerado pelo código Python da origem prova igualdade caractere a caractere em 45 casos difíceis de Unicode.
+- **Conciliação N:1 com integridade.**
+  - Os vínculos ficam em `reconciliation_items`, e não em arrays JSON (05 §5).
+  - Há uma conciliação ativa por transação e um lançamento em no máximo uma conciliação ativa, ambos garantidos por índices únicos parciais.
+  - "Sem comprovante" é uma conciliação sem itens.
+  - Origem `auto` exige passe e não tem autor; origem `manual` exige autor.
+  - Desfazer não apaga, ao contrário da origem: marca `undone_at` e o autor e libera os itens. A auditoria se mantém, e o razão é projeção das conciliações ativas.
+- **Outras unicidades.**
+  - Conta bancária única no sistema. Na origem a unicidade era por cliente, mas a importação buscava a conta só por banco, agência e conta, o que ficava ambíguo.
+  - No máximo um playbook válido por banco; a origem já assumia isso.
+  - Uma importação por documento.
+- **Log de extração.** O custo é gravado em dólares com 8 casas. O `MONEY` de 2 casas da origem zerava o custo de cada chamada.
+- **Trava.** `reconciliation.RequireOpen` consulta o fechamento do módulo Contábil e devolve 423 `PERIOD_CLOSED`, o mesmo das obrigações.
+  - Fiscal fechado não trava a Conciliação (AC-026).
+  - Sem período gerado, não há trava.
+  - Os serviços das TASK-015 em diante usam a trava em cada mutação (AC-025).
+
 ### D-019 — Fila de jobs em PostgreSQL (TASK-005; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte da fila do Conciliador** (`app/servicos/fila.py` e `app/workers/runner.py`, commit `2bc6e26`):

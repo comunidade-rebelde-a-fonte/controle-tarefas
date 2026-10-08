@@ -195,6 +195,13 @@ Por tentativa:
 - trace_id
 - timestamps.
 
+> **Como foi implementado (TASK-007; D-020).** A migration `0020_reconciliation.sql` cria `bank_accounts`, `reconciliation_documents`, `statement_imports`, `statement_transactions`, `client_entries`, `reconciliations` e `reconciliation_items`, `chart_accounts`, `classification_rules`, `bank_playbooks`, `extraction_logs` e `resolver_proposals`.
+> - Tudo referencia `companies(id)`, com FKs compostas por empresa.
+> - O banco impede importação reprovada pelo portão.
+> - A chave de dedupe é a da origem, portada e provada por golden.
+> - Não há tabela de fechamento.
+> - O mapeamento completo origem → consolidado está na D-020.
+
 ## 6. Fechamento canônico
 
 **Não criar** `periodo_fechamento` com autoridade independente para Conciliação.

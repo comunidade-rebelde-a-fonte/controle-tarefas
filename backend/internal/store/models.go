@@ -10,6 +10,37 @@ import (
 	"controle/internal/platform/decimal"
 )
 
+type BankAccount struct {
+	ID        string
+	CompanyID string
+	Bank      string
+	Branch    string
+	Account   string
+	Active    bool
+	CreatedBy *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type BankPlaybook struct {
+	ID                 string
+	Bank               string
+	Version            int32
+	TableStartPage     int32
+	IgnoredPages       []byte
+	DateFormat         string
+	DecimalSeparator   string
+	SignRepresentation string
+	BalanceLocation    string
+	WinningStrategy    string
+	ValidatedAt        *time.Time
+	Valid              bool
+	Successes          int32
+	Failures           int32
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
 type BusinessCalendar struct {
 	ID        string
 	Name      string
@@ -17,6 +48,52 @@ type BusinessCalendar struct {
 	State     *string
 	City      *string
 	CreatedAt time.Time
+}
+
+type ChartAccount struct {
+	ID        string
+	CompanyID string
+	Code      string
+	Name      string
+	Active    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type ClassificationRule struct {
+	ID          string
+	CompanyID   string
+	RuleType    string
+	Pattern     string
+	AccountCode string
+	Active      bool
+	CreatedBy   *string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type ClientEntry struct {
+	ID                    string
+	CompanyID             string
+	DocumentID            *string
+	EntryDate             *time.Time
+	Amount                *decimal.Decimal
+	Direction             *string
+	Counterparty          *string
+	CounterpartyDoc       *string
+	DocumentRef           *string
+	OperationType         *string
+	Status                string
+	FieldConfidence       []byte
+	FieldOrigin           []byte
+	DuplicateFlagged      bool
+	AccountCode           *string
+	ClassificationOrigin  *string
+	ClassificationPending bool
+	Flags                 []byte
+	CreatedBy             *string
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
 }
 
 type Company struct {
@@ -175,6 +252,30 @@ type DueDateRule struct {
 	Version                  int32
 	CreatedAt                time.Time
 	UpdatedAt                time.Time
+}
+
+type ExtractionLog struct {
+	ID              string
+	CompanyID       *string
+	DocumentID      *string
+	FileSha256      *string
+	Alias           string
+	ResolvedModel   *string
+	PromptHash      *string
+	PromptVersion   *string
+	RawOutput       *string
+	ValidatorResult []byte
+	Attempt         int32
+	TokensIn        *int32
+	TokensOut       *int32
+	CostUsd         *decimal.Decimal
+	LatencyMs       *int32
+	TraceID         *string
+	JobID           *string
+	ActorID         *string
+	Change          *string
+	Error           *string
+	CreatedAt       time.Time
 }
 
 type FactorRMovement struct {
@@ -343,11 +444,112 @@ type ObligationTypeRegimeRule struct {
 	Active            bool
 }
 
+type Reconciliation struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Score                  *decimal.Decimal
+	Pass                   *int16
+	Method                 string
+	Origin                 string
+	ProposalID             *string
+	CreatedBy              *string
+	CreatedAt              time.Time
+	UndoneAt               *time.Time
+	UndoneBy               *string
+	UndoReason             *string
+}
+
+type ReconciliationDocument struct {
+	ID               string
+	CompanyID        *string
+	Competence       *time.Time
+	StorageBackend   string
+	Bucket           string
+	ObjectKey        string
+	ObjectVersionID  *string
+	Sha256           string
+	FileName         string
+	ContentType      string
+	SizeBytes        *int64
+	Kind             *string
+	Bank             *string
+	Branch           *string
+	Account          *string
+	PeriodStart      *time.Time
+	PeriodEnd        *time.Time
+	Status           string
+	TriageConfidence *decimal.Decimal
+	Diagnosis        []byte
+	UploadedBy       *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+type ReconciliationItem struct {
+	ReconciliationID string
+	CompanyID        string
+	ClientEntryID    string
+	ReleasedAt       *time.Time
+}
+
+type ResolverProposal struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Payload                []byte
+	Status                 string
+	TraceID                *string
+	DecidedBy              *string
+	DecidedAt              *time.Time
+	CreatedBy              *string
+	CreatedAt              time.Time
+}
+
 type Setting struct {
 	Key       string
 	Value     []byte
 	UpdatedBy *string
 	UpdatedAt time.Time
+}
+
+type StatementImport struct {
+	ID             string
+	CompanyID      string
+	DocumentID     string
+	BankAccountID  *string
+	Bank           string
+	Branch         string
+	Account        string
+	PeriodStart    time.Time
+	PeriodEnd      time.Time
+	OpeningBalance decimal.Decimal
+	ClosingBalance decimal.Decimal
+	ValidationOk   bool
+	Validation     []byte
+	Attempts       int32
+	CreatedAt      time.Time
+}
+
+type StatementTransaction struct {
+	ID                    string
+	CompanyID             string
+	StatementImportID     string
+	Position              int32
+	TxnDate               time.Time
+	Competence            *time.Time
+	Description           string
+	DocumentRef           *string
+	Amount                decimal.Decimal
+	Direction             string
+	BalanceAfter          *decimal.Decimal
+	DedupeKey             string
+	Confidence            *decimal.Decimal
+	Flags                 []byte
+	AccountCode           *string
+	ClassificationOrigin  *string
+	ClassificationPending bool
+	CreatedAt             time.Time
 }
 
 type StatusDefinition struct {

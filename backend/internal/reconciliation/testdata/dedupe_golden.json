@@ -1,0 +1,473 @@
+{
+ "fonte": "conciliador-contabil 2bc6e26 (app/domain/dedupe.py)",
+ "casos": [
+  {
+   "conta": "12345-6",
+   "data": "2026-01-01",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "  Pix  JOÃO  ",
+   "ordem_no_dia": 1,
+   "normalizada": "pix joao",
+   "chave": "3f92045d13006faa98c5223fd5125d25b8dac130238f64ac5f12ab8dc667b631"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-02-02",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "PIX RECEBIDO - José da Silva",
+   "ordem_no_dia": 2,
+   "normalizada": "pix recebido - jose da silva",
+   "chave": "77266092f354e22d0d01553ecc8d136a5724eeb42d6a896b9eec8367b4faf463"
+  },
+  {
+   "conta": "9",
+   "data": "2026-03-03",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "TARIFA BANCÁRIA\tPACOTE\nMENSAL",
+   "ordem_no_dia": 3,
+   "normalizada": "tarifa bancaria pacote mensal",
+   "chave": "e157a1efd03418a081a89021a051ad64f6c181ef2d8dcc716f8d7ffe415533c3"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-04-04",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "ﬁnanciamento ﬀ ﬃ ﬆ",
+   "ordem_no_dia": 1,
+   "normalizada": "financiamento ff ffi st",
+   "chave": "9c32397e9d64cc3b5be7854a587ba92a33377a57496cd79bf9c8b34eabc665a3"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-05-05",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "Straße GROSSE",
+   "ordem_no_dia": 2,
+   "normalizada": "strasse grosse",
+   "chave": "a0b730c760fd87938f0b7d5d36ccbc4028fffc5e02369373d1022d796f69064c"
+  },
+  {
+   "conta": "9",
+   "data": "2026-06-06",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "ÇÃÕÉÍÚÂÊÔÀ çãõ",
+   "ordem_no_dia": 3,
+   "normalizada": "caoeiuaeoa cao",
+   "chave": "d75e324260ae082109943554f9146653a0b8837a6e35842985716f8c790546b4"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-07-07",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "Ångström Ω Å",
+   "ordem_no_dia": 1,
+   "normalizada": "angstrom ω a",
+   "chave": "d88336d87a63acf71ea10bde3126c60953bcab82865f2581b3f295a8b6228148"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-08-08",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "İstanbul ı I",
+   "ordem_no_dia": 2,
+   "normalizada": "istanbul ı i",
+   "chave": "70158f34541cdab3c14b469ac2b22656b879a4685ad1477beffedc8d73bc263f"
+  },
+  {
+   "conta": "9",
+   "data": "2026-09-09",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "ǅǆǄ",
+   "ordem_no_dia": 3,
+   "normalizada": "dzdzdz",
+   "chave": "b46447f8c2791c7a54fef1deb76018ce277c9164b0118890ccdeca16f6cd5760"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-10-10",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "x y",
+   "ordem_no_dia": 1,
+   "normalizada": "x y",
+   "chave": "68016986ced271150e2964e0c1949c3c59d99b2cb61c6c8e2bd3bdfd4849f43d"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-11-11",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "a b　c",
+   "ordem_no_dia": 2,
+   "normalizada": "a b c",
+   "chave": "2b5595e2cee19269a018f941883799bbd9c4a8c8a6117122300c349d18a30d45"
+  },
+  {
+   "conta": "9",
+   "data": "2026-12-12",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "a b",
+   "ordem_no_dia": 3,
+   "normalizada": "a b",
+   "chave": "2e70ec97ab80fab1d19b9a0f8c99d3e20b265b331e255a91d32075fc13442b53"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-01-13",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "a\u001cb\u001dc\u001ed\u001fe",
+   "ordem_no_dia": 1,
+   "normalizada": "a b c d e",
+   "chave": "1340e7cdd42411d578f67721cd029b7ede70094545f7217c6bba5d636e83d10f"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-02-14",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "a​b",
+   "ordem_no_dia": 2,
+   "normalizada": "a​b",
+   "chave": "23ec562c0b62639e05e6790d6b4e66d6352449af53a12bccfcda9c5e8dfa7e4c"
+  },
+  {
+   "conta": "9",
+   "data": "2026-03-15",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "ﬁ́",
+   "ordem_no_dia": 3,
+   "normalizada": "fi",
+   "chave": "9af4f114d8bbaf8b56d0c191b249db4ecc99992495374a9cf5864ccd63f7227c"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-04-16",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "Ⅻ Ⅷ",
+   "ordem_no_dia": 1,
+   "normalizada": "xii viii",
+   "chave": "a7ef7931d36bee938184195b76edad8c01b11dec8c5b3b5c1a02fc8adef16d5a"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-05-17",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "①② ⑳",
+   "ordem_no_dia": 2,
+   "normalizada": "12 20",
+   "chave": "2c6635ad0823bb314ba8ebc7b241d09db21fbc2ea4e32d1851ebbbb090f04a19"
+  },
+  {
+   "conta": "9",
+   "data": "2026-06-18",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "ＡＢＣ ｄｅｆ",
+   "ordem_no_dia": 3,
+   "normalizada": "abc def",
+   "chave": "26612d9eb572271be754faa68606806a0e810e38233c65691af57a9d5dd03bc1"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-07-19",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "ꭰꮀ",
+   "ordem_no_dia": 1,
+   "normalizada": "ᎠᎰ",
+   "chave": "164ad63238f39e97b48d7c6b7b5576209476780150b7bdf76307be1818f7ae5a"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-08-20",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "ΣΑΣ ς",
+   "ordem_no_dia": 2,
+   "normalizada": "σασ σ",
+   "chave": "0ff8f2ebd18d77319012b9c59b9e6726de61fd79d9019407b8b7190d06c44c21"
+  },
+  {
+   "conta": "9",
+   "data": "2026-09-21",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "Pagamento 🚀 ok",
+   "ordem_no_dia": 3,
+   "normalizada": "pagamento 🚀 ok",
+   "chave": "90fcd38a785ea65f0eb25e54e27a5817b810a3fb5e3a3895e570f4197261fb8c"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-10-22",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "Å éè",
+   "ordem_no_dia": 1,
+   "normalizada": "a ee",
+   "chave": "429e8261fe7480ff0352fa648c9a0c7be31572105902b4015326ef66fe142ced"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-11-23",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "ŉ ǰ ΐ",
+   "ordem_no_dia": 2,
+   "normalizada": "ʼn j ι",
+   "chave": "b484250af5e13a68545b62ba14662bffc00a92205789271812542f8179122633"
+  },
+  {
+   "conta": "9",
+   "data": "2026-12-24",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "한글 테스트",
+   "ordem_no_dia": 3,
+   "normalizada": "한글 테스트",
+   "chave": "8391174bbb1ca4adeed639c83f287968612e6387d8179c6664d09bf68e432ffd"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-01-25",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "ส้มตำ",
+   "ordem_no_dia": 1,
+   "normalizada": "สมตํา",
+   "chave": "e1811a14372001a43af57b614eee06e36ce22abb748ac970fae38d18be85f990"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-02-26",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "مَرْحَبًا",
+   "ordem_no_dia": 2,
+   "normalizada": "مرحبا",
+   "chave": "018da958d49a64ad0113edf59149cc21ba6b9d1c6f5631d6181816c38f9e740c"
+  },
+  {
+   "conta": "9",
+   "data": "2026-03-27",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "שָׁלוֹם",
+   "ordem_no_dia": 3,
+   "normalizada": "שלום",
+   "chave": "817fb0fdfcb8995bfbd0b7eabe58fe6741b7cdc1f155c827da836eeb44e4a976"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-04-28",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "हिन्दी",
+   "ordem_no_dia": 1,
+   "normalizada": "हिनदी",
+   "chave": "f8f2bd147a69ed2e3cc6434d6f000a495ad386a66650d5f1d1c5736a204af772"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-05-01",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "TED 123.456.789-00 CPF",
+   "ordem_no_dia": 2,
+   "normalizada": "ted 123.456.789-00 cpf",
+   "chave": "2676409cc25707db4de8cecd99660a8d597c43486e7084becd3a8fd57b7d9f91"
+  },
+  {
+   "conta": "9",
+   "data": "2026-06-02",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "",
+   "ordem_no_dia": 3,
+   "normalizada": "",
+   "chave": "8eb10179efb0055964d5090695e43c22b24bc6dce3888622cd8324e5955b606b"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-07-03",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "   ",
+   "ordem_no_dia": 1,
+   "normalizada": "",
+   "chave": "b8c6f81d032eef401b8b2efcfc1423d4ef81a15749b23424c9969dba595068fa"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-08-04",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": " linha par",
+   "ordem_no_dia": 2,
+   "normalizada": "linha par",
+   "chave": "6db418d251ad843eb438b9add4b69cbc17d412ab4aa2ab821307c57fc8a14817"
+  },
+  {
+   "conta": "9",
+   "data": "2026-09-05",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "DOCTED",
+   "ordem_no_dia": 3,
+   "normalizada": "doc ted",
+   "chave": "ba866dbdf811800b61020cb1eb41689cc01c3eba2eb53b7127df06357ae96d4c"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-10-06",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "x y z",
+   "ordem_no_dia": 1,
+   "normalizada": "x y z",
+   "chave": "0224f5f563d62724a5ea6b39b535d5dc18cca1d9ba9ff88a5dbf786443d016aa"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-11-07",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "º ª ¹²³ ½",
+   "ordem_no_dia": 2,
+   "normalizada": "o a 123 1⁄2",
+   "chave": "30e2015ecb4b98655cc8b1ae0bb548a157b7c75a09d9d89e734f9538fd8e58d8"
+  },
+  {
+   "conta": "9",
+   "data": "2026-12-08",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "ℌℍℎ",
+   "ordem_no_dia": 3,
+   "normalizada": "hhh",
+   "chave": "6990213888245f08400923124178f42df39f846c3653f92472d42aa9b7139606"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-01-09",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "Ⓐⓑ",
+   "ordem_no_dia": 1,
+   "normalizada": "ab",
+   "chave": "3043d8108ad790b194f10ea677a99936b3384f7fcecb5927332d094f571ec36d"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-02-10",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "™ ℠",
+   "ordem_no_dia": 2,
+   "normalizada": "tm sm",
+   "chave": "470cc8c5aa2842e7d63431fe2d947bcf7cbdff1b7933496e1138ff3e5f412169"
+  },
+  {
+   "conta": "9",
+   "data": "2026-03-11",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "ㄱㄴ",
+   "ordem_no_dia": 3,
+   "normalizada": "ᄀᄂ",
+   "chave": "293ac308dcf7175badef4758fdce5f397e5db30002a81463e4ab23c349679a3e"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-04-12",
+   "valor": "999999999999.99",
+   "sentido": "C",
+   "descricao": "ᄀ",
+   "ordem_no_dia": 1,
+   "normalizada": "ᄀ",
+   "chave": "7d1dc36fcee40e341cbd1d59f33c99a248c4755e22bd4366254ef0ec864f98ee"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-05-13",
+   "valor": "10.50",
+   "sentido": "D",
+   "descricao": "Ǳ",
+   "ordem_no_dia": 2,
+   "normalizada": "dz",
+   "chave": "c49f9b4b9c24454cdc505dda7b3fceccad77780bffecea9d119c04c19ddee580"
+  },
+  {
+   "conta": "9",
+   "data": "2026-06-14",
+   "valor": "7.00",
+   "sentido": "C",
+   "descricao": "ﬓ",
+   "ordem_no_dia": 3,
+   "normalizada": "մն",
+   "chave": "313f2e0c79c6f4e36de8a687f39cfe6d70530ae7a7aef706ba817948c438bafa"
+  },
+  {
+   "conta": "12345-6",
+   "data": "2026-07-15",
+   "valor": "0.01",
+   "sentido": "D",
+   "descricao": "ᾳ ᾼ",
+   "ordem_no_dia": 1,
+   "normalizada": "α α",
+   "chave": "b2c8d10ca292cbf036d0f60f1dbdebd7053a730885b2fcb7823bda926ad8dac6"
+  },
+  {
+   "conta": "000123",
+   "data": "2026-08-16",
+   "valor": "10.00",
+   "sentido": "C",
+   "descricao": "ẞ",
+   "ordem_no_dia": 2,
+   "normalizada": "ss",
+   "chave": "37a8f0b2cc9de650079d7fddc19687c98981245873dd0fee481ca717de2ddb01"
+  },
+  {
+   "conta": "9",
+   "data": "2026-09-17",
+   "valor": "1234567.89",
+   "sentido": "D",
+   "descricao": "K Å",
+   "ordem_no_dia": 3,
+   "normalizada": "k a",
+   "chave": "d5a66ce9625cb659f1049e0dd5c10c190a6708e7c8227780d4550246bbf466b5"
+  }
+ ],
+ "ordens_no_dia": {
+  "datas": [
+   "2026-03-01",
+   "2026-03-01",
+   "2026-03-02",
+   "2026-03-01",
+   "2026-03-02",
+   "2026-03-03"
+  ],
+  "esperado": [
+   1,
+   2,
+   1,
+   3,
+   2,
+   1
+  ]
+ }
+}

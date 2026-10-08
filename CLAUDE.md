@@ -103,6 +103,10 @@ Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM rea
 
 Desde a TASK-005 (D-019): fila em `backend/internal/jobs` (SKIP LOCKED, tentativas, posse com prazo, efeito do handler na mesma transação da conclusão). Cada novo tipo de job registra o handler em `backend/internal/worker/handlers.go`; payload só com IDs, nunca documento.
 
+## Conciliação
+
+Desde a TASK-007 (D-020): schema em `backend/migrations/0020_reconciliation.sql` (mapeamento origem → consolidado na D-020); chave de dedupe e trava pelo fechamento Contábil em `backend/internal/reconciliation`. Toda mutação da Conciliação chama `reconciliation.RequireOpen` (AC-025).
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):
