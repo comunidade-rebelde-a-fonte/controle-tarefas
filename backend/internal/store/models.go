@@ -6,6 +6,8 @@ package store
 
 import (
 	"time"
+
+	"controle/internal/platform/decimal"
 )
 
 type BusinessCalendar struct {
@@ -60,6 +62,22 @@ type CompanyCompetenceSnapshot struct {
 	City                          *string
 	State                         *string
 	CreatedAt                     time.Time
+}
+
+type CompanyFactorRSetting struct {
+	CompanyID        string
+	Cnae             *string
+	Atividade        *string
+	QuantidadeSocios int32
+	Contato          *string
+	PacoteComercial  *string
+	HonorarioMensal  decimal.Decimal
+	InicioAtividade  *time.Time
+	Notas            *string
+	Version          int32
+	UpdatedBy        *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type CompanyModulePeriod struct {
@@ -157,6 +175,49 @@ type DueDateRule struct {
 	Version                  int32
 	CreatedAt                time.Time
 	UpdatedAt                time.Time
+}
+
+type FactorRMovement struct {
+	ID                       string
+	CompanyID                string
+	Competence               time.Time
+	ReceitaBruta             decimal.Decimal
+	ProLabore                decimal.Decimal
+	Salarios13Ferias         decimal.Decimal
+	CppRecolhida             decimal.Decimal
+	FgtsRecolhido            decimal.Decimal
+	FolhaTotalDeclaradaPgdas *decimal.Decimal
+	FolhaMes                 *decimal.Decimal
+	Origem                   string
+	Observacao               *string
+	PgdasDocumentID          *string
+	Version                  int32
+	UpdatedBy                *string
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+}
+
+type FactorRPolicy struct {
+	ID                    bool
+	MetaOperacional       decimal.Decimal
+	CppDasIntegraFs12     bool
+	PisoEconomiaAnual     decimal.Decimal
+	LimiarConfiancaParser decimal.Decimal
+	ToleranciaOuroPct     decimal.Decimal
+	Version               int32
+	UpdatedBy             *string
+	UpdatedAt             time.Time
+}
+
+type FactorRSimplesTable struct {
+	ID              string
+	Anexo           string
+	Faixa           int16
+	Rbt12Ate        decimal.Decimal
+	AliquotaNominal decimal.Decimal
+	ParcelaDeduzir  decimal.Decimal
+	VigenciaInicio  time.Time
+	VigenciaFim     *time.Time
 }
 
 type Holiday struct {

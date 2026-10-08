@@ -48,6 +48,8 @@ Campos mínimos:
 - `notas` text nullable.
 - `created_at`, `updated_at`.
 
+> **Como foi implementado (TASK-006a; D-017 e D-018).** Sem `sujeita_factor_r`: a sujeição é o `companies.factor_r` do cadastro (D-017). `quantidade_socios` e `honorario_mensal` são NOT NULL com os padrões da origem (1 e 0). `pacote_comercial` nulo = sem pacote. Há `version` para concorrência otimista.
+
 ### `factor_r_movements`
 
 Unique `(company_id, competence)`.
@@ -67,6 +69,12 @@ Campos:
 - timestamps
 
 Regra: movimento PGDAS que traz folha total declarada não deve inventar split.
+
+> **Como foi implementado (TASK-006a; D-018).**
+> - `folha_total_declarada_pgdas` só existe com `origem = pgdas` e a divisão zerada (CHECK). Quando existe, é a folha do mês na FS12.
+> - Outras colunas: `folha_mes` (gerada), `pgdas_document_id` (a FK chega na TASK-006b) e `version`.
+> - As tabelas do Simples por vigência ficam em `factor_r_simples_tables`, carregadas pelo `make seed`.
+> - Valores em `numeric`, lidos como decimal exato (ADR-007).
 
 ### `factor_r_pgdas_documents`
 

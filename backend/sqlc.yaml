@@ -43,3 +43,24 @@ sql:
               import: time
               type: Time
               pointer: true
+          # Dinheiro e percentuais: decimal exato, nunca float (ADR-007).
+          - db_type: pg_catalog.numeric
+            go_type:
+              import: controle/internal/platform/decimal
+              type: Decimal
+          - db_type: pg_catalog.numeric
+            nullable: true
+            go_type:
+              import: controle/internal/platform/decimal
+              type: Decimal
+              pointer: true
+          - db_type: numeric
+            go_type:
+              import: controle/internal/platform/decimal
+              type: Decimal
+          - db_type: numeric
+            nullable: true
+            go_type:
+              import: controle/internal/platform/decimal
+              type: Decimal
+              pointer: true

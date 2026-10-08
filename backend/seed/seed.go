@@ -1,6 +1,6 @@
-// Package seed carrega os dados de referência (status, catálogo, feriados) e os
-// dados de demonstração (20 empresas fictícias e histórico). Todos os seeds são
-// idempotentes: podem rodar várias vezes sem duplicar registros.
+// Package seed carrega os dados de referência (status, catálogo, feriados, tabelas do
+// Simples do Fator R) e os dados de demonstração (20 empresas fictícias e histórico). Todos
+// os seeds são idempotentes: podem rodar várias vezes sem duplicar registros.
 package seed
 
 import (
@@ -42,6 +42,7 @@ func ReferenceSteps() []Step {
 		sqlStep("status.sql"),
 		calendarStep(),
 		sqlStep("catalog.sql"),
+		simplesTablesStep(),
 	}
 }
 
