@@ -448,6 +448,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ai/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel de observabilidade dos agentes (FR-18)
+         * @description Corridas nas últimas 24 h e no total, pendências sem nota humana, acerto ouro (ok sobre ok mais erro, entre campos comparáveis) e humano (acerto sobre notas), métricas por agente e custo e tokens do LLM nos últimos 30 dias, todos da trilha local (o custo é o informado pelo gateway).
+         */
+        get: operations["getAISummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Corridas de agente, mais recentes primeiro */
+        get: operations["listAIRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs/{trace_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Detalhe da corrida — entrada, saída, decisão, spans, decisões e notas
+         * @description Os spans vêm da trilha local: o detalhe não depende do Langfuse estar no ar. O campo langfuse_url abre o trace no Langfuse (configuração não secreta).
+         */
+        get: operations["getAIRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs/{trace_id}/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registra a nota humana da corrida (acerto, parcial ou erro)
+         * @description A nota vale na trilha local e é espelhada no Langfuse como o score categórico human_eval, como na origem. Nota erro exige comentário (422 EVAL_COMMENT_REQUIRED).
+         */
+        post: operations["evaluateAIRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/credential-controls": {
         parameters: {
             query?: never;
@@ -1854,6 +1937,163 @@ export interface components {
             checks: components["schemas"]["AIModelCheck"][];
             capabilities: components["schemas"]["AIModelCapabilities"] | null;
         };
+        /**
+         * @description Resultado da corrida, como na origem
+         * @enum {string}
+         */
+        AIRunStatus: "ok" | "error" | "needs_review";
+        /**
+         * @description Sincronização com o Langfuse; failed é reenviado periodicamente
+         * @enum {string}
+         */
+        AISyncStatus: "pending" | "ok" | "failed";
+        AIRun: {
+            trace_id: string;
+            /** @example consultor */
+            agent: string;
+            /** @example pergunta */
+            trigger: string;
+            status: components["schemas"]["AIRunStatus"];
+            confidence: components["schemas"]["DecimalString"] | null;
+            /** Format: int32 */
+            latency_ms: number | null;
+            company_id: components["schemas"]["Uuid"] | null;
+            /** @description Competência (Conciliação) ou PA (Fator R) */
+            competence: components["schemas"]["Competence"] | null;
+            /** @description Snapshot da resolução do alias; nulo em agente determinístico */
+            alias: string | null;
+            provider: string | null;
+            model: string | null;
+            /** Format: int32 */
+            tokens_in: number | null;
+            /** Format: int32 */
+            tokens_out: number | null;
+            cost_usd: components["schemas"]["DecimalString"] | null;
+            langfuse_sync_status: components["schemas"]["AISyncStatus"];
+            has_human_eval: boolean;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIRunList: {
+            items: components["schemas"]["AIRun"][];
+            /** Format: int64 */
+            total: number;
+        };
+        /** @description Passo da corrida (plan, parse, tool, decide, render) ou chamada ao LLM (generation) */
+        AIRunSpan: {
+            id: string;
+            /** @description Ausente: filho da raiz */
+            parent_id?: string;
+            name: string;
+            /** @enum {string} */
+            type: "chain" | "tool" | "generation";
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+            /** @enum {string} */
+            level?: "WARNING" | "ERROR";
+            status_message?: string;
+            input?: unknown;
+            output?: unknown;
+            metadata?: {
+                [key: string]: string;
+            };
+            model?: string;
+            response_model?: string;
+            tokens_in?: number;
+            tokens_out?: number;
+            /** @description Custo informado pelo gateway, em decimal textual */
+            cost_usd?: string;
+        };
+        AIDecision: {
+            id: components["schemas"]["Uuid"];
+            kind: string;
+            data: Record<string, never>;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIGoldEval: {
+            field: string;
+            expected: string | null;
+            obtained: string | null;
+            within_tolerance: boolean | null;
+            /** @enum {string} */
+            status: "ok" | "erro" | "ouro_indisponivel";
+        };
+        /**
+         * @description Nota humana, como na origem (score categórico human_eval no Langfuse)
+         * @enum {string}
+         */
+        AIHumanEvalRating: "acerto" | "parcial" | "erro";
+        AIHumanEval: {
+            id: components["schemas"]["Uuid"];
+            user_id: components["schemas"]["Uuid"];
+            rating: components["schemas"]["AIHumanEvalRating"];
+            comment: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIHumanEvalInput: {
+            rating: components["schemas"]["AIHumanEvalRating"];
+            /** @description Obrigatório quando a nota é erro */
+            comment?: string | null;
+        };
+        AIRunDetail: components["schemas"]["AIRun"] & {
+            /**
+             * Format: int32
+             * @description Versão da configuração do alias usada (D-021)
+             */
+            model_config_version: number | null;
+            prompt_version: string | null;
+            /** @description Código do erro (nunca a mensagem crua) */
+            error_code: string | null;
+            metadata: {
+                [key: string]: string;
+            };
+            /** @description Entrada sanitizada */
+            input: Record<string, never>;
+            output: Record<string, never>;
+            decision: Record<string, never>;
+            spans: components["schemas"]["AIRunSpan"][];
+            decisions: components["schemas"]["AIDecision"][];
+            gold_evals: components["schemas"]["AIGoldEval"][];
+            human_evals: components["schemas"]["AIHumanEval"][];
+            /** Format: int32 */
+            langfuse_attempts: number;
+            /** @description Erro sanitizado do último envio */
+            langfuse_last_error: string | null;
+            /** Format: date-time */
+            langfuse_synced_at: string | null;
+            /** @description Link para o trace no Langfuse */
+            langfuse_url: string | null;
+        };
+        AIAgentSummary: {
+            agent: string;
+            /** Format: int64 */
+            runs: number;
+            /** Format: int64 */
+            avg_latency_ms: number | null;
+            avg_confidence: components["schemas"]["DecimalString"] | null;
+            /** Format: int64 */
+            errors: number;
+            /** Format: int64 */
+            reviews: number;
+        };
+        AISummary: {
+            /** Format: int64 */
+            runs_24h: number;
+            /** Format: int64 */
+            runs_total: number;
+            /** Format: int64 */
+            pending_human_eval: number;
+            gold_accuracy: components["schemas"]["DecimalString"] | null;
+            human_accuracy: components["schemas"]["DecimalString"] | null;
+            by_agent: components["schemas"]["AIAgentSummary"][];
+            llm_cost_30d: components["schemas"]["DecimalString"] | null;
+            /** Format: int64 */
+            llm_tokens_30d: number | null;
+        };
         CompetenceInfo: {
             competence: components["schemas"]["Competence"];
             /** Format: date-time */
@@ -2620,6 +2860,8 @@ export interface components {
     parameters: {
         /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
         AIAliasPath: string;
+        /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+        TraceIdPath: string;
         /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
         FactorRPA: components["schemas"]["Competence"];
         IdPath: components["schemas"]["Uuid"];
@@ -3499,6 +3741,109 @@ export interface operations {
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
             503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getAISummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Painel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AISummary"];
+                };
+            };
+        };
+    };
+    listAIRuns: {
+        parameters: {
+            query?: {
+                agent?: string;
+                status?: components["schemas"]["AIRunStatus"];
+                company_id?: components["schemas"]["Uuid"];
+                /** @description Só as corridas sem nota humana */
+                without_human_eval?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de corridas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getAIRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Corrida */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    evaluateAIRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIHumanEvalInput"];
+            };
+        };
+        responses: {
+            /** @description Nota registrada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIHumanEval"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
         };
     };
     listCredentialControls: {

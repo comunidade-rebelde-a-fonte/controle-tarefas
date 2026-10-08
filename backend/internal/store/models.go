@@ -10,6 +10,37 @@ import (
 	"controle/internal/platform/decimal"
 )
 
+type AiDecision struct {
+	ID        string
+	TraceID   string
+	Agent     string
+	Kind      string
+	Data      []byte
+	CreatedAt time.Time
+}
+
+type AiGoldEval struct {
+	ID                 string
+	TraceID            string
+	Field              string
+	Expected           *string
+	Obtained           *string
+	WithinTolerance    *bool
+	Status             string
+	LangfuseSyncStatus string
+	CreatedAt          time.Time
+}
+
+type AiHumanEval struct {
+	ID                 string
+	TraceID            string
+	UserID             string
+	Rating             string
+	Comment            *string
+	LangfuseSyncStatus string
+	CreatedAt          time.Time
+}
+
 type AiModelAlias struct {
 	Alias      string
 	Provider   *string
@@ -31,6 +62,38 @@ type AiModelAliasHistory struct {
 	Enabled    bool
 	ChangedBy  *string
 	ChangedAt  time.Time
+}
+
+type AiRun struct {
+	TraceID            string
+	Agent              string
+	Trigger            string
+	UserID             *string
+	CompanyID          *string
+	Competence         *time.Time
+	Alias              *string
+	Provider           *string
+	Model              *string
+	ModelConfigVersion *int32
+	PromptVersion      *string
+	Metadata           []byte
+	Input              []byte
+	Output             []byte
+	Decision           []byte
+	Spans              []byte
+	Status             string
+	Confidence         *decimal.Decimal
+	LatencyMs          *int32
+	TokensIn           *int32
+	TokensOut          *int32
+	CostUsd            *decimal.Decimal
+	ErrorCode          *string
+	LangfuseSyncStatus string
+	LangfuseAttempts   int32
+	LangfuseLastError  *string
+	LangfuseSyncedAt   *time.Time
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }
 
 type BankAccount struct {

@@ -27,6 +27,8 @@ endif
 COMPOSE := docker compose
 # Langfuse self-hosted em compose dedicado (pesado: Postgres, ClickHouse, Redis e MinIO próprios).
 COMPOSE_LF := docker compose -f docker-compose.langfuse.yml
+# Rede compartilhada entre o worker e o Langfuse (TASK-009, D-022): externa aos dois projetos.
+OBS_NET := controle-obs
 
 # Ferramentas de desenvolvimento, instaladas em .bin/ com versões fixadas (make tools).
 BIN := $(CURDIR)/.bin
@@ -52,7 +54,7 @@ E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
-.PHONY: help tools dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -66,7 +68,7 @@ tools: ## Instala as ferramentas de desenvolvimento (sqlc, goose, golangci-lint,
 	GOBIN=$(BIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 	@echo "ferramentas instaladas em $(BIN)"
 
-dev: ## Sobe o ambiente (db, api, web, worker, MinIO, LiteLLM, n8n) e espera ficar healthy
+dev: obs-net ## Sobe o ambiente (db, api, web, worker, MinIO, LiteLLM, n8n) e espera ficar healthy
 	$(COMPOSE) up -d --wait db api web worker minio litellm n8n
 	$(COMPOSE) run --rm minio-init
 	@echo ">>> SPA: http://localhost:5173  |  API: http://localhost:$${HTTP_PORT:-8080}/api/v1/health"
@@ -82,7 +84,7 @@ dev-down: ## Para o ambiente de desenvolvimento e o Langfuse (dados preservados)
 	$(COMPOSE) stop
 	-@$(COMPOSE_LF) stop
 
-langfuse-up: ## Sobe o Langfuse self-hosted (traces e evals dos agentes) e espera ficar healthy
+langfuse-up: obs-net ## Sobe o Langfuse self-hosted (traces e evals dos agentes) e espera ficar healthy
 	$(COMPOSE_LF) up -d --wait
 	@echo ">>> Langfuse: http://localhost:$${LANGFUSE_WEB_PORT:-3100} (usuário: LANGFUSE_ADMIN_EMAIL do .env)"
 
@@ -91,6 +93,9 @@ langfuse-down: ## Para o Langfuse (dados preservados)
 
 langfuse-logs: ## Acompanha os logs do Langfuse
 	$(COMPOSE_LF) logs -f --tail=100
+
+obs-net: ## Cria a rede do worker com o Langfuse (controle-obs), se ainda não existir
+	@docker network inspect $(OBS_NET) >/dev/null 2>&1 || docker network create $(OBS_NET) >/dev/null
 
 health: ## Mostra a saúde de cada serviço local (API, banco, worker, MinIO, LiteLLM, n8n, Langfuse)
 	@scripts/health.sh
@@ -137,7 +142,7 @@ lint: lint-backend lint-frontend ## Lint do backend e do frontend
 
 lint-backend:
 	@test -x $(BIN)/golangci-lint || { echo "golangci-lint ausente: rode 'make tools'"; exit 1; }
-	cd backend && $(BIN)/golangci-lint run --build-tags litellm ./...
+	cd backend && $(BIN)/golangci-lint run --build-tags litellm,langfuse ./...
 
 lint-frontend:
 	cd frontend && npm run lint && npm run typecheck
@@ -154,6 +159,9 @@ test-frontend:
 
 test-litellm: ## Integração com o LiteLLM real (container) e provedor simulado: alias → modelo → provedor, sem chamada externa
 	cd backend && go test -count=1 -tags litellm -run TestGateway ./internal/ai/litellm/
+
+test-langfuse: ## Integração com o Langfuse local real (exige make langfuse-up): envia uma corrida e confere pela API pública
+	cd backend && go test -count=1 -tags langfuse -run TestLangfuse ./internal/ai/tracer/
 
 audit: ## Vulnerabilidades conhecidas: govulncheck (Go) e npm audit (frontend e e2e) [docs/seguranca.md]
 	cd backend && $(BIN)/govulncheck ./...

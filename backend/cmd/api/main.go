@@ -22,6 +22,8 @@ import (
 	"time"
 	_ "time/tzdata" // fusos embutidos (imagem final mínima não tem tzdata)
 
+	"controle/internal/ai/langfuse"
+	"controle/internal/ai/tracer"
 	"controle/internal/app"
 	"controle/internal/jobs"
 	"controle/internal/platform/clock"
@@ -80,10 +82,29 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 	}
 	// A fila usa o relógio real (tempo operacional: backoff, posse e batimento), mesmo com
 	// APP_FIXED_TIME, que congela só as datas de negócio da API.
-	runner := jobs.NewRunner(pool, clock.NewSystem(cfg.Location), logger, jobs.RunnerConfig{
+	sysClock := clock.NewSystem(cfg.Location)
+	// Langfuse (TASK-009): só o worker conhece a chave secreta e envia traces e notas.
+	syncer := tracer.NewSyncer(langfuse.New(langfuse.Config{
+		Host: cfg.LangfuseHost, PublicKey: cfg.LangfusePublicKey, SecretKey: cfg.LangfuseSecretKey,
+		Environment: cfg.LangfuseEnvironment, Timeout: cfg.LangfuseTimeout, MaxPayloadBytes: cfg.TracePayloadMaxKB * 1024,
+	}), sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts), logger)
+	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
-	}, worker.Handlers())
-	return worker.Run(ctx, worker.Deps{ID: cfg.WorkerID, DB: pool, Logger: logger, Jobs: runner}, ln)
+	}, worker.Handlers(worker.HandlerDeps{LangfuseSync: syncer.Handle}))
+	var tasks []worker.Task
+	if syncer.Configured() {
+		// Reenvio periódico das corridas e notas com falha (origem: de 5 em 5 minutos, 50 por vez).
+		tasks = append(tasks, worker.Task{Name: "langfuse_resync", Every: cfg.LangfuseRetry, Run: func(ctx context.Context) error {
+			n, err := syncer.Requeue(ctx, pool, cfg.LangfuseRetry, 50)
+			if n > 0 {
+				logger.Info("Langfuse: corridas reenfileiradas para reenvio", "jobs", n)
+			}
+			return err
+		}})
+	} else {
+		logger.Info("Langfuse não configurado (LANGFUSE_HOST): as corridas ficam só na trilha local")
+	}
+	return worker.Run(ctx, worker.Deps{ID: cfg.WorkerID, DB: pool, Logger: logger, Jobs: runner, Tasks: tasks}, ln)
 }
 
 func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {

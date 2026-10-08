@@ -58,6 +58,9 @@ services:
       LITELLM_BASE_URL: http://litellm:4000
       LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
       <<: *ai-models
+      # Auditoria de IA (TASK-009): a API só monta o link do trace no Langfuse; quem envia é o worker.
+      LANGFUSE_PUBLIC_URL: http://localhost:${LANGFUSE_WEB_PORT:-3100}
+      LANGFUSE_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado-dev}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:
@@ -133,6 +136,16 @@ services:
       LITELLM_BASE_URL: http://litellm:4000
       LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
       <<: *ai-models
+      # Langfuse (TASK-009): o worker envia traces e notas pela rede controle-obs, onde o
+      # langfuse-web responde como "langfuse". Fora do ar, as corridas ficam failed e o worker
+      # reenvia a cada LANGFUSE_RETRY_SECONDS; o domínio não para [AC-030].
+      LANGFUSE_HOST: http://langfuse:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only-change-me}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-dev-only-change-me}
+      LANGFUSE_ENVIRONMENT: ${LANGFUSE_ENVIRONMENT:-development}
+      LANGFUSE_RETRY_SECONDS: ${LANGFUSE_RETRY_SECONDS:-300}
+      TRACE_PAYLOAD_MAX_KB: ${TRACE_PAYLOAD_MAX_KB:-32}
+    networks: [default, observabilidade]
     volumes:
       - ./backend:/app/backend
       - ./storage:/app/storage
@@ -241,6 +254,14 @@ services:
       timeout: 3s
       retries: 60
       start_period: 20s
+
+# Rede compartilhada com o Langfuse (projeto controle-langfuse), criada pelo Makefile
+# (make obs-net): o worker alcança o langfuse-web pelo nome, inclusive no Linux, sem publicar o
+# Langfuse fora de 127.0.0.1 (ponto aberto da D-013, resolvido na D-022).
+networks:
+  observabilidade:
+    name: controle-obs
+    external: true
 
 volumes:
   pgdata:

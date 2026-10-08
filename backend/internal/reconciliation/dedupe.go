@@ -11,20 +11,16 @@ import (
 	"fmt"
 	"strings"
 	"time"
-	"unicode"
 	"unicode/utf8"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/unicode/norm"
 
 	"controle/internal/platform/decimal"
+	"controle/internal/platform/pytext"
 )
 
 var folder = cases.Fold()
-
-// pyIsSpace segue o str.isspace() do Python, usado pelo str.split() da origem: os espaços do
-// unicode.IsSpace mais os separadores de arquivo, grupo, registro e unidade (U+001C a U+001F).
-func pyIsSpace(r rune) bool { return unicode.IsSpace(r) || (r >= 0x1C && r <= 0x1F) }
 
 // NormalizeDescription normaliza a descrição como normalizar_descricao da origem: decomposição
 // NFKD, sem marcas combinantes (classe combinante canônica ≠ 0), case folding e espaços
@@ -40,7 +36,8 @@ func NormalizeDescription(s string) string {
 		}
 		i += size
 	}
-	return strings.Join(strings.FieldsFunc(folder.String(b.String()), pyIsSpace), " ")
+	// str.split() da origem: separa pelos espaços do str.isspace().
+	return strings.Join(strings.FieldsFunc(folder.String(b.String()), pytext.IsSpace), " ")
 }
 
 // DedupeKey é a chave de dedupe de uma transação do extrato, contrato congelado da origem

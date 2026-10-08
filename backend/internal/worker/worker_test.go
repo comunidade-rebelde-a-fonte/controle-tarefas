@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -72,5 +73,44 @@ func TestRun_ServesUntilContextIsCanceled(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("o worker não encerrou após o cancelamento")
+	}
+}
+
+// Rotinas periódicas rodam ao iniciar e a cada intervalo; erro não para a rotina; todas
+// encerram com o worker.
+func TestRun_PeriodicTasks(t *testing.T) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var calls atomic.Int32
+	ran := make(chan struct{}, 10)
+	task := Task{Name: "teste", Every: 10 * time.Millisecond, Run: func(context.Context) error {
+		calls.Add(1)
+		ran <- struct{}{}
+		return errors.New("falha transitória")
+	}}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() {
+		done <- Run(ctx, Deps{ID: "worker-teste", DB: fakeDB{}, Logger: discard(), Tasks: []Task{task}}, ln)
+	}()
+	for range 3 {
+		select {
+		case <-ran:
+		case <-time.After(5 * time.Second):
+			t.Fatal("a rotina não rodou de novo depois do erro")
+		}
+	}
+	cancel()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("o worker não encerrou com a rotina em andamento")
+	}
+	after := calls.Load()
+	time.Sleep(30 * time.Millisecond)
+	if calls.Load() != after {
+		t.Fatal("a rotina continuou depois do encerramento")
 	}
 }

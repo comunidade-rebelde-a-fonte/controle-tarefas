@@ -4,6 +4,56 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-022 — Auditoria local de IA e sincronização com o Langfuse (TASK-009; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte do tracing do Fator R** (`tracing/{tracer,client,sync,scores}.py`, commit `9dd7a74`), com os nomes do 05 §8.
+  - Tabelas:
+    - `ai_runs`, que corresponde a `agent_traces`;
+    - `ai_decisions` (`agent_decisions`);
+    - `ai_gold_evals` (`evals_gold`);
+    - `ai_human_evals` (`evals_human`).
+  - Vocabulários da origem:
+    - status `ok`, `error` e `needs_review`;
+    - nota humana `acerto`, `parcial` e `erro`;
+    - nota ouro `ok`, `erro` e `ouro_indisponivel`.
+  - Contrato do Langfuse da origem:
+    - o trace leva o nome do agente;
+    - spans só `plan`, `parse`, `tool`, `decide` e `render`, mais as gerações do LLM;
+    - scores `gold_<campo>` (BOOLEAN), `gold_acerto` (NUMERIC) e `human_eval` (CATEGORICAL).
+- **Semântica preservada:**
+  - a corrida nasce na transação do agente;
+  - decisão de agente só se grava por `RecordDecision`, e o banco exige `trace_id`;
+  - um erro desfaz as decisões e grava a corrida de erro, com o código e nunca a mensagem;
+  - a corrida que termina sem `Finish` fica como erro `NOT_FINISHED`;
+  - a nota "erro" exige comentário, no código e no banco.
+- **Diferenças da origem:**
+  - **Envio sem SDK:** OTLP/HTTP em JSON e a API de scores. O Langfuse 4.53 aceita o formato (confirmado por sonda e pelo `make test-langfuse`), sem dependência nova.
+  - **Spans guardados na trilha local:** o detalhe da corrida não depende do Langfuse. Na origem, os spans vinham da API do Langfuse e ficavam "indisponíveis" com ele fora. O reenvio manda o trace completo; na origem, só um resumo de metadados.
+  - **Fila de jobs como outbox:**
+    - o job `langfuse_sync` entra na fila na mesma transação da corrida;
+    - se o Langfuse falha, o status fica `failed`, com o erro sanitizado;
+    - o worker reenvia periodicamente: `LANGFUSE_RETRY_SECONDS`, padrão 5 minutos, 50 por vez, como a origem.
+  - **IDs fixos:**
+    - o span raiz é derivado do trace;
+    - cada score usa o ID da própria nota;
+    - o `gold_acerto` usa um UUID derivado do trace.
+    - O reenvio não cria observação nem score novos (provado no Langfuse real).
+    - O Langfuse v4 grava cada envio e consolida depois as versões da mesma observação (ClickHouse). Até isso acontecer, a API pública pode listar a mesma observação duas vezes, com o mesmo ID. Na origem, cada reenvio criava um span raiz novo.
+  - **Notas com status de sincronização próprio:** na origem, o `create_score` era "dispara e esquece".
+  - **Comentário da nota humana:** vai ao Langfuse com CNPJ e CPF mascarados; na origem ia cru.
+  - **Painel:** custo e tokens vêm da trilha local (informados pelo gateway), e não da API de métricas do Langfuse.
+  - **Sem multiescritório:** as etiquetas são agente, gatilho e módulo; não há `firm:<id>`.
+  - **Gancho genérico na fila (`jobs.AfterRollback`):** num job, a corrida de erro é gravada depois do rollback da tentativa, junto com a falha do job.
+- **Mascaramento.**
+  - Porte de `mascarar_cnpj`, `_limpar_payload` e `mascarar_atributo`, com as classes Unicode do Python (`\d`, `\s` e `\b`; pacote `pytext`, que também passou a servir a chave de dedupe da Conciliação).
+  - Provado por golden gerado com o próprio código da origem (`testdata/mask_gen.py`).
+- **Rede (ponto aberto da D-013).**
+  - Rede externa `controle-obs`, criada pelo Makefile (`make obs-net`, pré-requisito de `dev` e `langfuse-up`).
+  - Ficam nela o worker e o `langfuse-web` (apelido `langfuse`), com `HOSTNAME=0.0.0.0` no `langfuse-web`, como no compose oficial; sem isso, o Next.js só atende na rede padrão dele.
+  - O Langfuse continua publicado só em `127.0.0.1`. Funciona também no Linux.
+- **Segredos.** `LANGFUSE_SECRET_KEY` vai só para o worker (um teste confere no compose). A API recebe apenas `LANGFUSE_PUBLIC_URL` e `LANGFUSE_PROJECT_ID`, para montar o link do trace.
+- **Tela.** Traces e avaliações entram na TASK-014b (plano). Aqui fica a API do 06 §9, mais `GET /ai/summary` com as métricas do painel (FR-18).
+
 ### D-021 — Configuração dos modelos de IA (TASK-008; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Tabela `ai_model_aliases` [05 §8]**, criada na migration `0021_ai_model_aliases.sql`.
@@ -291,6 +341,7 @@ A spec autoriza alterar Docker Compose e Makefile sem aprovação prévia (15-ag
   - API e worker (projeto `controle`) precisam alcançar o Langfuse (projeto `controle-langfuse`). Hoje estão em redes diferentes, e o Langfuse só publica em `127.0.0.1`.
   - Opções: rede externa compartilhada entre os dois projetos, ou `host.docker.internal`. Esta funciona no Docker Desktop, mas não no Linux com bind em loopback.
   - A decisão vai junto com a sincronização dos traces.
+  - **Resolvido na D-022 (TASK-009):** rede externa `controle-obs`, criada pelo Makefile.
 
 ### D-012 — Agente `echo` fora do porte (07/10/2026)
 

@@ -108,5 +108,8 @@ Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de 
 - Frontend recebe somente config pública.
 - Não gravar `OPENAI_API_KEY` ou outras chaves em `ai_model_aliases`.
 - Validação de Configurações → IA consulta o gateway sem ecoar credenciais.
+- Desde a TASK-009 (D-022), o envio ao Langfuse é só do worker:
+  - variáveis `LANGFUSE_HOST`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_ENVIRONMENT`, `LANGFUSE_TIMEOUT_SECONDS`, `LANGFUSE_RETRY_SECONDS` e `TRACE_PAYLOAD_MAX_KB`;
+  - a API recebe só `LANGFUSE_PUBLIC_URL` e `LANGFUSE_PROJECT_ID`, para montar o link do trace.
   - Desde a TASK-008 (D-021): a API usa só `LITELLM_BASE_URL` e `LITELLM_API_KEY` (rota `/utils/model_info`, autenticada; sem banco no LiteLLM, só a chave mestra autentica, e o compose já passa essa chave à API).
   - Os `<ALIAS>_MODEL` do ambiente são o padrão que a tela pode substituir.

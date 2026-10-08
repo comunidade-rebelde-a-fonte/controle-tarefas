@@ -274,6 +274,12 @@ Auditoria local mínima:
 
 Para feedback humano quando aplicável, preservando rubricas do Fator R.
 
+> **Como foi implementado (TASK-009; D-022).** Migration `0022_ai_runs.sql`, com o porte de `agent_traces`, `agent_decisions`, `evals_gold` e `evals_human` do Fator R.
+> - `ai_runs`: os campos acima, mais `metadata` (metadados do trace), `spans` (o detalhe não depende do Langfuse), `error_code` (nunca a mensagem crua) e o controle do envio (`langfuse_sync_status`, `langfuse_attempts`, `langfuse_last_error`, `langfuse_synced_at`).
+> - `ai_decisions`: o único caminho de decisão de agente (`trace_id` obrigatório).
+> - `ai_gold_evals` e `ai_human_evals`: vocabulários da origem; a nota `erro` exige comentário (CHECK).
+> - `resolver_proposals.trace_id` e `extraction_logs.trace_id` passaram a apontar para `ai_runs`.
+
 ## 9. Integração com obrigação `Conciliação`
 
 A instância já existente em `obligation_instances` continua canônica. Criar vínculo lógico pelo `obligation_type` correspondente, não FK duplicada em todas as tabelas de Conciliação.

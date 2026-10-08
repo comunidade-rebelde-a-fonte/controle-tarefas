@@ -49,6 +49,10 @@ tags:
     description: Gestão — KPIs, cards, exige atenção, comparação histórica e backlog
   - name: jobs
     description: Fila de processamento assíncrono (TASK-005) — estado de um job e reenvio manual
+  - name: ai
+    description: |
+      Auditoria local das corridas de agente (TASK-009) — trilha local (fonte de verdade), notas
+      ouro e humana, status de sincronização com o Langfuse e painel de observabilidade.
   - name: factor-r
     description: |
       Fator R (consolidação, TASK-011) — configuração por empresa, série mensal de receita e
@@ -646,6 +650,89 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
         "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /ai/summary:
+    get:
+      tags: [ai]
+      operationId: getAISummary
+      summary: Painel de observabilidade dos agentes (FR-18)
+      description: >-
+        Corridas nas últimas 24 h e no total, pendências sem nota humana, acerto ouro (ok sobre
+        ok mais erro, entre campos comparáveis) e humano (acerto sobre notas), métricas por agente
+        e custo e tokens do LLM nos últimos 30 dias, todos da trilha local (o custo é o informado
+        pelo gateway).
+      responses:
+        "200":
+          description: Painel
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AISummary" }
+
+  /ai/runs:
+    get:
+      tags: [ai]
+      operationId: listAIRuns
+      summary: Corridas de agente, mais recentes primeiro
+      parameters:
+        - { name: agent, in: query, schema: { type: string, pattern: "^[a-z][a-z0-9_]{1,39}$" } }
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/AIRunStatus" } }
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - name: without_human_eval
+          in: query
+          description: Só as corridas sem nota humana
+          schema: { type: boolean }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        "200":
+          description: Página de corridas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIRunList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /ai/runs/{trace_id}:
+    parameters:
+      - $ref: "#/components/parameters/TraceIdPath"
+    get:
+      tags: [ai]
+      operationId: getAIRun
+      summary: Detalhe da corrida — entrada, saída, decisão, spans, decisões e notas
+      description: >-
+        Os spans vêm da trilha local: o detalhe não depende do Langfuse estar no ar. O campo
+        langfuse_url abre o trace no Langfuse (configuração não secreta).
+      responses:
+        "200":
+          description: Corrida
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIRunDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /ai/runs/{trace_id}/evaluation:
+    parameters:
+      - $ref: "#/components/parameters/TraceIdPath"
+    post:
+      tags: [ai]
+      operationId: evaluateAIRun
+      summary: Registra a nota humana da corrida (acerto, parcial ou erro)
+      description: >-
+        A nota vale na trilha local e é espelhada no Langfuse como o score categórico human_eval,
+        como na origem. Nota erro exige comentário (422 EVAL_COMMENT_REQUIRED).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AIHumanEvalInput" }
+      responses:
+        "201":
+          description: Nota registrada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIHumanEval" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
 
   /credential-controls:
     get:
@@ -1676,6 +1763,12 @@ components:
       required: true
       description: Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND`
       schema: { type: string, pattern: "^[a-z][a-z0-9_]{1,39}$" }
+    TraceIdPath:
+      name: trace_id
+      in: path
+      required: true
+      description: trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404
+      schema: { type: string, pattern: "^[0-9a-f]{32}$" }
     FactorRPA:
       name: pa
       in: query
@@ -2582,6 +2675,169 @@ components:
           items: { $ref: "#/components/schemas/AIModelCheck" }
         capabilities:
           oneOf: [{ $ref: "#/components/schemas/AIModelCapabilities" }, { type: "null" }]
+
+    AIRunStatus:
+      type: string
+      description: Resultado da corrida, como na origem
+      enum: [ok, error, needs_review]
+
+    AISyncStatus:
+      type: string
+      description: Sincronização com o Langfuse; failed é reenviado periodicamente
+      enum: [pending, ok, failed]
+
+    AIRun:
+      type: object
+      required: [trace_id, agent, trigger, status, confidence, latency_ms, company_id, competence, alias, provider, model, tokens_in, tokens_out, cost_usd, langfuse_sync_status, has_human_eval, created_at]
+      properties:
+        trace_id: { type: string, pattern: "^[0-9a-f]{32}$" }
+        agent: { type: string, examples: [consultor] }
+        trigger: { type: string, examples: [pergunta] }
+        status: { $ref: "#/components/schemas/AIRunStatus" }
+        confidence: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        latency_ms: { type: [integer, "null"], format: int32 }
+        company_id: { oneOf: [{ $ref: "#/components/schemas/Uuid" }, { type: "null" }] }
+        competence:
+          description: Competência (Conciliação) ou PA (Fator R)
+          oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }]
+        alias: { type: [string, "null"], description: "Snapshot da resolução do alias; nulo em agente determinístico" }
+        provider: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        tokens_in: { type: [integer, "null"], format: int32 }
+        tokens_out: { type: [integer, "null"], format: int32 }
+        cost_usd: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        langfuse_sync_status: { $ref: "#/components/schemas/AISyncStatus" }
+        has_human_eval: { type: boolean }
+        created_at: { type: string, format: date-time }
+
+    AIRunList:
+      type: object
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AIRun" }
+        total: { type: integer, format: int64 }
+
+    AIRunSpan:
+      type: object
+      description: Passo da corrida (plan, parse, tool, decide, render) ou chamada ao LLM (generation)
+      required: [id, name, type, start, end]
+      properties:
+        id: { type: string }
+        parent_id: { type: string, description: "Ausente: filho da raiz" }
+        name: { type: string }
+        type: { type: string, enum: [chain, tool, generation] }
+        start: { type: string, format: date-time }
+        end: { type: string, format: date-time }
+        level: { type: string, enum: [WARNING, ERROR] }
+        status_message: { type: string }
+        input: {}
+        output: {}
+        metadata: { type: object, additionalProperties: { type: string } }
+        model: { type: string }
+        response_model: { type: string }
+        tokens_in: { type: integer }
+        tokens_out: { type: integer }
+        cost_usd: { type: string, description: "Custo informado pelo gateway, em decimal textual" }
+
+    AIDecision:
+      type: object
+      required: [id, kind, data, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        kind: { type: string }
+        data: { type: object }
+        created_at: { type: string, format: date-time }
+
+    AIGoldEval:
+      type: object
+      required: [field, expected, obtained, within_tolerance, status]
+      properties:
+        field: { type: string }
+        expected: { type: [string, "null"] }
+        obtained: { type: [string, "null"] }
+        within_tolerance: { type: [boolean, "null"] }
+        status: { type: string, enum: [ok, erro, ouro_indisponivel] }
+
+    AIHumanEvalRating:
+      type: string
+      description: Nota humana, como na origem (score categórico human_eval no Langfuse)
+      enum: [acerto, parcial, erro]
+
+    AIHumanEval:
+      type: object
+      required: [id, user_id, rating, comment, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        user_id: { $ref: "#/components/schemas/Uuid" }
+        rating: { $ref: "#/components/schemas/AIHumanEvalRating" }
+        comment: { type: [string, "null"] }
+        created_at: { type: string, format: date-time }
+
+    AIHumanEvalInput:
+      type: object
+      additionalProperties: false
+      required: [rating]
+      properties:
+        rating: { $ref: "#/components/schemas/AIHumanEvalRating" }
+        comment: { type: [string, "null"], maxLength: 2000, description: "Obrigatório quando a nota é erro" }
+
+    AIRunDetail:
+      allOf:
+        - $ref: "#/components/schemas/AIRun"
+        - type: object
+          required: [model_config_version, prompt_version, error_code, metadata, input, output, decision, spans, decisions, gold_evals, human_evals, langfuse_attempts, langfuse_last_error, langfuse_synced_at, langfuse_url]
+          properties:
+            model_config_version: { type: [integer, "null"], format: int32, description: "Versão da configuração do alias usada (D-021)" }
+            prompt_version: { type: [string, "null"] }
+            error_code: { type: [string, "null"], description: "Código do erro (nunca a mensagem crua)" }
+            metadata: { type: object, additionalProperties: { type: string } }
+            input: { type: object, description: "Entrada sanitizada" }
+            output: { type: object }
+            decision: { type: object }
+            spans:
+              type: array
+              items: { $ref: "#/components/schemas/AIRunSpan" }
+            decisions:
+              type: array
+              items: { $ref: "#/components/schemas/AIDecision" }
+            gold_evals:
+              type: array
+              items: { $ref: "#/components/schemas/AIGoldEval" }
+            human_evals:
+              type: array
+              items: { $ref: "#/components/schemas/AIHumanEval" }
+            langfuse_attempts: { type: integer, format: int32 }
+            langfuse_last_error: { type: [string, "null"], description: "Erro sanitizado do último envio" }
+            langfuse_synced_at: { type: [string, "null"], format: date-time }
+            langfuse_url: { type: [string, "null"], description: "Link para o trace no Langfuse" }
+
+    AIAgentSummary:
+      type: object
+      required: [agent, runs, avg_latency_ms, avg_confidence, errors, reviews]
+      properties:
+        agent: { type: string }
+        runs: { type: integer, format: int64 }
+        avg_latency_ms: { type: [integer, "null"], format: int64 }
+        avg_confidence: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        errors: { type: integer, format: int64 }
+        reviews: { type: integer, format: int64 }
+
+    AISummary:
+      type: object
+      required: [runs_24h, runs_total, pending_human_eval, gold_accuracy, human_accuracy, by_agent, llm_cost_30d, llm_tokens_30d]
+      properties:
+        runs_24h: { type: integer, format: int64 }
+        runs_total: { type: integer, format: int64 }
+        pending_human_eval: { type: integer, format: int64 }
+        gold_accuracy: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        human_accuracy: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        by_agent:
+          type: array
+          items: { $ref: "#/components/schemas/AIAgentSummary" }
+        llm_cost_30d: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+        llm_tokens_30d: { type: [integer, "null"], format: int64 }
 
     CompetenceInfo:
       type: object

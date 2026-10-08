@@ -61,6 +61,7 @@ Execute `make help` para a lista completa.
 | Componentes | Vitest + Testing Library | `make test` |
 | E2E | Playwright | `make e2e` |
 | Gateway de IA | LiteLLM real (container) + provedor OpenAI simulado, sem chamada externa | `make test-litellm` |
+| Langfuse | Langfuse local real (exige `make langfuse-up`): envia uma corrida e confere trace, spans e scores pela API pública | `make test-langfuse` |
 | Carga | `backend/cmd/loadgen` | `make perf-generate` e `make perf-bench` |
 
 - **Integração Go:** `internal/testutil` sobe um Postgres descartável por pacote de teste, aplica as migrations num banco *template* e entrega a cada teste um banco clonado e isolado (`testutil.NewDB`). Há também servidor HTTP de teste (`testutil.NewServer`) e relógio fixo (`testutil.FixedClock`).
@@ -95,7 +96,7 @@ O produto consolida o Controle de Tarefas com a Plataforma Fator R e a Concilia�
 | MinIO | Originais da Conciliação, imutáveis | Bucket `S3_BUCKET` versionado; o usuário da aplicação (`S3_ACCESS_KEY`) não tem permissão de apagar (`docker/minio/init.sh`). Imagem da Chainguard fixada por digest (a MinIO deixou de publicar imagens da edição comunitária) |
 | LiteLLM | Gateway de modelos dos agentes, por alias (`litellm/config.yaml`) | A aplicação resolve o alias (`internal/ai`) e chama o gateway com o modelo concreto. Provedor inicial: OpenAI; modelos padrão no `.env` (`<ALIAS>_MODEL`, decididos na Q-003), trocáveis em **Cadastros e Configurações → IA** sem reiniciar nada (a troca é validada no gateway e vale para as próximas execuções). A chave do provedor (`OPENAI_API_KEY`) só chega ao container do LiteLLM; a aplicação usa a chave do gateway |
 | n8n | Ingestão automatizada: arquivos colocados em `n8n/inbox/` são enviados à API | A demonstração usa upload manual; o workflow (`n8n/workflows/ingestao.json`) é adaptado ao endpoint novo na TASK-015 |
-| Langfuse | Traces e avaliações dos agentes (self-hosted) | Compose próprio (`docker-compose.langfuse.yml`); informativo: fora do ar, o domínio continua |
+| Langfuse | Traces e avaliações dos agentes (self-hosted) | Compose próprio (`docker-compose.langfuse.yml`); informativo: fora do ar, o domínio continua. A trilha local (`ai_runs`, `GET /api/v1/ai/runs`) é a fonte de verdade; o worker espelha cada corrida e as notas no Langfuse pela rede `controle-obs` (`make obs-net`, criada por `make dev` e `make langfuse-up`) e reenvia o que falhou a cada 5 minutos |
 
 ## Dados de referência e demonstração
 

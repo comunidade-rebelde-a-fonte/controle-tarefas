@@ -101,6 +101,14 @@ Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM rea
 
 Desde a TASK-008 (D-021): a configuração da tela Configurações → IA fica em `ai_model_aliases` (pacote `backend/internal/ai/aliases`), sem nenhum segredo. Toda corrida de agente resolve o modelo com `aliases.Resolver.Resolve` no início e grava o snapshot. Alias novo exige linha nova numa migration (um teste confere tabela × catálogo).
 
+## Auditoria de IA
+
+Desde a TASK-009 (D-022): trilha local em `backend/internal/ai/tracer`, porte do `tracer.run` do Fator R.
+- Toda corrida de agente usa `tracer.Do`, numa requisição, ou `Tracer.Begin` + `Run.Finish` na transação do job, devolvendo `Run.Fail(err)` em caso de erro.
+- Decisão de agente só por `Run.RecordDecision`. Tabela de domínio escrita por agente referencia `ai_runs(trace_id)`.
+- Spans só `plan|parse|tool|decide|render`, mais `Run.Generation` para as chamadas ao LLM. Nunca o documento inteiro em entrada ou saída.
+- O envio ao Langfuse é do worker (job `langfuse_sync`); a API de consulta está em `backend/internal/ai/runs`.
+
 ## Jobs
 
 Desde a TASK-005 (D-019): fila em `backend/internal/jobs` (SKIP LOCKED, tentativas, posse com prazo, efeito do handler na mesma transação da conclusão). Cada novo tipo de job registra o handler em `backend/internal/worker/handlers.go`; payload só com IDs, nunca documento.

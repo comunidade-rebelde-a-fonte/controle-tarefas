@@ -125,6 +125,22 @@ func TestParse_OnlyPlainNotation(t *testing.T) {
 	}
 }
 
+// ParseNumber aceita o expoente do JSON (custo do gateway de IA), e nada além disso.
+func TestParseNumber_JSONSyntax(t *testing.T) {
+	cases := map[string]string{"1.25e-05": "0.0000125", "1E+2": "100", "0.000123": "0.000123", "7": "7", "-2.5e1": "-25"}
+	for in, want := range cases {
+		d, err := ParseNumber(in)
+		if err != nil || d.Cmp(MustParse(want)) != 0 {
+			t.Errorf("ParseNumber(%q) = %v, %v; want %s", in, d, err, want)
+		}
+	}
+	for _, s := range []string{"", "1e", "e5", "1.e5", "+1", "NaN", "Infinity", "0x10", "1,5", " 1"} {
+		if _, err := ParseNumber(s); err == nil {
+			t.Errorf("ParseNumber(%q) deveria falhar", s)
+		}
+	}
+}
+
 func TestText_PlainNotation(t *testing.T) {
 	cases := map[string]string{
 		"0.2799":    MustParse("139950.00").Quo(MustParse("500000.00")).Text(),

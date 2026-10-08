@@ -69,11 +69,19 @@ services:
     image: docker.langfuse.com/langfuse/langfuse:4.53.0
     restart: unless-stopped
     depends_on: *langfuse-depends-on
+    # O worker do Controle envia traces e notas por esta rede (TASK-009, D-022).
+    networks:
+      default:
+      observabilidade:
+        aliases: [langfuse]
     ports:
       - "127.0.0.1:${LANGFUSE_WEB_PORT:-3100}:3000"
     environment:
       <<: *langfuse-env
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?defina NEXTAUTH_SECRET no .env}
+      # Escuta em todas as interfaces (como no compose oficial do Langfuse): sem isso o Next.js
+      # só atende no IP da rede padrão e o worker não o alcança pela rede controle-obs.
+      HOSTNAME: 0.0.0.0
       # Sem cadastro aberto: a UI do Langfuse é só para quem mantém a plataforma.
       AUTH_DISABLE_SIGNUP: "true"
       LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://localhost:${LANGFUSE_MINIO_PORT:-9190}
@@ -81,7 +89,7 @@ services:
       # Inicialização headless: organização, projeto "dev", chaves e usuário admin locais.
       LANGFUSE_INIT_ORG_ID: controle-integrado
       LANGFUSE_INIT_ORG_NAME: Controle Integrado
-      LANGFUSE_INIT_PROJECT_ID: controle-integrado-dev
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado-dev}
       LANGFUSE_INIT_PROJECT_NAME: dev
       LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?defina LANGFUSE_PUBLIC_KEY no .env}
       LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?defina LANGFUSE_SECRET_KEY no .env}
@@ -164,6 +172,11 @@ services:
       interval: 3s
       timeout: 3s
       retries: 10
+
+networks:
+  observabilidade:
+    name: controle-obs
+    external: true
 
 volumes:
   postgres_data:

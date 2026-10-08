@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -47,7 +48,7 @@ type Config struct {
 	// WorkerConcurrency é quantos jobs o worker executa ao mesmo tempo (padrão 1, como a origem).
 	WorkerConcurrency int
 	// JobMaxAttempts é o padrão de tentativas de um job (JOB_MAX_TENTATIVAS; origem: 3).
-	JobMaxAttempts int
+	JobMaxAttempts int32
 	// JobPollInterval é a espera do worker com a fila vazia (JOB_POLL_SECONDS; origem: 1 s).
 	JobPollInterval time.Duration
 	// JobLease é o prazo da posse de um job; o worker a renova enquanto executa (TASK-005).
@@ -62,6 +63,21 @@ type Config struct {
 	// AIDefaults são os modelos padrão dos aliases (<ALIAS>_MODEL). A escolha feita na tela
 	// Configurações → IA vence o padrão (TASK-008).
 	AIDefaults ai.Defaults
+	// Langfuse (TASK-009): espelho dos traces e notas dos agentes, sincronizado pelo worker.
+	// LangfuseHost vazio = sem sincronização; as corridas ficam pending na trilha local.
+	LangfuseHost      string
+	LangfusePublicKey string
+	// LangfuseSecretKey só vai para o worker, que envia ao Langfuse.
+	LangfuseSecretKey   Secret
+	LangfuseEnvironment string
+	LangfuseTimeout     time.Duration
+	// LangfuseRetry é o intervalo do reenvio periódico das corridas com falha (origem: 5 min).
+	LangfuseRetry time.Duration
+	// TracePayloadMaxKB limita cada atributo enviado ao Langfuse (origem: 32 KB).
+	TracePayloadMaxKB int
+	// LangfusePublicURL e LangfuseProjectID montam o link do trace para o navegador.
+	LangfusePublicURL string
+	LangfuseProjectID string
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -88,6 +104,16 @@ func (s Secret) MarshalJSON() ([]byte, error) { return []byte(`"` + s.String() +
 
 // IsProduction indica se a aplicação roda em produção.
 func (c Config) IsProduction() bool { return c.Env == EnvProduction }
+
+// LangfuseTraceURL é o link do trace no Langfuse, para o navegador; nil sem LANGFUSE_PUBLIC_URL
+// e LANGFUSE_PROJECT_ID.
+func (c Config) LangfuseTraceURL(traceID string) *string {
+	if c.LangfusePublicURL == "" || c.LangfuseProjectID == "" {
+		return nil
+	}
+	u := c.LangfusePublicURL + "/project/" + url.PathEscape(c.LangfuseProjectID) + "/traces/" + url.PathEscape(traceID)
+	return &u
+}
 
 // Load lê a configuração das variáveis de ambiente usando getenv.
 func Load(getenv func(string) string) (Config, error) {
@@ -187,10 +213,11 @@ func Load(getenv func(string) string) (Config, error) {
 	if err != nil || cfg.WorkerConcurrency < 1 || cfg.WorkerConcurrency > 16 {
 		errs = append(errs, fmt.Errorf("WORKER_CONCURRENCY inválido: %q (1 a 16)", getenv("WORKER_CONCURRENCY")))
 	}
-	cfg.JobMaxAttempts, err = strconv.Atoi(orDefault(getenv("JOB_MAX_TENTATIVAS"), "3"))
-	if err != nil || cfg.JobMaxAttempts < 1 || cfg.JobMaxAttempts > 20 {
+	maxAttempts, err := strconv.ParseInt(orDefault(getenv("JOB_MAX_TENTATIVAS"), "3"), 10, 32)
+	if err != nil || maxAttempts < 1 || maxAttempts > 20 {
 		errs = append(errs, fmt.Errorf("JOB_MAX_TENTATIVAS inválido: %q (1 a 20)", getenv("JOB_MAX_TENTATIVAS")))
 	}
+	cfg.JobMaxAttempts = int32(maxAttempts)
 	poll, err := strconv.ParseFloat(orDefault(getenv("JOB_POLL_SECONDS"), "1"), 64)
 	if err != nil || poll <= 0 || poll > 60 {
 		errs = append(errs, fmt.Errorf("JOB_POLL_SECONDS inválido: %q (maior que 0, até 60)", getenv("JOB_POLL_SECONDS")))
@@ -218,11 +245,62 @@ func Load(getenv func(string) string) (Config, error) {
 	if cfg.AIDefaults, err = ai.DefaultsFromEnv(getenv); err != nil {
 		errs = append(errs, err)
 	}
+	errs = append(errs, loadLangfuse(&cfg, getenv)...)
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)
 	}
 	return cfg, nil
+}
+
+var (
+	langfuseEnvRe     = regexp.MustCompile(`^[a-z0-9_-]{1,40}$`)
+	langfuseProjectRe = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)
+)
+
+// loadLangfuse lê LANGFUSE_* e TRACE_PAYLOAD_MAX_KB (TASK-009).
+func loadLangfuse(cfg *Config, getenv func(string) string) []error {
+	var errs []error
+	httpURL := func(name, v string) string {
+		v = strings.TrimRight(strings.TrimSpace(v), "/")
+		if v == "" {
+			return ""
+		}
+		if u, err := url.Parse(v); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			errs = append(errs, fmt.Errorf("%s inválida: %q (use http://host:porta)", name, v))
+		}
+		return v
+	}
+	cfg.LangfuseHost = httpURL("LANGFUSE_HOST", getenv("LANGFUSE_HOST"))
+	cfg.LangfusePublicURL = httpURL("LANGFUSE_PUBLIC_URL", getenv("LANGFUSE_PUBLIC_URL"))
+	cfg.LangfusePublicKey = strings.TrimSpace(getenv("LANGFUSE_PUBLIC_KEY"))
+	cfg.LangfuseSecretKey = Secret(strings.TrimSpace(getenv("LANGFUSE_SECRET_KEY")))
+	if cfg.LangfuseHost != "" && (cfg.LangfusePublicKey == "" || cfg.LangfuseSecretKey == "") {
+		errs = append(errs, errors.New("LANGFUSE_HOST exige LANGFUSE_PUBLIC_KEY e LANGFUSE_SECRET_KEY"))
+	}
+	cfg.LangfuseProjectID = strings.TrimSpace(getenv("LANGFUSE_PROJECT_ID"))
+	if cfg.LangfuseProjectID != "" && !langfuseProjectRe.MatchString(cfg.LangfuseProjectID) {
+		errs = append(errs, fmt.Errorf("LANGFUSE_PROJECT_ID inválido: %q", cfg.LangfuseProjectID))
+	}
+	cfg.LangfuseEnvironment = strings.ToLower(orDefault(getenv("LANGFUSE_ENVIRONMENT"), string(cfg.Env)))
+	if !langfuseEnvRe.MatchString(cfg.LangfuseEnvironment) || strings.HasPrefix(cfg.LangfuseEnvironment, "langfuse") {
+		errs = append(errs, fmt.Errorf("LANGFUSE_ENVIRONMENT inválido: %q (minúsculas, dígitos, - e _; sem o prefixo langfuse)", cfg.LangfuseEnvironment))
+	}
+	timeout, err := strconv.Atoi(orDefault(getenv("LANGFUSE_TIMEOUT_SECONDS"), "5"))
+	if err != nil || timeout < 1 || timeout > 60 {
+		errs = append(errs, fmt.Errorf("LANGFUSE_TIMEOUT_SECONDS inválido: %q (1 a 60)", getenv("LANGFUSE_TIMEOUT_SECONDS")))
+	}
+	cfg.LangfuseTimeout = time.Duration(timeout) * time.Second
+	retry, err := strconv.Atoi(orDefault(getenv("LANGFUSE_RETRY_SECONDS"), "300"))
+	if err != nil || retry < 30 || retry > 86400 {
+		errs = append(errs, fmt.Errorf("LANGFUSE_RETRY_SECONDS inválido: %q (30 a 86400)", getenv("LANGFUSE_RETRY_SECONDS")))
+	}
+	cfg.LangfuseRetry = time.Duration(retry) * time.Second
+	cfg.TracePayloadMaxKB, err = strconv.Atoi(orDefault(getenv("TRACE_PAYLOAD_MAX_KB"), "32"))
+	if err != nil || cfg.TracePayloadMaxKB < 1 || cfg.TracePayloadMaxKB > 1024 {
+		errs = append(errs, fmt.Errorf("TRACE_PAYLOAD_MAX_KB inválido: %q (1 a 1024)", getenv("TRACE_PAYLOAD_MAX_KB")))
+	}
+	return errs
 }
 
 func orDefault(v, def string) string {

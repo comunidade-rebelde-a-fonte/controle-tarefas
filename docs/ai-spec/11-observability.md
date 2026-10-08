@@ -73,6 +73,12 @@ Não enviar texto integral de PDF ao Langfuse por padrão.
 - Job periódico reenvia resumo/trace conforme mecanismo já previsto no Fator R.
 - Evitar duplicata via `trace_id`/idempotência.
 
+> **Como foi implementado (TASK-009; D-022).**
+> - A corrida põe o job `langfuse_sync` na fila na mesma transação.
+> - O worker envia por OTLP/HTTP JSON e pela API de scores; uma falha marca `failed`.
+> - A cada `LANGFUSE_RETRY_SECONDS` (padrão 300), o worker reenvia corridas e notas `failed`, e as `pending` paradas há mais tempo que isso.
+> - Os IDs são fixos (span raiz derivado do trace; score com o ID da nota): reenviar não duplica.
+
 ## 6. Métricas Fator R
 
 Preservar:
@@ -111,6 +117,12 @@ No mínimo:
 - confirmar trace local;
 - verificar fila `langfuse_sync_retry`;
 - não reprocessar domínio somente para gerar trace.
+
+> **Na implementação (D-022):**
+> - a fila é a dos jobs `kind = 'langfuse_sync'`;
+> - o estado de cada corrida está em `ai_runs.langfuse_sync_status` e `langfuse_last_error` (também em `GET /ai/runs/{trace_id}`);
+> - quando o Langfuse volta, o reenvio periódico resolve sozinho;
+> - para conferir a rede: `docker exec controle-worker-1 curl -fsS http://langfuse:3000/api/public/health`.
 
 ### LiteLLM/provider fora
 - job entra em retry com backoff;

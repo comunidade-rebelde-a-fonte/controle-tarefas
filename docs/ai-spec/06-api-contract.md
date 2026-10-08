@@ -219,6 +219,12 @@ Permitem consultar auditoria local e feedback humano.
 
 Link para Langfuse pode ser retornado como URL de configuração não secreta.
 
+> **Como foi implementado (TASK-009; D-022).** O contrato está no OpenAPI, tag `ai`.
+> - `GET /ai/runs`: filtros `agent`, `status`, `company_id` e `without_human_eval`, com paginação.
+> - `GET /ai/runs/{trace_id}`: spans e decisões vêm da trilha local; inclui o `langfuse_url`.
+> - `POST /ai/runs/{trace_id}/evaluation`: nota `acerto`, `parcial` ou `erro`; `erro` sem comentário dá 422 `EVAL_COMMENT_REQUIRED`.
+> - `GET /ai/summary`: painel da origem (FR-18) com dados locais.
+
 ## 10. Erros relevantes
 
 - `400 VALIDATION_ERROR`

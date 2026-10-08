@@ -74,6 +74,23 @@ func Parse(s string) (Decimal, error) {
 	return Decimal{v}, nil
 }
 
+// number aceita a sintaxe de número do JSON, com expoente (ex.: o custo "1.25e-05" que o
+// gateway de IA informa).
+var number = regexp.MustCompile(`^-?[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?$`)
+
+// ParseNumber lê um número na sintaxe do JSON, com expoente opcional. Para valores vindos de
+// serviços externos; entrada do usuário usa Parse.
+func ParseNumber(s string) (Decimal, error) {
+	if !number.MatchString(s) {
+		return Decimal{}, ErrSyntax
+	}
+	v, _, err := apd.NewFromString(s)
+	if err != nil {
+		return Decimal{}, ErrSyntax
+	}
+	return Decimal{v}, nil
+}
+
 // MustParse é Parse que entra em pânico em erro (constantes e testes).
 func MustParse(s string) Decimal {
 	d, err := Parse(s)

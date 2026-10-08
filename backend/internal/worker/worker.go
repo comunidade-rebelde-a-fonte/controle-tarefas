@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
+	"sync"
 	"time"
 
 	"controle/internal/jobs"
@@ -24,6 +25,32 @@ type Deps struct {
 	Logger *slog.Logger
 	// Jobs consome a fila; nil = só o healthcheck.
 	Jobs *jobs.Runner
+	// Tasks são rotinas periódicas (ex.: o reenvio ao Langfuse, TASK-009).
+	Tasks []Task
+}
+
+// Task é uma rotina periódica do worker: roda ao iniciar e depois a cada Every, até o
+// encerramento. Erro é registrado e a rotina continua no próximo ciclo.
+type Task struct {
+	Name  string
+	Every time.Duration
+	Run   func(ctx context.Context) error
+}
+
+// runTask executa a rotina até ctx ser cancelado.
+func runTask(ctx context.Context, t Task, log *slog.Logger) {
+	tick := time.NewTicker(t.Every)
+	defer tick.Stop()
+	for {
+		if err := t.Run(ctx); err != nil && ctx.Err() == nil {
+			log.Warn("rotina periódica falhou; tenta de novo no próximo ciclo", "task", t.Name, "error", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-tick.C:
+		}
+	}
 }
 
 // Handler é o roteador do healthcheck: GET /health responde 200 com o banco acessível e 503 sem ele,
@@ -37,6 +64,17 @@ func Handler(d Deps) http.Handler {
 // Run atende o healthcheck em ln e consome a fila até ctx ser cancelado; então encerra de forma
 // ordenada, esperando os jobs em andamento pelo prazo de encerramento da fila.
 func Run(ctx context.Context, d Deps, ln net.Listener) error {
+	// As rotinas param com o worker, também se o healthcheck cair antes do encerramento.
+	taskCtx, stopTasks := context.WithCancel(ctx)
+	var tasks sync.WaitGroup
+	for _, t := range d.Tasks {
+		tasks.Go(func() { runTask(taskCtx, t, d.Logger) })
+	}
+	defer func() {
+		stopTasks()
+		tasks.Wait()
+	}()
+
 	jobsDone := make(chan struct{})
 	if d.Jobs != nil {
 		go func() {

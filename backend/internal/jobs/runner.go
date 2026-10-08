@@ -35,6 +35,15 @@ type Claimed struct {
 // tentativa anterior não foi concluída.
 type Handler func(ctx context.Context, tx pgx.Tx, job Claimed) error
 
+// AfterRollback é um erro de handler que carrega o que precisa ficar gravado mesmo com a
+// tentativa desfeita (ex.: a corrida de erro do agente, TASK-009). O runner chama Record depois
+// do rollback, na mesma transação que registra a falha do job. Se Record falhar, a falha do job
+// é registrada sem ele.
+type AfterRollback interface {
+	error
+	Record(ctx context.Context, tx pgx.Tx) error
+}
+
 // RunnerConfig configura o consumo da fila.
 type RunnerConfig struct {
 	WorkerID string
@@ -282,10 +291,18 @@ func (r *Runner) fail(row store.Job, err error, shuttingDown bool, log *slog.Log
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	n, dbErr := store.New(r.pool).FailJob(ctx, store.FailJobParams{
+	params := store.FailJobParams{
 		Status: next.Status, RunAfter: next.RunAfter, ErrorCode: code, ErrorMessage: message, FinishedAt: finished,
 		Now: now, ID: row.ID, WorkerID: r.cfg.WorkerID,
-	})
+	}
+	var n int64
+	var dbErr error
+	var after AfterRollback
+	if errors.As(err, &after) {
+		n, dbErr = r.failWithRecord(ctx, params, after, log)
+	} else {
+		n, dbErr = store.New(r.pool).FailJob(ctx, params)
+	}
 	switch {
 	case dbErr != nil:
 		log.Error("não foi possível registrar a falha do job; a posse vai vencer e ele volta para a fila", "error", dbErr)
@@ -296,6 +313,24 @@ func (r *Runner) fail(row store.Job, err error, shuttingDown bool, log *slog.Log
 	default:
 		log.Warn("tentativa do job falhou; nova tentativa agendada", "error_code", code, "error", message, "run_after", next.RunAfter)
 	}
+}
+
+// failWithRecord registra a falha do job e o que a tentativa deixou para gravar, na mesma
+// transação. Sem a posse do job, não grava nada: outro worker já cuida dele.
+func (r *Runner) failWithRecord(ctx context.Context, params store.FailJobParams, after AfterRollback, log *slog.Logger) (int64, error) {
+	var n int64
+	err := pgx.BeginFunc(ctx, r.pool, func(tx pgx.Tx) error {
+		var err error
+		if n, err = store.New(tx).FailJob(ctx, params); err != nil || n == 0 {
+			return err
+		}
+		return after.Record(ctx, tx)
+	})
+	if err == nil {
+		return n, nil
+	}
+	log.Error("não foi possível gravar o registro da tentativa que falhou", "error", err)
+	return store.New(r.pool).FailJob(ctx, params)
 }
 
 // ReclaimExpired devolve à fila (ou encerra) os jobs cujo worker parou de renovar a posse.

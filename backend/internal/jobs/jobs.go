@@ -105,6 +105,15 @@ func Permanent(code string, err error) error {
 }
 
 // classify devolve o código, se a falha é permanente e a mensagem sanitizada.
+// CodeOf devolve o código dado por Coded ou Permanent, se houver.
+func CodeOf(err error) (string, bool) {
+	var ce *codedError
+	if errors.As(err, &ce) {
+		return ce.code, true
+	}
+	return "", false
+}
+
 func classify(err error) (code string, permanent bool, message string) {
 	code = CodeHandlerError
 	var ce *codedError

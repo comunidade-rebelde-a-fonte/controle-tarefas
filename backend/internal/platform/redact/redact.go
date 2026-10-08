@@ -1,6 +1,6 @@
 // Package redact limpa mensagens de erro antes de gravá-las ou devolvê-las: sem chaves de API,
 // sem tokens Bearer, numa linha só e com tamanho limitado. Usado pelo cliente do gateway de IA
-// (TASK-004) e pela fila de jobs (TASK-005).
+// (TASK-004), pela fila de jobs (TASK-005) e pela trilha local de IA (TASK-009).
 package redact
 
 import (
@@ -16,10 +16,16 @@ var (
 	bearerPattern = regexp.MustCompile(`(?i)bearer\s+\S+`)
 )
 
+// Secrets mascara chaves e tokens Bearer e preserva o resto do texto (conteúdo guardado na
+// trilha local de IA, TASK-009).
+func Secrets(s string) string {
+	s = bearerPattern.ReplaceAllString(s, "Bearer [oculto]")
+	return secretPattern.ReplaceAllString(s, "[chave oculta]")
+}
+
 // Message mascara chaves e tokens, junta as linhas e corta em MaxRunes caracteres.
 func Message(msg string) string {
-	msg = bearerPattern.ReplaceAllString(msg, "Bearer [oculto]")
-	msg = secretPattern.ReplaceAllString(msg, "[chave oculta]")
+	msg = Secrets(msg)
 	msg = strings.Join(strings.Fields(msg), " ")
 	if r := []rune(msg); len(r) > MaxRunes {
 		msg = string(r[:MaxRunes]) + "…"

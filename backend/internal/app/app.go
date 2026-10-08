@@ -13,6 +13,8 @@ import (
 
 	"controle/internal/ai/aliases"
 	"controle/internal/ai/litellm"
+	"controle/internal/ai/runs"
+	"controle/internal/ai/tracer"
 	"controle/internal/calendar"
 	"controle/internal/catalog"
 	"controle/internal/company"
@@ -104,6 +106,11 @@ func New(d Deps) *App {
 		// Configurações → IA: só configuração não secreta; a chave é a do gateway (TASK-008).
 		gateway := litellm.New(d.Config.LiteLLMBaseURL, d.Config.LiteLLMAPIKey, d.Config.LiteLLMTimeout)
 		aliases.NewHandler(aliases.NewService(d.Pool, d.Clock, d.Config.AIDefaults, gateway)).Routes(api)
+		// Auditoria local de IA (TASK-009): tempo operacional, como a fila de jobs. O envio ao
+		// Langfuse é do worker; a API só monta o link do trace.
+		aiClock := clock.NewSystem(d.Clock.Location())
+		tr := tracer.New(aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
+		runs.NewHandler(runs.NewService(d.Pool, aiClock, tr, d.Config.LangfuseTraceURL)).Routes(api)
 		importer.NewHandler(importer.NewService(d.Pool, d.Clock, companies)).Routes(api)
 		credentials := credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)
 		credential.NewHandler(credentials).Routes(api)

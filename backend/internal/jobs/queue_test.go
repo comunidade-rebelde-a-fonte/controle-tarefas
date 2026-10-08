@@ -333,6 +333,73 @@ func TestTEST005_EffectsCommitOnlyWithCompletion(t *testing.T) {
 	}
 }
 
+// recordOnRollback é o erro de handler que deixa algo gravado depois do rollback (a corrida de
+// erro do agente, na TASK-009).
+type recordOnRollback struct {
+	err   error
+	id    string
+	fails bool
+}
+
+func (e recordOnRollback) Error() string { return e.err.Error() }
+func (e recordOnRollback) Unwrap() error { return e.err }
+func (e recordOnRollback) Record(ctx context.Context, tx pgx.Tx) error {
+	if e.fails {
+		return errors.New("registro falhou")
+	}
+	_, err := tx.Exec(ctx, `INSERT INTO job_effects (job_id) VALUES ($1)`, e.id)
+	return err
+}
+
+// O registro da tentativa que falhou sobrevive ao rollback, junto com a falha do job; o código do
+// erro embrulhado continua valendo. Se o registro falhar, a falha do job é registrada mesmo assim.
+func TestAfterRollback_RecordsWithJobFailure(t *testing.T) {
+	pool := testutil.NewDB(t)
+	effectsTable(t, pool)
+	clk := t0()
+	ctx := context.Background()
+	recordID := "00000000-0000-4000-8000-000000000001"
+	failRecord := false
+	r := runner(pool, clk, "w1", map[string]jobs.Handler{"agent": func(ctx context.Context, tx pgx.Tx, j jobs.Claimed) error {
+		if _, err := tx.Exec(ctx, `INSERT INTO job_effects (job_id) VALUES ($1)`, j.ID); err != nil {
+			return err
+		}
+		return recordOnRollback{err: jobs.Coded("LLM_UNAVAILABLE", errors.New("gateway fora")), id: recordID, fails: failRecord}
+	}}, time.Minute)
+	j := enqueue(t, pool, clk, jobs.Spec{Kind: "agent"})
+	if _, err := r.ProcessOne(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	rows, err := pool.Query(ctx, `SELECT job_id::text FROM job_effects`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for rows.Next() {
+		var id string
+		_ = rows.Scan(&id)
+		ids = append(ids, id)
+	}
+	rows.Close()
+	got := get(t, pool, j.ID)
+	if len(ids) != 1 || ids[0] != recordID {
+		t.Fatalf("gravado = %v; want só o registro da tentativa (o efeito do handler foi desfeito)", ids)
+	}
+	if got.Status != jobs.StatusRetry || str(got.LastErrorCode) != "LLM_UNAVAILABLE" {
+		t.Fatalf("job = %s / %s", got.Status, str(got.LastErrorCode))
+	}
+
+	failRecord = true
+	recordID = "00000000-0000-4000-8000-000000000002"
+	clk.Advance(time.Minute)
+	if _, err := r.ProcessOne(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if got := get(t, pool, j.ID); got.Attempts != 2 || got.Status != jobs.StatusRetry || effects(t, pool) != 1 {
+		t.Fatalf("com o registro falhando, a falha do job deve ser registrada mesmo assim: %+v, efeitos %d", got, effects(t, pool))
+	}
+}
+
 // Se outro worker retomou o job durante a execução, a conclusão não vale e os efeitos são desfeitos.
 func TestTEST005_LostLeaseRollsBackEffects(t *testing.T) {
 	pool := testutil.NewDB(t)

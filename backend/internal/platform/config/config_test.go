@@ -64,6 +64,34 @@ func TestLoad_AIDefaults(t *testing.T) {
 	}
 }
 
+// Langfuse (TASK-009): padrões da origem, chave secreta oculta e link do trace.
+func TestLoad_Langfuse(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.LangfuseHost != "" || cfg.LangfuseEnvironment != "development" || cfg.LangfuseTimeout != 5*time.Second ||
+		cfg.LangfuseRetry != 5*time.Minute || cfg.TracePayloadMaxKB != 32 || cfg.LangfuseTraceURL("abc") != nil {
+		t.Fatalf("padrões = %+v", cfg)
+	}
+	cfg, err = Load(env(map[string]string{
+		"DATABASE_URL": "x", "LANGFUSE_HOST": " http://langfuse:3000/ ", "LANGFUSE_PUBLIC_KEY": "pk-lf-1", "LANGFUSE_SECRET_KEY": "sk-lf-segredo",
+		"LANGFUSE_PUBLIC_URL": "http://localhost:3100/", "LANGFUSE_PROJECT_ID": "controle-integrado-dev", "LANGFUSE_ENVIRONMENT": "Dev-Local",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.LangfuseHost != "http://langfuse:3000" || cfg.LangfuseEnvironment != "dev-local" || cfg.LangfuseSecretKey.Reveal() != "sk-lf-segredo" {
+		t.Fatalf("Langfuse = %q %q", cfg.LangfuseHost, cfg.LangfuseEnvironment)
+	}
+	if u := cfg.LangfuseTraceURL("0123456789abcdef0123456789abcdef"); u == nil || *u != "http://localhost:3100/project/controle-integrado-dev/traces/0123456789abcdef0123456789abcdef" {
+		t.Fatalf("link = %v", u)
+	}
+	if b, _ := json.Marshal(cfg); strings.Contains(string(b), "segredo") || strings.Contains(fmt.Sprintf("%+v", cfg), "segredo") {
+		t.Fatal("a chave secreta do Langfuse aparece na configuração impressa")
+	}
+}
+
 // A chave do gateway nunca aparece em print, log ou JSON [spec 09 §4].
 func TestSecret_NeverPrinted(t *testing.T) {
 	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "LITELLM_API_KEY": "sk-segredo-real-123"}))
@@ -125,23 +153,29 @@ func TestLoad_ProductionMigratesOnBoot(t *testing.T) {
 
 func TestLoad_Invalid(t *testing.T) {
 	cases := map[string]map[string]string{
-		"sem DATABASE_URL":    {},
-		"CORS curinga":        {"DATABASE_URL": "x", "CORS_ORIGINS": "http://a, *"},
-		"timezone inválido":   {"DATABASE_URL": "x", "APP_TIMEZONE": "Marte/Base"},
-		"porta inválida":      {"DATABASE_URL": "x", "HTTP_PORT": "abc"},
-		"fixed em produção":   {"DATABASE_URL": "x", "APP_ENV": "production", "APP_FIXED_TIME": "2026-10-01T10:00:00Z"},
-		"fixed mal formatado": {"DATABASE_URL": "x", "APP_FIXED_TIME": "01/10/2026"},
-		"env desconhecido":    {"DATABASE_URL": "x", "APP_ENV": "staging"},
-		"max conns zero":      {"DATABASE_URL": "x", "DB_MAX_CONNS": "0"},
-		"porta do worker":     {"DATABASE_URL": "x", "WORKER_HEALTH_PORT": "70000"},
-		"concorrência zero":   {"DATABASE_URL": "x", "WORKER_CONCURRENCY": "0"},
-		"tentativas demais":   {"DATABASE_URL": "x", "JOB_MAX_TENTATIVAS": "21"},
-		"espera zero":         {"DATABASE_URL": "x", "JOB_POLL_SECONDS": "0"},
-		"posse curta":         {"DATABASE_URL": "x", "JOB_LEASE_SECONDS": "5"},
-		"litellm sem esquema": {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
-		"litellm timeout":     {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
-		"modelo sem provedor": {"DATABASE_URL": "x", "TRIADOR_MODEL": "gpt-6-luna"},
-		"modelo com chave":    {"DATABASE_URL": "x", "EXTRATOR_MODEL": "openai/sk-proj-abc"},
+		"sem DATABASE_URL":     {},
+		"CORS curinga":         {"DATABASE_URL": "x", "CORS_ORIGINS": "http://a, *"},
+		"timezone inválido":    {"DATABASE_URL": "x", "APP_TIMEZONE": "Marte/Base"},
+		"porta inválida":       {"DATABASE_URL": "x", "HTTP_PORT": "abc"},
+		"fixed em produção":    {"DATABASE_URL": "x", "APP_ENV": "production", "APP_FIXED_TIME": "2026-10-01T10:00:00Z"},
+		"fixed mal formatado":  {"DATABASE_URL": "x", "APP_FIXED_TIME": "01/10/2026"},
+		"env desconhecido":     {"DATABASE_URL": "x", "APP_ENV": "staging"},
+		"max conns zero":       {"DATABASE_URL": "x", "DB_MAX_CONNS": "0"},
+		"porta do worker":      {"DATABASE_URL": "x", "WORKER_HEALTH_PORT": "70000"},
+		"concorrência zero":    {"DATABASE_URL": "x", "WORKER_CONCURRENCY": "0"},
+		"tentativas demais":    {"DATABASE_URL": "x", "JOB_MAX_TENTATIVAS": "21"},
+		"espera zero":          {"DATABASE_URL": "x", "JOB_POLL_SECONDS": "0"},
+		"posse curta":          {"DATABASE_URL": "x", "JOB_LEASE_SECONDS": "5"},
+		"litellm sem esquema":  {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
+		"litellm timeout":      {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
+		"modelo sem provedor":  {"DATABASE_URL": "x", "TRIADOR_MODEL": "gpt-6-luna"},
+		"modelo com chave":     {"DATABASE_URL": "x", "EXTRATOR_MODEL": "openai/sk-proj-abc"},
+		"langfuse sem chaves":  {"DATABASE_URL": "x", "LANGFUSE_HOST": "http://langfuse:3000"},
+		"langfuse sem esquema": {"DATABASE_URL": "x", "LANGFUSE_HOST": "langfuse:3000", "LANGFUSE_PUBLIC_KEY": "pk", "LANGFUSE_SECRET_KEY": "sk"},
+		"ambiente reservado":   {"DATABASE_URL": "x", "LANGFUSE_ENVIRONMENT": "langfuse-dev"},
+		"reenvio curto":        {"DATABASE_URL": "x", "LANGFUSE_RETRY_SECONDS": "5"},
+		"payload enorme":       {"DATABASE_URL": "x", "TRACE_PAYLOAD_MAX_KB": "4096"},
+		"projeto inválido":     {"DATABASE_URL": "x", "LANGFUSE_PROJECT_ID": "a/b"},
 	}
 	for name, m := range cases {
 		t.Run(name, func(t *testing.T) {
