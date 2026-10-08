@@ -4,6 +4,68 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-018 — Decisões técnicas da fatia do Fator R (TASK-006a, 010, 011 e 014a; 07/10/2026, dentro da autonomia da spec)
+
+- **Decimal exato com a semântica do Python (ADR-007).**
+  - Tipo `decimal.Decimal` sobre `cockroachdb/apd/v3`, com 28 dígitos e half-even.
+  - A divisão exata vai ao expoente ideal e o zero é escrito como no Python, porque o apd difere nesses dois pontos.
+  - Na API, decimal é string em ponto fixo. O motor recebe os valores com a escala da coluna.
+  - Evidência: golden gerado pelo código Python da origem, com 233 cálculos, 18 carteiras e 160 simulações idênticos dígito a dígito.
+- **Folha do PGDAS-D sem divisão.**
+  - A folha total declarada fica em `folha_total_declarada_pgdas` (05 §4), não mais em `salarios` como na origem. Quando existe, é a folha do mês na FS12.
+  - Um CHECK no banco exige `origem = 'pgdas'` e a divisão zerada, o que impede dupla contagem.
+  - O lançamento manual ("Detalhar folha") apaga a folha total e grava a divisão.
+  - Um teste prova que o resultado é igual ao da convenção da origem, com e sem a CPP na política.
+- **Modelo de dados.**
+  - **Configuração por empresa:** os padrões são os da origem (`quantidade_socios` 1, `honorario_mensal` 0, ambos NOT NULL), e não os nulos do 05 §4. Empresa sem configuração não tem linha. `pacote_comercial` nulo equivale ao `none` do 05 §4.
+  - **Movimentos:** ganham `version` (concorrência otimista, padrão do projeto-base) e `pgdas_document_id`, cuja FK chega na TASK-006b, como na origem. `folha_mes` é coluna gerada.
+  - **Tabelas do Simples:** `factor_r_simples_tables`, carregadas pelo `make seed` a partir do CSV idêntico ao da origem. Só insere; nunca altera uma vigência gravada.
+  - **Política:** `factor_r_policy` tem uma linha só, com os padrões da origem (meta 30%, limiar do parser 0,40, piso R$ 6.000,00, CPP integra a FS12, tolerância ouro 1%). Não há tela de edição, porque na origem ela era da Fase 2.
+- **Nomes.**
+  - Colunas como no 05 §4. O JSON usa os mesmos nomes e, no cálculo e na carteira, os nomes da origem (`rbt12`, `fs12`, `semaforo`…).
+  - Assim, o AGENTS.md §8.4 (campos em inglês) cede ao 05 §4 (D-007).
+  - Os identificadores Go ficam em inglês, com o nome da origem no comentário.
+- **Erros.**
+  - Parâmetro de query ou caminho inválido → 400 `VALIDATION_ERROR` (convenção do projeto-base; a origem usava 422).
+  - PA sem tabela do Simples vigente → 422 `SIMPLES_TABLE_NOT_IN_FORCE`, como na origem.
+  - Dinheiro de entrada: string, ≥ 0, até 12 dígitos inteiros e 2 casas, como o `Dinheiro` da origem. Número JSON é recusado.
+- **Interface.**
+  - Carteira no menu "Fator R" e aba "Fator R" na ficha. O PA fica na URL (`?pa=`) e o padrão é a competência corrente.
+  - A grade mensal acompanha a janela do PA; na origem ela tinha navegação própria de 12 em 12 meses.
+  - "Como foi calculado" mostra o passo a passo das contas (cálculo explicável, 08 §6).
+  - Semáforo com ícone e texto; disclaimer nas duas telas (FR-19).
+  - A formatação é half-even por string, sem float.
+- **Trava de contrato.** `TestOpenAPI_DocumentsEveryRoute` falha se alguma rota da API não estiver no `openapi.yaml`.
+- **Demonstração.** O `make seed-demo` grava dados do Fator R para as 5 empresas sujeitas do seed. No PA corrente, cobrem:
+  - vermelho, com meses faltantes;
+  - amarelo;
+  - verde, com meses do PGDAS-D;
+  - dados insuficientes.
+
+### D-017 — "Sujeita ao Fator R" é o `companies.factor_r` (07/10/2026; diverge do 05 §4; validada pelo usuário com a fatia em 08/10/2026)
+
+- **Conflito:** o 05 §4 lista `sujeita_factor_r` em `company_factor_r_settings`. O projeto-base já tem `companies.factor_r`, o indicador "Fator R: Sim/Não" do Simples (PRD §17.2). Ele é copiado para o snapshot das competências e editado na aba Folha.
+- **Por que não duplicar:** duas colunas seriam semântica paralela, o que o 05 §3 e o REQ-002 proíbem.
+- **Decisão:**
+  - Não existe coluna de sujeição na configuração do Fator R.
+  - O indicador continua sendo editado só pelo `PATCH /companies/{id}` (aba Folha), que preserva histórico e snapshot.
+  - A aba Fator R mostra o valor e leva até a aba Folha.
+- **Carteira:** empresa ativa, com `factor_r = true` e no Simples Nacional no PA.
+  - Na origem toda empresa era do Simples. No projeto-base, o `factor_r` pode continuar `true` depois de uma mudança de regime, porque a tela só o esconde.
+  - O filtro de regime garante que só empresas do Simples entram.
+  - O cálculo informa `monitorada` e `regime_no_pa`, e a aba explica por que a empresa está fora da carteira.
+
+### D-016 — Fatia vertical do Fator R (07/10/2026)
+
+- **Decisão do usuário:** adiantar a primeira tela de outro sistema ("só tem um dos 3 sistemas ali") e validar a fatia inteira de uma vez ("segue a fatia e valido inteira").
+- **Ordem:** TASK-006a → TASK-010 → TASK-011 → TASK-014a. Um commit local por TASK, depois da validação.
+- **Divisão das TASKs.**
+  - **TASK-006:** a 006a traz configuração, movimentos, política e tabelas do Simples. A 006b traz documentos PGDAS-D e simulações, e fica com as TASK-012/013, porque depende da fila de jobs (TASK-005) e do trace local (TASK-009).
+  - **TASK-014:** a 014a traz carteira, ficha com cálculo, grade mensal, configuração e disclaimer. A 014b traz inbox PGDAS-D, simulador, traces e avaliações.
+  - **Por que o simulador espera:** na origem, `corrigir` só vale com a simulação persistida num trace (CLAUDE §3.11).
+  - O motor do simulador já foi portado e provado na TASK-010 (REQ-013).
+- Registrado no plano (13 §13).
+
 ### D-015 — Q-003 decidida: modelos padrão dos aliases (07/10/2026)
 
 - **Decisão do usuário:** confirmados os modelos propostos na TASK-004.
@@ -219,6 +281,8 @@ C:\Desenvolvimento\controle-a-fonte\
 | P-002 | BL-002 (`source-map-js`, npm audit alto) | aprovado: corrigir antes da TASK-003 (D-010) |
 | P-003 | Capacidades não citadas pela spec | aprovado: entram no escopo (D-011) |
 | P-004 | FR-23 agente `echo` | aprovado: não portar (D-012) |
+| P-005 | D-017: sujeição ao Fator R pelo `companies.factor_r` e carteira só com empresas do Simples no PA | validada pelo usuário com a fatia (08/10/2026) |
+| P-006 | Exibição do fator com 2 casas, como na origem: 0,279999 aparece como "28,00%" ao lado de "Anexo V" (o anexo e o semáforo usam o valor exato) | observação para a TASK-029; sem mudança de regra |
 
 ### Pendências herdadas (permanecem pendentes; não resolver por suposição)
 

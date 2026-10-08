@@ -78,6 +78,7 @@ Consolidar os três sistemas existentes em um único produto local, usando a sta
 - `ADR-003-identidade-e-fechamento-canonicos.md`
 - `ADR-004-ia-via-litellm-openai-configuravel.md`
 - `ADR-006-parser-pgdas-deterministico.md` (07/10/2026)
+- `ADR-007-decimal-exato-semantica-python.md` (07/10/2026)
 - `ADR-005-design-system-inovasala.md`
 
 ## Decisões principais

@@ -78,7 +78,7 @@ Legenda da coluna **Spec**:
 
 | ID | Capacidade (comportamento de origem) | Fonte | TASK | Spec |
 |---|---|---|---|---|
-| FR-01 | Configuração Fator R por empresa: CNAE, atividade, sujeita a Fator R (Sim/Não), quantidade de sócios, contato, pacote (monitoramento, correção, retainer), honorário, início de atividade, notas, ativo | PRD §7.2; plan §4 | 006, 011, 014 | coberta |
+| FR-01 | Configuração Fator R por empresa: CNAE, atividade, sujeita a Fator R (Sim/Não), quantidade de sócios, contato, pacote (monitoramento, correção, retainer), honorário, início de atividade, notas, ativo | PRD §7.2; plan §4 | 006, 011, 014 | coberta; a sujeição é o `companies.factor_r` do cadastro (D-017) |
 | FR-02 | Série mensal: receita, pró-labore, salários + 13º/férias, CPP, FGTS, folha do mês calculada, origem (`manual`, `pgdas`, `folha`, `agente`), observação; upsert por empresa + competência; valores ≥ 0 | PRD §7.3; T-102, T-107 | 006, 011 | coberta |
 | FR-03 | Grade mensal de 12+ competências editável, com a origem de cada linha. Linhas `pgdas` mostram a célula "Folha declarada no PGDAS-D" com "Detalhar folha" | T-109, T-810 | 014 | coberta; detalhe da célula incluído (D-011) |
 | FR-04 | Motor: janela PA−12 a PA−1; meses válidos desde o início de atividade; faltantes; RBT12; FS12 com política de CPP; fator; Anexo III se ≥ 0,28; folha mínima 28%/meta; gap e reforço (28% e meta); alíquota efetiva pela tabela vigente no PA; economia em 12 meses; semáforo; `dados_insuficientes` se RBT12 = 0; `empresa_nova_regra_pendente` (proporcionalização aguardando P-05) | plan §5.1; `domain/fator_r.py` | 010 | coberta |

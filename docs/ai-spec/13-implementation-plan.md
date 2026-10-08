@@ -314,3 +314,16 @@ Fica de fora, também por decisão do usuário (D-012): o agente `echo` do Fator
 
 **Aceite:** a instalação local sobe com todos os serviços; um backup completo é restaurado em ambiente limpo e as contagens conferem.  
 **Validação:** TEST-031.
+
+## 13. Adendo de 07/10/2026 — fatia vertical do Fator R (D-016)
+
+Para mostrar cedo a tela de outro sistema, o Fator R sem IA foi adiantado e validado como uma fatia única: TASK-006a → TASK-010 → TASK-011 → TASK-014a. Um commit local por TASK, depois da validação. As TASKs 006 e 014 foram divididas assim:
+
+| Parte | Escopo | Quando |
+|---|---|---|
+| TASK-006a | `company_factor_r_settings`, `factor_r_movements`, `factor_r_policy`, `factor_r_simples_tables` (+ seed das tabelas), tipo decimal exato (ADR-007) | fatia |
+| TASK-006b | `factor_r_pgdas_documents` (FK de `factor_r_movements.pgdas_document_id`), `factor_r_simulations` | com a TASK-012/013 (dependem da TASK-005 e da TASK-009) |
+| TASK-014a | Carteira (menu "Fator R"), aba "Fator R" da ficha (resultado do PA, cálculo explicável, janela, grade mensal com FR-03, configuração), FR-07, FR-19 | fatia |
+| TASK-014b | Inbox PGDAS-D, simulador (exige simulação persistida com trace), traces e avaliações | com a TASK-012/013 |
+
+"Sujeita ao Fator R" é o `companies.factor_r` do cadastro (D-017), e a carteira só traz empresas do Simples Nacional no PA. O motor do simulador (REQ-013) já foi portado e provado na TASK-010; só a API e a tela ficam para a TASK-013/014b.
