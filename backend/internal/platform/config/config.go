@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"controle/internal/ai"
 )
 
 // Environment identifica o ambiente de execução.
@@ -57,6 +59,9 @@ type Config struct {
 	LiteLLMAPIKey Secret
 	// LiteLLMTimeout limita cada chamada ao gateway.
 	LiteLLMTimeout time.Duration
+	// AIDefaults são os modelos padrão dos aliases (<ALIAS>_MODEL). A escolha feita na tela
+	// Configurações → IA vence o padrão (TASK-008).
+	AIDefaults ai.Defaults
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -210,6 +215,9 @@ func Load(getenv func(string) string) (Config, error) {
 		errs = append(errs, fmt.Errorf("LITELLM_TIMEOUT_SECONDS inválido: %q (1 a 3600)", getenv("LITELLM_TIMEOUT_SECONDS")))
 	}
 	cfg.LiteLLMTimeout = time.Duration(timeout) * time.Second
+	if cfg.AIDefaults, err = ai.DefaultsFromEnv(getenv); err != nil {
+		errs = append(errs, err)
+	}
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

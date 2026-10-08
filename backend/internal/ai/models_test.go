@@ -24,11 +24,16 @@ func TestParseModel(t *testing.T) {
 			t.Errorf("ParseModel(%q) = %v, %v; want %v", in, got, err, want)
 		}
 	}
-	invalid := []string{"", "gpt-6-luna", "openai/", "/gpt-6", "azure/gpt-6", "openai/gpt 6", "openai/-x", "openai/a/b"}
+	invalid := []string{"", "gpt-6-luna", "openai/", "/gpt-6", "azure/gpt-6", "openai/gpt 6", "openai/-x", "openai/a/b",
+		// Chave colada no campo do modelo: recusada, nunca gravada [REQ-047].
+		"openai/sk-proj-abc123", "openai/SK-abc", "anthropic/pk-live-1", "openai/rk-x"}
 	for _, in := range invalid {
 		if _, err := ParseModel(in); err == nil {
 			t.Errorf("ParseModel(%q) deveria falhar", in)
 		}
+	}
+	if _, err := NewModel("openai", "sk-proj-abc123"); err == nil || strings.Contains(err.Error(), "abc123") {
+		t.Fatalf("NewModel com chave: err = %v (deve recusar sem ecoar o valor)", err)
 	}
 }
 
@@ -76,6 +81,77 @@ func TestResolver(t *testing.T) {
 	again, _ := r.Resolve(Triador)
 	if again.Model.Name != "gpt-6-luna" || got.Model.Name != "gpt-6-luna" {
 		t.Fatalf("snapshot alterado: %+v / %+v", got, again)
+	}
+}
+
+// A escolha da tela vence o .env; sem escolha vale o .env; alias desligado não resolve
+// [AC-027, F-010].
+func TestResolver_ResolveWith(t *testing.T) {
+	r := NewResolver(Defaults{Triador: {"openai", "gpt-6-luna"}})
+	temp, maxTokens := 0.2, 900
+	chosen := Model{"anthropic", "claude-sonnet-5"}
+
+	got, err := r.ResolveWith(Triador, Setting{Model: &chosen, Parameters: Parameters{Temperature: &temp}, Enabled: true, Version: 4})
+	if err != nil || got.Model != chosen || got.Source != SourceSettings || got.Version != 4 || *got.Parameters.Temperature != 0.2 {
+		t.Fatalf("escolha da tela: %+v, %v", got, err)
+	}
+
+	got, err = r.ResolveWith(Triador, Setting{Parameters: Parameters{MaxTokens: &maxTokens}, Enabled: true, Version: 2})
+	if err != nil || got.Model != (Model{"openai", "gpt-6-luna"}) || got.Source != SourceEnv || *got.Parameters.MaxTokens != 900 {
+		t.Fatalf("sem escolha, vale o .env com os parâmetros da tela: %+v, %v", got, err)
+	}
+
+	// Snapshot: mudar a configuração depois não altera o que a corrida resolveu.
+	maxTokens = 5
+	chosen.Name = "outro"
+	if *got.Parameters.MaxTokens != 900 {
+		t.Fatalf("snapshot compartilha parâmetros com a configuração: %+v", got.Parameters)
+	}
+
+	if _, err := r.ResolveWith(Triador, Setting{Model: &chosen, Enabled: false}); !errors.Is(err, ErrAliasDisabled) {
+		t.Fatalf("alias desligado: err = %v", err)
+	}
+	if _, err := r.ResolveWith(Extrator, Setting{Enabled: true}); !errors.Is(err, ErrNotConfigured) {
+		t.Fatalf("sem escolha e sem .env: err = %v", err)
+	}
+	if m, ok := r.Default(Triador); !ok || m.Name != "gpt-6-luna" {
+		t.Fatalf("Default(triador) = %v, %v", m, ok)
+	}
+	if _, ok := r.Default(Extrator); ok {
+		t.Fatal("Default(extrator) sem .env deveria faltar")
+	}
+}
+
+func TestParameters_Equal(t *testing.T) {
+	a, b, c := 0.5, 0.5, 0.7
+	n := 10
+	cases := []struct {
+		x, y Parameters
+		want bool
+	}{
+		{Parameters{}, Parameters{}, true},
+		{Parameters{Temperature: &a}, Parameters{Temperature: &b}, true},
+		{Parameters{Temperature: &a}, Parameters{Temperature: &c}, false},
+		{Parameters{Temperature: &a}, Parameters{}, false},
+		{Parameters{MaxTokens: &n}, Parameters{MaxTokens: &n, Temperature: &a}, false},
+	}
+	for i, tc := range cases {
+		if got := tc.x.Equal(tc.y); got != tc.want {
+			t.Errorf("caso %d: Equal = %v, want %v", i, got, tc.want)
+		}
+	}
+}
+
+// Todos os agentes devolvem JSON validado por schema; só triador e extratores leem imagem.
+func TestCatalog_Requirements(t *testing.T) {
+	vision := map[Alias]bool{Triador: true, Extrator: true, ExtratorForte: true}
+	for _, info := range Catalog {
+		if !info.NeedsStructuredOutput {
+			t.Errorf("%s deveria exigir saída estruturada", info.Alias)
+		}
+		if info.NeedsVision != vision[info.Alias] {
+			t.Errorf("%s: NeedsVision = %v, want %v", info.Alias, info.NeedsVision, vision[info.Alias])
+		}
 	}
 }
 

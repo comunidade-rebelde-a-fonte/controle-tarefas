@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_GATEWAY_KEY } from "./support/ai";
 
 /**
  * E2E contra uma instância própria da API (porta E2E_API_PORT) apontada para o
@@ -20,6 +21,21 @@ if (Number.isNaN(Date.parse(fixedTime))) {
 }
 
 const webURL = `http://localhost:${webPort}`;
+
+// Gateway LiteLLM simulado (support/fake-litellm.mjs) para a tela Configurações → IA. A chave é
+// um valor de teste do E2E, conferido pelo simulado: prova que a API usa a chave do gateway.
+const litellmPort = process.env.E2E_LITELLM_PORT ?? "8093";
+const litellmURL = `http://127.0.0.1:${litellmPort}`;
+// Padrões dos aliases como no .env.example (D-015).
+const aiModels = {
+  TRIADOR_MODEL: "openai/gpt-6-luna",
+  EXTRATOR_MODEL: "openai/gpt-6-sol",
+  EXTRATOR_FORTE_MODEL: "openai/gpt-6-astra",
+  RESOLVEDOR_MODEL: "openai/gpt-6-sol",
+  CLASSIFICADOR_MODEL: "openai/gpt-6-sol",
+  CONSULTOR_MODEL: "openai/gpt-6-luna",
+  PRIORIZADOR_MODEL: "openai/gpt-6-luna",
+};
 
 export default defineConfig({
   testDir: "./specs",
@@ -56,7 +72,19 @@ export default defineConfig({
         FILE_STORAGE_DIR: process.env.E2E_STORAGE_DIR ?? "../e2e/.cache/storage",
         LOG_LEVEL: "warn",
         APP_FIXED_TIME: fixedTime,
+        LITELLM_BASE_URL: litellmURL,
+        LITELLM_API_KEY: E2E_GATEWAY_KEY,
+        ...aiModels,
       },
+    },
+    {
+      command: "node support/fake-litellm.mjs",
+      url: `${litellmURL}/health/liveliness`,
+      reuseExistingServer: false,
+      timeout: 30_000,
+      stdout: "ignore",
+      stderr: "pipe",
+      env: { FAKE_LITELLM_PORT: litellmPort, FAKE_LITELLM_KEY: E2E_GATEWAY_KEY },
     },
     {
       command: "npx vite --strictPort",

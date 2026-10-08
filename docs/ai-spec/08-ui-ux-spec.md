@@ -176,6 +176,16 @@ Edição:
 
 Exibir texto: “Credenciais são configuradas no ambiente e não ficam salvas nesta tela.”
 
+> **Como foi implementado (TASK-008; D-021).** Aba **IA** em Cadastros e Configurações (`/settings?tab=ai`).
+> - Cada linha mostra se o modelo é o "padrão do ambiente" ou foi "escolhido aqui".
+> - O status é Ativo, Desligado ou Sem modelo.
+> - A edição abre em diálogo:
+>   - padrão do ambiente ou provedor + modelo;
+>   - `temperature` e `max_tokens`;
+>   - agente ligado;
+>   - "Validar configuração", que lista cada conferência e os parâmetros aceitos pelo modelo.
+> - Sem gateway configurado, um aviso explica que só dá para ligar e desligar agentes.
+
 ## 10. Estados obrigatórios
 
 Toda tela nova deve prever:

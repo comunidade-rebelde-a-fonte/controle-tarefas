@@ -53,6 +53,17 @@ func TestLoad_LiteLLM(t *testing.T) {
 	}
 }
 
+// Os modelos padrão dos aliases vêm do .env; sem variável, o alias fica sem padrão.
+func TestLoad_AIDefaults(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "TRIADOR_MODEL": "openai/gpt-6-luna"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := cfg.AIDefaults["triador"].String(); got != "openai/gpt-6-luna" || len(cfg.AIDefaults) != 1 {
+		t.Fatalf("AIDefaults = %v", cfg.AIDefaults)
+	}
+}
+
 // A chave do gateway nunca aparece em print, log ou JSON [spec 09 §4].
 func TestSecret_NeverPrinted(t *testing.T) {
 	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "LITELLM_API_KEY": "sk-segredo-real-123"}))
@@ -129,6 +140,8 @@ func TestLoad_Invalid(t *testing.T) {
 		"posse curta":         {"DATABASE_URL": "x", "JOB_LEASE_SECONDS": "5"},
 		"litellm sem esquema": {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
 		"litellm timeout":     {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
+		"modelo sem provedor": {"DATABASE_URL": "x", "TRIADOR_MODEL": "gpt-6-luna"},
+		"modelo com chave":    {"DATABASE_URL": "x", "EXTRATOR_MODEL": "openai/sk-proj-abc"},
 	}
 	for name, m := range cases {
 		t.Run(name, func(t *testing.T) {

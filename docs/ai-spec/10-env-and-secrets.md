@@ -108,3 +108,5 @@ Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de 
 - Frontend recebe somente config pública.
 - Não gravar `OPENAI_API_KEY` ou outras chaves em `ai_model_aliases`.
 - Validação de Configurações → IA consulta o gateway sem ecoar credenciais.
+  - Desde a TASK-008 (D-021): a API usa só `LITELLM_BASE_URL` e `LITELLM_API_KEY` (rota `/utils/model_info`, autenticada; sem banco no LiteLLM, só a chave mestra autentica, e o compose já passa essa chave à API).
+  - Os `<ALIAS>_MODEL` do ambiente são o padrão que a tela pode substituir.

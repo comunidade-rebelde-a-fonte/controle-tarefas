@@ -575,6 +575,78 @@ paths:
               schema: { $ref: "#/components/schemas/CredentialThresholds" }
         "400": { $ref: "#/components/responses/BadRequest" }
 
+  /settings/ai/models:
+    get:
+      tags: [settings]
+      operationId: listAIModels
+      summary: Modelos de IA por alias (Configurações → IA), sem segredos
+      description: >-
+        Aliases do catálogo, na ordem de exibição, com a escolha gravada na tela, o padrão do
+        ambiente e o modelo que as novas corridas usam. Nunca devolve credencial: as chaves dos
+        provedores ficam só no ambiente do LiteLLM [REQ-047].
+      responses:
+        "200":
+          description: Configuração dos aliases
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIModelList" }
+
+  /settings/ai/models/{alias}:
+    parameters:
+      - $ref: "#/components/parameters/AIAliasPath"
+    put:
+      tags: [settings]
+      operationId: updateAIModel
+      summary: Troca o modelo e os parâmetros de um alias (vale para as novas corridas)
+      description: >-
+        Substitui a configuração do alias, com concorrência otimista por `version`. Mudança no
+        modelo efetivo ou nos parâmetros é conferida no gateway antes de gravar: reprovada, 422
+        `AI_MODEL_INVALID` com as conferências em `details.checks`; gateway fora do ar, 503.
+        Ligar ou desligar o alias não depende do gateway. Campos fora do contrato, como
+        `api_key`, são recusados (400). A corrida em andamento mantém o modelo resolvido no início.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AIModelUpdate" }
+      responses:
+        "200":
+          description: Configuração gravada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIModelAlias" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /settings/ai/models/{alias}/validate:
+    parameters:
+      - $ref: "#/components/parameters/AIAliasPath"
+    post:
+      tags: [settings]
+      operationId: validateAIModel
+      summary: Valida uma configuração no gateway, sem gravar
+      description: >-
+        Confere o modelo (provedor/modelo, ou o padrão do ambiente) na tabela de modelos do
+        LiteLLM: tipo chat, saída estruturada e visão quando o agente exige, e os parâmetros
+        escolhidos. Não chama o provedor e não tem custo. Reprovação volta como 200 com `ok: false`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AIModelValidateRequest" }
+      responses:
+        "200":
+          description: Resultado das conferências
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIModelValidation" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
   /credential-controls:
     get:
       tags: [credentials]
@@ -1598,6 +1670,12 @@ paths:
 
 components:
   parameters:
+    AIAliasPath:
+      name: alias
+      in: path
+      required: true
+      description: Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND`
+      schema: { type: string, pattern: "^[a-z][a-z0-9_]{1,39}$" }
     FactorRPA:
       name: pa
       in: query
@@ -2379,6 +2457,131 @@ components:
           type: array
           description: Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60)
           items: { type: integer, minimum: 1, maximum: 365 }
+
+    AIProvider:
+      type: string
+      description: Provedor com rota no gateway (litellm/config.yaml)
+      enum: [openai, anthropic]
+
+    AIModelSource:
+      type: string
+      description: >-
+        De onde vem o modelo das novas corridas: `settings` = escolha da tela; `env` = padrão do
+        ambiente (`<ALIAS>_MODEL`); `none` = sem modelo (as corridas falham até configurar).
+      enum: [settings, env, none]
+
+    AIModelName:
+      type: string
+      description: >-
+        Nome do modelo no provedor, sem o prefixo (ex. `gpt-6-luna`). Nome com cara de chave de
+        API (`sk-…`, `pk-…`, `rk-…`) é recusado.
+      pattern: "^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$"
+      examples: [gpt-6-luna]
+
+    AIModelParameters:
+      type: object
+      additionalProperties: false
+      description: Parâmetros de chamada permitidos (lista fechada); ausente = padrão do provedor. Nunca credenciais.
+      properties:
+        temperature: { type: number, minimum: 0, maximum: 2 }
+        max_tokens: { type: integer, format: int32, minimum: 1, maximum: 1000000 }
+
+    AIModelAlias:
+      type: object
+      required: [alias, module, purpose, requirements, provider, model, default_model, effective_model, source, parameters, enabled, version, updated_at]
+      properties:
+        alias: { type: string, examples: [triador] }
+        module: { type: string, enum: [conciliacao, fator_r] }
+        purpose: { type: string }
+        requirements:
+          type: object
+          description: O que o agente exige do modelo (conferido na validação)
+          required: [structured_output, vision]
+          properties:
+            structured_output: { type: boolean }
+            vision: { type: boolean }
+        provider:
+          description: Escolha gravada na tela; null = padrão do ambiente
+          oneOf: [{ $ref: "#/components/schemas/AIProvider" }, { type: "null" }]
+        model:
+          description: Escolha gravada na tela; null = padrão do ambiente
+          oneOf: [{ $ref: "#/components/schemas/AIModelName" }, { type: "null" }]
+        default_model: { type: [string, "null"], description: "Padrão do ambiente, em provedor/modelo", examples: [openai/gpt-6-luna] }
+        effective_model: { type: [string, "null"], description: "Modelo das novas corridas, em provedor/modelo; null = sem modelo" }
+        source: { $ref: "#/components/schemas/AIModelSource" }
+        parameters: { $ref: "#/components/schemas/AIModelParameters" }
+        enabled: { type: boolean, description: "Desligado: as corridas do agente não resolvem modelo" }
+        version: { type: integer, format: int32, minimum: 1 }
+        updated_at: { type: string, format: date-time }
+
+    AIModelList:
+      type: object
+      required: [gateway_configured, items]
+      properties:
+        gateway_configured:
+          type: boolean
+          description: false = LITELLM_BASE_URL ausente; sem gateway não há como validar nem trocar o modelo
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/AIModelAlias" }
+
+    AIModelUpdate:
+      type: object
+      additionalProperties: false
+      description: Configuração completa do alias. provider e model nulos voltam ao padrão do ambiente.
+      required: [provider, model, parameters, enabled, version]
+      properties:
+        provider: { oneOf: [{ $ref: "#/components/schemas/AIProvider" }, { type: "null" }] }
+        model: { oneOf: [{ $ref: "#/components/schemas/AIModelName" }, { type: "null" }] }
+        parameters: { $ref: "#/components/schemas/AIModelParameters" }
+        enabled: { type: boolean }
+        version: { type: integer, format: int32, minimum: 1, description: "Versão lida; diferente da atual = 409 VERSION_CONFLICT" }
+
+    AIModelValidateRequest:
+      type: object
+      additionalProperties: false
+      required: [provider, model, parameters]
+      properties:
+        provider: { oneOf: [{ $ref: "#/components/schemas/AIProvider" }, { type: "null" }] }
+        model: { oneOf: [{ $ref: "#/components/schemas/AIModelName" }, { type: "null" }] }
+        parameters: { $ref: "#/components/schemas/AIModelParameters" }
+
+    AIModelCheck:
+      type: object
+      required: [code, ok, message]
+      properties:
+        code:
+          type: string
+          enum: [MODEL_CONFIGURED, MODEL_KNOWN, CHAT_MODE, STRUCTURED_OUTPUT, VISION, PARAM_TEMPERATURE, PARAM_MAX_TOKENS]
+        ok: { type: boolean }
+        message: { type: string }
+
+    AIModelCapabilities:
+      type: object
+      description: Capacidades do modelo segundo a tabela de modelos do gateway
+      required: [mode, structured_output, vision, max_output_tokens, parameters]
+      properties:
+        mode: { type: string, examples: [chat] }
+        structured_output: { type: boolean }
+        vision: { type: boolean }
+        max_output_tokens: { type: [integer, "null"], format: int32 }
+        parameters:
+          type: array
+          description: Parâmetros permitidos que o modelo aceita
+          items: { type: string, enum: [temperature, max_tokens] }
+
+    AIModelValidation:
+      type: object
+      required: [ok, model, source, checks, capabilities]
+      properties:
+        ok: { type: boolean }
+        model: { type: [string, "null"], description: "Modelo conferido, em provedor/modelo" }
+        source: { $ref: "#/components/schemas/AIModelSource" }
+        checks:
+          type: array
+          items: { $ref: "#/components/schemas/AIModelCheck" }
+        capabilities:
+          oneOf: [{ $ref: "#/components/schemas/AIModelCapabilities" }, { type: "null" }]
 
     CompetenceInfo:
       type: object
@@ -3323,6 +3526,12 @@ components:
             $ref: "#/components/schemas/Error"
     Locked:
       description: Período fechado
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    ServiceUnavailable:
+      description: Serviço auxiliar indisponível ou não configurado (ex. gateway de IA)
       content:
         application/json:
           schema:

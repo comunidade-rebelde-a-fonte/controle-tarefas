@@ -189,6 +189,11 @@ Regras:
 
 Valida formato/resolução no LiteLLM sem persistir secret. Se exigir chamada real, deve ser ação explícita do usuário e claramente sinalizada.
 
+> **Como foi implementado (TASK-008; D-021).** O contrato está no OpenAPI, tag `settings`.
+> - A validação consulta só a tabela de modelos do LiteLLM (`/utils/model_info`): sem chamada ao provedor e sem custo.
+> - O `PUT` repete a validação no servidor quando o modelo efetivo ou os parâmetros mudam: 422 `AI_MODEL_INVALID`, com as conferências em `details.checks`. Gateway indisponível ou não configurado: 503.
+> - `provider` e `model` nulos voltam ao padrão do ambiente. `api_key` e qualquer outro campo fora do contrato dão 400.
+
 ## 8. Jobs
 
 ### `GET /jobs/{id}`

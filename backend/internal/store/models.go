@@ -10,6 +10,29 @@ import (
 	"controle/internal/platform/decimal"
 )
 
+type AiModelAlias struct {
+	Alias      string
+	Provider   *string
+	Model      *string
+	Parameters []byte
+	Enabled    bool
+	Version    int32
+	UpdatedBy  *string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type AiModelAliasHistory struct {
+	Alias      string
+	Version    int32
+	Provider   *string
+	Model      *string
+	Parameters []byte
+	Enabled    bool
+	ChangedBy  *string
+	ChangedAt  time.Time
+}
+
 type BankAccount struct {
 	ID        string
 	CompanyID string

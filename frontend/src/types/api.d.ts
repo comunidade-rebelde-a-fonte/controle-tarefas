@@ -382,6 +382,72 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/ai/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Modelos de IA por alias (Configurações → IA), sem segredos
+         * @description Aliases do catálogo, na ordem de exibição, com a escolha gravada na tela, o padrão do ambiente e o modelo que as novas corridas usam. Nunca devolve credencial: as chaves dos provedores ficam só no ambiente do LiteLLM [REQ-047].
+         */
+        get: operations["listAIModels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/ai/models/{alias}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Troca o modelo e os parâmetros de um alias (vale para as novas corridas)
+         * @description Substitui a configuração do alias, com concorrência otimista por `version`. Mudança no modelo efetivo ou nos parâmetros é conferida no gateway antes de gravar: reprovada, 422 `AI_MODEL_INVALID` com as conferências em `details.checks`; gateway fora do ar, 503. Ligar ou desligar o alias não depende do gateway. Campos fora do contrato, como `api_key`, são recusados (400). A corrida em andamento mantém o modelo resolvido no início.
+         */
+        put: operations["updateAIModel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/ai/models/{alias}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Valida uma configuração no gateway, sem gravar
+         * @description Confere o modelo (provedor/modelo, ou o padrão do ambiente) na tabela de modelos do LiteLLM: tipo chat, saída estruturada e visão quando o agente exige, e os parâmetros escolhidos. Não chama o provedor e não tem custo. Reprovação volta como 200 com `ok: false`.
+         */
+        post: operations["validateAIModel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/credential-controls": {
         parameters: {
             query?: never;
@@ -1689,6 +1755,105 @@ export interface components {
             /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
             days: number[];
         };
+        /**
+         * @description Provedor com rota no gateway (litellm/config.yaml)
+         * @enum {string}
+         */
+        AIProvider: "openai" | "anthropic";
+        /**
+         * @description De onde vem o modelo das novas corridas: `settings` = escolha da tela; `env` = padrão do ambiente (`<ALIAS>_MODEL`); `none` = sem modelo (as corridas falham até configurar).
+         * @enum {string}
+         */
+        AIModelSource: "settings" | "env" | "none";
+        /**
+         * @description Nome do modelo no provedor, sem o prefixo (ex. `gpt-6-luna`). Nome com cara de chave de API (`sk-…`, `pk-…`, `rk-…`) é recusado.
+         * @example gpt-6-luna
+         */
+        AIModelName: string;
+        /** @description Parâmetros de chamada permitidos (lista fechada); ausente = padrão do provedor. Nunca credenciais. */
+        AIModelParameters: {
+            temperature?: number;
+            /** Format: int32 */
+            max_tokens?: number;
+        };
+        AIModelAlias: {
+            /** @example triador */
+            alias: string;
+            /** @enum {string} */
+            module: "conciliacao" | "fator_r";
+            purpose: string;
+            /** @description O que o agente exige do modelo (conferido na validação) */
+            requirements: {
+                structured_output: boolean;
+                vision: boolean;
+            };
+            /** @description Escolha gravada na tela; null = padrão do ambiente */
+            provider: components["schemas"]["AIProvider"] | null;
+            /** @description Escolha gravada na tela; null = padrão do ambiente */
+            model: components["schemas"]["AIModelName"] | null;
+            /**
+             * @description Padrão do ambiente, em provedor/modelo
+             * @example openai/gpt-6-luna
+             */
+            default_model: string | null;
+            /** @description Modelo das novas corridas, em provedor/modelo; null = sem modelo */
+            effective_model: string | null;
+            source: components["schemas"]["AIModelSource"];
+            parameters: components["schemas"]["AIModelParameters"];
+            /** @description Desligado: as corridas do agente não resolvem modelo */
+            enabled: boolean;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AIModelList: {
+            /** @description false = LITELLM_BASE_URL ausente; sem gateway não há como validar nem trocar o modelo */
+            gateway_configured: boolean;
+            items: components["schemas"]["AIModelAlias"][];
+        };
+        /** @description Configuração completa do alias. provider e model nulos voltam ao padrão do ambiente. */
+        AIModelUpdate: {
+            provider: components["schemas"]["AIProvider"] | null;
+            model: components["schemas"]["AIModelName"] | null;
+            parameters: components["schemas"]["AIModelParameters"];
+            enabled: boolean;
+            /**
+             * Format: int32
+             * @description Versão lida; diferente da atual = 409 VERSION_CONFLICT
+             */
+            version: number;
+        };
+        AIModelValidateRequest: {
+            provider: components["schemas"]["AIProvider"] | null;
+            model: components["schemas"]["AIModelName"] | null;
+            parameters: components["schemas"]["AIModelParameters"];
+        };
+        AIModelCheck: {
+            /** @enum {string} */
+            code: "MODEL_CONFIGURED" | "MODEL_KNOWN" | "CHAT_MODE" | "STRUCTURED_OUTPUT" | "VISION" | "PARAM_TEMPERATURE" | "PARAM_MAX_TOKENS";
+            ok: boolean;
+            message: string;
+        };
+        /** @description Capacidades do modelo segundo a tabela de modelos do gateway */
+        AIModelCapabilities: {
+            /** @example chat */
+            mode: string;
+            structured_output: boolean;
+            vision: boolean;
+            /** Format: int32 */
+            max_output_tokens: number | null;
+            /** @description Parâmetros permitidos que o modelo aceita */
+            parameters: ("temperature" | "max_tokens")[];
+        };
+        AIModelValidation: {
+            ok: boolean;
+            /** @description Modelo conferido, em provedor/modelo */
+            model: string | null;
+            source: components["schemas"]["AIModelSource"];
+            checks: components["schemas"]["AIModelCheck"][];
+            capabilities: components["schemas"]["AIModelCapabilities"] | null;
+        };
         CompetenceInfo: {
             competence: components["schemas"]["Competence"];
             /** Format: date-time */
@@ -2442,8 +2607,19 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description Serviço auxiliar indisponível ou não configurado (ex. gateway de IA) */
+        ServiceUnavailable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
     };
     parameters: {
+        /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+        AIAliasPath: string;
         /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
         FactorRPA: components["schemas"]["Competence"];
         IdPath: components["schemas"]["Uuid"];
@@ -3241,6 +3417,88 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+        };
+    };
+    listAIModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuração dos aliases */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelList"];
+                };
+            };
+        };
+    };
+    updateAIModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIModelUpdate"];
+            };
+        };
+        responses: {
+            /** @description Configuração gravada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelAlias"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    validateAIModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIModelValidateRequest"];
+            };
+        };
+        responses: {
+            /** @description Resultado das conferências */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelValidation"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            503: components["responses"]["ServiceUnavailable"];
         };
     };
     listCredentialControls: {

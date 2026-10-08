@@ -99,6 +99,8 @@ Desde a TASK-004 (D-014): catálogo de aliases e resolução em `backend/interna
 
 Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM real com provedor simulado.
 
+Desde a TASK-008 (D-021): a configuração da tela Configurações → IA fica em `ai_model_aliases` (pacote `backend/internal/ai/aliases`), sem nenhum segredo. Toda corrida de agente resolve o modelo com `aliases.Resolver.Resolve` no início e grava o snapshot. Alias novo exige linha nova numa migration (um teste confere tabela × catálogo).
+
 ## Jobs
 
 Desde a TASK-005 (D-019): fila em `backend/internal/jobs` (SKIP LOCKED, tentativas, posse com prazo, efeito do handler na mesma transação da conclusão). Cada novo tipo de job registra o handler em `backend/internal/worker/handlers.go`; payload só com IDs, nunca documento.

@@ -11,6 +11,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"controle/internal/ai/aliases"
+	"controle/internal/ai/litellm"
 	"controle/internal/calendar"
 	"controle/internal/catalog"
 	"controle/internal/company"
@@ -99,6 +101,9 @@ func New(d Deps) *App {
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
+		// Configurações → IA: só configuração não secreta; a chave é a do gateway (TASK-008).
+		gateway := litellm.New(d.Config.LiteLLMBaseURL, d.Config.LiteLLMAPIKey, d.Config.LiteLLMTimeout)
+		aliases.NewHandler(aliases.NewService(d.Pool, d.Clock, d.Config.AIDefaults, gateway)).Routes(api)
 		importer.NewHandler(importer.NewService(d.Pool, d.Clock, companies)).Routes(api)
 		credentials := credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)
 		credential.NewHandler(credentials).Routes(api)

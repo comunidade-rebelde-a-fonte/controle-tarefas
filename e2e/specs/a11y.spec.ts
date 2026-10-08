@@ -50,10 +50,10 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     await audit(page, url);
   }
 
-  for (const tab of ["Catálogo de obrigações", "Regras de vencimento", "Feriados", "Faixas de validade", "Responsáveis"]) {
+  for (const tab of ["Catálogo de obrigações", "Regras de vencimento", "Feriados", "Faixas de validade", "Responsáveis", "IA"]) {
     await page.goto("/settings");
     await ready(page, "Cadastros e Configurações");
-    await page.getByRole("tab", { name: tab }).click();
+    await page.getByRole("tab", { name: tab, exact: true }).click();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await audit(page, `/settings — ${tab}`);
   }
@@ -204,6 +204,20 @@ test("T-M7-04 axe: diálogos de empresas, DCTFWeb, configurações, credenciais 
   await page.getByRole("table", { name: /^Catálogo — / }).first().getByRole("button", { name: /^Editar / }).first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await audit(page, "diálogo Editar tipo de obrigação");
+  await page.keyboard.press("Escape");
+
+  // Configurações → IA: edição do alias com o resultado da validação (cancelada, nada gravado).
+  await page.getByRole("tab", { name: "IA", exact: true }).click();
+  await page.getByRole("button", { name: "Editar extrator", exact: true }).click();
+  const aiDialog = page.getByRole("dialog", { name: "Configurar extrator" });
+  await aiDialog.getByLabel("Escolher o modelo").check();
+  await aiDialog.getByRole("button", { name: "Validar configuração" }).click();
+  await expect(aiDialog.getByTestId("resultado-validacao")).toBeVisible();
+  await audit(page, "diálogo Configurar alias de IA (validação aprovada)");
+  await aiDialog.getByLabel("Modelo", { exact: true }).fill("gpt-6-texto");
+  await aiDialog.getByRole("button", { name: "Validar configuração" }).click();
+  await expect(aiDialog.getByTestId("resultado-validacao")).toContainText("Configuração reprovada");
+  await audit(page, "diálogo Configurar alias de IA (validação reprovada)");
   await page.keyboard.press("Escape");
 
   // Credenciais: documentos e observações; "Renovado" pede a nova validade (cancelado).

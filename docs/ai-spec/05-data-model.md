@@ -248,6 +248,12 @@ Se ainda não existir no banco-base, portar a tabela do Conciliador:
 
 Seeds com aliases; valores concretos podem vir de env e ser substituídos na UI.
 
+> **Como foi implementado (TASK-008; D-021).** Migration `0021_ai_model_aliases.sql`.
+> - As 7 linhas do `ai.Catalog` nascem na própria migration (versão 1).
+> - `provider`/`model` nulos = padrão do `.env` (`<ALIAS>_MODEL`).
+> - Os parâmetros são uma lista fechada (`temperature`, `max_tokens`), garantida também por CHECK, e nome de modelo com cara de chave é recusado no banco.
+> - `updated_by` registra quem alterou, e `ai_model_alias_history` guarda cada versão.
+
 ### `ai_runs`
 
 Auditoria local mínima:

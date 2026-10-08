@@ -4,6 +4,50 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-021 — Configuração dos modelos de IA (TASK-008; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Tabela `ai_model_aliases` [05 §8]**, criada na migration `0021_ai_model_aliases.sql`.
+  - Uma linha por alias do `ai.Catalog`, criada pela própria migration (versão 1). Um teste confere que tabela e catálogo não divergem.
+  - `provider` e `model` nulos significam "vale o padrão do `.env`" (`<ALIAS>_MODEL`); a escolha da tela vence o padrão.
+    - O `.env` continua sendo o padrão da instalação (D-014, D-015).
+    - A tela mostra de onde vem cada modelo: `settings` (escolhido na tela), `env` (padrão do ambiente) ou `none` (sem modelo).
+  - Parâmetros: lista fechada com `temperature` (0 a 2) e `max_tokens` (1 a 1.000.000).
+    - A lista é conferida no código e por CHECK no banco.
+    - Nenhum outro parâmetro entra, inclusive `api_key`, nem por SQL direto.
+  - Nome de modelo com cara de chave (`sk-…`, `pk-…`, `rk-…`) é recusado no código e no banco, sem ecoar o valor.
+  - Histórico em `ai_model_alias_history`: uma linha por versão (o quê, quem e quando), gravada na mesma transação, como os demais históricos do Controle. Ainda sem tela.
+- **API [06 §7].**
+  - `GET /settings/ai/models` traz:
+    - os aliases na ordem do catálogo;
+    - a escolha da tela, o padrão do ambiente e o modelo das novas corridas, com a origem;
+    - os parâmetros, ligado/desligado, a versão e a última alteração;
+    - `gateway_configured`.
+  - `PUT /settings/ai/models/{alias}` substitui a configuração, com `version` (409 `VERSION_CONFLICT`).
+    - Mudança no modelo efetivo ou nos parâmetros é conferida no gateway antes de gravar. Reprovada: 422 `AI_MODEL_INVALID`, com as conferências em `details.checks`. Gateway fora do ar ou não configurado: 503 (`AI_GATEWAY_UNAVAILABLE`, `AI_GATEWAY_NOT_CONFIGURED`).
+    - Ligar e desligar não dependem do gateway.
+    - Campo fora do contrato, como `api_key`, é recusado com 400.
+  - `POST /settings/ai/models/{alias}/validate` confere sem gravar.
+- **Validação no gateway (regra do D-014).**
+  - Consulta `GET /utils/model_info` do LiteLLM, que lê só a tabela de modelos do gateway. Não chama o provedor e não tem custo, então não há "chamada real" a sinalizar [06 §7].
+  - Conferências:
+    - o gateway conhece o modelo;
+    - é um modelo de chat;
+    - aceita saída estruturada (todos os agentes);
+    - aceita imagens, para triador, extrator e extrator_forte, que leem a página renderizada quando o PDF não tem texto;
+    - aceita os parâmetros escolhidos, e `max_tokens` cabe no limite do modelo.
+  - Reprovação bloqueia a gravação. Com `drop_params`, o gateway descartaria em silêncio o JSON Schema ou o parâmetro não aceito.
+  - **Limitação conhecida:** um modelo que a versão fixada do LiteLLM não conhece (ex.: `gpt-6.1-sol`) só pode ser escolhido depois de atualizar o LiteLLM. É o mesmo motivo de travar a tabela de modelos (D-014).
+- **Resolução [AC-027, F-010].**
+  - `aliases.Resolver.Resolve(ctx, db, alias)` aplica a configuração gravada sobre o `.env` e devolve o snapshot `ai.Resolved`: modelo, origem, parâmetros e versão.
+  - As corridas dos agentes (TASK-012 em diante) resolvem por aqui, no início. A corrida em andamento mantém o snapshot.
+  - Alias desligado não resolve (`ErrAliasDisabled`).
+- **Chaves [REQ-047].**
+  - A tela não tem campo de credencial.
+  - A validação usa só a chave do gateway (`LITELLM_API_KEY`).
+  - Os erros do gateway chegam sanitizados.
+  - TEST-008 confere todas as respostas da tela.
+- **E2E.** A suíte sobe um gateway LiteLLM simulado (`e2e/support/fake-litellm.mjs`), com a mesma rota e os mesmos corpos do LiteLLM v1.104.0. O contrato do gateway real fica com `make test-litellm`.
+
 ### D-020 — Schema da Conciliação (TASK-007; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte do schema do Conciliador** (`app/db/models.py`, commit `2bc6e26`) para a migration `0020_reconciliation.sql`.

@@ -257,15 +257,30 @@ func retryableStatus(code int) bool {
 	return false
 }
 
-// errorMessage extrai error.message do corpo (formato OpenAI/LiteLLM), já sanitizada.
+// errorMessage extrai a mensagem do corpo, já sanitizada: error.message (formato OpenAI/LiteLLM)
+// ou detail (rotas utilitárias do LiteLLM, em FastAPI: texto ou {"error": "…"}).
 func errorMessage(raw []byte, status string) string {
 	var body struct {
 		Error struct {
 			Message string `json:"message"`
 		} `json:"error"`
+		Detail json.RawMessage `json:"detail"`
 	}
-	if json.Unmarshal(raw, &body) == nil && body.Error.Message != "" {
+	if json.Unmarshal(raw, &body) != nil {
+		return sanitize(status)
+	}
+	if body.Error.Message != "" {
 		return sanitize(body.Error.Message)
+	}
+	var text string
+	if json.Unmarshal(body.Detail, &text) == nil && text != "" {
+		return sanitize(text)
+	}
+	var detail struct {
+		Error string `json:"error"`
+	}
+	if json.Unmarshal(body.Detail, &detail) == nil && detail.Error != "" {
+		return sanitize(detail.Error)
 	}
 	return sanitize(status)
 }

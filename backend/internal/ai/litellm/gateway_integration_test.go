@@ -88,6 +88,12 @@ func (p *fakeProvider) lastModel() string {
 	return p.models[len(p.models)-1]
 }
 
+func (p *fakeProvider) calls() int {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	return len(p.paths)
+}
+
 // envExample lê os <ALIAS>_MODEL do .env.example (os padrões provisórios do Q-003).
 func envExample(t *testing.T) map[string]string {
 	t.Helper()
@@ -210,6 +216,38 @@ func TestGateway_RoutesEveryAliasToTheProviderWithItsKey(t *testing.T) {
 		}
 		if strings.Contains(err.Error(), "chave-errada") {
 			t.Fatalf("erro vaza a chave: %v", err)
+		}
+	})
+
+	// Validação da tela Configurações → IA (TASK-008): capacidades lidas da tabela de modelos do
+	// gateway real, sem nenhuma chamada ao provedor.
+	t.Run("model_info", func(t *testing.T) {
+		before := provider.calls()
+		for _, info := range ai.Catalog {
+			m := defaults[info.Alias]
+			mi, err := client.ModelInfo(ctx, m)
+			if err != nil {
+				t.Fatalf("%s (%s): %v", info.Alias, m, err)
+			}
+			if mi.Mode != "chat" || !mi.StructuredOutput || (info.NeedsVision && !mi.Vision) ||
+				!mi.Supports("temperature") || !mi.Supports("max_tokens") || mi.MaxOutputTokens == 0 {
+				t.Fatalf("%s (%s): o padrão do .env não atende ao agente: %+v", info.Alias, m, mi)
+			}
+		}
+		if _, err := client.ModelInfo(ctx, ai.Model{Provider: "openai", Name: "gpt-6.1-sol"}); !errors.Is(err, ErrUnknownModel) {
+			t.Fatalf("modelo fora da tabela fixada: err = %v, want ErrUnknownModel", err)
+		}
+		emb, err := client.ModelInfo(ctx, ai.Model{Provider: "openai", Name: "text-embedding-3-small"})
+		if err != nil || emb.Mode != "embedding" {
+			t.Fatalf("embedding: %+v, %v", emb, err)
+		}
+		_, err = New(endpoint, "sk-chave-errada", 30*time.Second).ModelInfo(ctx, defaults[ai.Triador])
+		var callErr *Error
+		if !errors.As(err, &callErr) || callErr.Status < 400 || callErr.Status >= 500 || strings.Contains(err.Error(), "chave-errada") {
+			t.Fatalf("chave errada: err = %v, want recusa 4xx sem ecoar a chave", err)
+		}
+		if provider.calls() != before {
+			t.Fatal("model_info não pode chamar o provedor")
 		}
 	})
 
