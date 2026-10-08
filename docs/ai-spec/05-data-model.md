@@ -221,6 +221,12 @@ Se ainda não existir no banco-base, portar a tabela do Conciliador:
 
 Índices para aquisição eficiente por status/run_after.
 
+> **Como foi implementado (TASK-005; D-019).**
+> - Colunas a mais: `dedupe_key` (um job ativo por `kind` + chave), `finished_at` e `retried_by`/`retried_at` (reenvio manual).
+> - O estado terminal é `dead`.
+> - A posse (`locked_at`/`locked_by`) tem prazo e é renovada pelo worker.
+> - A tabela `worker_heartbeats` registra o batimento de cada worker.
+
 ## 8. IA e configuração
 
 ### `ai_model_aliases`

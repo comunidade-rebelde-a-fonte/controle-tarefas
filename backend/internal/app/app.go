@@ -22,6 +22,7 @@ import (
 	"controle/internal/factorr"
 	"controle/internal/grid"
 	"controle/internal/importer"
+	"controle/internal/jobs"
 	"controle/internal/obligation"
 	"controle/internal/period"
 	"controle/internal/platform/clock"
@@ -104,6 +105,8 @@ func New(d Deps) *App {
 		dash := dashboard.NewService(d.Pool, d.Clock, credentials)
 		dashboard.NewHandler(dash).Routes(api)
 		factorr.NewHandler(factorr.NewService(d.Pool, d.Clock)).Routes(api)
+		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
+		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {

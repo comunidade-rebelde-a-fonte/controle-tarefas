@@ -91,7 +91,7 @@ O produto consolida o Controle de Tarefas com a Plataforma Fator R e a Concilia�
 
 | Serviço | Para quê | Observações |
 |---|---|---|
-| worker | Jobs assíncronos (fila em PostgreSQL a partir da TASK-005) | Mesmo binário da API (`api worker`), processo e container separados; healthcheck em `/health` |
+| worker | Jobs assíncronos: fila em PostgreSQL (`backend/internal/jobs`) | Mesmo binário da API (`api worker`), processo e container separados; healthcheck em `/health`. Até 3 tentativas com espera de 2ⁿ s. Um job de worker que caiu volta para a fila pelo prazo de posse. `GET /api/v1/jobs/{id}` mostra o estado e se há worker ativo; `POST …/retry` reenvia um job `dead`. Os tipos de job ficam registrados em `backend/internal/worker/handlers.go` |
 | MinIO | Originais da Conciliação, imutáveis | Bucket `S3_BUCKET` versionado; o usuário da aplicação (`S3_ACCESS_KEY`) não tem permissão de apagar (`docker/minio/init.sh`). Imagem da Chainguard fixada por digest (a MinIO deixou de publicar imagens da edição comunitária) |
 | LiteLLM | Gateway de modelos dos agentes, por alias (`litellm/config.yaml`) | A aplicação resolve o alias (`internal/ai`) e chama o gateway com o modelo concreto. Provedor inicial: OpenAI; modelos padrão no `.env` (`<ALIAS>_MODEL`, decididos na Q-003). A chave do provedor (`OPENAI_API_KEY`) só chega ao container do LiteLLM; a aplicação usa a chave do gateway |
 | n8n | Ingestão automatizada: arquivos colocados em `n8n/inbox/` são enviados à API | A demonstração usa upload manual; o workflow (`n8n/workflows/ingestao.json`) é adaptado ao endpoint novo na TASK-015 |

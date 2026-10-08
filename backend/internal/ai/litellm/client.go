@@ -20,6 +20,7 @@ import (
 
 	"controle/internal/ai"
 	"controle/internal/platform/config"
+	"controle/internal/platform/redact"
 )
 
 // ErrNotConfigured indica que LITELLM_BASE_URL não foi definida.
@@ -269,22 +270,10 @@ func errorMessage(raw []byte, status string) string {
 	return sanitize(status)
 }
 
-var (
-	secretPattern = regexp.MustCompile(`(?i)\b(sk|pk|rk)-[A-Za-z0-9_*\-]{3,}`)
-	bearerPattern = regexp.MustCompile(`(?i)bearer\s+\S+`)
-	decimalCost   = regexp.MustCompile(`^\d+(\.\d+)?([eE]-?\d+)?$`)
-)
+var decimalCost = regexp.MustCompile(`^\d+(\.\d+)?([eE]-?\d+)?$`)
 
 // sanitize remove chaves e credenciais da mensagem e limita o tamanho [spec 06 §10].
-func sanitize(msg string) string {
-	msg = bearerPattern.ReplaceAllString(msg, "Bearer [oculto]")
-	msg = secretPattern.ReplaceAllString(msg, "[chave oculta]")
-	msg = strings.Join(strings.Fields(msg), " ")
-	if r := []rune(msg); len(r) > 300 {
-		msg = string(r[:300]) + "…"
-	}
-	return msg
-}
+func sanitize(msg string) string { return redact.Message(msg) }
 
 func decimalHeader(v string) string {
 	v = strings.TrimSpace(v)

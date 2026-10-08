@@ -91,6 +91,15 @@ func TestLoad_Worker(t *testing.T) {
 	if cfg.WorkerID != "worker-dev" || cfg.WorkerHealthPort != 9191 {
 		t.Fatalf("worker = %q:%d", cfg.WorkerID, cfg.WorkerHealthPort)
 	}
+	// Padrões da fila: os da origem (3 tentativas, 1 s de espera) e posse de 5 min.
+	if cfg.WorkerConcurrency != 1 || cfg.JobMaxAttempts != 3 || cfg.JobPollInterval != time.Second || cfg.JobLease != 5*time.Minute {
+		t.Fatalf("fila = %d, %d, %s, %s", cfg.WorkerConcurrency, cfg.JobMaxAttempts, cfg.JobPollInterval, cfg.JobLease)
+	}
+	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "WORKER_CONCURRENCY": "2", "JOB_MAX_TENTATIVAS": "5",
+		"JOB_POLL_SECONDS": "0.5", "JOB_LEASE_SECONDS": "60"}))
+	if err != nil || cfg.WorkerConcurrency != 2 || cfg.JobMaxAttempts != 5 || cfg.JobPollInterval != 500*time.Millisecond || cfg.JobLease != time.Minute {
+		t.Fatalf("fila = %+v, %v", cfg, err)
+	}
 }
 
 func TestLoad_ProductionMigratesOnBoot(t *testing.T) {
@@ -114,6 +123,10 @@ func TestLoad_Invalid(t *testing.T) {
 		"env desconhecido":    {"DATABASE_URL": "x", "APP_ENV": "staging"},
 		"max conns zero":      {"DATABASE_URL": "x", "DB_MAX_CONNS": "0"},
 		"porta do worker":     {"DATABASE_URL": "x", "WORKER_HEALTH_PORT": "70000"},
+		"concorrência zero":   {"DATABASE_URL": "x", "WORKER_CONCURRENCY": "0"},
+		"tentativas demais":   {"DATABASE_URL": "x", "JOB_MAX_TENTATIVAS": "21"},
+		"espera zero":         {"DATABASE_URL": "x", "JOB_POLL_SECONDS": "0"},
+		"posse curta":         {"DATABASE_URL": "x", "JOB_LEASE_SECONDS": "5"},
 		"litellm sem esquema": {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
 		"litellm timeout":     {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
 	}

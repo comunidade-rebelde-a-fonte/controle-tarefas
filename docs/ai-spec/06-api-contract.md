@@ -199,6 +199,11 @@ Status, tentativas, timestamps, erro sanitizado.
 
 Somente para estados permitidos e sem burlar revisão/portões.
 
+> **Como foi implementado (TASK-005).** O contrato está no OpenAPI, tag `jobs`.
+> - O reenvio vale só para `dead` e zera as tentativas.
+> - Nos demais estados, `409 JOB_NOT_RETRYABLE`; com outro job ativo para o mesmo item, `409 JOB_ALREADY_ACTIVE`.
+> - `GET` não expõe o payload e informa `worker_online`.
+
 ## 9. Observabilidade
 
 ### `GET /ai/runs`

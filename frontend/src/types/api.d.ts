@@ -1116,6 +1116,53 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Estado de um job da fila — status, tentativas, horários e erro sanitizado [06 §8]
+         * @description `worker_online` diz se algum worker deu sinal recente: job pendente sem worker ativo
+         *     significa fila parada (runbook "Worker parado", 11 §9). O payload não é exposto.
+         */
+        get: operations["getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reenvia um job encerrado com falha (dead), com as tentativas zeradas
+         * @description Só para `dead` (409 `JOB_NOT_RETRYABLE` nos demais estados). O reenvio não pula portões de
+         *     domínio, que ficam no processamento do job. Com outro job ativo para o mesmo item, 409
+         *     `JOB_ALREADY_ACTIVE`.
+         */
+        post: operations["retryJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -2108,6 +2155,52 @@ export interface components {
             email?: string | null;
             role?: components["schemas"]["UserRole"];
             active?: boolean;
+        };
+        /**
+         * @description pending: na fila; running: em execução por um worker; retry: nova tentativa agendada
+         *     (run_after); done: concluído; dead: encerrado sem sucesso (tentativas esgotadas ou falha
+         *     permanente).
+         * @enum {string}
+         */
+        JobStatus: "pending" | "running" | "retry" | "done" | "dead";
+        Job: {
+            id: components["schemas"]["Uuid"];
+            /** @example pgdas_parse */
+            kind: string;
+            status: components["schemas"]["JobStatus"];
+            /**
+             * Format: int32
+             * @description Tentativas iniciadas
+             */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            /**
+             * Format: date-time
+             * @description Quando o job pode ser executado (backoff entre tentativas)
+             */
+            run_after: string;
+            /** Format: date-time */
+            locked_at: string | null;
+            /** @description Worker que tem a posse do job */
+            locked_by: string | null;
+            /** @example WORKER_LOST */
+            last_error_code: string | null;
+            /** @description Mensagem sanitizada (sem chaves nem tokens), até 300 caracteres */
+            last_error_message: string | null;
+            /** Format: date-time */
+            finished_at: string | null;
+            /**
+             * Format: date-time
+             * @description Último reenvio manual
+             */
+            retried_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** @description Algum worker deu sinal recente */
+            worker_online: boolean;
         };
         /**
          * @description Número decimal exato, como string em notação de ponto fixo (nunca float) [06 §12]. A
@@ -4442,6 +4535,53 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Job"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    retryJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job de volta à fila */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Job"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
 }

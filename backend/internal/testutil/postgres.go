@@ -25,6 +25,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"controle/internal/platform/db"
 	"controle/migrations"
@@ -65,7 +66,13 @@ func startCluster() {
 			"TZ":                   "UTC",
 			"PGTZ":                 "UTC",
 		}),
-		tcpostgres.BasicWaitStrategies(),
+		// As esperas de tcpostgres.BasicWaitStrategies, com prazo de 3 min em vez do padrão de
+		// 60 s: no `make test`, dezenas de pacotes sobem Postgres ao mesmo tempo e, no Windows, o
+		// initdb pode passar de 60 s (BL-005).
+		testcontainers.WithWaitStrategyAndDeadline(3*time.Minute,
+			wait.ForLog("database system is ready to accept connections").WithOccurrence(2),
+			wait.ForListeningPort("5432/tcp"),
+		),
 	)
 	if err != nil {
 		shared.err = fmt.Errorf("subir postgres de teste (Docker está rodando?): %w", err)

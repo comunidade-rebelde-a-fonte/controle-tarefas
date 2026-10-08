@@ -47,6 +47,8 @@ tags:
     description: Grades dos módulos (colunas do catálogo, linhas por empresa, células com derivados)
   - name: dashboard
     description: Gestão — KPIs, cards, exige atenção, comparação histórica e backlog
+  - name: jobs
+    description: Fila de processamento assíncrono (TASK-005) — estado de um job e reenvio manual
   - name: factor-r
     description: |
       Fator R (consolidação, TASK-011) — configuração por empresa, série mensal de receita e
@@ -1556,6 +1558,44 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /jobs/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [jobs]
+      operationId: getJob
+      summary: Estado de um job da fila — status, tentativas, horários e erro sanitizado [06 §8]
+      description: |
+        `worker_online` diz se algum worker deu sinal recente: job pendente sem worker ativo
+        significa fila parada (runbook "Worker parado", 11 §9). O payload não é exposto.
+      responses:
+        "200":
+          description: Job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /jobs/{id}/retry:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [jobs]
+      operationId: retryJob
+      summary: Reenvia um job encerrado com falha (dead), com as tentativas zeradas
+      description: |
+        Só para `dead` (409 `JOB_NOT_RETRYABLE` nos demais estados). O reenvio não pula portões de
+        domínio, que ficam no processamento do job. Com outro job ativo para o mesmo item, 409
+        `JOB_ALREADY_ACTIVE`.
+      responses:
+        "200":
+          description: Job de volta à fila
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Job" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
 components:
   parameters:
     FactorRPA:
@@ -3005,6 +3045,34 @@ components:
         email: { type: [string, "null"], maxLength: 200 }
         role: { $ref: "#/components/schemas/UserRole" }
         active: { type: boolean }
+
+    JobStatus:
+      type: string
+      enum: [pending, running, retry, done, dead]
+      description: |
+        pending: na fila; running: em execução por um worker; retry: nova tentativa agendada
+        (run_after); done: concluído; dead: encerrado sem sucesso (tentativas esgotadas ou falha
+        permanente).
+
+    Job:
+      type: object
+      required: [id, kind, status, attempts, max_attempts, run_after, locked_at, locked_by, last_error_code, last_error_message, finished_at, retried_at, created_at, updated_at, worker_online]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        kind: { type: string, examples: ["pgdas_parse"] }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        attempts: { type: integer, format: int32, minimum: 0, description: "Tentativas iniciadas" }
+        max_attempts: { type: integer, format: int32, minimum: 1 }
+        run_after: { type: string, format: date-time, description: "Quando o job pode ser executado (backoff entre tentativas)" }
+        locked_at: { type: [string, "null"], format: date-time }
+        locked_by: { type: [string, "null"], description: "Worker que tem a posse do job" }
+        last_error_code: { type: [string, "null"], examples: ["WORKER_LOST"] }
+        last_error_message: { type: [string, "null"], description: "Mensagem sanitizada (sem chaves nem tokens), até 300 caracteres" }
+        finished_at: { type: [string, "null"], format: date-time }
+        retried_at: { type: [string, "null"], format: date-time, description: "Último reenvio manual" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        worker_online: { type: boolean, description: "Algum worker deu sinal recente" }
 
     DecimalString:
       type: string

@@ -99,6 +99,10 @@ Desde a TASK-004 (D-014): catálogo de aliases e resolução em `backend/interna
 
 Testes normais nunca chamam provider real. `make test-litellm` usa o LiteLLM real com provedor simulado.
 
+## Jobs
+
+Desde a TASK-005 (D-019): fila em `backend/internal/jobs` (SKIP LOCKED, tentativas, posse com prazo, efeito do handler na mesma transação da conclusão). Cada novo tipo de job registra o handler em `backend/internal/worker/handlers.go`; payload só com IDs, nunca documento.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

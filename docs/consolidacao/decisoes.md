@@ -4,6 +4,37 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-019 — Fila de jobs em PostgreSQL (TASK-005; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte da fila do Conciliador** (`app/servicos/fila.py` e `app/workers/runner.py`, commit `2bc6e26`):
+  - aquisição atômica em ordem de chegada com `SELECT … FOR UPDATE SKIP LOCKED`;
+  - 3 tentativas por padrão (`JOB_MAX_TENTATIVAS`);
+  - espera de 2ⁿ segundos entre tentativas (limitada a 1 h);
+  - estado terminal;
+  - espera de 1 s com a fila vazia (`JOB_POLL_SECONDS`);
+  - job `ping` de verificação.
+  - As transições são as mesmas da origem; um teste confere os casos de `test_fila.py`.
+- **Nomes do 05 §7:** tabela `jobs`; estados `pending`, `running`, `retry`, `done` e `dead` (`dead_letter` na origem); colunas `kind`, `attempts`, `max_attempts`, `run_after`, `last_error_code` e `last_error_message`.
+- **Diferenças da origem, todas para não perder nem duplicar job:**
+  - **Worker que cai.** A tentativa conta na aquisição, e a posse do job tem prazo (`JOB_LEASE_SECONDS`, padrão 300). O worker renova a posse a cada 1/3 do prazo enquanto executa. Sem renovação, outro worker devolve o job à fila com o código `WORKER_LOST` e a mesma regra de tentativas.
+    - Na origem, um job em `running` de um worker que caiu ficava assim para sempre.
+  - **Efeito uma vez por aquisição [06 §11].** O handler grava na mesma transação que marca o job como concluído, e a conclusão exige que o worker ainda tenha a posse. Uma tentativa que falha ou perde a posse desfaz os próprios efeitos.
+  - **Enfileiramento idempotente.** Com `dedupe_key`, existe um job ativo por (`kind`, `dedupe_key`), garantido por índice único parcial. O job pode ser gravado na transação de quem chama, para nascer junto com o dado que o motivou.
+  - **Tipos sem handler.** O worker só adquire os tipos que sabe executar. Um tipo sem handler espera na fila sem gastar tentativa; na origem, ele falhava até `dead_letter`.
+  - **Pânico e erros.** Pânico no handler vira falha da tentativa (`HANDLER_PANIC`), sem derrubar o worker. O handler pode dar um código à falha (`Coded`) ou declará-la permanente (`Permanent`), e a falha permanente vai direto para `dead`.
+  - **Mensagem de erro sanitizada.** Sem chaves, tokens e quebras de linha, até 300 caracteres. O sanitizador passou a ser compartilhado (`internal/platform/redact`) com o cliente do LiteLLM.
+- **API [06 §8].**
+  - `GET /jobs/{id}` traz o estado, as tentativas, os horários e o erro sanitizado, sem o payload.
+  - `worker_online` diz se algum worker deu sinal nos últimos 30 s (tabela `worker_heartbeats`). Assim a interface pode mostrar "fila parada" (runbook 11 §9).
+  - `POST /jobs/{id}/retry` vale só para `dead`: zera as tentativas e registra quem reenviou e quando. Não pula portões de domínio.
+- **Encerramento ordenado.** O job em andamento tem 30 s para terminar; depois disso, a tentativa é registrada como `WORKER_SHUTDOWN` e o job volta para a fila.
+- **Relógio.** A fila usa o relógio real, que é tempo operacional (espera entre tentativas, posse, batimento), mesmo com `APP_FIXED_TIME`, que congela só as datas de negócio.
+- **Configuração:** `WORKER_CONCURRENCY` (padrão 1, como a origem), `JOB_MAX_TENTATIVAS`, `JOB_POLL_SECONDS` e `JOB_LEASE_SECONDS`.
+- **Evidências:**
+  - testes contra Postgres real: 60 jobs com 6 workers concorrentes, cada job executado uma vez; espera, `dead` e sanitização; efeitos desfeitos; posse vencida e posse renovada; encerramento ordenado;
+  - detector de corrida limpo (Linux, `-race`);
+  - teste manual no ambiente de dev com o worker real: job concluído; com o worker parado, job pendente e `worker_online: false`; ao religar, concluído.
+
 ### D-018 — Decisões técnicas da fatia do Fator R (TASK-006a, 010, 011 e 014a; 07/10/2026, dentro da autonomia da spec)
 
 - **Decimal exato com a semântica do Python (ADR-007).**

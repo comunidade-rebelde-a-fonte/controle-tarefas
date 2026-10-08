@@ -93,8 +93,9 @@ Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de 
 
 - `WORKER_ID`
 - `WORKER_HEALTH_PORT` (healthcheck do worker; padrão 8090, só dentro do container) e `WORKER_DB_MAX_CONNS` (pool do worker no compose), desde a TASK-003
-- `JOB_MAX_TENTATIVAS`
+- `JOB_MAX_TENTATIVAS` (padrão 3, como a origem)
 - parâmetros de polling/backoff se já existirem ou forem necessários.
+- Desde a TASK-005 (D-019): `WORKER_CONCURRENCY` (jobs simultâneos por worker, padrão 1), `JOB_POLL_SECONDS` (espera com a fila vazia, padrão 1, como a origem) e `JOB_LEASE_SECONDS` (prazo da posse de um job, padrão 300; o worker o renova enquanto executa). O backoff é fixo no código: 2^n segundos, como na origem.
 
 ## 8.1 Portas dos serviços auxiliares (host, só 127.0.0.1)
 

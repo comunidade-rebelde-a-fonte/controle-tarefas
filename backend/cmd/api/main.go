@@ -23,6 +23,7 @@ import (
 	_ "time/tzdata" // fusos embutidos (imagem final mínima não tem tzdata)
 
 	"controle/internal/app"
+	"controle/internal/jobs"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
@@ -77,7 +78,12 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 	if err != nil {
 		return fmt.Errorf("worker: abrir a porta do healthcheck: %w", err)
 	}
-	return worker.Run(ctx, worker.Deps{ID: cfg.WorkerID, DB: pool, Logger: logger}, ln)
+	// A fila usa o relógio real (tempo operacional: backoff, posse e batimento), mesmo com
+	// APP_FIXED_TIME, que congela só as datas de negócio da API.
+	runner := jobs.NewRunner(pool, clock.NewSystem(cfg.Location), logger, jobs.RunnerConfig{
+		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
+	}, worker.Handlers())
+	return worker.Run(ctx, worker.Deps{ID: cfg.WorkerID, DB: pool, Logger: logger, Jobs: runner}, ln)
 }
 
 func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {

@@ -45,7 +45,8 @@ func TestTEST006_MigrationRevertsAndReapplies(t *testing.T) {
 	pool := testutil.NewDB(t)
 	ctx := context.Background()
 	tables := []string{"company_factor_r_settings", "factor_r_movements", "factor_r_policy", "factor_r_simples_tables"}
-	if err := migrate.Down(ctx, testutil.URLFor(pool), io.Discard); err != nil {
+	// Reverte a 0018 e as posteriores; o up reaplica todas.
+	if err := migrate.DownTo(ctx, testutil.URLFor(pool), 17, io.Discard); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range tables {

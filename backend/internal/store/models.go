@@ -243,6 +243,26 @@ type ImportPreview struct {
 	Result      []byte
 }
 
+type Job struct {
+	ID               string
+	Kind             string
+	Status           string
+	Payload          []byte
+	DedupeKey        *string
+	Attempts         int32
+	MaxAttempts      int32
+	RunAfter         time.Time
+	LockedAt         *time.Time
+	LockedBy         *string
+	LastErrorCode    *string
+	LastErrorMessage *string
+	FinishedAt       *time.Time
+	RetriedBy        *string
+	RetriedAt        *time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
 type ObligationDependency struct {
 	ID                           string
 	ObligationTypeID             string
@@ -392,4 +412,10 @@ type VObligationInstance struct {
 	IsBlocking                  bool
 	ExcludedFromDenominator     bool
 	InDenominator               *bool
+}
+
+type WorkerHeartbeat struct {
+	WorkerID   string
+	StartedAt  time.Time
+	LastSeenAt time.Time
 }

@@ -42,6 +42,14 @@ type Config struct {
 	WorkerID string
 	// WorkerHealthPort é a porta do healthcheck do worker, que roda separado da API.
 	WorkerHealthPort int
+	// WorkerConcurrency é quantos jobs o worker executa ao mesmo tempo (padrão 1, como a origem).
+	WorkerConcurrency int
+	// JobMaxAttempts é o padrão de tentativas de um job (JOB_MAX_TENTATIVAS; origem: 3).
+	JobMaxAttempts int
+	// JobPollInterval é a espera do worker com a fila vazia (JOB_POLL_SECONDS; origem: 1 s).
+	JobPollInterval time.Duration
+	// JobLease é o prazo da posse de um job; o worker a renova enquanto executa (TASK-005).
+	JobLease time.Duration
 	// LiteLLMBaseURL é o gateway de modelos dos agentes [ADR-004]; vazio = IA não configurada.
 	LiteLLMBaseURL string
 	// LiteLLMAPIKey autentica a aplicação no gateway. As chaves dos provedores (OpenAI etc.)
@@ -169,6 +177,25 @@ func Load(getenv func(string) string) (Config, error) {
 		errs = append(errs, fmt.Errorf("WORKER_HEALTH_PORT inválida: %q", getenv("WORKER_HEALTH_PORT")))
 	}
 	cfg.WorkerHealthPort = workerPort
+
+	cfg.WorkerConcurrency, err = strconv.Atoi(orDefault(getenv("WORKER_CONCURRENCY"), "1"))
+	if err != nil || cfg.WorkerConcurrency < 1 || cfg.WorkerConcurrency > 16 {
+		errs = append(errs, fmt.Errorf("WORKER_CONCURRENCY inválido: %q (1 a 16)", getenv("WORKER_CONCURRENCY")))
+	}
+	cfg.JobMaxAttempts, err = strconv.Atoi(orDefault(getenv("JOB_MAX_TENTATIVAS"), "3"))
+	if err != nil || cfg.JobMaxAttempts < 1 || cfg.JobMaxAttempts > 20 {
+		errs = append(errs, fmt.Errorf("JOB_MAX_TENTATIVAS inválido: %q (1 a 20)", getenv("JOB_MAX_TENTATIVAS")))
+	}
+	poll, err := strconv.ParseFloat(orDefault(getenv("JOB_POLL_SECONDS"), "1"), 64)
+	if err != nil || poll <= 0 || poll > 60 {
+		errs = append(errs, fmt.Errorf("JOB_POLL_SECONDS inválido: %q (maior que 0, até 60)", getenv("JOB_POLL_SECONDS")))
+	}
+	cfg.JobPollInterval = time.Duration(poll * float64(time.Second))
+	lease, err := strconv.Atoi(orDefault(getenv("JOB_LEASE_SECONDS"), "300"))
+	if err != nil || lease < 10 || lease > 86400 {
+		errs = append(errs, fmt.Errorf("JOB_LEASE_SECONDS inválido: %q (10 a 86400)", getenv("JOB_LEASE_SECONDS")))
+	}
+	cfg.JobLease = time.Duration(lease) * time.Second
 
 	cfg.LiteLLMBaseURL = strings.TrimRight(strings.TrimSpace(getenv("LITELLM_BASE_URL")), "/")
 	if cfg.LiteLLMBaseURL != "" {
