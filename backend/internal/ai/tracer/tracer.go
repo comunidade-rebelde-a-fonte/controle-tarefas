@@ -340,6 +340,23 @@ func addInt(acc *int64, v int) *int64 {
 	return &n
 }
 
+// LinkCompany liga a corrida a uma empresa criada durante ela (o run.trace.company_id da origem
+// no cadastro pelo extrato PGDAS-D), na transação da corrida.
+func (r *Run) LinkCompany(ctx context.Context, companyID string) error {
+	if !r.active {
+		return ErrRunClosed
+	}
+	n, err := store.New(r.tx).SetAIRunCompany(ctx, store.SetAIRunCompanyParams{CompanyID: &companyID, TraceID: r.traceID})
+	if err != nil {
+		return fmt.Errorf("tracer: ligar a empresa à corrida: %w", err)
+	}
+	if n == 0 {
+		return fmt.Errorf("tracer: corrida %s não encontrada na transação", r.traceID)
+	}
+	// A corrida de erro, se houver, não leva a empresa: o cadastro é desfeito junto.
+	return nil
+}
+
 // RecordDecision grava uma decisão do agente na transação da corrida: o único caminho de
 // gravação de decisão de agente [FR-16].
 func (r *Run) RecordDecision(ctx context.Context, kind string, data map[string]any) error {

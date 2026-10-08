@@ -1,0 +1,16 @@
+{
+  "sintetica": true,
+  "campos": {
+    "cnpj": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null,
+    "fs12": null,
+    "fator_r": null,
+    "das": null,
+    "anexo": null
+  },
+  "confianca_min": 0.0,
+  "confianca_max": 0.0,
+  "motivo": "sem_camada_texto"
+}

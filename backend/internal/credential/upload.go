@@ -7,13 +7,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
-	"unicode"
 
 	"github.com/jackc/pgx/v5"
 
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/db"
+	"controle/internal/platform/filestore"
 	"controle/internal/store"
 	"controle/internal/user"
 )
@@ -39,51 +38,10 @@ func newStorageKey() (string, error) {
 }
 
 // sanitizeFileName guarda só o nome (sem caminho) e sem caracteres de controle.
-func sanitizeFileName(name string) string {
-	name = filepath.Base(strings.ReplaceAll(name, "\\", "/"))
-	name = strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) {
-			return -1
-		}
-		return r
-	}, name)
-	name = strings.TrimSpace(name)
-	if name == "" || name == "." || name == "/" {
-		name = "documento"
-	}
-	if r := []rune(name); len(r) > maxFileNameLength {
-		name = string(r[len(r)-maxFileNameLength:])
-	}
-	return name
-}
+func sanitizeFileName(name string) string { return filestore.SanitizeName(name, maxFileNameLength) }
 
 // writeFile grava o conteúdo em <dir>/<key> de forma atômica (temporário + rename).
-func writeFile(dir, key string, data []byte) error {
-	if err := os.MkdirAll(dir, 0o750); err != nil {
-		return err
-	}
-	tmp, err := os.CreateTemp(dir, ".upload-*")
-	if err != nil {
-		return err
-	}
-	// Após o rename o temporário não existe mais; a remoção só limpa falhas no meio do caminho.
-	defer func() { _ = os.Remove(tmp.Name()) }()
-	if _, err := tmp.Write(data); err != nil {
-		_ = tmp.Close() // o erro relevante é o da escrita
-		return err
-	}
-	if err := tmp.Sync(); err != nil {
-		_ = tmp.Close()
-		return err
-	}
-	if err := tmp.Close(); err != nil {
-		return err
-	}
-	if err := os.Chmod(tmp.Name(), 0o600); err != nil {
-		return err
-	}
-	return os.Rename(tmp.Name(), filepath.Join(dir, key))
-}
+func writeFile(dir, key string, data []byte) error { return filestore.WriteAtomic(dir, key, data) }
 
 // removeFile apaga o arquivo; ausência não é erro.
 func (s *Service) removeFile(key *string) {

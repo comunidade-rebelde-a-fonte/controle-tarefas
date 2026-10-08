@@ -4,6 +4,89 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-023 — Inbox PGDAS-D e agente parser_pgdas (TASK-012 e TASK-006b; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte do Inbox do Fator R** (commit `9dd7a74`): `parsing/{texto,isolado,pgdas}.py`, `agents/parser_pgdas.py`, `api/inbox.py`, `core/uploads.py` e `services/ouro_pgdas.py`.
+  - Pacotes:
+    - `internal/factorr/pgdas`: o parser, função pura sobre o texto;
+    - `internal/platform/pdftext`: o texto do PDF e do TXT;
+    - `internal/factorr/inbox`: upload, job, agente e decisões do analista;
+    - `internal/platform/pytext`: as regex do Python.
+  - O que se manteve da origem:
+    - `PARSER_VERSION` 2026.09.3, pesos dos campos, bônus e penalidade de consistência;
+    - limiar de confiança e tolerância da nota ouro, lidos da política (`factor_r_policy`);
+    - motivos de revisão e sugestão de cadastro;
+    - textos do agente, sempre com o disclaimer do PGDAS-D;
+    - gatilhos `upload`, `vinculo_manual`, `rejeicao` e `cadastro_pelo_extrato`, e os tipos de decisão.
+  - Regras de gravação mantidas [AC-008, AC-009]:
+    - grava só em competência vazia e nunca sobrescreve;
+    - os meses anteriores ao PA só entram com a série conferida contra o RBT12 e a FS12 declarados;
+    - a folha entra só como o total declarado e conferido, sem inventar divisão;
+    - atividade sem fator r entra com folha zero;
+    - CNPJ fora da carteira ou confiança abaixo do limiar vai para revisão, sem escrita.
+- **Paridade provada por golden.**
+  - Parser: golden gerado pelo próprio `parse` da origem (`backend/internal/factorr/pgdas/testdata/golden_gen.py`) nas 14 fixtures e em 109 variações de borda (Unicode, IGNORECASE, lookahead, séries mensais). Os 122 casos dão o mesmo resultado.
+  - Acerto nas fixtures: 108 de 112 campos (96%; meta da origem: 80%). Os 4 erros são as lacunas conhecidas do DAS no layout declaratório (T-504 da origem).
+  - Texto do PDF: byte a byte igual ao do pdfplumber 0.11.10, no Windows e no Linux (`backend/internal/platform/pdftext/testdata/text_gen.py`).
+- **Regex do Python no Go (`pytext.Compile`).**
+  - O regexp do Go trata `\s`, `\d`, `\b` e o IGNORECASE só em ASCII e não tem lookahead.
+  - A tradução usa as classes Unicode do Python e iguala i, I, ı e İ no IGNORECASE. O `\b` e o `(?!…)` viram marcas conferidas depois de cada correspondência candidata.
+  - O único padrão que exigiria backtracking com lookahead, `(I{1,3}|IV|V)(?![IVX])`, é lido por código.
+- **Extração do PDF: dependência nova.**
+  - `github.com/klippa-app/go-pdfium` v1.21.1 (MIT) com `github.com/tetratelabs/wazero` v1.12.0 (Apache-2.0): o PDFium compilado para WebAssembly, sem cgo. O binário cresce cerca de 6 MB.
+  - O texto é montado pelo mesmo algoritmo do `extract_text()` do pdfplumber (palavras e linhas agrupadas com tolerância de 3 pt).
+  - Alternativas descartadas:
+    - `ledongthuc/pdf`: não tem as métricas das fontes base-14, e o texto sai inutilizável;
+    - chamar o Python: fora da stack.
+  - Limites da origem mantidos:
+    - 30 s por extração, com interrupção do WebAssembly;
+    - 1 GiB de memória;
+    - 2 extrações ao mesmo tempo;
+    - 2 milhões de caracteres.
+  - O PDFium roda sem acesso ao disco (o padrão do go-pdfium monta o disco inteiro na sandbox).
+  - O `MAX_PAGINAS = 20` da origem não era aplicado; aqui também não.
+  - Diferenças:
+    - quando o pdfminer falhava, a origem caía no pypdf; aqui o PDFium lê direto, e PDF que ele não abre continua `pdf_ilegivel`;
+    - caractere sem Unicode no PDF: o pdfminer escrevia `(cid:N)`, o PDFium o omite;
+    - exceção do parser (ex.: PA com ano anterior a 1900 e tabelas mensais) vira `extracao_excedeu_limites`, como acontecia com o processo isolado da origem;
+    - PA inválido na hora do vínculo (ano anterior a 1900): falha permanente do job e 422 `PGDAS_PA_INVALIDO` na API, sem gravar nada; a origem levantava exceção (500).
+- **Upload assíncrono [REQ-046, AC-014].**
+  - `POST /factor-r/pgdas` guarda o original e enfileira o job `pgdas_parse` (202 com `document_id`, `job_id` e `status`). Na origem o upload processava na hora (201).
+  - O worker faz a corrida `upload` na transação do job. Falha permanente vai para `dead` com código estável (`PGDAS_FILE_MISSING`, `PGDAS_DOCUMENT_NOT_FOUND`, `INVALID_PAYLOAD`, `PGDAS_PA_INVALIDO`), e o documento mostra o estado do job.
+  - O mesmo arquivo enviado de novo devolve o documento existente (200, `duplicate = true`), sem novo job.
+  - Armazenamento:
+    - o arquivo fica em `FILE_STORAGE_DIR/pgdas/<sha256>` (origem: `upload_dir/<firm_id>/<sha256>`), com permissão 0600;
+    - a leitura passa por `os.Root`;
+    - o nome enviado é só metadado (sem caminho nem caracteres de controle);
+    - a API e o worker já compartilham `./storage` no compose.
+  - Respostas e download:
+    - 413 `FILE_TOO_LARGE` e 415 `UNSUPPORTED_FILE`, como na origem;
+    - o download sai como anexo, com `nosniff` e sem cache.
+- **Tabela `factor_r_pgdas_documents` (TASK-006b) [05 §4].**
+  - Colunas tipadas só para o que se consulta (`cnpj_extraido`, `pa`, `confidence`). O resultado completo do parser fica em `parsed_json`, o `campos_json` da origem.
+  - Texto extraído em `extracted_text`: fica no banco local e nunca vai ao Langfuse.
+  - Também guarda `job_id` e `trace_id`.
+  - CHECKs:
+    - empresa só no documento vinculado;
+    - motivo só em revisão e rejeição;
+    - depois do upload, toda decisão tem trace [AC-029].
+  - A FK `factor_r_movements.pgdas_document_id` chega aqui.
+  - `factor_r_simulations` fica para a TASK-013, junto com o simulador.
+- **Folha nos movimentos.** O total declarado vai em `folha_total_declarada_pgdas` (D-018), com a divisão zerada. O mês do PA e os meses de atividade sem fator r ficam com essa coluna nula, e a folha do mês fica zero, como o `salarios = 0` da origem.
+- **Rotas [06 §3].**
+  - Listagem com contagem por status.
+  - Detalhe com campos, identificação, séries, sugestão de cadastro, job e texto da última corrida.
+  - Download do original.
+  - `POST …/link`.
+  - `POST …/review`: é o `/reject` da origem, com `decisao = rejeitar`.
+  - `POST …/create-company`:
+    - usa o cadastro canônico (`company.Service`, as mesmas validações de `POST /companies`);
+    - o início de atividade vai para a configuração do Fator R;
+    - CNPJ já cadastrado responde com o `CNPJ_CONFLICT` da base, com a empresa em `details.conflicting_company`, no lugar do `cnpj_ja_cadastrado` da origem.
+  - A validação de campo segue a base: 400 `VALIDATION_ERROR`, onde a origem dava o 422 do FastAPI.
+- **Vínculo de domínio da corrida [AC-029].** Com o vínculo, `ai_runs.company_id` passa a apontar a empresa. No cadastro pelo extrato, isso é feito por `Run.LinkCompany`, o `run.trace.company_id` da origem.
+- **Teste.** A infraestrutura de teste agora repete a subida do Postgres quando o Docker Desktop não responde à detecção do provedor. É uma falha transitória com dezenas de pacotes subindo containers ao mesmo tempo, a mesma raiz do BL-005.
+
 ### D-022 — Auditoria local de IA e sincronização com o Langfuse (TASK-009; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte do tracing do Fator R** (`tracing/{tracer,client,sync,scores}.py`, commit `9dd7a74`), com os nomes do 05 §8.

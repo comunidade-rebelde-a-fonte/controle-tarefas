@@ -77,6 +77,13 @@ Multipart upload manual. Resposta `202 Accepted`:
 
 Preservar regras do Inbox original.
 
+> **Como foi implementado (TASK-012; D-023).** O contrato está no OpenAPI, tag `factor-r`.
+> - O upload (`multipart/form-data`, campo `file`, até 10 MB, PDF ou TXT pelo conteúdo) responde 202 e o job `pgdas_parse` processa no worker. O mesmo arquivo de novo devolve 200 com o documento existente e `duplicate = true`. Recusas: 413 `FILE_TOO_LARGE` e 415 `UNSUPPORTED_FILE`.
+> - `GET /factor-r/pgdas` aceita `status`, `limit` (1 a 200) e `offset`, e traz `contagem_por_status`. O detalhe mostra os campos lidos, a identificação, as séries, a confiança, o estado do job, o texto da última corrida do agente e a `sugestao_cadastro`.
+> - Rota a mais: `GET /factor-r/pgdas/{id}/file` baixa o original como anexo (o `/arquivo` da origem).
+> - `review` é a rejeição da origem: `{"decisao": "rejeitar", "motivo": "…"}` (3 a 500 caracteres).
+> - `create-company` recebe `{"empresa": <CompanyCreate>, "inicio_atividade": "YYYY-MM"}` e responde 201 com `documento` e `empresa`. Recusas antes de gravar: 409 `PGDAS_INVALID_STATE`, 422 `PGDAS_NO_VALID_CNPJ`, 422 `PGDAS_CNPJ_MISMATCH` e 409 `CNPJ_CONFLICT`.
+
 ### `POST /companies/{id}/factor-r/simulations`
 ### `GET /companies/{id}/factor-r/simulations`
 

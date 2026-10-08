@@ -25,11 +25,13 @@ import (
 	"controle/internal/ai/langfuse"
 	"controle/internal/ai/tracer"
 	"controle/internal/app"
+	"controle/internal/factorr/inbox"
 	"controle/internal/jobs"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
 	"controle/internal/platform/migrate"
+	"controle/internal/platform/pdftext"
 	"controle/internal/worker"
 	"controle/seed"
 )
@@ -88,9 +90,14 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 		Host: cfg.LangfuseHost, PublicKey: cfg.LangfusePublicKey, SecretKey: cfg.LangfuseSecretKey,
 		Environment: cfg.LangfuseEnvironment, Timeout: cfg.LangfuseTimeout, MaxPayloadBytes: cfg.TracePayloadMaxKB * 1024,
 	}), sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts), logger)
+	// Inbox PGDAS-D (TASK-012): o parser_pgdas roda aqui; o PDFium só carrega no primeiro PDF.
+	extractor := pdftext.New(0)
+	defer func() { _ = extractor.Close() }()
+	pgdasAgent := inbox.NewAgent(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
+		inbox.NewStorage(cfg.FileStorageDir), extractor)
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
-	}, worker.Handlers(worker.HandlerDeps{LangfuseSync: syncer.Handle}))
+	}, worker.Handlers(worker.HandlerDeps{LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse}))
 	var tasks []worker.Task
 	if syncer.Configured() {
 		// Reenvio periódico das corridas e notas com falha (origem: de 5 em 5 minutos, 50 por vez).

@@ -24,6 +24,7 @@ import (
 	"controle/internal/demo"
 	"controle/internal/exporter"
 	"controle/internal/factorr"
+	"controle/internal/factorr/inbox"
 	"controle/internal/grid"
 	"controle/internal/importer"
 	"controle/internal/jobs"
@@ -117,6 +118,9 @@ func New(d Deps) *App {
 		dash := dashboard.NewService(d.Pool, d.Clock, credentials)
 		dashboard.NewHandler(dash).Routes(api)
 		factorr.NewHandler(factorr.NewService(d.Pool, d.Clock)).Routes(api)
+		// Inbox PGDAS-D (TASK-012): a API guarda o original e enfileira; o worker processa.
+		inbox.NewHandler(inbox.NewService(d.Pool, aiClock, tr, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts),
+			inbox.NewStorage(d.Config.FileStorageDir), companies, d.Logger)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

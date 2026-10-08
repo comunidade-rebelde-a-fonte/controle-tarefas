@@ -1,0 +1,31 @@
+{
+  "sintetica": true,
+  "layout": "declaratorio",
+  "origem": "pdf/com_cnpj/04_servico_fator_r_acima_28.pdf (exemplo fictício, CNPJ fictício com DV válido)",
+  "campos": {
+    "cnpj": "45678901000175",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": "10000.00",
+    "fs12": "110400.00",
+    "fator_r": "0.92",
+    "das": "600.00",
+    "anexo": "III"
+  },
+  "lacunas_conhecidas": {
+    "das": "T-504"
+  },
+  "identificacao": {
+    "nome_empresarial": "EMPRESA DE SERVICOS D - ANONIMIZADA",
+    "sujeita_fator_r": true,
+    "inicio_atividade": "2016-09"
+  },
+  "confianca_min": 1.0,
+  "confianca_max": 1.0,
+  "motivo": null,
+  "series_anteriores": {
+    "meses": 12,
+    "receitas_conferem": true,
+    "folhas_conferem": true
+  }
+}

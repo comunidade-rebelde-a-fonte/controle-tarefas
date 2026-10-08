@@ -53,10 +53,43 @@ var (
 	templateErr sync.Map // nome → error
 )
 
+// runPostgres sobe o container. Com dezenas de pacotes subindo Postgres ao mesmo tempo, o
+// Docker Desktop no Windows às vezes não responde à detecção do provedor ("failed to create
+// Docker provider", antes de criar qualquer container): espera um pouco e tenta de novo.
+func runPostgres(ctx context.Context) (*tcpostgres.PostgresContainer, error) {
+	for attempt := 1; ; attempt++ {
+		ctr, err := startPostgres(ctx)
+		if err == nil || attempt == 3 || !strings.Contains(err.Error(), "Docker provider") {
+			return ctr, err
+		}
+		time.Sleep(time.Duration(attempt) * 3 * time.Second)
+	}
+}
+
 func startCluster() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
-	ctr, err := tcpostgres.Run(ctx, PostgresImage,
+	ctr, err := runPostgres(ctx)
+	if err != nil {
+		shared.err = fmt.Errorf("subir postgres de teste (Docker está rodando?): %w", err)
+		return
+	}
+	connStr, err := ctr.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		shared.err = err
+		return
+	}
+	// connStr termina em /postgres?sslmode=disable
+	idx := strings.LastIndex(connStr, "/postgres")
+	shared.baseURL = connStr[:idx+1]
+
+	if err := createMigratedTemplate(ctx); err != nil {
+		shared.err = err
+	}
+}
+
+func startPostgres(ctx context.Context) (*tcpostgres.PostgresContainer, error) {
+	return tcpostgres.Run(ctx, PostgresImage,
 		tcpostgres.WithUsername(pgUser),
 		tcpostgres.WithPassword(pgPassword),
 		tcpostgres.WithDatabase("postgres"),
@@ -74,22 +107,6 @@ func startCluster() {
 			wait.ForListeningPort("5432/tcp"),
 		),
 	)
-	if err != nil {
-		shared.err = fmt.Errorf("subir postgres de teste (Docker está rodando?): %w", err)
-		return
-	}
-	connStr, err := ctr.ConnectionString(ctx, "sslmode=disable")
-	if err != nil {
-		shared.err = err
-		return
-	}
-	// connStr termina em /postgres?sslmode=disable
-	idx := strings.LastIndex(connStr, "/postgres")
-	shared.baseURL = connStr[:idx+1]
-
-	if err := createMigratedTemplate(ctx); err != nil {
-		shared.err = err
-	}
 }
 
 func dbURL(name string) string {

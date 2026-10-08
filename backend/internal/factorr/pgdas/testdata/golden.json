@@ -1,0 +1,5631 @@
+[
+ {
+  "excecao": null,
+  "nome": "pdf_com_texto",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "5280.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados Mercado Interno Mercado Externo Total\nReceita Bruta do PA (RPA) - Competência 50.000,00 0,00 50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12) 600.000,00 0,00 600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA) 400.000,00 0,00 400.000,00\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$) 180.000,00\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-81\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nFator r: 0,30\nValor Total do Débito Declarado (R$): 5.280,00"
+ },
+ {
+  "excecao": null,
+  "nome": "pdf_declaratorio_comercio_sem_fator_r",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2017-07",
+     "nome_empresarial": "EMPRESA DE COMERCIO B - ANONIMIZADA",
+     "sujeita_fator_r": false
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "12000.00",
+      "2025-09": "12000.00",
+      "2025-10": "12000.00",
+      "2025-11": "12000.00",
+      "2025-12": "12000.00",
+      "2026-01": "12000.00",
+      "2026-02": "12000.00",
+      "2026-03": "12000.00",
+      "2026-04": "12000.00",
+      "2026-05": "12000.00",
+      "2026-06": "12000.00",
+      "2026-07": "12000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": null,
+    "cnpj": "23456789000195",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-08",
+    "rbt12": "144000.00",
+    "rpa": "12000.00"
+   },
+   "confianca": "0.7500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "SIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nComercio - nao sujeito ao fator r\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz: 23.456.789/0001-95\nNome empresarial: EMPRESA DE COMERCIO B - ANONIMIZADA\nData de abertura no CNPJ: 05/07/2017\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao: Competencia\nNo da Declaracao: 20260914000000002\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$) Mercado Interno Mercado Externo Total\nReceita Bruta do PA (RPA) 12.000,00 0,00 12.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 144.000,00 0,00 144.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA) 96.000,00 0,00 96.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA) 144.000,00 0,00 144.000,00\nLimite de receita bruta proporcionalizado 4.800.000,00 4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 12.000,00 09/2025 12.000,00 10/2025 12.000,00\n11/2025 12.000,00 12/2025 12.000,00 01/2026 12.000,00\n02/2026 12.000,00 03/2026 12.000,00 04/2026 12.000,00\n05/2026 12.000,00 06/2026 12.000,00 07/2026 12.000,00\n2.3 Folha de Salarios Anteriores (R$)\nAplicacao Resultado\nFolha para fator r Nao se aplica a esta atividade\n2.4 Fator r\nResultado\nFator r = Nao se aplica - Anexo I\nDeclaracao: 20260914000000002 Recibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M Pagina 1\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia) Aliquota efetiva Valor Total do Debito Declarado (R$)\n12.000,00 4,00% 480,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo Informacao\nCNPJ Estabelecimento 23.456.789/0001-95\nMunicipio / UF CAMPINAS / SP\nEnquadramento Anexo I\nValor do Debito por Tributo para a Atividade (R$)\nRevenda de mercadorias no mercado interno - atividade comercial nao sujeita ao fator 'r' (Anexo I).\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n26,40 16,80 61,15 13,25 199,20 163,20 0,00 0,00 480,00\nTotais do Estabelecimento\nValor Informado Total do Debito Declarado Total Exigivel Total Suspenso\n12.000,00 480,00 480,00 0,00\n2.8 Total Geral da Empresa\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n26,40 16,80 61,15 13,25 199,20 163,20 0,00 0,00 480,00\nResumo didatico do enquadramento\nReceita de comercio: o fator r nao se aplica. O exemplo utiliza o Anexo I.\nDeclaracao: 20260914000000002 Recibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M Pagina 2\n3. Informacoes da Recepcao da Declaracao\nCampo Informacao\nData e horario da transmissao 14/09/2026 09:31:07\nNumero do Recibo 35.26.10002.0000002-2\nAutenticacao B2C3D.E4F5G.H6I7J.K8L9M\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nReceita de comercio: o fator r nao se aplica. O exemplo utiliza o Anexo I.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\nDeclaracao: 20260914000000002 Recibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M Pagina 3"
+ },
+ {
+  "excecao": null,
+  "nome": "pdf_declaratorio_fator_r_abaixo_28",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "EMPRESA DE SERVICOS A - ANONIMIZADA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "V",
+    "cnpj": "12345678000195",
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": "10000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "SIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico sujeito ao fator r - abaixo de 28%\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz: 12.345.678/0001-95\nNome empresarial: EMPRESA DE SERVICOS A - ANONIMIZADA\nData de abertura no CNPJ: 12/03/2019\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao: Competencia\nNo da Declaracao: 20260914000000001\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$) Mercado Interno Mercado Externo Total\nReceita Bruta do PA (RPA) 10.000,00 0,00 10.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA) 80.000,00 0,00 80.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA) 120.000,00 0,00 120.000,00\nLimite de receita bruta proporcionalizado 4.800.000,00 4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\nMes Valor Mes Valor Mes Valor\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nResultado\nFator r = 0,20 - Anexo V\nDeclaracao: 20260914000000001 Recibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L Pagina 1\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia) Aliquota efetiva Valor Total do Debito Declarado (R$)\n10.000,00 15,50% 1.550,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo Informacao\nCNPJ Estabelecimento 12.345.678/0001-95\nMunicipio / UF SAO PAULO / SP\nEnquadramento Anexo V\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de consultoria e gestao - atividade sujeita ao fator 'r', sem retencao de ISS, com fator\ninferior a 28% (Anexo V).\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n387,50 232,50 218,55 47,27 447,18 0,00 0,00 217,00 1.550,00\nTotais do Estabelecimento\nValor Informado Total do Debito Declarado Total Exigivel Total Suspenso\n10.000,00 1.550,00 1.550,00 0,00\n2.8 Total Geral da Empresa\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n387,50 232,50 218,55 47,27 447,18 0,00 0,00 217,00 1.550,00\nResumo didatico do enquadramento\nA folha dos 12 meses representa 20% da receita dos 12 meses. Como ficou abaixo de 28%, o exemplo\nutiliza o Anexo V.\nDeclaracao: 20260914000000001 Recibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L Pagina 2\n3. Informacoes da Recepcao da Declaracao\nCampo Informacao\nData e horario da transmissao 14/09/2026 09:12:33\nNumero do Recibo 35.26.10001.0000001-1\nAutenticacao A1B2C.D3E4F.G5H6I.J7K8L\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nA folha dos 12 meses representa 20% da receita dos 12 meses. Como ficou abaixo de 28%, o exemplo\nutiliza o Anexo V.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\nDeclaracao: 20260914000000001 Recibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L Pagina 3"
+ },
+ {
+  "excecao": null,
+  "nome": "pdf_declaratorio_fator_r_acima_28",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2016-09",
+     "nome_empresarial": "EMPRESA DE SERVICOS D - ANONIMIZADA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "9200.00",
+      "2025-09": "9200.00",
+      "2025-10": "9200.00",
+      "2025-11": "9200.00",
+      "2025-12": "9200.00",
+      "2026-01": "9200.00",
+      "2026-02": "9200.00",
+      "2026-03": "9200.00",
+      "2026-04": "9200.00",
+      "2026-05": "9200.00",
+      "2026-06": "9200.00",
+      "2026-07": "9200.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "III",
+    "cnpj": "45678901000175",
+    "das": null,
+    "fator_r": "0.92",
+    "fs12": "110400.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": "10000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "SIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico sujeito ao fator r - dentro do limite\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz: 45.678.901/0001-75\nNome empresarial: EMPRESA DE SERVICOS D - ANONIMIZADA\nData de abertura no CNPJ: 30/09/2016\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao: Competencia\nNo da Declaracao: 20260914000000004\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$) Mercado Interno Mercado Externo Total\nReceita Bruta do PA (RPA) 10.000,00 0,00 10.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA) 80.000,00 0,00 80.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA) 120.000,00 0,00 120.000,00\nLimite de receita bruta proporcionalizado 4.800.000,00 4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\nMes Valor Mes Valor Mes Valor\n08/2025 9.200,00 09/2025 9.200,00 10/2025 9.200,00\n11/2025 9.200,00 12/2025 9.200,00 01/2026 9.200,00\n02/2026 9.200,00 03/2026 9.200,00 04/2026 9.200,00\n05/2026 9.200,00 06/2026 9.200,00 07/2026 9.200,00\nTotal FS12 110.400,00\n2.4 Fator r\nResultado\nFator r = 0,92 - Anexo III\nDeclaracao: 20260914000000004 Recibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O Pagina 1\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia) Aliquota efetiva Valor Total do Debito Declarado (R$)\n10.000,00 6,00% 600,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo Informacao\nCNPJ Estabelecimento 45.678.901/0001-75\nMunicipio / UF CURITIBA / PR\nEnquadramento Anexo III\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de tecnologia - atividade sujeita ao fator 'r', sem retencao de ISS, com fator igual ou\nsuperior a 28% (Anexo III).\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n24,00 21,00 76,92 16,68 260,40 0,00 0,00 201,00 600,00\nTotais do Estabelecimento\nValor Informado Total do Debito Declarado Total Exigivel Total Suspenso\n10.000,00 600,00 600,00 0,00\n2.8 Total Geral da Empresa\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n24,00 21,00 76,92 16,68 260,40 0,00 0,00 201,00 600,00\nResumo didatico do enquadramento\nA folha dos 12 meses representa 92% da receita dos 12 meses. Como ficou acima de 28%, o exemplo\nutiliza o Anexo III.\nDeclaracao: 20260914000000004 Recibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O Pagina 2\n3. Informacoes da Recepcao da Declaracao\nCampo Informacao\nData e horario da transmissao 14/09/2026 10:44:18\nNumero do Recibo 41.26.10004.0000004-4\nAutenticacao D4E5F.G6H7I.J8K9L.M0N1O\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nA folha dos 12 meses representa 92% da receita dos 12 meses. Como ficou acima de 28%, o exemplo\nutiliza o Anexo III.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\nDeclaracao: 20260914000000004 Recibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O Pagina 3"
+ },
+ {
+  "excecao": null,
+  "nome": "pdf_declaratorio_servico_sem_fator_r",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2021-01",
+     "nome_empresarial": "EMPRESA DE SERVICOS C - ANONIMIZADA",
+     "sujeita_fator_r": false
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "12000.00",
+      "2025-09": "12000.00",
+      "2025-10": "12000.00",
+      "2025-11": "12000.00",
+      "2025-12": "12000.00",
+      "2026-01": "12000.00",
+      "2026-02": "12000.00",
+      "2026-03": "12000.00",
+      "2026-04": "12000.00",
+      "2026-05": "12000.00",
+      "2026-06": "12000.00",
+      "2026-07": "12000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "III",
+    "cnpj": "34567890000130",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-08",
+    "rbt12": "144000.00",
+    "rpa": "12000.00"
+   },
+   "confianca": "0.7500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "SIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico - nao sujeito ao fator r\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz: 34.567.890/0001-30\nNome empresarial: EMPRESA DE SERVICOS C - ANONIMIZADA\nData de abertura no CNPJ: 22/01/2021\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao: Competencia\nNo da Declaracao: 20260914000000003\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$) Mercado Interno Mercado Externo Total\nReceita Bruta do PA (RPA) 12.000,00 0,00 12.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 144.000,00 0,00 144.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA) 96.000,00 0,00 96.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA) 144.000,00 0,00 144.000,00\nLimite de receita bruta proporcionalizado 4.800.000,00 4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 12.000,00 09/2025 12.000,00 10/2025 12.000,00\n11/2025 12.000,00 12/2025 12.000,00 01/2026 12.000,00\n02/2026 12.000,00 03/2026 12.000,00 04/2026 12.000,00\n05/2026 12.000,00 06/2026 12.000,00 07/2026 12.000,00\n2.3 Folha de Salarios Anteriores (R$)\nAplicacao Resultado\nFolha para fator r Nao se aplica a esta atividade\n2.4 Fator r\nResultado\nFator r = Nao se aplica - Anexo III\nDeclaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 1\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia) Aliquota efetiva Valor Total do Debito Declarado (R$)\n12.000,00 6,00% 720,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo Informacao\nCNPJ Estabelecimento 34.567.890/0001-30\nMunicipio / UF BELO HORIZONTE / MG\nEnquadramento Anexo III\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de treinamento e cursos livres - atividade nao sujeita ao fator 'r' (Anexo III).\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n28,80 25,20 92,30 20,02 312,48 0,00 0,00 241,20 720,00\nTotais do Estabelecimento\nValor Informado Total do Debito Declarado Total Exigivel Total Suspenso\n12.000,00 720,00 720,00 0,00\n2.8 Total Geral da Empresa\nIRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total\n28,80 25,20 92,30 20,02 312,48 0,00 0,00 241,20 720,00\nResumo didatico do enquadramento\nServico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.\nDeclaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 2\n3. Informacoes da Recepcao da Declaracao\nCampo Informacao\nData e horario da transmissao 14/09/2026 10:02:55\nNumero do Recibo 31.26.10003.0000003-3\nAutenticacao C3D4E.F5G6H.I7J8K.L9M0N\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nServico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\nDeclaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 3"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_anexo_v",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": "11222333000181",
+    "das": "8925.00",
+    "fator_r": "0.20",
+    "fs12": "120000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$)   120.000,00\n\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-81\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo V\nFator r: 0,20\nValor Total do Débito Declarado (R$): 8.925,00\n"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_cnpj_dv_invalido",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0.3",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_digito_verificador_invalido"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000182",
+    "das": "5280.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "0.9250",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-82\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$)   180.000,00\n\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-82\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nFator r: 0,30\nValor Total do Débito Declarado (R$): 5.280,00\n"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_espacamento_irregular_latin1",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "5280.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\r\nPeríodo de Apuração (PA) :   09/2026\r\nData de abertura no CNPJ :   15/03/2019\r\nCNPJ Matriz :   11.222.333/0001-81\r\nNome empresarial :   CLINICA EXEMPLO LTDA\r\nRegime de Apuração :   Competência\r\nOptante pelo Simples Nacional :   Sim\r\n\r\n2) Informações da Declaração\r\n2.1) Discriminativo de Receitas\r\nValores Declarados\t \t\t \t\t \t\t \t\t \t\t \t\t \tMercado Interno\t \tMercado Externo\t \tTotal\r\nReceita Bruta do PA (RPA) - Competência\t \t50.000,00\t \t0,00\t \t50.000,00\r\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)\t \t600.000,00\t \t0,00\t \t600.000,00\r\nReceita bruta acumulada no ano-calendário corrente (RBA)\t \t400.000,00\t \t0,00\t \t400.000,00\r\n\r\n2.3) Folha de Salários Anteriores (R$)\r\nTotal de Folhas de Salários Anteriores (R$)\t \t180.000,00\r\n\r\n2.8) Cálculo do Valor Devido\r\nEstabelecimento :   11.222.333/0001-81\r\nAtividade :   Prestação de serviços sujeitos ao Fator r - Anexo III\r\nFator r :   0,30\r\nValor Total do Débito Declarado (R$) :   5.280,00\r\n"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_padrao",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "5280.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$)   180.000,00\n\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-81\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nFator r: 0,30\nValor Total do Débito Declarado (R$): 5.280,00\n"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_parcial_sem_folha_e_fator",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "5280.00",
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "0.8000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n\n2.3) Folha de Salários Anteriores (R$)\n\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-81\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nValor Total do Débito Declarado (R$): 5.280,00"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_rotulos_alternativos",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "5280.00",
+    "fator_r": "0.3000",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PGDAS-D - Declaração\nPA: 09/2026\nCNPJ: 11222333000181\nRPA: 50.000,00\nRBT12: 600.000,00\nFolha de salários (FS12): 180.000,00\nFator R = 30,00%\nEnquadramento: Anexo III\nTotal do DAS: 5.280,00\n"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_sem_cnpj",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": "5280.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "0.8500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$)   180.000,00\n\n2.8) Cálculo do Valor Devido\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nFator r: 0,30\nValor Total do Débito Declarado (R$): 5.280,00"
+ },
+ {
+  "excecao": null,
+  "nome": "txt_sem_relacao",
+  "origem": "fixture",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Ata de reunião de sócios\nAssunto: aumento de pró-labore\nSem valores.\n"
+ },
+ {
+  "excecao": null,
+  "nome": "padrao",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "1",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000181",
+    "das": "4500.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "1.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nPeríodo de Apuração (PA): 09/2026\nReceita Bruta do PA (RPA) 50.000,00 0,00 50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12) 600.000,00\nTotal de Folhas de Salários Anteriores 180.000,00\nFator r: 0,30\nValor Total do Débito Declarado 4.500,00\nEnquadramento Anexo III\n"
+ },
+ {
+  "excecao": null,
+  "nome": "vazio",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": ""
+ },
+ {
+  "excecao": null,
+  "nome": "so_espacos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": " \t \n\n  "
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_dv_invalido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0.3",
+     "das": "1",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_digito_verificador_invalido"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": "11222333000182",
+    "das": "4500.00",
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00"
+   },
+   "confianca": "0.9250",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Extrato do Simples Nacional\nCNPJ Matriz: 11.222.333/0001-82\nNome empresarial: CLINICA EXEMPLO LTDA\nPeríodo de Apuração (PA): 09/2026\nReceita Bruta do PA (RPA) 50.000,00 0,00 50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12) 600.000,00\nTotal de Folhas de Salários Anteriores 180.000,00\nFator r: 0,30\nValor Total do Débito Declarado 4.500,00\nEnquadramento Anexo III\n"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_todos_iguais",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0.3",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_digito_verificador_invalido"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11111111111111",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.3250",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.111.111/1111-11\nPA: 09/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_sem_separadores",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ 11222333000181"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_minusculo_matriz",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "cnpj   matriz - 11222333000181"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_matriz_i_sem_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ Matrız: 11.222.333/0001-81"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_matriz_i_com_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ MATRİZ: 11.222.333/0001-81"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_colado_em_letra",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11444777000161",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "xCNPJ: 11.222.333/0001-81\nCNPJ: 11.444.777/0001-61"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_colado_em_acento",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "éCNPJ: 11.222.333/0001-81"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_seguido_de_digito",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11444777000161",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.222.333/0001-812\nCNPJ: 11.444.777/0001-61 fim"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_seguido_de_letra",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.222.333/0001-81X"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_seguido_de_hifen",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.222.333/0001-81-9"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_espaco_fino",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.222.333/0001-81"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_digitos_arabes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "١١٢٢٢٣٣٣٠٠٠١81",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: ١١.٢٢٢.٣٣٣/٠٠٠١-81"
+ },
+ {
+  "excecao": null,
+  "nome": "cnpj_digitos_arabes_dv",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0.3",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_digito_verificador_invalido",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000١٨١",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0750",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11222333000١٨١"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_mes_13_depois_valido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 13/2026\nPA: 09/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_primeiro_regex_tem_precedencia",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-08",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\nPeríodo de Apuração: 08/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_periodo_sem_acentos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-07",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao 07/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_maiusculas",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-07",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PERÍODO DE APURAÇÃO (PA): 07/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_i_sem_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-07",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Perıodo de Apuração: 07/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_colado",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/20261\nPA:09/2026."
+ },
+ {
+  "excecao": null,
+  "nome": "pa_minusculo_nao_vale",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "pa: 09/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_intervalo_meses_diferentes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 30/09/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_intervalo_valido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2025-12",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Período de Apuração (PA): 01/12/2025 a 31/12/2025"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_digitos_arabes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "٢٠٢٦-٠٩",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: ٠٩/٢٠٢٦"
+ },
+ {
+  "excecao": null,
+  "nome": "pa_ano_antigo_sem_series",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "1899-08",
+    "rbt12": "1000.00",
+    "rpa": null
+   },
+   "confianca": "0.4000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 08/1899\nRBT12: 1.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "rotulo_ultimo_numero",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "300000.00",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 100,00 200,00 300.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "rotulo_sem_numero_segue_linha",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "12345.67",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: nada aqui\nRBT12: 12.345,67"
+ },
+ {
+  "excecao": null,
+  "nome": "rotulo_regex_em_ordem",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "2.00",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12) 2,00"
+ },
+ {
+  "excecao": null,
+  "nome": "rotulo_12_meses_sem_ao_pa",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "9999.99",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Receita bruta 12 meses anteriores (RBT12) 9.999,99"
+ },
+ {
+  "excecao": null,
+  "nome": "rpa_rotulo_curto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": "1234.56"
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RPA - 1.234,56"
+ },
+ {
+  "excecao": null,
+  "nome": "rpa_colado_em_letra",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "1"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": "2.00"
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "xRPA: 1,00\nRPA: 2,00"
+ },
+ {
+  "excecao": null,
+  "nome": "rpa_sem_borda_final",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RPA2: 3,00"
+ },
+ {
+  "excecao": null,
+  "nome": "fs12_total_inicio_linha",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "1",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": "50000.00",
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Total FS12 50.000,00\nx Total FS12 60.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "fs12_total_meio_da_linha",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "x Total FS12 60.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "fs12_salarios_sem_acento",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "1",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": "7000.00",
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Folha de salarios (FS12) 7.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "das_variantes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "1",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": "1000.00",
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Total do DAS 1.000,00\nValor do DAS 2.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "das_debito_maiusculo",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "1",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": "3210.99",
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "VALOR TOTAL DO DÉBITO DECLARADO 3.210,99"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_ponto_decimal",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "1234.56",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1234.56"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_ponto_seguido_de_digito",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1234.567"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_15_digitos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "123456789012345.67",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 123456789012345,67"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_16_digitos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "234567890123456.78",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1234567890123456,78"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_milhares_grandes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "1234567890123456789.01",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1.234.567.890.123.456.789,01"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_milhares_mal_formados",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "456.00",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 1.23.456,00"
+ },
+ {
+  "excecao": null,
+  "nome": "numero_digitos_arabes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "123.45",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: ١٢٣,٤٥"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_percentual",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.2850",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: 28,5%"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_maior_que_1",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.3000",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r = 30"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_fracao",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.2853",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r 0,2853"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.3",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "FATOR R: 0.3"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_zero",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: 0"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_seis_casas",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.123456",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: 0,123456"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_muitas_casas",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.123456",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: 0,1234567"
+ },
+ {
+  "excecao": null,
+  "nome": "fator_espaco_porcento",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.2900",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: 29 %"
+ },
+ {
+  "excecao": null,
+  "nome": "consistente_bonus",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": "0.30",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": null
+   },
+   "confianca": "0.9500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: 11.222.333/0001-81\nPA: 09/2026\nRBT12: 600.000,00\nFS12: 180.000,00\nFator r: 0,30"
+ },
+ {
+  "excecao": null,
+  "nome": "inconsistente_penalidade",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "fator_r_inconsistente_com_fs12_rbt12"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": "0.10",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": null
+   },
+   "confianca": "0.7500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\nCNPJ: 11222333000181\nRBT12: 600.000,00\nFS12: 180.000,00\nFator r: 0,10"
+ },
+ {
+  "excecao": null,
+  "nome": "zona_intermediaria",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.31",
+    "fs12": "180000.00",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": null
+   },
+   "confianca": "0.6000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\nRBT12: 600.000,00\nFS12: 180.000,00\nFator r: 0,31"
+ },
+ {
+  "excecao": null,
+  "nome": "rbt12_zero_sem_consistencia",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.30",
+    "fs12": "10.00",
+    "pa": null,
+    "rbt12": "0.00",
+    "rpa": null
+   },
+   "confianca": "0.3500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 0,00\nFS12: 10,00\nFator r: 0,30"
+ },
+ {
+  "excecao": null,
+  "nome": "fs12_zero",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0",
+    "fs12": "0.00",
+    "pa": null,
+    "rbt12": "100.00",
+    "rpa": null
+   },
+   "confianca": "0.4500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: 100,00\nFS12: 0,00\nFator r: 0"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_vi_nao_vira_v",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Atividade do Anexo VI"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_linha_estruturada_manda",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": false
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r = Nao se aplica - Anexo I\nCriterio: atividades sujeitas ao fator r vao para o Anexo III."
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_iv",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento: Anexo IV\nTexto livre citando o Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_ii",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento: Anexo II"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_iii",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Atividade: Prestação de serviços - Anexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_iiii",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento: Anexo IIII\nAnexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_iiv",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento: Anexo IIV\nAnexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_minusculo",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "enquadramento anexo iii"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_i_sem_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento Anexo ııı"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_i_com_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Enquadramento Anexo İİİ"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_livre_i_com_ponto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "İİİ",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Texto Anexo İİİ aqui"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_estruturado_sem_borda",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Atividades: Anexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_livre_seguido_de_x",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Anexo VX\nAnexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_dois_na_linha_estruturada",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r: Anexo VI e Anexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "anexo_livre_colado",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "xAnexo III\nAnexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_com_dois_pontos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarial: CLINICA EXEMPLO LTDA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_sem_dois_pontos",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "CLINICA EXEMPLO LTDA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "NOME EMPRESARIAL CLINICA EXEMPLO LTDA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_vazio_depois_preenchido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "SEGUNDA LTDA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarial:\nNome empresarial: SEGUNDA LTDA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_razao_social",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Razão social: CLINICA EXEMPLO LTDA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_colado",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarialX: CLINICA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_longo",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarial: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_longo_com_espacos_no_corte",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarial: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA   B"
+ },
+ {
+  "excecao": null,
+  "nome": "nome_espaco_unicode_bordas",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": "NOME",
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Nome empresarial:　NOME "
+ },
+ {
+  "excecao": null,
+  "nome": "sujeita_numero",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.1000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "sujeita_nao_se_aplica",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": false
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": "III",
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Fator r = Não se aplica - Anexo III"
+ },
+ {
+  "excecao": null,
+  "nome": "sujeita_nao_se_aplica_texto",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": false
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Folha para fator r Nao se aplica a esta atividade"
+ },
+ {
+  "excecao": null,
+  "nome": "sujeita_sem_indicio",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Sem nenhuma menção"
+ },
+ {
+  "excecao": null,
+  "nome": "abertura_valida",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Data de abertura no CNPJ: 12/03/2019"
+ },
+ {
+  "excecao": null,
+  "nome": "abertura_mes_invalido_depois_valido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2020-12",
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Data de abertura no CNPJ: 01/13/2020\nData de abertura: 01/12/2020"
+ },
+ {
+  "excecao": null,
+  "nome": "abertura_sem_data",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Data de abertura no CNPJ: XX/XX/XXXX"
+ },
+ {
+  "excecao": null,
+  "nome": "series_conferem",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_receita_nao_soma",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "11000.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 11.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_tolerancia_centavo",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.01"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,01\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_fora_da_janela",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-09",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/09/2026 a 30/09/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_sem_folha",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": null,
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.5000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_mes_invalido",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 13/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 13/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_interno_e_externo_somam",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "1",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "1",
+     "fs12": "1",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": "2019-03",
+     "nome_empresarial": null,
+     "sujeita_fator_r": true
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {
+      "2025-08": "2000.00",
+      "2025-09": "2000.00",
+      "2025-10": "2000.00",
+      "2025-11": "2000.00",
+      "2025-12": "2000.00",
+      "2026-01": "2000.00",
+      "2026-02": "2000.00",
+      "2026-03": "2000.00",
+      "2026-04": "2000.00",
+      "2026-05": "2000.00",
+      "2026-06": "2000.00",
+      "2026-07": "2000.00"
+     },
+     "folhas_conferem": true,
+     "receitas": {
+      "2025-08": "10000.00",
+      "2025-09": "10000.00",
+      "2025-10": "10000.00",
+      "2025-11": "10000.00",
+      "2025-12": "10000.00",
+      "2026-01": "10000.00",
+      "2026-02": "10000.00",
+      "2026-03": "10000.00",
+      "2026-04": "10000.00",
+      "2026-05": "10000.00",
+      "2026-06": "10000.00",
+      "2026-07": "10000.00"
+     },
+     "receitas_conferem": true
+    },
+    "anexo": "V",
+    "cnpj": null,
+    "das": null,
+    "fator_r": "0.20",
+    "fs12": "24000.00",
+    "pa": "2026-08",
+    "rbt12": "120000.00",
+    "rpa": null
+   },
+   "confianca": "0.7000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "Periodo de Apuracao: 01/08/2026 a 31/08/2026\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 5.000,00 09/2025 5.000,00 10/2025 5.000,00\n11/2025 5.000,00 12/2025 5.000,00 01/2026 5.000,00\n02/2026 5.000,00 03/2026 5.000,00 04/2026 5.000,00\n05/2026 5.000,00 06/2026 5.000,00 07/2026 5.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Externo\n08/2025 5.000,00 09/2025 5.000,00 10/2025 5.000,00\n11/2025 5.000,00 12/2025 5.000,00 01/2026 5.000,00\n02/2026 5.000,00 03/2026 5.000,00 04/2026 5.000,00\n05/2026 5.000,00 06/2026 5.000,00 07/2026 5.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": "CompetenciaInvalida",
+  "nome": "series_ano_antigo_levanta",
+  "origem": "variacao",
+  "resultado": null,
+  "texto": "Periodo de Apuracao: 01/08/1899 a 31/08/1899\nData de abertura no CNPJ: 12/03/2019\nReceita bruta acumulada nos 12 meses anteriores (RBT12) 120.000,00 0,00 120.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes Valor Mes Valor Mes Valor\n08/2025 10.000,00 09/2025 10.000,00 10/2025 10.000,00\n11/2025 10.000,00 12/2025 10.000,00 01/2026 10.000,00\n02/2026 10.000,00 03/2026 10.000,00 04/2026 10.000,00\n05/2026 10.000,00 06/2026 10.000,00 07/2026 10.000,00\n2.3 Folha de Salarios Anteriores (R$)\n08/2025 2.000,00 09/2025 2.000,00 10/2025 2.000,00\n11/2025 2.000,00 12/2025 2.000,00 01/2026 2.000,00\n02/2026 2.000,00 03/2026 2.000,00 04/2026 2.000,00\n05/2026 2.000,00 06/2026 2.000,00 07/2026 2.000,00\nTotal FS12 24.000,00\n2.4 Fator r\nFator r = 0,20 - Anexo V"
+ },
+ {
+  "excecao": null,
+  "nome": "series_valores_colados",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-09": "2.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\n2.2 Receitas Brutas Anteriores\nx08/2025 1,00 09/2025 2,00 1009/2025 3,00"
+ },
+ {
+  "excecao": null,
+  "nome": "series_secao_numerada_encerra",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "1.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "2.2 Receitas Brutas Anteriores\n08/2025 1,00\n3 Outra seção\n09/2025 2,00"
+ },
+ {
+  "excecao": null,
+  "nome": "series_digitos_arabes",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "٢٠٢٥-٠٨": "1.00"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.2500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\n2.2 Receitas Brutas Anteriores\n٠٨/٢٠٢٥ 1,00"
+ },
+ {
+  "excecao": null,
+  "nome": "series_valor_ponto_seguido_digito",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-09": "10.50"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "2.2 Receitas Brutas Anteriores\n08/2025 1234.567 09/2025 10.50"
+ },
+ {
+  "excecao": null,
+  "nome": "series_soma_gigante",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {
+      "2025-08": "2999999999999999.97"
+     },
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": "1.00",
+    "rpa": null
+   },
+   "confianca": "0.4000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\nRBT12: 1,00\n2.2 Receitas Brutas Anteriores\n08/2025 999999999999999,99\n08/2025 999999999999999,99\n08/2025 999999999999999,99"
+ },
+ {
+  "excecao": null,
+  "nome": "crlf_e_cr",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": "1.00",
+    "rpa": null
+   },
+   "confianca": "0.6500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026\r\nCNPJ: 11.222.333/0001-81\rRBT12: 1,00"
+ },
+ {
+  "excecao": null,
+  "nome": "nbsp_e_tabs",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "1000.00",
+    "rpa": null
+   },
+   "confianca": "0.4000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ: \t11.222.333/0001-81\nRBT12:\t\t1.000,00"
+ },
+ {
+  "excecao": null,
+  "nome": "linha_longa_cortada",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.0000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 12,34 56,78"
+ },
+ {
+  "excecao": null,
+  "nome": "linha_longa_com_numero_dentro",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "0",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado",
+     "pa_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": null,
+    "rbt12": "56.78",
+    "rpa": null
+   },
+   "confianca": "0.1500",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "RBT12: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 12,34 56,78"
+ },
+ {
+  "excecao": null,
+  "nome": "separadores_unicode",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "1",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "0",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": "11222333000181",
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": null,
+    "rpa": null
+   },
+   "confianca": "0.5000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "CNPJ:\u000b11.222.333/0001-81 x\nPA:\u001c09/2026"
+ },
+ {
+  "excecao": null,
+  "nome": "espaco_de_linha_unicode",
+  "origem": "variacao",
+  "resultado": {
+   "campos": {
+    "_confianca_campos": {
+     "anexo": "0",
+     "cnpj": "0",
+     "das": "0",
+     "fator_r": "0",
+     "fs12": "0",
+     "pa": "1",
+     "rbt12": "1",
+     "rpa": "0"
+    },
+    "_identificacao": {
+     "inicio_atividade": null,
+     "nome_empresarial": null,
+     "sujeita_fator_r": null
+    },
+    "_motivos": [
+     "cnpj_nao_encontrado"
+    ],
+    "_series_anteriores": {
+     "folhas": {},
+     "folhas_conferem": false,
+     "receitas": {},
+     "receitas_conferem": false
+    },
+    "anexo": null,
+    "cnpj": null,
+    "das": null,
+    "fator_r": null,
+    "fs12": null,
+    "pa": "2026-09",
+    "rbt12": "1.00",
+    "rpa": null
+   },
+   "confianca": "0.4000",
+   "parser_version": "2026.09.3"
+  },
+  "texto": "PA: 09/2026 RBT12: 1,00"
+ }
+]

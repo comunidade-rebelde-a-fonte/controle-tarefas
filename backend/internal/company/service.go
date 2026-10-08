@@ -228,6 +228,14 @@ func (s *Service) CreateTx(ctx context.Context, tx pgx.Tx, in CreateInput) (stri
 	return id, nil
 }
 
+// ValidateCreate aplica as validações de Create sem gravar (campos, responsáveis e conflito de
+// CNPJ ou código), para quem precisa recusar antes de abrir a própria transação, como o cadastro
+// pelo extrato PGDAS-D. A gravação (CreateTx) valida de novo.
+func (s *Service) ValidateCreate(ctx context.Context, in CreateInput) error {
+	_, err := s.prepareCreate(ctx, in)
+	return err
+}
+
 // preparedCreate é a entrada de Create já validada e normalizada.
 type preparedCreate struct {
 	in      CreateInput

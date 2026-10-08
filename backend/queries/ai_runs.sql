@@ -162,3 +162,8 @@ FROM (
 GROUP BY trace_id
 ORDER BY min(created_at)
 LIMIT sqlc.arg('lim');
+
+-- name: SetAIRunCompany :execrows
+-- Empresa criada durante a corrida (cadastro pelo extrato PGDAS-D): o vínculo de domínio do
+-- trace passa a ser ela.
+UPDATE ai_runs SET company_id = sqlc.arg('company_id') WHERE trace_id = sqlc.arg('trace_id');

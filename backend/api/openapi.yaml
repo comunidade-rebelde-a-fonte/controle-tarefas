@@ -55,8 +55,8 @@ tags:
       ouro e humana, status de sincronização com o Langfuse e painel de observabilidade.
   - name: factor-r
     description: |
-      Fator R (consolidação, TASK-011) — configuração por empresa, série mensal de receita e
-      folha, cálculo do PA e carteira. Os campos do domínio usam os nomes do Fator R de origem e
+      Fator R (consolidação, TASK-011 e TASK-012) — configuração por empresa, série mensal de
+      receita e folha, cálculo do PA, carteira e Inbox PGDAS-D. Os campos do domínio usam os nomes do Fator R de origem e
       do modelo de dados da consolidação (docs/ai-spec/05 §4); valores decimais são strings.
 
 paths:
@@ -1716,6 +1716,183 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+
+  /factor-r/pgdas:
+    post:
+      tags: [factor-r]
+      operationId: uploadPgdasDocument
+      summary: Envia um extrato PGDAS-D ao inbox e enfileira o processamento [REQ-012, REQ-046, AC-014]
+      description: |
+        PDF com camada de texto ou TXT (UTF-8 ou latin-1), validado pelo conteúdo e nunca pela
+        extensão, até 10 MB. O original fica fora de qualquer diretório servido, com o sha256 como
+        nome; o nome enviado é só metadado. A resposta não espera o processamento: o job
+        `pgdas_parse` roda no worker (parser determinístico, sem LLM: ADR-006) e o estado aparece em
+        `GET /factor-r/pgdas/{id}` (campo `job`). O mesmo arquivo enviado de novo devolve o
+        documento existente (200, `duplicate = true`), sem novo job.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "202":
+          description: Documento recebido; processamento enfileirado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasUpload" }
+        "200":
+          description: O arquivo já tinha sido enviado (documento existente)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasUpload" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "413":
+          description: Arquivo acima de 10 MB (FILE_TOO_LARGE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "415":
+          description: O conteúdo não é PDF nem TXT (UNSUPPORTED_FILE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    get:
+      tags: [factor-r]
+      operationId: listPgdasDocuments
+      summary: Documentos do inbox, mais recentes primeiro, com a contagem por status
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/PgdasStatus" }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Documentos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasDocumentList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /factor-r/pgdas/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [factor-r]
+      operationId: getPgdasDocument
+      summary: Documento do inbox — campos lidos, decisão, job de processamento e sugestão de cadastro
+      responses:
+        "200":
+          description: Documento
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasDocument" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /factor-r/pgdas/{id}/file:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [factor-r]
+      operationId: downloadPgdasDocument
+      summary: Baixa o original como anexo (nosniff, sem cache)
+      responses:
+        "200":
+          description: O arquivo enviado
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+            text/plain:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /factor-r/pgdas/{id}/link:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [factor-r]
+      operationId: linkPgdasDocument
+      summary: Vincula manualmente um documento em revisão a uma empresa [AC-008]
+      description: |
+        Numa corrida nova do agente `parser_pgdas` (gatilho `vinculo_manual`): grava a receita do
+        PA e os meses anteriores conferidos, só em competências vazias, e a nota ouro. Só para
+        documentos em `needs_review` (409 `PGDAS_INVALID_STATE` nos demais).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PgdasLinkInput" }
+      responses:
+        "200":
+          description: Documento vinculado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasDocument" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /factor-r/pgdas/{id}/review:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [factor-r]
+      operationId: reviewPgdasDocument
+      summary: Decisão de revisão do analista — hoje, a rejeição do documento
+      description: |
+        Numa corrida nova do agente (gatilho `rejeicao`), com o motivo informado. Documento já
+        vinculado ou rejeitado não muda (409 `PGDAS_INVALID_STATE`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PgdasReviewInput" }
+      responses:
+        "200":
+          description: Documento rejeitado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasDocument" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /factor-r/pgdas/{id}/create-company:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [factor-r]
+      operationId: createCompanyFromPgdas
+      summary: Cadastra a empresa do extrato e vincula o documento, numa transação só [REQ-012]
+      description: |
+        Sempre por pedido explícito do analista, nunca automaticamente. A empresa entra pelo
+        cadastro canônico (mesmas validações de `POST /companies`), com o CNPJ lido no extrato.
+        Recusas antes de qualquer gravação: estado (409 `PGDAS_INVALID_STATE`), extrato sem CNPJ
+        válido (422 `PGDAS_NO_VALID_CNPJ`), CNPJ diferente do lido (422 `PGDAS_CNPJ_MISMATCH`) e
+        CNPJ já cadastrado (409 `CNPJ_CONFLICT`, com a empresa em `details.conflicting_company`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PgdasCreateCompanyInput" }
+      responses:
+        "201":
+          description: Empresa cadastrada e documento vinculado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PgdasCreateCompanyResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
 
   /jobs/{id}:
     parameters:
@@ -3748,6 +3925,148 @@ components:
         meta_operacional: { $ref: "#/components/schemas/DecimalString" }
         kpis: { $ref: "#/components/schemas/FactorRKPIs" }
         linhas: { type: array, items: { $ref: "#/components/schemas/FactorRPortfolioLine" } }
+
+    PgdasStatus:
+      type: string
+      enum: [received, parsed, needs_review, linked, rejected]
+      description: |
+        received: enviado, aguardando o job; needs_review: em revisão (CNPJ fora da carteira,
+        confiança abaixo do limiar ou documento sem texto); linked: vinculado a uma empresa;
+        rejected: rejeitado pelo analista. parsed é o estado intermediário da origem.
+
+    PgdasUpload:
+      type: object
+      required: [document_id, job_id, status, duplicate]
+      properties:
+        document_id: { $ref: "#/components/schemas/Uuid" }
+        job_id: { type: [string, "null"], format: uuid, description: "Job pgdas_parse do documento" }
+        status: { $ref: "#/components/schemas/PgdasStatus" }
+        duplicate: { type: boolean, description: "O arquivo já tinha sido enviado" }
+
+    PgdasFields:
+      type: object
+      description: Campos lidos pelo parser (nulos até o processamento e quando não encontrados).
+      required: [cnpj, pa, rbt12, rpa, fs12, fator_r, das, anexo]
+      properties:
+        cnpj: { type: [string, "null"], description: "Dígitos do CNPJ lido" }
+        pa: { type: [string, "null"], description: "Período de apuração, YYYY-MM", examples: ["2026-09"] }
+        rbt12: { type: [string, "null"], examples: ["600000.00"] }
+        rpa: { type: [string, "null"], examples: ["50000.00"] }
+        fs12: { type: [string, "null"], examples: ["180000.00"] }
+        fator_r: { type: [string, "null"], examples: ["0.30"] }
+        das: { type: [string, "null"], examples: ["4500.00"] }
+        anexo: { type: [string, "null"], examples: ["III"] }
+
+    PgdasIdentification:
+      type: object
+      description: Dados de cadastro lidos do extrato, fora da confiança e da nota ouro.
+      required: [nome_empresarial, sujeita_fator_r, inicio_atividade]
+      properties:
+        nome_empresarial: { type: [string, "null"] }
+        sujeita_fator_r: { type: [boolean, "null"], description: "Fator r numérico = sim; não se aplica = não" }
+        inicio_atividade: { type: [string, "null"], description: "YYYY-MM da data de abertura no CNPJ" }
+
+    PgdasPriorSeries:
+      type: object
+      description: |
+        Receita e folha mês a mês dos 12 meses anteriores ao PA, como declaradas (YYYY-MM para o
+        valor). Só são gravadas quando conferem: os meses são a janela do PA e a soma bate com o
+        RBT12 e a FS12 declarados.
+      required: [receitas, folhas, receitas_conferem, folhas_conferem]
+      properties:
+        receitas: { type: object, additionalProperties: { type: string } }
+        folhas: { type: object, additionalProperties: { type: string } }
+        receitas_conferem: { type: boolean }
+        folhas_conferem: { type: boolean }
+
+    PgdasJobState:
+      type: object
+      required: [id, status, attempts, max_attempts, last_error_code]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        attempts: { type: integer, format: int32 }
+        max_attempts: { type: integer, format: int32 }
+        last_error_code: { type: [string, "null"], examples: ["PGDAS_FILE_MISSING"] }
+
+    PgdasSuggestion:
+      type: object
+      description: Pré-preenchimento do cadastro de uma empresa fora da carteira (só para CNPJ válido).
+      required: [cnpj, cnpj_formatado, nome_empresarial, sujeita_fator_r, inicio_atividade]
+      properties:
+        cnpj: { type: string }
+        cnpj_formatado: { type: string, examples: ["11.222.333/0001-81"] }
+        nome_empresarial: { type: [string, "null"] }
+        sujeita_fator_r: { type: [boolean, "null"] }
+        inicio_atividade: { type: [string, "null"] }
+
+    PgdasDocument:
+      type: object
+      required: [id, status, motivo, company_id, nome_original, mime, tamanho_bytes, campos, confianca_campos, motivos, identificacao, series_anteriores, confianca, parser_version, trace_id, texto_agente, job, sugestao_cadastro, version, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/PgdasStatus" }
+        motivo:
+          type: [string, "null"]
+          description: Motivo da revisão (cnpj_nao_encontrado, confianca_baixa (…), sem_camada_texto, pdf_ilegivel, extracao_excedeu_limites) ou da rejeição
+        company_id: { type: [string, "null"], format: uuid, description: "Só no documento vinculado" }
+        nome_original: { type: [string, "null"] }
+        mime: { type: string, enum: [application/pdf, text/plain] }
+        tamanho_bytes: { type: integer, format: int32 }
+        campos: { $ref: "#/components/schemas/PgdasFields" }
+        confianca_campos: { type: object, additionalProperties: { type: string }, description: "Confiança por campo (1, 0 ou 0.3 com DV inválido)" }
+        motivos: { type: array, items: { type: string }, description: "Avisos do parser, ex. cnpj_digito_verificador_invalido" }
+        identificacao: { $ref: "#/components/schemas/PgdasIdentification" }
+        series_anteriores: { $ref: "#/components/schemas/PgdasPriorSeries" }
+        confianca:
+          description: Confiança do documento, por regra (0 a 1, 4 casas)
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        parser_version: { type: [string, "null"], examples: ["2026.09.3"] }
+        trace_id: { type: [string, "null"], description: "Última corrida do agente parser_pgdas sobre o documento" }
+        texto_agente: { type: [string, "null"], description: "Texto da última corrida, com o disclaimer do PGDAS-D" }
+        job: { oneOf: [{ $ref: "#/components/schemas/PgdasJobState" }, { type: "null" }] }
+        sugestao_cadastro: { oneOf: [{ $ref: "#/components/schemas/PgdasSuggestion" }, { type: "null" }] }
+        version: { type: integer, format: int32 }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    PgdasDocumentList:
+      type: object
+      required: [items, total, contagem_por_status]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/PgdasDocument" } }
+        total: { type: integer, format: int64, description: "Total com o filtro de status" }
+        contagem_por_status: { type: object, additionalProperties: { type: integer, format: int64 } }
+
+    PgdasLinkInput:
+      type: object
+      additionalProperties: false
+      required: [company_id]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+
+    PgdasReviewInput:
+      type: object
+      additionalProperties: false
+      required: [decisao, motivo]
+      properties:
+        decisao: { type: string, enum: [rejeitar] }
+        motivo: { type: string, minLength: 3, maxLength: 500 }
+
+    PgdasCreateCompanyInput:
+      type: object
+      additionalProperties: false
+      required: [empresa]
+      properties:
+        empresa: { $ref: "#/components/schemas/CompanyCreate" }
+        inicio_atividade: { type: [string, "null"], description: "Início da atividade (YYYY-MM) para a configuração do Fator R" }
+
+    PgdasCreateCompanyResult:
+      type: object
+      required: [documento, empresa]
+      properties:
+        documento: { $ref: "#/components/schemas/PgdasDocument" }
+        empresa: { $ref: "#/components/schemas/Company" }
 
   responses:
     BadRequest:

@@ -384,6 +384,30 @@ type FactorRMovement struct {
 	UpdatedAt                time.Time
 }
 
+type FactorRPgdasDocument struct {
+	ID            string
+	CompanyID     *string
+	Sha256        string
+	FileRef       string
+	Mime          string
+	SizeBytes     int32
+	OriginalName  *string
+	Status        string
+	Motivo        *string
+	CnpjExtraido  *string
+	Pa            *time.Time
+	Confidence    *decimal.Decimal
+	ParserVersion *string
+	ParsedJson    []byte
+	ExtractedText *string
+	TraceID       *string
+	JobID         *string
+	UploadedBy    *string
+	Version       int32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
 type FactorRPolicy struct {
 	ID                    bool
 	MetaOperacional       decimal.Decimal

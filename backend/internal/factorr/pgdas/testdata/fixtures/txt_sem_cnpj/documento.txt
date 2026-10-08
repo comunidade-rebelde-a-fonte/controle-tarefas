@@ -1,0 +1,21 @@
+Extrato do Simples Nacional
+Período de Apuração (PA): 09/2026
+Data de abertura no CNPJ: 15/03/2019
+Nome empresarial: CLINICA EXEMPLO LTDA
+Regime de Apuração: Competência
+Optante pelo Simples Nacional: Sim
+
+2) Informações da Declaração
+2.1) Discriminativo de Receitas
+Valores Declarados                     Mercado Interno   Mercado Externo   Total
+Receita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00
+Receita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00
+Receita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00
+
+2.3) Folha de Salários Anteriores (R$)
+Total de Folhas de Salários Anteriores (R$)   180.000,00
+
+2.8) Cálculo do Valor Devido
+Atividade: Prestação de serviços sujeitos ao Fator r - Anexo III
+Fator r: 0,30
+Valor Total do Débito Declarado (R$): 5.280,00

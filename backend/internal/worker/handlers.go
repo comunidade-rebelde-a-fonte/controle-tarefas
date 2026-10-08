@@ -14,10 +14,15 @@ const KindPing = "ping"
 // KindLangfuseSync envia uma corrida de agente e as notas dela ao Langfuse (TASK-009).
 const KindLangfuseSync = "langfuse_sync"
 
+// KindPgdasParse processa um extrato PGDAS-D enviado ao inbox do Fator R (TASK-012).
+const KindPgdasParse = "pgdas_parse"
+
 // HandlerDeps são os handlers que dependem de configuração.
 type HandlerDeps struct {
 	// LangfuseSync é o tracer.Syncer.Handle.
 	LangfuseSync jobs.Handler
+	// PgdasParse é o inbox.Agent.HandleParse (o parser_pgdas no upload).
+	PgdasParse jobs.Handler
 }
 
 // Handlers são os tipos de job que este worker executa. Cada TASK que cria um tipo de job
@@ -29,6 +34,9 @@ func Handlers(d HandlerDeps) map[string]jobs.Handler {
 	}
 	if d.LangfuseSync != nil {
 		h[KindLangfuseSync] = d.LangfuseSync
+	}
+	if d.PgdasParse != nil {
+		h[KindPgdasParse] = d.PgdasParse
 	}
 	return h
 }

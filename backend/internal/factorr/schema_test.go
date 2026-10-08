@@ -3,6 +3,7 @@ package factorr_test
 import (
 	"context"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -212,5 +213,51 @@ func TestTEST006_NumericRoundTripKeepsScale(t *testing.T) {
 	}
 	if m.FolhaMes == nil || m.FolhaMes.String() != "10.10" {
 		t.Fatalf("folha_mes = %v", m.FolhaMes)
+	}
+}
+
+// TASK-006b: documentos do Inbox PGDAS-D e a FK dos movimentos criados a partir deles.
+func TestTEST006b_PgdasDocumentConstraints(t *testing.T) {
+	pool := testutil.NewDB(t)
+	ctx := context.Background()
+	id := newCompany(t, pool, "301", "11222333000181")
+	sha := strings.Repeat("a", 64)
+	ins := `INSERT INTO factor_r_pgdas_documents (sha256, file_ref, mime, size_bytes, status, motivo, company_id)
+	        VALUES ($1, $2, $3, 10, $4, $5, $6) RETURNING id`
+	var doc string
+	if err := pool.QueryRow(ctx, ins, sha, "pgdas/"+sha, "text/plain", "received", nil, nil).Scan(&doc); err != nil {
+		t.Fatal(err)
+	}
+	other := strings.Repeat("b", 64)
+	cases := []struct {
+		name string
+		args []any
+		code string
+	}{
+		{"mesmo arquivo de novo", []any{sha, "pgdas/" + sha, "text/plain", "received", nil, nil}, db.UniqueViolation},
+		{"caminho que não é o do hash", []any{other, "pgdas/../x", "text/plain", "received", nil, nil}, db.CheckViolation},
+		{"tipo fora de PDF e TXT", []any{other, "pgdas/" + other, "image/png", "received", nil, nil}, db.CheckViolation},
+		{"vinculado sem empresa", []any{other, "pgdas/" + other, "text/plain", "linked", nil, nil}, db.CheckViolation},
+		{"empresa sem vínculo", []any{other, "pgdas/" + other, "text/plain", "needs_review", "cnpj_nao_encontrado", id}, db.CheckViolation},
+		{"revisão sem motivo", []any{other, "pgdas/" + other, "text/plain", "needs_review", nil, nil}, db.CheckViolation},
+		// Depois do upload, toda decisão tem corrida do agente [AC-029].
+		{"decisão sem trace", []any{other, "pgdas/" + other, "text/plain", "needs_review", "cnpj_nao_encontrado", nil}, db.CheckViolation},
+	}
+	for _, c := range cases {
+		var got string
+		if err := pool.QueryRow(ctx, ins, c.args...).Scan(&got); !db.IsConstraint(err, c.code, "") {
+			t.Errorf("%s: esperado erro %s, veio %v", c.name, c.code, err)
+		}
+	}
+	mov := `INSERT INTO factor_r_movements (company_id, competence, receita_bruta, origem, pgdas_document_id) VALUES ($1, '2026-09-01', 1, 'pgdas', $2)`
+	if _, err := pool.Exec(ctx, mov, id, "00000000-0000-0000-0000-00000000abcd"); !db.IsConstraint(err, db.ForeignKeyViolation, "") {
+		t.Errorf("movimento com documento inexistente: %v", err)
+	}
+	if _, err := pool.Exec(ctx, mov, id, doc); err != nil {
+		t.Fatal(err)
+	}
+	// Sem exclusão física: o documento referenciado não sai.
+	if _, err := pool.Exec(ctx, `DELETE FROM factor_r_pgdas_documents WHERE id = $1`, doc); !db.IsConstraint(err, db.ForeignKeyViolation, "") {
+		t.Errorf("apagar documento com movimento: %v", err)
 	}
 }

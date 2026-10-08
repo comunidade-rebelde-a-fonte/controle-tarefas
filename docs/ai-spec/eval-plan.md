@@ -20,6 +20,11 @@ Golden por documento:
 
 Preservar meta original de >=80% de acerto ouro para extratos de texto vinculados antes de declarar o parser estável, sem usar essa meta para autorizar gravação insegura.
 
+> **Como foi implementado (TASK-012; D-023).**
+> - O golden (`backend/internal/factorr/pgdas/testdata/golden_gen.py`) roda o próprio `parse` da origem sobre as 14 fixtures e sobre 109 variações de borda. Os 122 resultados do porte são idênticos, inclusive a confiança.
+> - O porte do `test_fixtures.py` confere cada fixture (campos, lacunas conhecidas, identificação, séries e faixa de confiança). O acerto nas fixtures é 108 de 112 campos (96%); os 4 erros são as lacunas do DAS no layout declaratório.
+> - A nota ouro de cada extrato vinculado é gravada em `ai_gold_evals` e vai ao Langfuse como `gold_<campo>` e `gold_acerto` (D-022).
+
 ### Evals humanas
 
 `acerto | parcial | erro`, comentário obrigatório em erro.

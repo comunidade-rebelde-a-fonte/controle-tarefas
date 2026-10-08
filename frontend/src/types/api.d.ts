@@ -1265,6 +1265,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/factor-r/pgdas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documentos do inbox, mais recentes primeiro, com a contagem por status */
+        get: operations["listPgdasDocuments"];
+        put?: never;
+        /**
+         * Envia um extrato PGDAS-D ao inbox e enfileira o processamento [REQ-012, REQ-046, AC-014]
+         * @description PDF com camada de texto ou TXT (UTF-8 ou latin-1), validado pelo conteúdo e nunca pela
+         *     extensão, até 10 MB. O original fica fora de qualquer diretório servido, com o sha256 como
+         *     nome; o nome enviado é só metadado. A resposta não espera o processamento: o job
+         *     `pgdas_parse` roda no worker (parser determinístico, sem LLM: ADR-006) e o estado aparece em
+         *     `GET /factor-r/pgdas/{id}` (campo `job`). O mesmo arquivo enviado de novo devolve o
+         *     documento existente (200, `duplicate = true`), sem novo job.
+         */
+        post: operations["uploadPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Documento do inbox — campos lidos, decisão, job de processamento e sugestão de cadastro */
+        get: operations["getPgdasDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Baixa o original como anexo (nosniff, sem cache) */
+        get: operations["downloadPgdasDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vincula manualmente um documento em revisão a uma empresa [AC-008]
+         * @description Numa corrida nova do agente `parser_pgdas` (gatilho `vinculo_manual`): grava a receita do
+         *     PA e os meses anteriores conferidos, só em competências vazias, e a nota ouro. Só para
+         *     documentos em `needs_review` (409 `PGDAS_INVALID_STATE` nos demais).
+         */
+        post: operations["linkPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decisão de revisão do analista — hoje, a rejeição do documento
+         * @description Numa corrida nova do agente (gatilho `rejeicao`), com o motivo informado. Documento já
+         *     vinculado ou rejeitado não muda (409 `PGDAS_INVALID_STATE`).
+         */
+        post: operations["reviewPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/create-company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cadastra a empresa do extrato e vincula o documento, numa transação só [REQ-012]
+         * @description Sempre por pedido explícito do analista, nunca automaticamente. A empresa entra pelo
+         *     cadastro canônico (mesmas validações de `POST /companies`), com o CNPJ lido no extrato.
+         *     Recusas antes de qualquer gravação: estado (409 `PGDAS_INVALID_STATE`), extrato sem CNPJ
+         *     válido (422 `PGDAS_NO_VALID_CNPJ`), CNPJ diferente do lido (422 `PGDAS_CNPJ_MISMATCH`) e
+         *     CNPJ já cadastrado (409 `CNPJ_CONFLICT`, com a empresa em `details.conflicting_company`).
+         */
+        post: operations["createCompanyFromPgdas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -2790,6 +2927,157 @@ export interface components {
             meta_operacional: components["schemas"]["DecimalString"];
             kpis: components["schemas"]["FactorRKPIs"];
             linhas: components["schemas"]["FactorRPortfolioLine"][];
+        };
+        /**
+         * @description received: enviado, aguardando o job; needs_review: em revisão (CNPJ fora da carteira,
+         *     confiança abaixo do limiar ou documento sem texto); linked: vinculado a uma empresa;
+         *     rejected: rejeitado pelo analista. parsed é o estado intermediário da origem.
+         * @enum {string}
+         */
+        PgdasStatus: "received" | "parsed" | "needs_review" | "linked" | "rejected";
+        PgdasUpload: {
+            document_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Job pgdas_parse do documento
+             */
+            job_id: string | null;
+            status: components["schemas"]["PgdasStatus"];
+            /** @description O arquivo já tinha sido enviado */
+            duplicate: boolean;
+        };
+        /** @description Campos lidos pelo parser (nulos até o processamento e quando não encontrados). */
+        PgdasFields: {
+            /** @description Dígitos do CNPJ lido */
+            cnpj: string | null;
+            /**
+             * @description Período de apuração, YYYY-MM
+             * @example 2026-09
+             */
+            pa: string | null;
+            /** @example 600000.00 */
+            rbt12: string | null;
+            /** @example 50000.00 */
+            rpa: string | null;
+            /** @example 180000.00 */
+            fs12: string | null;
+            /** @example 0.30 */
+            fator_r: string | null;
+            /** @example 4500.00 */
+            das: string | null;
+            /** @example III */
+            anexo: string | null;
+        };
+        /** @description Dados de cadastro lidos do extrato, fora da confiança e da nota ouro. */
+        PgdasIdentification: {
+            nome_empresarial: string | null;
+            /** @description Fator r numérico = sim; não se aplica = não */
+            sujeita_fator_r: boolean | null;
+            /** @description YYYY-MM da data de abertura no CNPJ */
+            inicio_atividade: string | null;
+        };
+        /**
+         * @description Receita e folha mês a mês dos 12 meses anteriores ao PA, como declaradas (YYYY-MM para o
+         *     valor). Só são gravadas quando conferem: os meses são a janela do PA e a soma bate com o
+         *     RBT12 e a FS12 declarados.
+         */
+        PgdasPriorSeries: {
+            receitas: {
+                [key: string]: string;
+            };
+            folhas: {
+                [key: string]: string;
+            };
+            receitas_conferem: boolean;
+            folhas_conferem: boolean;
+        };
+        PgdasJobState: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            /** @example PGDAS_FILE_MISSING */
+            last_error_code: string | null;
+        };
+        /** @description Pré-preenchimento do cadastro de uma empresa fora da carteira (só para CNPJ válido). */
+        PgdasSuggestion: {
+            cnpj: string;
+            /** @example 11.222.333/0001-81 */
+            cnpj_formatado: string;
+            nome_empresarial: string | null;
+            sujeita_fator_r: boolean | null;
+            inicio_atividade: string | null;
+        };
+        PgdasDocument: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["PgdasStatus"];
+            /** @description Motivo da revisão (cnpj_nao_encontrado, confianca_baixa (…), sem_camada_texto, pdf_ilegivel, extracao_excedeu_limites) ou da rejeição */
+            motivo: string | null;
+            /**
+             * Format: uuid
+             * @description Só no documento vinculado
+             */
+            company_id: string | null;
+            nome_original: string | null;
+            /** @enum {string} */
+            mime: "application/pdf" | "text/plain";
+            /** Format: int32 */
+            tamanho_bytes: number;
+            campos: components["schemas"]["PgdasFields"];
+            /** @description Confiança por campo (1, 0 ou 0.3 com DV inválido) */
+            confianca_campos: {
+                [key: string]: string;
+            };
+            /** @description Avisos do parser, ex. cnpj_digito_verificador_invalido */
+            motivos: string[];
+            identificacao: components["schemas"]["PgdasIdentification"];
+            series_anteriores: components["schemas"]["PgdasPriorSeries"];
+            /** @description Confiança do documento, por regra (0 a 1, 4 casas) */
+            confianca: components["schemas"]["DecimalString"] | null;
+            /** @example 2026.09.3 */
+            parser_version: string | null;
+            /** @description Última corrida do agente parser_pgdas sobre o documento */
+            trace_id: string | null;
+            /** @description Texto da última corrida, com o disclaimer do PGDAS-D */
+            texto_agente: string | null;
+            job: components["schemas"]["PgdasJobState"] | null;
+            sugestao_cadastro: components["schemas"]["PgdasSuggestion"] | null;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        PgdasDocumentList: {
+            items: components["schemas"]["PgdasDocument"][];
+            /**
+             * Format: int64
+             * @description Total com o filtro de status
+             */
+            total: number;
+            contagem_por_status: {
+                [key: string]: number;
+            };
+        };
+        PgdasLinkInput: {
+            company_id: components["schemas"]["Uuid"];
+        };
+        PgdasReviewInput: {
+            /** @enum {string} */
+            decisao: "rejeitar";
+            motivo: string;
+        };
+        PgdasCreateCompanyInput: {
+            empresa: components["schemas"]["CompanyCreate"];
+            /** @description Início da atividade (YYYY-MM) para a configuração do Fator R */
+            inicio_atividade?: string | null;
+        };
+        PgdasCreateCompanyResult: {
+            documento: components["schemas"]["PgdasDocument"];
+            empresa: components["schemas"]["Company"];
         };
     };
     responses: {
@@ -5138,6 +5426,221 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    listPgdasDocuments: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PgdasStatus"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocumentList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    uploadPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description O arquivo já tinha sido enviado (documento existente) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasUpload"];
+                };
+            };
+            /** @description Documento recebido; processamento enfileirado */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Arquivo acima de 10 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description O conteúdo não é PDF nem TXT (UNSUPPORTED_FILE) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    downloadPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O arquivo enviado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    linkPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasLinkInput"];
+            };
+        };
+        responses: {
+            /** @description Documento vinculado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    reviewPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Documento rejeitado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    createCompanyFromPgdas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasCreateCompanyInput"];
+            };
+        };
+        responses: {
+            /** @description Empresa cadastrada e documento vinculado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasCreateCompanyResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
         };
     };
     getJob: {

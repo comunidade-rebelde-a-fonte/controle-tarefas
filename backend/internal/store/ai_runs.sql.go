@@ -833,3 +833,22 @@ func (q *Queries) MarkAIRunSynced(ctx context.Context, arg MarkAIRunSyncedParams
 	_, err := q.db.Exec(ctx, markAIRunSynced, arg.Now, arg.TraceID)
 	return err
 }
+
+const setAIRunCompany = `-- name: SetAIRunCompany :execrows
+UPDATE ai_runs SET company_id = $1 WHERE trace_id = $2
+`
+
+type SetAIRunCompanyParams struct {
+	CompanyID *string
+	TraceID   string
+}
+
+// Empresa criada durante a corrida (cadastro pelo extrato PGDAS-D): o vínculo de domínio do
+// trace passa a ser ela.
+func (q *Queries) SetAIRunCompany(ctx context.Context, arg SetAIRunCompanyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setAIRunCompany, arg.CompanyID, arg.TraceID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}

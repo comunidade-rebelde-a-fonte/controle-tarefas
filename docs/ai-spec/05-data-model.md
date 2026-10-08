@@ -95,6 +95,14 @@ Regra: movimento PGDAS que traz folha total declarada não deve inventar split.
 - `trace_id`
 - timestamps
 
+> **Como foi implementado (TASK-006b/TASK-012; D-023).** Migration `0023_factor_r_pgdas_documents.sql`.
+> - Colunas tipadas só para o que se consulta: `cnpj_extraido`, `pa` (dia 1) e `confidence` (4 casas). O resultado completo do parser fica em `parsed_json`, o `campos_json` da origem: os 8 campos, as confianças por campo, os motivos, a identificação e as séries dos 12 meses anteriores.
+> - `file_ref` é sempre `pgdas/<sha256>`, e o `sha256` é único: o reenvio do mesmo arquivo devolve o documento existente. Também há `mime`, `size_bytes` e `original_name`, este só como metadado.
+> - `extracted_text` guarda o texto extraído (fica no banco local e nunca vai ao Langfuse).
+> - `trace_id` é a última corrida do agente (FK para `ai_runs`); `job_id` é o job `pgdas_parse`.
+> - CHECKs: empresa só no documento vinculado; motivo só em revisão e rejeição; depois do upload, toda decisão tem trace.
+> - A FK `factor_r_movements.pgdas_document_id` chega nesta migration. `factor_r_simulations` fica para a TASK-013.
+
 ### `factor_r_simulations`
 
 Persistir entrada e saída determinística necessária para auditoria:

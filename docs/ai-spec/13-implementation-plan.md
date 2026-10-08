@@ -322,7 +322,7 @@ Para mostrar cedo a tela de outro sistema, o Fator R sem IA foi adiantado e vali
 | Parte | Escopo | Quando |
 |---|---|---|
 | TASK-006a | `company_factor_r_settings`, `factor_r_movements`, `factor_r_policy`, `factor_r_simples_tables` (+ seed das tabelas), tipo decimal exato (ADR-007) | fatia |
-| TASK-006b | `factor_r_pgdas_documents` (FK de `factor_r_movements.pgdas_document_id`), `factor_r_simulations` | com a TASK-012/013 (dependem da TASK-005 e da TASK-009) |
+| TASK-006b | `factor_r_pgdas_documents` (FK de `factor_r_movements.pgdas_document_id`), `factor_r_simulations` | `factor_r_pgdas_documents` com a TASK-012 (D-023); `factor_r_simulations` com a TASK-013 |
 | TASK-014a | Carteira (menu "Fator R"), aba "Fator R" da ficha (resultado do PA, cálculo explicável, janela, grade mensal com FR-03, configuração), FR-07, FR-19 | fatia |
 | TASK-014b | Inbox PGDAS-D, simulador (exige simulação persistida com trace), traces e avaliações | com a TASK-012/013 |
 

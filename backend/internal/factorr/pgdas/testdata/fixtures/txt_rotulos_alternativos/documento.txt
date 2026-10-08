@@ -1,0 +1,9 @@
+PGDAS-D - Declaração
+PA: 09/2026
+CNPJ: 11222333000181
+RPA: 50.000,00
+RBT12: 600.000,00
+Folha de salários (FS12): 180.000,00
+Fator R = 30,00%
+Enquadramento: Anexo III
+Total do DAS: 5.280,00

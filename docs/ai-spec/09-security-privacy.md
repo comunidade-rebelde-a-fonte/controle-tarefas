@@ -51,6 +51,13 @@ A UI de modelos armazena apenas provider/model/params não secretos.
 - Originais do Conciliador permanecem imutáveis/versionados no MinIO.
 - Originais de outros módulos respeitam storage atual.
 
+> **Como foi implementado no Inbox PGDAS-D (TASK-012; D-023).**
+> - O tipo vem do conteúdo (assinatura do PDF; texto sem byte nulo, UTF-8 ou latin-1 imprimível) e o limite é de 10 MB.
+> - O original fica em `FILE_STORAGE_DIR/pgdas/<sha256>` com permissão 0600 e é lido por `os.Root`. O nome enviado é só metadado.
+> - O download é autenticado como as demais rotas, sai como anexo, com `nosniff` e `no-store`.
+> - O PDF é lido pelo PDFium em WebAssembly, sem acesso ao disco, com 1 GiB de memória, 30 s por extração e duas extrações ao mesmo tempo.
+> - O texto extraído fica no banco local. O Langfuse recebe só campos, decisão e texto do agente, mascarados (D-022).
+
 ## 6. IA
 
 ### Regras
