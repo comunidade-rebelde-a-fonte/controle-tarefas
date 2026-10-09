@@ -130,6 +130,13 @@ Somente para estados retry/review compatíveis; não ignora portões.
 >   - A revisão de triagem e a pendência de período fechado voltam à triagem; a revisão de extração, à extração. O documento com o job encerrado sem sucesso repete o mesmo job.
 > - O detalhe traz também `triage_trace_id`, `import` (a importação aprovada) e `attempts` (o log de extração, sem a saída bruta).
 
+> **Desde a TASK-017 (D-028):**
+> - O detalhe traz `entry`, o lançamento lido do comprovante. O `retry` vale também para o comprovante em revisão sem lançamento; com lançamento, 409 `DOCUMENT_NOT_RETRYABLE` (a correção é campo a campo, na fila).
+> - Rotas a mais, dos lançamentos do cliente (CC-12; `/lancamentos` e `/lancamentos/csv` da origem):
+>   - `GET /reconciliation/entries`: filtros `company_id`, `status`, `date_from`, `date_to`, `limit`, `offset`;
+>   - `POST /reconciliation/entries`: lançamento manual (201). Recusas: 400 com os campos e 423 `PERIOD_CLOSED`;
+>   - `POST /reconciliation/entries/import`: CSV `data;valor;sentido;contraparte` com `company_id`, tudo ou nada (201 `{inserted, ids}`; 400 `INVALID_ENTRIES_CSV` com `details.lines`; 413; 423).
+
 ### `GET /companies/{id}/reconciliation?competence=YYYY-MM`
 
 Resumo da competência: contas, imports, buckets, progresso, fechamento contábil.

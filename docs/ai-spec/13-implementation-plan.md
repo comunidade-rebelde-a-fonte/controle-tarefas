@@ -169,6 +169,11 @@ Implementar ferramentas equivalentes em Go/bibliotecas adequadas. Não mudar sch
 **Aceite:** AC-013, AC-020.  
 **Validação:** TEST-017 — fixtures por tipo/campo + baixa confiança.
 
+> **Como foi implementado (D-028).** Domínio em `backend/internal/reconciliation/receipt`, processamento no worker em `backend/internal/reconciliation/pipeline` (o leitor no job de triagem e o job `receipt_extract`) e lançamentos manuais em `backend/internal/reconciliation/entries` (API; a tela é da TASK-021).
+> - Confiança por campo com `LIMIAR_CAMPO`; campo fraco deixa o lançamento `parcial`, fora do razão. As marcas de borda da origem ficam no lançamento para a TASK-018.
+> - Goldens gerados pelo Python da origem, integração com Postgres e MinIO reais e relatório por campo (`make eval-extrator`).
+> - AC-020 (classificação) é verificado na TASK-020; a `consultar_cnpj` aguarda decisão (P-007).
+
 ### TASK-018 — Portar matching passes 1–4
 
 **Requisitos:** REQ-024, REQ-030.  
@@ -305,7 +310,7 @@ O inventário da TASK-002 (`docs/consolidacao/fontes.md` §4) encontrou capacida
 
 Fica de fora, também por decisão do usuário (D-012): o agente `echo` do Fator R (ferramenta de desenvolvimento). O tracer é coberto por testes automatizados na TASK-009.
 
-`consultar_cnpj` (CC-15) nunca foi implementada na origem; a forma de implementação sem chamada externa nova (tool-contract §2) é decidida na TASK-017.
+`consultar_cnpj` (CC-15) nunca foi implementada na origem; a forma de implementação sem chamada externa nova (tool-contract §2) é decidida na TASK-017. Na TASK-017, a recomendação (consulta só local) ficou para a decisão do usuário (P-007).
 
 ### TASK-031 — Execução local completa e backup de todos os armazenamentos
 

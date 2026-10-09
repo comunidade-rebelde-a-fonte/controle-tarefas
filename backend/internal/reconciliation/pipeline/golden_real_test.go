@@ -45,3 +45,30 @@ func TestGoldenReport_RealGateway(t *testing.T) {
 		}
 	}
 }
+
+// Avaliação do extrator de comprovante contra o gabarito do cenário, com a acurácia por campo
+// (M3.9 da origem). Mesmas condições: custo de provedor real, só por ação autorizada. O relatório
+// vai para o log e, com EVAL_REPORT_COMPROVANTES, para esse arquivo.
+func TestGoldenReceiptReport_RealGateway(t *testing.T) {
+	base := os.Getenv("LITELLM_BASE_URL")
+	if base == "" {
+		t.Skip("defina LITELLM_BASE_URL (o LiteLLM do ambiente) para avaliar o extrator de comprovante")
+	}
+	defaults, err := ai.DefaultsFromEnv(os.Getenv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gw := litellm.New(base, config.Secret(os.Getenv("LITELLM_API_KEY")), 180*time.Second)
+	e := setupWith(t, gw, defaults, pipeline.Config{TriageThreshold: decimal.MustParse("0.70"), FieldThreshold: decimal.MustParse("0.70"), AgentOnly: true})
+	rep := runReceiptGolden(t, e, loadReceiptGabarito(t))
+	b, err := json.MarshalIndent(rep, "", "  ")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("relatório do extrator de comprovante:\n%s", b)
+	if path := os.Getenv("EVAL_REPORT_COMPROVANTES"); path != "" {
+		if err := os.WriteFile(path, b, 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

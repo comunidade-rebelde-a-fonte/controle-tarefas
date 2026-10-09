@@ -60,6 +60,8 @@ Estratégias por tentativa devem preservar o comportamento original: texto nativ
 
 Saída com confiança por campo e evidência/trecho ou bbox quando disponível. Campo incerto deve ser `null`/marcado, nunca inventado.
 
+> **Como foi implementado (TASK-017; D-028).** `backend/internal/ai/prompts/conciliacao/extrator_comprovante.md`: o texto da origem com os itens do §2, a entrada que o sistema envia (estratégia, empresa do documento, texto e/ou imagens) e as marcas de borda no vocabulário da origem. O sentido é relativo à empresa do documento; sem ela no comprovante, `sentido` nulo e confiança baixa.
+
 ## 6. Resolvedor
 
 A linguagem deve ser propositiva: “hipótese”, “parece corresponder”, “candidatos”. Não usar linguagem de conclusão quando o sistema ainda exige decisão humana.

@@ -138,7 +138,7 @@ func TestTriage_ClassifiesAndEnqueuesExtraction(t *testing.T) {
 }
 
 // Abaixo do limiar (0,70) ou tipo desconhecido: revisao_triagem com o diagnóstico, sem job novo;
-// comprovante triado ganha o job da TASK-017, que espera na fila.
+// comprovante triado ganha o job receipt_extract (o roteiro aqui não responde o extrator).
 func TestTriage_ThresholdUnknownAndReceipt(t *testing.T) {
 	cases := []struct {
 		triage, status, reason, nextJob string
@@ -161,7 +161,7 @@ func TestTriage_ThresholdUnknownAndReceipt(t *testing.T) {
 				t.Fatalf("diagnóstico = %v", d.Diagnosis)
 			}
 			jobs := e.count(t, `SELECT count(*) FROM jobs WHERE kind IN ('statement_extract', 'receipt_extract')`)
-			if (c.nextJob == "" && jobs != 0) || (c.nextJob != "" && e.count(t, `SELECT count(*) FROM jobs WHERE kind = $1 AND status = 'pending'`, c.nextJob) != 1) {
+			if (c.nextJob == "" && jobs != 0) || (c.nextJob != "" && e.count(t, `SELECT count(*) FROM jobs WHERE kind = $1`, c.nextJob) != 1) {
 				t.Fatalf("jobs seguintes = %d", jobs)
 			}
 		})
@@ -227,7 +227,7 @@ func TestTriage_ImagesForPhotosAndScannedPDFs(t *testing.T) {
 			e.upload(t, name, data, nil)
 			e.process(t)
 			calls := e.gw.calls()
-			if len(calls) != 1 || len(calls[0].Messages[1].Images) != 1 {
+			if len(calls) == 0 || calls[0].JSONSchema.Name != "resultado_triagem" || len(calls[0].Messages[1].Images) != 1 {
 				t.Fatalf("chamadas = %+v", calls)
 			}
 			img := calls[0].Messages[1].Images[0]

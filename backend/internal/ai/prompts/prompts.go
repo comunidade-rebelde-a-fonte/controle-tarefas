@@ -37,6 +37,7 @@ var versions = map[string]string{
 	"conciliacao/extrator_extrato":          "2026.10.1",
 	"conciliacao/extrator_extrato_correcao": "2026.10.1",
 	"conciliacao/playbook":                  "2026.10.1",
+	"conciliacao/extrator_comprovante":      "2026.10.1",
 }
 
 // fragments são blocos anexados a outro prompt (o playbook vai junto do extrator): têm versão e

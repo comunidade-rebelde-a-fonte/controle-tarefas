@@ -181,6 +181,13 @@ Cabeçalho de importação com saldos, período, banco/conta, resultado de valid
 
 Dados normalizados de comprovantes, com confiança por campo e referências/bbox quando aplicável.
 
+> **Desde a TASK-017 (D-028):**
+> - um lançamento por comprovante (`client_entries_document_uq`, migration `0027`); o manual não tem documento;
+> - `trace_id` aponta a corrida do extrator (nulo no leitor determinístico e no lançamento manual);
+> - `status`: `extraido` (campos essenciais acima do limiar), `parcial` (campo a revisar, fora do razão) ou `manual`;
+> - `field_confidence` guarda a confiança de cada campo como texto decimal (o `str()` da origem); `field_origin`, a página, o trecho e o bbox; `flags`, as marcas de borda (`parcelado`, `juros`, `iss_retido`, `nf:<número>`);
+> - `duplicate_flagged` marca a duplicata de leiaute diferente (mesmo valor, data e contraparte normalizada na empresa), gravada e nunca descartada.
+
 ### `reconciliations`
 
 - transações e lançamentos vinculados (modelar N:1 sem perder pass 4)

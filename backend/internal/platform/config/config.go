@@ -93,6 +93,9 @@ type Config struct {
 	// TriageThreshold é o limiar de confiança da triagem da Conciliação (LIMIAR_TRIAGEM, padrão
 	// 0,70 como na origem; TASK-016): abaixo dele, o documento vai para revisao_triagem.
 	TriageThreshold decimal.Decimal
+	// FieldThreshold é o limiar de confiança por campo do comprovante (LIMIAR_CAMPO, padrão 0,70
+	// como na origem; TASK-017): campo essencial abaixo dele deixa o lançamento parcial.
+	FieldThreshold decimal.Decimal
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -266,11 +269,16 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	errs = append(errs, loadLangfuse(&cfg, getenv)...)
 	errs = append(errs, loadS3(&cfg, getenv)...)
-	threshold, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv("LIMIAR_TRIAGEM")), "0.70"))
-	if terr != nil || threshold.Sign() < 0 || threshold.Cmp(decimal.FromInt(1)) > 0 {
-		errs = append(errs, fmt.Errorf("LIMIAR_TRIAGEM inválido: %q (decimal de 0 a 1, ex.: 0.70)", getenv("LIMIAR_TRIAGEM")))
+	for _, l := range []struct {
+		name string
+		dst  *decimal.Decimal
+	}{{"LIMIAR_TRIAGEM", &cfg.TriageThreshold}, {"LIMIAR_CAMPO", &cfg.FieldThreshold}} {
+		threshold, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv(l.name)), "0.70"))
+		if terr != nil || threshold.Sign() < 0 || threshold.Cmp(decimal.FromInt(1)) > 0 {
+			errs = append(errs, fmt.Errorf("%s inválido: %q (decimal de 0 a 1, ex.: 0.70)", l.name, getenv(l.name)))
+		}
+		*l.dst = threshold
 	}
-	cfg.TriageThreshold = threshold
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

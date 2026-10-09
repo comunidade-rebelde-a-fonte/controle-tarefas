@@ -1,14 +1,19 @@
-// Package pipeline é o processamento dos documentos da Conciliação no worker [REQ-019 a REQ-022;
-// TASK-016, D-027]: porte de app/servicos/{pipeline,importacao,processar_local}.py e
-// app/agentes/{triador,extrator_extrato,llm}.py do Conciliador (commit 2bc6e26).
+// Package pipeline é o processamento dos documentos da Conciliação no worker [REQ-019 a REQ-023;
+// TASK-016, D-027; TASK-017, D-028]: porte de app/servicos/{pipeline,importacao,processar_local,
+// comprovantes}.py e app/agentes/{triador,extrator_extrato,extrator_comprovante,llm}.py do
+// Conciliador (commit 2bc6e26).
 //
 // O agente interpreta; o código valida, calcula e persiste:
-//   - job reconciliation_triage (TriageHandler): o leitor determinístico do texto nativo do PDF
-//     (o atalho processar_local da origem, agora no job) e, se ele não importar, o triador;
-//   - job statement_extract (ExtractHandler): o leitor determinístico do CSV ou o extrator com
+//   - job reconciliation_triage (HandleTriage): os leitores determinísticos do texto nativo do PDF
+//     (o atalho processar_local da origem, agora no job: extrato e comprovante) e, se eles não
+//     resolverem, o triador;
+//   - job statement_extract (HandleExtract): o leitor determinístico do CSV ou o extrator com
 //     até 3 tentativas (texto nativo, render 150 DPI, render 300 DPI com extrator_forte),
 //     feedback exato do validador e playbook do banco;
-//   - a importação é atômica e só existe com o portão aritmético aprovado (R$ 0,00) [AC-015].
+//   - a importação é atômica e só existe com o portão aritmético aprovado (R$ 0,00) [AC-015];
+//   - job receipt_extract (HandleReceipt): o extrator de comprovante (texto primeiro; render e
+//     visão sem texto ou com campo fraco), as regras de campo e a duplicata sinalizada; campo
+//     essencial fraco deixa o lançamento parcial, na fila de revisão [REQ-023].
 //
 // Tudo é gravado na transação do job; o log de extração guarda cada tentativa [CC-10].
 package pipeline
@@ -45,8 +50,7 @@ import (
 const (
 	KindTriage           = reconciliation.JobTriage
 	KindStatementExtract = reconciliation.JobStatementExtract
-	// KindReceiptExtract é o comprovante triado; o handler chega com a TASK-017 e, até lá, o job
-	// espera na fila sem gastar tentativa (D-019).
+	// KindReceiptExtract é o comprovante triado (TASK-017, ReceiptHandler).
 	KindReceiptExtract = reconciliation.JobReceiptExtract
 )
 
@@ -94,6 +98,7 @@ const (
 	ReasonNoCompany        = "empresa_nao_identificada"
 	ReasonAccountOtherFirm = "conta_de_outra_empresa"
 	ReasonClosedPeriod     = "periodo_fechado"
+	ReasonWeakFields       = "campos_abaixo_limiar"
 )
 
 // Storage é o armazenamento dos originais (objectstore.Store).
@@ -115,6 +120,8 @@ type Resolver interface {
 type Config struct {
 	// TriageThreshold é o LIMIAR_TRIAGEM (0,70 na origem).
 	TriageThreshold decimal.Decimal
+	// FieldThreshold é o LIMIAR_CAMPO do comprovante (0,70 na origem).
+	FieldThreshold decimal.Decimal
 	// AgentOnly pula os leitores determinísticos: só a avaliação do extrator contra o golden
 	// (avaliar_extrator da origem) usa, para medir o agente nos PDFs que o leitor leria.
 	AgentOnly bool
@@ -300,6 +307,7 @@ type logEntry struct {
 	prompt        promptRef
 	rawOutput     string
 	validator     *statement.Result
+	check         map[string]any // regras de campo do comprovante (no lugar do validador do extrato)
 	tokensIn      *int32
 	tokensOut     *int32
 	costUSD       *decimal.Decimal
@@ -335,8 +343,11 @@ func (p *Processor) writeLog(ctx context.Context, q *store.Queries, doc store.Re
 		TokensIn: e.tokensIn, TokensOut: e.tokensOut, CostUsd: e.costUSD, TraceID: optString(e.traceID),
 		JobID: optString(jobID), Error: optString(e.errText), Now: p.clock.Now(),
 	}
-	if e.validator != nil {
+	switch {
+	case e.validator != nil:
 		params.ValidatorResult = jsonBytes(e.validator)
+	case e.check != nil:
+		params.ValidatorResult = jsonBytes(e.check)
 	}
 	if e.latency > 0 {
 		ms := clamp32(e.latency.Milliseconds())

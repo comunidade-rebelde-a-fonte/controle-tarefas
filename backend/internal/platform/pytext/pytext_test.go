@@ -1,6 +1,9 @@
 package pytext
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 // Classes do Python 3 em texto (str.isspace, \d e \w do re). Os goldens da chave de dedupe da
 // Conciliação e do mascaramento do Langfuse cobrem o uso; aqui ficam os casos-limite.
@@ -34,6 +37,28 @@ func TestClasses_MatchPython(t *testing.T) {
 	for _, r := range []rune{'-', '.', ' ', '/', 0x0301} { // marca combinante sozinha não é \w
 		if IsWord(r) {
 			t.Errorf("IsWord(%U) = true", r)
+		}
+	}
+}
+
+// Saídas do str.splitlines() do Python 3.13 para os mesmos textos.
+func TestSplitLines_MatchesPython(t *testing.T) {
+	cases := []struct {
+		in   string
+		want []string
+	}{
+		{"a\nb", []string{"a", "b"}},
+		{"a\r\nb\rc\vd\fe\x1cf\x1dg\x1eh\u0085i\u2028j\u2029k", []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}},
+		{"a\n", []string{"a"}},
+		{"\n", []string{""}},
+		{"", []string{}},
+		{"a\n\nb", []string{"a", "", "b"}},
+		{"a\x1fb", []string{"a\x1fb"}},
+		{"a\r\r\nb", []string{"a", "", "b"}},
+	}
+	for _, c := range cases {
+		if got := SplitLines(c.in); !reflect.DeepEqual(got, c.want) {
+			t.Errorf("SplitLines(%q) = %q; Python %q", c.in, got, c.want)
 		}
 	}
 }

@@ -166,8 +166,8 @@ test-frontend:
 test-litellm: ## Integração com o LiteLLM real (container) e provedor simulado: alias → modelo → provedor, sem chamada externa
 	cd backend && go test -count=1 -tags litellm -run TestGateway ./internal/ai/litellm/
 
-eval-extrator: ## Avalia o extrator da Conciliação contra o golden com o LiteLLM do ambiente (CUSTO de provedor real: só com autorização)
-	cd backend && LITELLM_BASE_URL=http://localhost:$(LITELLM_PORT) LITELLM_API_KEY=$(LITELLM_MASTER_KEY) EVAL_REPORT=$(CURDIR)/backend/eval-extrator.json go test -count=1 -timeout 30m -tags golden -run TestGoldenReport_RealGateway -v ./internal/reconciliation/pipeline/
+eval-extrator: ## Avalia os extratores da Conciliação (extrato e comprovante) contra o golden com o LiteLLM do ambiente (CUSTO de provedor real: só com autorização)
+	cd backend && LITELLM_BASE_URL=http://localhost:$(LITELLM_PORT) LITELLM_API_KEY=$(LITELLM_MASTER_KEY) EVAL_REPORT=$(CURDIR)/backend/eval-extrator.json EVAL_REPORT_COMPROVANTES=$(CURDIR)/backend/eval-extrator-comprovantes.json go test -count=1 -timeout 30m -tags golden -run 'TestGolden(Receipt)?Report_RealGateway' -v ./internal/reconciliation/pipeline/
 
 test-langfuse: ## Integração com o Langfuse local real (exige make langfuse-up): envia uma corrida e confere pela API pública
 	cd backend && go test -count=1 -tags langfuse -run TestLangfuse ./internal/ai/tracer/

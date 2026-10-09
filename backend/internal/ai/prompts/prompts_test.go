@@ -16,6 +16,7 @@ var pinned = map[string]string{
 	"conciliacao/extrator_extrato@2026.10.1":          "0f65d93356b6",
 	"conciliacao/extrator_extrato_correcao@2026.10.1": "5dac592e2910",
 	"conciliacao/playbook@2026.10.1":                  "9ad8a00dd7f0",
+	"conciliacao/extrator_comprovante@2026.10.1":      "cf7bf1ef831a",
 }
 
 func TestPrompts_VersionAndHashPinned(t *testing.T) {

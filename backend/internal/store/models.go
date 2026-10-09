@@ -180,6 +180,7 @@ type ClientEntry struct {
 	CreatedBy             *string
 	CreatedAt             time.Time
 	UpdatedAt             time.Time
+	TraceID               *string
 }
 
 type Company struct {

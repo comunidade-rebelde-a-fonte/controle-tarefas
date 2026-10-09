@@ -65,9 +65,9 @@ func (r Result) MarshalJSON() ([]byte, error) {
 		lines = []RejectedLine{}
 	}
 	return marshalNoHTML(resultJSON{
-		OK: r.OK, Credits: pyDecimal{r.Credits}, Debits: pyDecimal{r.Debits},
-		ComputedBalance: pyDecimal{r.ComputedBalance}, ExpectedBalance: pyDecimal{r.ExpectedBalance},
-		Difference: pyDecimal{r.Difference}, RejectedLines: lines, OrderGaps: nonNil(r.OrderGaps),
+		OK: r.OK, Credits: pyDecimal{Decimal: r.Credits}, Debits: pyDecimal{Decimal: r.Debits},
+		ComputedBalance: pyDecimal{Decimal: r.ComputedBalance}, ExpectedBalance: pyDecimal{Decimal: r.ExpectedBalance},
+		Difference: pyDecimal{Decimal: r.Difference}, RejectedLines: lines, OrderGaps: nonNil(r.OrderGaps),
 		DatesOutside: nonNil(r.DatesOutside),
 	})
 }

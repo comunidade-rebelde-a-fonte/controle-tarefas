@@ -20,9 +20,9 @@ import (
 	"controle/internal/store"
 )
 
-// HandleTriage é o handler do job reconciliation_triage (handle_triagem da origem): o leitor
-// determinístico do PDF e, se ele não resolver, o triador. O documento triado como extrato ganha o
-// job statement_extract; como comprovante, o receipt_extract (TASK-017).
+// HandleTriage é o handler do job reconciliation_triage (handle_triagem da origem): os leitores
+// determinísticos do PDF (extrato e comprovante) e, se eles não resolverem, o triador. O documento
+// triado como extrato ganha o job statement_extract; como comprovante, o receipt_extract.
 func (p *Processor) HandleTriage(ctx context.Context, tx pgx.Tx, job jobs.Claimed) error {
 	id, err := documentID(job)
 	if err != nil {
@@ -42,6 +42,10 @@ func (p *Processor) HandleTriage(ctx context.Context, tx pgx.Tx, job jobs.Claime
 	}
 	if !p.cfg.AgentOnly {
 		handled, _, err := p.localPDF(ctx, tx, doc, src, job.ID)
+		if err != nil || handled {
+			return err
+		}
+		handled, _, err = p.localReceipt(ctx, tx, doc, src, job.ID)
 		if err != nil || handled {
 			return err
 		}

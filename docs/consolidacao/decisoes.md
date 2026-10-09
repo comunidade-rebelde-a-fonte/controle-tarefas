@@ -4,7 +4,51 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
-### D-027 — Triagem e extração do extrato da Conciliação (TASK-016; 09/10/2026, dentro da autonomia da spec; a validar com a TASK)
+### D-028 — Extração de comprovantes e lançamentos manuais da Conciliação (TASK-017; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** de `app/domain/schemas.py` (`ComprovanteExtraido`), `app/agentes/extrator_comprovante.py`, `app/servicos/comprovantes.py`, do leitor de comprovante de `app/servicos/processar_local.py` e das rotas `/lancamentos` e `/lancamentos/csv` do Conciliador (commit `2bc6e26`).
+  - Domínio puro em `backend/internal/reconciliation/receipt`: schema com a validação do pydantic, `campos_abaixo_limiar` e o leitor determinístico (`parse_comprovante_texto`). Travado por golden gerado pelo próprio Python da origem (`testdata/receipt_gen.py`): 77 saídas do LLM e 36 textos, entre eles os 13 comprovantes do cenário lidos pelo PyMuPDF.
+  - A validação no estilo do pydantic, que o extrato e o comprovante dividem, foi para `internal/platform/pymodel`.
+  - No worker (`pipeline`): o leitor no job de triagem e o job `receipt_extract`.
+- **Leitor determinístico (CC-08, o atalho `processar_local` para comprovantes)**, no job de triagem e sem LLM:
+  - só lê o PDF com texto que diz "comprovante" e não é extrato. A origem tentava ler qualquer PDF com uma data e um valor;
+  - a origem procurava a palavra "horizonte" (a empresa da aula) no pagador e no recebedor para decidir o sentido. O porte procura a empresa do documento pelo nome: razão social e nome fantasia, sem a natureza jurídica, em palavras inteiras, sem acento nem caixa. Nos textos do golden as duas regras coincidem;
+  - a empresa é a do envio ou, sem ela, a única empresa cadastrada cujo CNPJ está impresso no comprovante;
+  - a leitura só vale com a empresa achada no comprovante (pagadora, recebedora ou dona da "conta debitada") e com os campos essenciais válidos. Senão, o documento segue para o triador e o extrator. A origem gravava qualquer leitura e, sem achar a empresa, supunha entrada com confiança 0,80, acima do limiar;
+  - os 13 comprovantes do cenário saem iguais aos da origem, do PDF ao lançamento (teste de ponta a ponta).
+- **Extrator (REQ-023, CC-13).** Roteamento da M3.3 da origem, com até 2 chamadas ao alias `extrator`:
+  - o PDF com texto vai primeiro como texto (até 16.000 caracteres, como na origem). Se a saída vier fora do schema ou com campo essencial fraco, vai de novo com as páginas renderizadas a 150 DPI (até 3) e o texto;
+  - PDF sem texto vai renderizado; foto ou print, como estão. Vale a leitura com menos campos a revisar;
+  - **divergências:** a origem fazia uma chamada só e, sem texto, mandava a marca "[imagem N bytes]" no lugar da imagem. O modelo também não sabia quem era o cliente: aqui a mensagem leva a empresa do documento (razão social e CNPJ), de que o sentido depende;
+  - saída estruturada com `json_schema` estrito. O schema pede também `alertas`, no vocabulário da origem (`parcelado`, `juros`, `iss_retido`, `nf:<número>`); marca fora dele é descartada. As marcas que o código lê do texto (as mesmas do leitor) somam-se às do agente;
+  - guarda a mais, como no extrato: confiança fora de 0 a 1 recusa a saída, assim como os tipos fora do schema estrito.
+- **Regras de campo (M3.4)**, depois do schema:
+  - campo essencial (data, valor, sentido, contraparte) nulo ou abaixo do `LIMIAR_CAMPO` (0,70, o da origem) deixa o lançamento `parcial`, fora do razão, e o documento em `revisao_extracao` (`campos_abaixo_limiar`, com os campos e o limiar);
+  - o porte acrescenta: valor ≤ 0 ou fora de numeric(14,2) fica nulo e vai à revisão; contraparte em branco, idem. A origem gravava o valor negativo;
+  - `contraparte_doc` fica só com os dígitos. Sem 11 (CPF) ou 14 (CNPJ), como o CPF mascarado do PIX, fica nulo, sem mandar à revisão: não é campo essencial na origem.
+- **Gravação (CC-13, CC-14)** na transação do job: um lançamento por comprovante (índice único, migration `0027`), com a confiança e a origem (página, trecho, bbox) de cada campo, as marcas e a corrida do extrator.
+  - **Duplicata de leiaute diferente (M3.5):** mesmo valor, mesma data e contraparte normalizada é gravada e sinalizada, nunca descartada. O porte compara só na mesma empresa; a origem comparava com todos os lançamentos.
+  - **Empresa:** a do envio ou a do CNPJ impresso. Sem nenhuma, ou com mais de uma cadastrada no comprovante: `revisao_extracao` (`empresa_nao_identificada`), sem lançamento.
+  - **Trava (AC-025):** Contábil fechado na competência da data do comprovante deixa o documento em `pendencia_periodo_fechado`, sem lançamento.
+- **Lançamentos manuais (CC-12)** em `backend/internal/reconciliation/entries`: `POST /reconciliation/entries` (formulário), `POST /reconciliation/entries/import` (CSV) e `GET /reconciliation/entries` (lista com filtros).
+  - Status `manual`, com o autor e a intervenção humana no log de extração (a origem registrava só a do formulário). Trava do Contábil em cada competência.
+  - Empresa obrigatória; no CSV a origem não tinha cliente. Data ISO, valor positivo com até 2 casas (ponto ou vírgula), sentido C ou D, documento com 11 ou 14 dígitos.
+  - CSV `data;valor;sentido;contraparte` da origem (cabeçalho opcional), tudo ou nada, com o erro de cada linha. A origem pulava a linha curta e derrubava a importação na primeira data ou valor ilegível. Aceita UTF-8 e Windows-1252.
+- **Documento.** O detalhe traz o lançamento (`entry`). O reprocessamento vale para o comprovante em revisão sem lançamento; com lançamento, responde 409, porque a correção é campo a campo na fila (TASK-021).
+- **Prompt** `conciliacao/extrator_comprovante.md` (versão 2026.10.1): o texto da origem com os itens do prompt-spec §2, a entrada que o sistema envia, a empresa do documento e as marcas. Saíram as ferramentas que o modelo não chama: o render é do código e a `consultar_cnpj` não existe.
+- **Auditoria (CC-10).** Cada tentativa vai para o log de extração, com as regras de campo no lugar do validador; a leitura determinística, como `leitor_local` (tentativa 0).
+  - Corrida `extrator_comprovante` no tracer, com a decisão `extracao_comprovante`. Nome da contraparte não entra na decisão, que vai ao Langfuse.
+- **Relatório (M3.9).** Gabarito dos 13 comprovantes do cenário (`testdata/golden/comprovantes/gabarito.json`, com os dados do gerador da origem).
+  - Mede a acurácia por campo (data, valor, sentido, contraparte, documento da contraparte e tipo), as chamadas, o custo e a latência.
+  - `make test` roda com o gateway simulado. `make eval-extrator` passa a avaliar também o comprovante, com custo de provedor real: **não rodado**, depende do seu aceite.
+- **Configuração.** `LIMIAR_CAMPO` no worker (compose e `.env.example`).
+- **Não portado:** `reler_comprovantes_soltos` (a origem não o chamava de lugar nenhum) e a `consultar_cnpj` (P-007, aguarda decisão).
+- **AC-020** (classificação) é da TASK-020; esta TASK entrega os lançamentos que ela classifica.
+- **Fica para depois:**
+  - TASK-018: o matching lê as marcas (parcelado, juros, ISS retido, NF repetida) para não conciliar sozinho;
+  - TASK-021: a fila campo a campo, com o trecho e o bbox, e as telas dos lançamentos.
+
+### D-027 — Triagem e extração do extrato da Conciliação (TASK-016; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `app/agentes/{triador,extrator_extrato,ferramentas,llm}.py`, `app/domain/{schemas,validador,money,csv_extrato,pdf_extrato}.py` e `app/servicos/{pipeline,importacao,processar_local}.py` do Conciliador (commit `2bc6e26`).
   - Domínio puro em `backend/internal/reconciliation/statement`: schema do extrato e da triagem com a validação do pydantic, validador, dicas e leitores determinísticos. Travado por golden gerado pelo próprio Python da origem (`testdata/statement_gen.py`, 256 casos) e por testes de propriedade do validador (TEST-016).
@@ -739,6 +783,7 @@ C:\Desenvolvimento\controle-a-fonte\
 | P-004 | FR-23 agente `echo` | aprovado: não portar (D-012) |
 | P-005 | D-017: sujeição ao Fator R pelo `companies.factor_r` e carteira só com empresas do Simples no PA | validada pelo usuário com a fatia (08/10/2026) |
 | P-006 | Exibição do fator com 2 casas, como na origem: 0,279999 aparece como "28,00%" ao lado de "Anexo V" (o anexo e o semáforo usam o valor exato) | observação para a TASK-029; sem mudança de regra |
+| P-007 | `consultar_cnpj` (CC-15, tool-contract §2): a origem nunca a implementou e o contrato proíbe chamada externa nova sem decisão. Recomendação: consulta só local (o cadastro de empresas e os CNPJs já vistos em lançamentos da mesma empresa, por nome normalizado e com resultado único), aplicada pelo código quando o comprovante não traz o documento da contraparte. Alternativa: fonte pública de CNPJ, que é chamada externa nova | aguarda decisão do usuário (TASK-017, D-028) |
 
 ### Pendências herdadas (permanecem pendentes; não resolver por suposição)
 

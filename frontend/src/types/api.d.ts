@@ -1547,10 +1547,11 @@ export interface paths {
          * Reprocessa o documento em revisão, parado por período fechado ou com o processamento encerrado sem sucesso [06 §4]
          * @description Não ignora portão nenhum: o documento volta para a fila e passa de novo pela triagem
          *     (`revisao_triagem`, `pendencia_periodo_fechado`, ou `pendente` com o job encerrado sem
-         *     sucesso) ou pela extração (`revisao_extracao` de extrato, ou `triado` com o job encerrado
-         *     sem sucesso). Fica no log de extração como intervenção humana (alias `humano`). Importado ou
-         *     ainda na fila: 409 `DOCUMENT_NOT_RETRYABLE`. Contábil fechado na competência do envio ou do
-         *     período lido: 423 `PERIOD_CLOSED` [AC-025].
+         *     sucesso) ou pela extração (`revisao_extracao` de extrato ou de comprovante sem lançamento,
+         *     ou `triado` com o job encerrado sem sucesso). Fica no log de extração como intervenção
+         *     humana (alias `humano`). Importado, ainda na fila ou comprovante que já tem lançamento (a
+         *     correção dele é campo a campo, na fila de revisão): 409 `DOCUMENT_NOT_RETRYABLE`. Contábil
+         *     fechado na competência do envio ou do período lido: 423 `PERIOD_CLOSED` [AC-025].
          */
         post: operations["retryReconciliationDocument"];
         delete?: never;
@@ -1576,6 +1577,56 @@ export interface paths {
         get: operations["downloadReconciliationDocument"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lançamentos do cliente (lidos dos comprovantes e manuais), por data */
+        get: operations["listReconciliationEntries"];
+        put?: never;
+        /**
+         * Insere um lançamento do cliente à mão [CC-12]
+         * @description O criar_lancamento da origem, com a empresa obrigatória: nasce com o status `manual`,
+         *     fica no log de extração como intervenção humana e passa pela trava do Contábil na
+         *     competência da data (423 `PERIOD_CLOSED`) [AC-025]. Valor positivo, até 2 casas; o sentido
+         *     diz se entra (C) ou sai (D).
+         */
+        post: operations["createReconciliationEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importa lançamentos do cliente de um CSV (data;valor;sentido;contraparte) [CC-12]
+         * @description O csv_lancamentos da origem, na empresa informada: uma linha por lançamento, separada por
+         *     ponto e vírgula, com a data em AAAA-MM-DD, o valor com ponto ou vírgula decimal, o sentido
+         *     C ou D e a contraparte (colunas a mais são ignoradas); a 1ª linha com "data" é o
+         *     cabeçalho; linhas em branco são puladas. Tudo ou nada: com uma linha inválida, nada é
+         *     gravado e a resposta traz o erro de cada linha (400 `INVALID_ENTRIES_CSV`, com
+         *     `details.lines`). UTF-8 ou Windows-1252, até 2 MB e 5.000 lançamentos. Trava do Contábil
+         *     em cada competência (423 `PERIOD_CLOSED`).
+         */
+        post: operations["importReconciliationEntries"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2956,8 +3007,8 @@ export interface components {
              * @description Diagnóstico do documento em revisão ou pendência: `motivo` (confianca_baixa,
              *     tipo_desconhecido, documento_ilegivel, agente_desligado, saida_invalida, saldo_nao_fecha,
              *     metadados_ausentes, csv_ilegivel, empresa_nao_identificada, conta_de_outra_empresa,
-             *     periodo_fechado), os detalhes e, quando houver, `validacao` (o ResultadoValidacao da
-             *     origem).
+             *     periodo_fechado, campos_abaixo_limiar), os detalhes (no comprovante, `campos` a revisar
+             *     e o `limiar`) e, quando houver, `validacao` (o ResultadoValidacao da origem).
              */
             diagnosis: {
                 [key: string]: unknown;
@@ -3038,7 +3089,8 @@ export interface components {
             model: string | null;
             /** @description nome@versão#hash dos prompts enviados */
             prompt_version: string | null;
-            validation: components["schemas"]["ReconciliationValidation"] | null;
+            /** @description O validador do extrato (portão) ou as regras de campo do comprovante */
+            validation: components["schemas"]["ReconciliationValidation"] | components["schemas"]["ReconciliationReceiptCheck"] | null;
             tokens_in: number | null;
             tokens_out: number | null;
             cost_usd: components["schemas"]["DecimalString"] | null;
@@ -3055,10 +3107,116 @@ export interface components {
             /** Format: date-time */
             created_at: string;
         };
-        /** @description Documento com a importação e o histórico das tentativas (AC-014) */
+        /**
+         * @description Regras de campo do comprovante (M3.4 da origem) numa tentativa: os campos essenciais
+         *     (data, valor, sentido, contraparte) nulos, inválidos ou com confiança abaixo do limiar.
+         */
+        ReconciliationReceiptCheck: {
+            /** @description Nenhum campo a revisar */
+            ok: boolean;
+            campos_a_revisar: ("data" | "valor" | "sentido" | "contraparte")[];
+            limiar: components["schemas"]["DecimalString"];
+        };
+        /**
+         * @description Documento com a importação do extrato ou o lançamento do comprovante e o histórico das
+         *     tentativas (AC-014)
+         */
         ReconciliationDocumentDetail: components["schemas"]["ReconciliationDocument"] & {
             import: components["schemas"]["ReconciliationStatementImport"] | null;
+            /** @description Lançamento lido do comprovante (um por documento) */
+            entry: components["schemas"]["ReconciliationClientEntry"] | null;
             attempts: components["schemas"]["ReconciliationExtractionAttempt"][];
+        };
+        /**
+         * @description parcial: comprovante com campo essencial a revisar (fora do razão, na fila); extraido:
+         *     comprovante com os campos essenciais acima do limiar; manual: inserido à mão.
+         * @enum {string}
+         */
+        ReconciliationEntryStatus: "pendente" | "parcial" | "extraido" | "manual";
+        /** @description Onde o campo está no documento (OrigemCampo da origem), para a fila destacar */
+        ReconciliationFieldOrigin: {
+            pagina: number;
+            trecho: string;
+            /** @description [x0, y0, x1, y1] na página renderizada, ou null */
+            bbox: number[] | null;
+        };
+        /** @description Lançamento do cliente (lancamento_cliente da origem) [REQ-023, CC-12] */
+        ReconciliationClientEntry: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Comprovante de origem (nulo no manual)
+             */
+            document_id: string | null;
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            counterparty: string | null;
+            /** @description CPF (11) ou CNPJ (14 dígitos) */
+            counterparty_doc: string | null;
+            /** @description Nota fiscal, ID da transação, nosso número… */
+            document_ref: string | null;
+            /**
+             * @example pix
+             * @example boleto
+             * @example ted
+             */
+            operation_type: string | null;
+            status: components["schemas"]["ReconciliationEntryStatus"];
+            /** @description Confiança de cada campo lido (texto decimal) */
+            field_confidence: {
+                [key: string]: components["schemas"]["DecimalString"];
+            };
+            field_origin: {
+                [key: string]: components["schemas"]["ReconciliationFieldOrigin"];
+            };
+            /** @description Possível duplicata de leiaute diferente: sinalizada, nunca descartada */
+            duplicate_flagged: boolean;
+            /** @description Marcas de borda: parcelado, juros, iss_retido e nf:<número> [REQ-030] */
+            flags: string[];
+            account_code: string | null;
+            /** @enum {string|null} */
+            classification_origin: "regra" | "historico" | "agente" | "manual" | null;
+            classification_pending: boolean;
+            /** @description Corrida do extrator (nula no leitor determinístico e no manual) */
+            trace_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ReconciliationClientEntryList: {
+            items: components["schemas"]["ReconciliationClientEntry"][];
+            /**
+             * Format: int64
+             * @description Total com os filtros
+             */
+            total: number;
+        };
+        ReconciliationClientEntryCreate: {
+            company_id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            /**
+             * @description Positivo, até 2 casas (ponto ou vírgula decimal)
+             * @example 1234.56
+             */
+            amount: string;
+            /** @enum {string} */
+            direction: "C" | "D";
+            counterparty?: string | null;
+            /** @description CPF ou CNPJ (11 ou 14 dígitos; pontuação é ignorada) */
+            counterparty_doc?: string | null;
+            document_ref?: string | null;
+        };
+        ReconciliationEntriesImport: {
+            inserted: number;
+            ids: components["schemas"]["Uuid"][];
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -6399,6 +6557,117 @@ export interface operations {
             404: components["responses"]["NotFound"];
             /** @description MinIO fora (STORAGE_UNAVAILABLE) */
             503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listReconciliationEntries: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                status?: components["schemas"]["ReconciliationEntryStatus"];
+                /** @description Data do lançamento a partir de */
+                date_from?: string;
+                /** @description Data do lançamento até */
+                date_to?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lançamentos (sem data por último) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClientEntryList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    createReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationClientEntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Lançamento gravado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClientEntry"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    importReconciliationEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    company_id: components["schemas"]["Uuid"];
+                };
+            };
+        };
+        responses: {
+            /** @description Lançamentos gravados */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationEntriesImport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description CSV acima de 2 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
                 headers: {
                     [name: string]: unknown;
                 };

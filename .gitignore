@@ -14,8 +14,9 @@ storage/
 backend/tmp/
 backend/tmp-worker/
 backend/bin/
-# Relatório do make eval-extrator (TASK-016)
+# Relatórios do make eval-extrator (TASK-016 e TASK-017)
 backend/eval-extrator.json
+backend/eval-extrator-comprovantes.json
 *.test
 *.out
 coverage.*

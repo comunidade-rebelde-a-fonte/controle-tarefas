@@ -56,6 +56,13 @@ Gate soberano: saldo deve fechar R$ 0,00 independentemente do score do modelo.
 
 Acurácia por campo em tipos previstos pelo projeto original.
 
+> **Como foi implementado (TASK-017; D-028).**
+> - Gabarito dos 13 comprovantes do cenário da origem (PIX, boleto e ordem bancária) em `backend/internal/reconciliation/testdata/golden/comprovantes`, com os dados do gerador do cenário.
+> - O relatório pula o leitor determinístico e traz, por documento e no total, a acurácia por campo (data, valor, sentido, contraparte normalizada, documento da contraparte e tipo), os lançamentos extraídos e parciais, as chamadas, o custo e a latência.
+> - `make test` roda o relatório com o gateway simulado; `make eval-extrator` roda com o LiteLLM do ambiente (provedor real, só por ação explícita).
+> - O schema, as regras de campo e o leitor determinístico são travados por golden do Python da origem (113 casos), e o leitor também de ponta a ponta nos 13 PDFs.
+> - O mínimo de 5 comprovantes de cada tipo (M3.8 da origem), em PDF e imagem, depende de material real anonimizado, como o golden do extrato.
+
 ### Matching
 
 Testes determinísticos por passe, inclusive ambiguidade e casos de borda.

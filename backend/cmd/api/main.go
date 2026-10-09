@@ -100,20 +100,21 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 	defer func() { _ = extractor.Close() }()
 	pgdasAgent := inbox.NewAgent(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
 		inbox.NewStorage(cfg.FileStorageDir), extractor)
-	// Conciliação (TASK-016): triagem e extração do extrato. O original vem do MinIO; os agentes,
-	// pelo LiteLLM com os aliases da tela de IA.
+	// Conciliação (TASK-016/017): triagem e extração do extrato e do comprovante. O original vem do
+	// MinIO; os agentes, pelo LiteLLM com os aliases da tela de IA.
 	originals := objectstore.New(objectstore.Config{
 		Endpoint: cfg.S3Endpoint, Region: cfg.S3Region, AccessKey: cfg.S3AccessKey, SecretKey: cfg.S3SecretKey.Reveal(), Bucket: cfg.S3Bucket,
 	})
 	processor := pipeline.New(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
 		jobs.NewQueue(sysClock, cfg.JobMaxAttempts), originals, extractor,
 		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults),
-		pipeline.Config{TriageThreshold: cfg.TriageThreshold}, logger)
+		pipeline.Config{TriageThreshold: cfg.TriageThreshold, FieldThreshold: cfg.FieldThreshold}, logger)
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
 	}, worker.Handlers(worker.HandlerDeps{
 		LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse,
 		ReconciliationTriage: processor.HandleTriage, StatementExtract: processor.HandleExtract,
+		ReceiptExtract: processor.HandleReceipt,
 	}))
 	// Fila semanal do priorizador (TASK-013): aos domingos, a partir de ROTINA_PRIORIZADOR_HORA,
 	// uma vez por semana e sem LLM, como a rotina_semanal da origem.

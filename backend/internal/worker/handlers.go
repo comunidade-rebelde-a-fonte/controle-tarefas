@@ -23,15 +23,20 @@ const KindReconciliationTriage = "reconciliation_triage"
 // KindStatementExtract extrai o extrato triado (TASK-016).
 const KindStatementExtract = "statement_extract"
 
+// KindReceiptExtract extrai o comprovante triado (TASK-017).
+const KindReceiptExtract = "receipt_extract"
+
 // HandlerDeps são os handlers que dependem de configuração.
 type HandlerDeps struct {
 	// LangfuseSync é o tracer.Syncer.Handle.
 	LangfuseSync jobs.Handler
 	// PgdasParse é o inbox.Agent.HandleParse (o parser_pgdas no upload).
 	PgdasParse jobs.Handler
-	// ReconciliationTriage e StatementExtract são o pipeline.Processor da Conciliação.
+	// ReconciliationTriage, StatementExtract e ReceiptExtract são o pipeline.Processor da
+	// Conciliação.
 	ReconciliationTriage jobs.Handler
 	StatementExtract     jobs.Handler
+	ReceiptExtract       jobs.Handler
 }
 
 // Handlers são os tipos de job que este worker executa. Cada TASK que cria um tipo de job
@@ -46,6 +51,7 @@ func Handlers(d HandlerDeps) map[string]jobs.Handler {
 		KindPgdasParse:           d.PgdasParse,
 		KindReconciliationTriage: d.ReconciliationTriage,
 		KindStatementExtract:     d.StatementExtract,
+		KindReceiptExtract:       d.ReceiptExtract,
 	} {
 		if handler != nil {
 			h[kind] = handler

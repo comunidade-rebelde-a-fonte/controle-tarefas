@@ -8,6 +8,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"controle/internal/reconciliation/entries"
 	"controle/internal/store"
 )
 
@@ -51,10 +52,12 @@ type ExtractionAttempt struct {
 	CreatedAt     time.Time       `json:"created_at"`
 }
 
-// DocumentDetail é o documento com a importação e o histórico das tentativas (AC-014).
+// DocumentDetail é o documento com a importação do extrato ou o lançamento do comprovante e o
+// histórico das tentativas (AC-014).
 type DocumentDetail struct {
 	Document
 	Import   *StatementImport    `json:"import"`
+	Entry    *entries.Entry      `json:"entry"`
 	Attempts []ExtractionAttempt `json:"attempts"`
 }
 
@@ -79,6 +82,9 @@ func (s *Service) detail(ctx context.Context, doc Document) (DocumentDetail, err
 			Validation: rawOrNull(imp.Validation), Transactions: imp.Transactions, TraceID: imp.TraceID, CreatedAt: imp.CreatedAt,
 		}
 	case !errors.Is(err, pgx.ErrNoRows):
+		return DocumentDetail{}, err
+	}
+	if out.Entry, err = entries.ByDocument(ctx, s.pool, doc.ID); err != nil {
 		return DocumentDetail{}, err
 	}
 	logs, err := q.ListExtractionLogsByDocument(ctx, &doc.ID)

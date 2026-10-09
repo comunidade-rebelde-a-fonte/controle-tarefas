@@ -91,7 +91,7 @@ var models = ai.Defaults{
 func setup(t *testing.T) env {
 	t.Helper()
 	gw := &fakeGateway{}
-	e := setupWith(t, gw, models, pipeline.Config{TriageThreshold: decimal.MustParse("0.70")})
+	e := setupWith(t, gw, models, pipeline.Config{TriageThreshold: decimal.MustParse("0.70"), FieldThreshold: decimal.MustParse("0.70")})
 	e.gw = gw
 	return e
 }
@@ -110,7 +110,8 @@ func setupWith(t *testing.T, gw pipeline.Gateway, defaults ai.Defaults, cfg pipe
 	originals := objectstore.New(objectstore.Config{Endpoint: m.Endpoint, Region: "us-east-1", AccessKey: m.AccessKey, SecretKey: m.SecretKey, Bucket: m.Bucket})
 	proc := pipeline.New(sys, tracer.New(sys, q), q, originals, pdf, gw, aliases.NewResolver(defaults), cfg, quiet)
 	runner := jobs.NewRunner(pool, sys, quiet, jobs.RunnerConfig{WorkerID: "w-conciliacao", Concurrency: 1, PollInterval: time.Millisecond, Lease: 10 * time.Minute},
-		map[string]jobs.Handler{pipeline.KindTriage: proc.HandleTriage, pipeline.KindStatementExtract: proc.HandleExtract})
+		map[string]jobs.Handler{pipeline.KindTriage: proc.HandleTriage, pipeline.KindStatementExtract: proc.HandleExtract,
+			pipeline.KindReceiptExtract: proc.HandleReceipt})
 	return env{srv: srv, pool: pool, runner: runner}
 }
 
@@ -203,6 +204,7 @@ type docOut struct {
 		Status        string  `json:"status"`
 		LastErrorCode *string `json:"last_error_code"`
 	} `json:"job"`
+	Entry  *entryOut `json:"entry"`
 	Import *struct {
 		ID             string          `json:"id"`
 		CompanyID      string          `json:"company_id"`
@@ -215,6 +217,26 @@ type docOut struct {
 		TraceID        *string         `json:"trace_id"`
 	} `json:"import"`
 	Attempts []attemptOut `json:"attempts"`
+}
+
+// entryOut é o lançamento do comprovante no detalhe do documento.
+type entryOut struct {
+	ID               string            `json:"id"`
+	CompanyID        string            `json:"company_id"`
+	DocumentID       *string           `json:"document_id"`
+	Date             *string           `json:"date"`
+	Amount           *string           `json:"amount"`
+	Direction        *string           `json:"direction"`
+	Counterparty     *string           `json:"counterparty"`
+	CounterpartyDoc  *string           `json:"counterparty_doc"`
+	DocumentRef      *string           `json:"document_ref"`
+	OperationType    *string           `json:"operation_type"`
+	Status           string            `json:"status"`
+	FieldConfidence  map[string]string `json:"field_confidence"`
+	FieldOrigin      json.RawMessage   `json:"field_origin"`
+	DuplicateFlagged bool              `json:"duplicate_flagged"`
+	Flags            []string          `json:"flags"`
+	TraceID          *string           `json:"trace_id"`
 }
 
 func (e env) doc(t *testing.T, id string) docOut {
@@ -238,6 +260,17 @@ func (e env) company(t *testing.T, code, cnpj string) string {
 	var id string
 	if err := e.pool.QueryRow(ctx, `INSERT INTO companies (internal_code, legal_name, cnpj, service_start_date, payroll_type, created_by, updated_by)
 		VALUES ($1, 'Empresa ' || $1, $2, '2025-01-01', 'PAYROLL', $3, $3) RETURNING id`, code, cnpj, user.AdminID).Scan(&id); err != nil {
+		t.Fatal(err)
+	}
+	return id
+}
+
+// namedCompany cadastra a empresa com a razão social dada (o leitor do comprovante procura o nome).
+func (e env) namedCompany(t *testing.T, code, legalName, cnpj string) string {
+	t.Helper()
+	var id string
+	if err := e.pool.QueryRow(ctx, `INSERT INTO companies (internal_code, legal_name, cnpj, service_start_date, payroll_type, created_by, updated_by)
+		VALUES ($1, $2, $3, '2025-01-01', 'PAYROLL', $4, $4) RETURNING id`, code, legalName, cnpj, user.AdminID).Scan(&id); err != nil {
 		t.Fatal(err)
 	}
 	return id

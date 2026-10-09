@@ -12,11 +12,10 @@
 package statement
 
 import (
-	"errors"
-	"strings"
 	"time"
 
 	"controle/internal/platform/decimal"
+	"controle/internal/platform/pymodel"
 )
 
 // Sentidos da transação.
@@ -40,7 +39,7 @@ const (
 
 // ErrInvalidOutput é a saída do LLM que não passa pelo schema (TentativaParseError da origem):
 // JSON inválido, campo faltando, tipo errado ou valor fora do contrato. Conta como tentativa.
-var ErrInvalidOutput = errors.New("saída fora do schema")
+var ErrInvalidOutput = pymodel.ErrInvalidOutput
 
 // Transaction é uma linha do extrato (TransacaoExtraida).
 type Transaction struct {
@@ -95,28 +94,19 @@ type Triage struct {
 
 // --- JSON no formato do model_dump(mode="json") da origem ---
 
-type pyDecimal struct{ d decimal.Decimal }
+// Decimal como o str() do Python e data em ISO (pymodel), como o model_dump(mode="json").
+type (
+	pyDecimal = pymodel.Decimal
+	pyDate    = pymodel.Date
+)
 
-// MarshalJSON escreve o decimal como o str() do Python, como o pydantic.
-func (p pyDecimal) MarshalJSON() ([]byte, error) { return marshalNoHTML(p.d.String()) }
-
-type pyDate struct{ t time.Time }
-
-func (p pyDate) MarshalJSON() ([]byte, error) { return marshalNoHTML(p.t.Format(time.DateOnly)) }
-
-func optDecimal(d *decimal.Decimal) *pyDecimal {
-	if d == nil {
-		return nil
-	}
-	return &pyDecimal{*d}
-}
-
-func optDate(t *time.Time) *pyDate {
-	if t == nil {
-		return nil
-	}
-	return &pyDate{*t}
-}
+var (
+	optDecimal    = pymodel.OptDecimal
+	optDate       = pymodel.OptDate
+	marshalNoHTML = pymodel.Marshal
+	pyStrip       = pymodel.Strip
+	invalid       = pymodel.Invalid
+)
 
 type transactionJSON struct {
 	Order        int        `json:"ordem"`
@@ -171,15 +161,15 @@ func (l Layout) MarshalJSON() ([]byte, error) { return marshalNoHTML(l.json()) }
 func (s Statement) MarshalJSON() ([]byte, error) {
 	out := statementJSON{
 		Bank: s.Bank, Branch: s.Branch, Account: s.Account,
-		PeriodStart: pyDate{s.PeriodStart}, PeriodEnd: pyDate{s.PeriodEnd},
-		OpeningBalance: pyDecimal{s.OpeningBalance}, ClosingBalance: pyDecimal{s.ClosingBalance},
+		PeriodStart: pyDate{Time: s.PeriodStart}, PeriodEnd: pyDate{Time: s.PeriodEnd},
+		OpeningBalance: pyDecimal{Decimal: s.OpeningBalance}, ClosingBalance: pyDecimal{Decimal: s.ClosingBalance},
 		Transactions: make([]transactionJSON, 0, len(s.Transactions)),
 	}
 	for _, t := range s.Transactions {
 		out.Transactions = append(out.Transactions, transactionJSON{
-			Order: t.Order, Date: pyDate{t.Date}, Description: t.Description, DocumentRef: t.DocumentRef,
-			Amount: pyDecimal{t.Amount}, Direction: t.Direction, BalanceAfter: optDecimal(t.BalanceAfter),
-			Confidence: pyDecimal{t.Confidence},
+			Order: t.Order, Date: pyDate{Time: t.Date}, Description: t.Description, DocumentRef: t.DocumentRef,
+			Amount: pyDecimal{Decimal: t.Amount}, Direction: t.Direction, BalanceAfter: optDecimal(t.BalanceAfter),
+			Confidence: pyDecimal{Decimal: t.Confidence},
 		})
 	}
 	if s.Layout != nil {
@@ -205,74 +195,54 @@ func (t Triage) MarshalJSON() ([]byte, error) {
 	return marshalNoHTML(triageJSON{
 		Kind: t.Kind, Bank: t.Bank, Branch: t.Branch, Account: t.Account,
 		PeriodStart: optDate(t.PeriodStart), PeriodEnd: optDate(t.PeriodEnd),
-		Confidence: pyDecimal{t.Confidence}, Justification: t.Justification,
+		Confidence: pyDecimal{Decimal: t.Confidence}, Justification: t.Justification,
 	})
 }
 
 // --- Saída do LLM: json.loads(extrair_json(conteudo)) e model_validate ---
 
-// ExtractJSON tira as cercas de markdown e a prosa em volta do JSON (extrair_json da origem): só
-// a embalagem sai; o conteúdo continua validado pelo schema.
-func ExtractJSON(text string) string {
-	t := pyStrip(text)
-	if strings.HasPrefix(t, "```") {
-		if i := strings.Index(t, "\n"); i != -1 {
-			t = t[i+1:]
-		} else {
-			t = ""
-		}
-		t = pyRstrip(t)
-		t = strings.TrimSuffix(t, "```")
-		t = pyStrip(t)
-	}
-	if !strings.HasPrefix(t, "{") && !strings.HasPrefix(t, "[") {
-		start, end := strings.Index(t, "{"), strings.LastIndex(t, "}")
-		if start != -1 && end > start {
-			t = t[start : end+1]
-		}
-	}
-	return t
-}
+// ExtractJSON tira as cercas de markdown e a prosa em volta do JSON (extrair_json da origem).
+func ExtractJSON(text string) string { return pymodel.ExtractJSON(text) }
 
 // Limites dos campos no banco (numeric(14,2), integer e a faixa da confiança).
 var (
 	moneyLimit = decimal.MustParse("1000000000000")
 	one        = decimal.FromInt(1)
-	maxInt32   = int64(1<<31 - 1)
+	maxInt32   = pymodel.MaxInt32
 )
 
 // ParseStatement valida a saída do extrator como ExtratoExtraido.model_validate da origem, mais
 // os limites do banco (ordem e página de 1 a 2³¹−1, confiança de 0 a 1, valor dentro de
 // numeric(14,2), período em ordem). Recusa com ErrInvalidOutput.
 func ParseStatement(content string) (Statement, error) {
-	raw, err := loadsObject(ExtractJSON(content))
+	raw, err := pymodel.LoadsObject(ExtractJSON(content))
 	if err != nil {
 		return Statement{}, err
 	}
-	var v validator
+	var v pymodel.Validator
 	s := Statement{
-		Bank:           v.str(raw, "banco"),
-		Branch:         v.str(raw, "agencia"),
-		Account:        v.str(raw, "conta"),
-		PeriodStart:    v.date(raw, "periodo_inicio"),
-		PeriodEnd:      v.date(raw, "periodo_fim"),
-		OpeningBalance: v.money(raw, "saldo_inicial"),
-		ClosingBalance: v.money(raw, "saldo_final"),
+		Bank:           v.Str(raw, "banco"),
+		Branch:         v.Str(raw, "agencia"),
+		Account:        v.Str(raw, "conta"),
+		PeriodStart:    v.Date(raw, "periodo_inicio"),
+		PeriodEnd:      v.Date(raw, "periodo_fim"),
+		OpeningBalance: v.Money(raw, "saldo_inicial"),
+		ClosingBalance: v.Money(raw, "saldo_final"),
 	}
 	items, ok := raw["transacoes"].([]any)
 	if !ok {
-		v.fail("transacoes")
+		v.Fail("transacoes")
 	}
 	s.Transactions = make([]Transaction, 0, len(items))
 	for _, it := range items {
-		s.Transactions = append(s.Transactions, v.transaction(it))
+		s.Transactions = append(s.Transactions, parseTransaction(&v, it))
 	}
 	if l, present := raw["leiaute"]; present && l != nil {
-		layout := v.layout(l)
+		layout := parseLayout(&v, l)
 		s.Layout = &layout
 	}
-	if v.err != nil {
-		return Statement{}, v.err
+	if err := v.Err(); err != nil {
+		return Statement{}, err
 	}
 	if err := guardStatement(s); err != nil {
 		return Statement{}, err
@@ -319,30 +289,30 @@ func guardStatement(s Statement) error {
 // ParseTriage valida a saída do triador como ResultadoTriagem.model_validate da origem, mais os
 // limites do banco (confiança de 0 a 1, período em ordem).
 func ParseTriage(content string) (Triage, error) {
-	raw, err := loadsObject(ExtractJSON(content))
+	raw, err := pymodel.LoadsObject(ExtractJSON(content))
 	if err != nil {
 		return Triage{}, err
 	}
-	var v validator
+	var v pymodel.Validator
 	t := Triage{
-		Kind:          v.literal(raw, "tipo", KindStatement, KindReceipt, KindUnknown),
-		Bank:          v.optStr(raw, "banco"),
-		Branch:        v.optStr(raw, "agencia"),
-		Account:       v.optStr(raw, "conta"),
-		PeriodStart:   v.optDate(raw, "periodo_inicio"),
-		PeriodEnd:     v.optDate(raw, "periodo_fim"),
-		Confidence:    v.decimalField(raw["confianca"], "confianca"),
+		Kind:          v.Literal(raw, "tipo", KindStatement, KindReceipt, KindUnknown),
+		Bank:          v.OptStr(raw, "banco"),
+		Branch:        v.OptStr(raw, "agencia"),
+		Account:       v.OptStr(raw, "conta"),
+		PeriodStart:   v.OptDate(raw, "periodo_inicio"),
+		PeriodEnd:     v.OptDate(raw, "periodo_fim"),
+		Confidence:    v.Decimal(raw["confianca"], "confianca"),
 		Justification: "",
 	}
 	if j, present := raw["justificativa"]; present {
 		s, ok := j.(string)
 		if !ok {
-			v.fail("justificativa")
+			v.Fail("justificativa")
 		}
 		t.Justification = s
 	}
-	if v.err != nil {
-		return Triage{}, v.err
+	if err := v.Err(); err != nil {
+		return Triage{}, err
 	}
 	if t.Confidence.Sign() < 0 || t.Confidence.Cmp(one) > 0 {
 		return Triage{}, invalid("confiança fora de 0 a 1")

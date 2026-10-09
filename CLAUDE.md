@@ -131,6 +131,13 @@ Triagem e extração (TASK-016, D-027):
 - prompts em `internal/ai/prompts/conciliacao/`;
 - `make eval-extrator` avalia o extrator contra o golden com o LiteLLM real (custo de provedor: só com autorização).
 
+Comprovantes e lançamentos (TASK-017, D-028):
+- domínio em `backend/internal/reconciliation/receipt`: schema do `ComprovanteExtraido`, `campos_abaixo_limiar`, regras de campo (M3.4) e o leitor determinístico, travados por golden gerado pelo Python da origem (`testdata/receipt_gen.py`); a validação no estilo do pydantic fica em `internal/platform/pymodel`;
+- worker: o leitor de comprovante roda no job de triagem (só com a empresa do documento achada no comprovante); o job `receipt_extract` lê o texto e, com campo fraco ou sem texto, a imagem; campo essencial abaixo de `LIMIAR_CAMPO` deixa o lançamento `parcial`, fora do razão;
+- um lançamento por comprovante, com confiança, trecho e bbox por campo, marcas de borda e a duplicata de leiaute diferente sinalizada (nunca descartada);
+- lançamentos manuais (formulário e CSV, tudo ou nada) em `backend/internal/reconciliation/entries`, com a trava do Contábil;
+- `consultar_cnpj` não existe: aguarda decisão (P-007).
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

@@ -14,6 +14,7 @@ import (
 	"controle/internal/platform/competence"
 	"controle/internal/platform/httpx"
 	"controle/internal/reconciliation"
+	"controle/internal/reconciliation/entries"
 	"controle/internal/store"
 	"controle/internal/user"
 )
@@ -27,10 +28,11 @@ type retryPlan struct {
 }
 
 // planRetry decide o reprocessamento pelo estado do documento [06 §4]: a revisão da triagem e a
-// pendência de período fechado voltam à triagem; a revisão da extração do extrato, à extração;
+// pendência de período fechado voltam à triagem; a revisão da extração, à extração do extrato ou
+// do comprovante (o comprovante já com lançamento não: a correção dele é campo a campo, na fila);
 // documento com o job encerrado sem sucesso (dead) repete o mesmo job. O resto (importado, em
 // processamento) não é reprocessado.
-func planRetry(doc store.GetReconciliationDocumentRow) (retryPlan, bool) {
+func planRetry(doc store.GetReconciliationDocumentRow, hasEntry bool) (retryPlan, bool) {
 	jobDead := doc.JobStatus != nil && *doc.JobStatus == jobs.StatusDead
 	switch doc.Status {
 	case reconciliation.DocTriageReview, reconciliation.DocClosedPeriod:
@@ -38,6 +40,9 @@ func planRetry(doc store.GetReconciliationDocumentRow) (retryPlan, bool) {
 	case reconciliation.DocExtractReview:
 		if doc.Kind != nil && *doc.Kind == "extrato" {
 			return retryPlan{kind: reconciliation.JobStatementExtract, status: reconciliation.DocTriaged}, true
+		}
+		if doc.Kind != nil && *doc.Kind == "comprovante" && !hasEntry {
+			return retryPlan{kind: reconciliation.JobReceiptExtract, status: reconciliation.DocTriaged}, true
 		}
 	case reconciliation.DocPending:
 		if jobDead || doc.JobID == nil {
@@ -87,7 +92,16 @@ func (s *Service) Retry(ctx context.Context, id string) (UploadResult, error) {
 		if err != nil {
 			return err
 		}
-		plan, ok := planRetry(doc)
+		entry, err := entries.ByDocument(ctx, tx, id)
+		if err != nil {
+			return err
+		}
+		plan, ok := planRetry(doc, entry != nil)
+		if !ok && entry != nil {
+			return apperr.Conflict(codeNotRetryable,
+				"O comprovante já tem lançamento: a correção é campo a campo, na fila de revisão.").
+				WithDetails(map[string]any{"status": doc.Status, "entry_id": entry.ID})
+		}
 		if !ok {
 			return apperr.Conflict(codeNotRetryable,
 				"Só se reprocessa documento em revisão, parado por período fechado ou com o processamento encerrado sem sucesso.").

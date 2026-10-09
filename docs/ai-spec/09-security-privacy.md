@@ -52,6 +52,8 @@ A UI de modelos armazena apenas provider/model/params não secretos.
 - Originais de outros módulos respeitam storage atual.
 
 > **Desde a TASK-016 (D-027):** o triador e o extrator recebem o texto ou as imagens do documento pelo LiteLLM, como na origem. O Langfuse recebe só contagens e a decisão, sem o texto, as imagens, a agência nem a conta; a saída bruta do modelo fica só no log de extração local.
+>
+> **Desde a TASK-017 (D-028):** o extrator de comprovante recebe também a razão social e o CNPJ da empresa do documento (já impressos nele), para decidir o sentido. A decisão que vai ao Langfuse não traz o nome nem o documento da contraparte.
 
 > **Como foi implementado na Conciliação (TASK-015; D-026).**
 > - O tipo vem do conteúdo (PDF, PNG, JPEG ou texto) e o limite é de 20 MB.

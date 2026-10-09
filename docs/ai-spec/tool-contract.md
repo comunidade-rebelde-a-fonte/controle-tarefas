@@ -38,6 +38,8 @@ Entrada: identificação parcial permitida.
 Saída: dados de apoio.  
 Para demo/local, se integração externa não existir no projeto original, usar fonte/fixture prevista; não inventar chamada externa nova sem decisão.
 
+> **Na TASK-017 (D-028):** não implementada; a origem nunca a teve. A forma (consulta só local ou fonte externa) aguarda a decisão do usuário (P-007). O extrator não busca CNPJ de memória: `contraparte_doc` só quando visível por inteiro.
+
 ## 3. Fator R
 
 ### `obter_factor_r`

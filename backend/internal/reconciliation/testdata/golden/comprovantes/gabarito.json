@@ -1,0 +1,19 @@
+{
+  "origem": "conciliacao/scripts/gerar_cenario.py do Conciliador (commit 2bc6e26): os dados de cada comprovante do cenário de aula (fictício); os PDFs ficam em ../../conciliacao/comprovantes",
+  "empresa": {"razao_social": "Construtora Horizonte Ltda", "cnpj": "12345678000190"},
+  "comprovantes": [
+    {"arquivo": "05_pix_recebido_ana_lucia_1de4.pdf", "data": "2026-08-05", "valor": "2000.00", "sentido": "C", "contraparte": "Ana Lucia Ferreira", "contraparte_doc": null, "tipo_operacao": "pix"},
+    {"arquivo": "06_pix_enviado_aco_brasil_1de2.pdf", "data": "2026-08-06", "valor": "20000.00", "sentido": "D", "contraparte": "Aco Brasil Distribuidora Ltda", "contraparte_doc": "89012345000167", "tipo_operacao": "pix"},
+    {"arquivo": "08_pix_recebido_ana_lucia_2de4.pdf", "data": "2026-08-08", "valor": "6000.00", "sentido": "C", "contraparte": "Ana Lucia Ferreira", "contraparte_doc": null, "tipo_operacao": "pix"},
+    {"arquivo": "09_pix_enviado_aco_brasil_2de2.pdf", "data": "2026-08-09", "valor": "11850.00", "sentido": "D", "contraparte": "Aco Brasil Distribuidora Ltda", "contraparte_doc": "89012345000167", "tipo_operacao": "pix"},
+    {"arquivo": "10_boleto_madeireira_pinheiro_banco_beta.pdf", "data": "2026-08-10", "valor": "12640.00", "sentido": "D", "contraparte": "Madeireira Pinheiro Ltda", "contraparte_doc": "01234567000189", "tipo_operacao": "boleto"},
+    {"arquivo": "12_ordem_bancaria_prefeitura_rio_claro.pdf", "data": "2026-08-12", "valor": "95000.00", "sentido": "C", "contraparte": "Prefeitura Municipal de Rio Claro", "contraparte_doc": null, "tipo_operacao": "ted"},
+    {"arquivo": "13_boleto_ceramica_santa_rita_com_juros.pdf", "data": "2026-08-13", "valor": "18696.50", "sentido": "D", "contraparte": "Ceramica Santa Rita Ltda", "contraparte_doc": "90123456000178", "tipo_operacao": "boleto"},
+    {"arquivo": "14_pix_recebido_ana_lucia_3de4.pdf", "data": "2026-08-14", "valor": "3000.00", "sentido": "C", "contraparte": "Ana Lucia Ferreira", "contraparte_doc": null, "tipo_operacao": "pix"},
+    {"arquivo": "20_pix_enviado_hidraulica_total_1.pdf", "data": "2026-08-20", "valor": "7960.00", "sentido": "D", "contraparte": "Hidraulica Total Ltda", "contraparte_doc": "02345678000190", "tipo_operacao": "pix"},
+    {"arquivo": "21_pix_enviado_hidraulica_total_2.pdf", "data": "2026-08-21", "valor": "7960.00", "sentido": "D", "contraparte": "Hidraulica Total Ltda", "contraparte_doc": "02345678000190", "tipo_operacao": "pix"},
+    {"arquivo": "21_pix_recebido_ana_lucia_4de4.pdf", "data": "2026-08-21", "valor": "5000.00", "sentido": "C", "contraparte": "Ana Lucia Ferreira", "contraparte_doc": null, "tipo_operacao": "pix"},
+    {"arquivo": "22_boleto_mercado_bom_preco_pago_com_juros.pdf", "data": "2026-08-22", "valor": "27603.00", "sentido": "C", "contraparte": "Mercado Bom Preco Ltda", "contraparte_doc": "56789012000134", "tipo_operacao": "boleto"},
+    {"arquivo": "26_pix_recebido_escola_crescer_banco_beta.pdf", "data": "2026-08-26", "valor": "20000.00", "sentido": "C", "contraparte": "Escola Crescer Ltda", "contraparte_doc": "67890123000145", "tipo_operacao": "pix"}
+  ]
+}

@@ -232,19 +232,22 @@ func TestLoad_CORSOrigins(t *testing.T) {
 	}
 }
 
-// Limiar da triagem da Conciliação (TASK-016): 0,70 por padrão, como a origem; decimal de 0 a 1.
-func TestLoad_TriageThreshold(t *testing.T) {
+// Limiares da Conciliação: o da triagem (TASK-016) e o por campo do comprovante (TASK-017), 0,70
+// por padrão, como a origem; decimal de 0 a 1.
+func TestLoad_ReconciliationThresholds(t *testing.T) {
 	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
-	if err != nil || cfg.TriageThreshold.String() != "0.70" {
-		t.Fatalf("padrão = %s, %v", cfg.TriageThreshold, err)
+	if err != nil || cfg.TriageThreshold.String() != "0.70" || cfg.FieldThreshold.String() != "0.70" {
+		t.Fatalf("padrão = %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, err)
 	}
-	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": " 0.85 "}))
-	if err != nil || cfg.TriageThreshold.String() != "0.85" {
-		t.Fatalf("0.85 = %s, %v", cfg.TriageThreshold, err)
+	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": " 0.85 ", "LIMIAR_CAMPO": "0.9"}))
+	if err != nil || cfg.TriageThreshold.String() != "0.85" || cfg.FieldThreshold.String() != "0.9" {
+		t.Fatalf("0.85 e 0.9 = %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, err)
 	}
-	for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
-		if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": bad})); err == nil || !strings.Contains(err.Error(), "LIMIAR_TRIAGEM") {
-			t.Errorf("LIMIAR_TRIAGEM=%q aceito: %v", bad, err)
+	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO"} {
+		for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
+			if _, err := Load(env(map[string]string{"DATABASE_URL": "x", name: bad})); err == nil || !strings.Contains(err.Error(), name) {
+				t.Errorf("%s=%q aceito: %v", name, bad, err)
+			}
 		}
 	}
 }

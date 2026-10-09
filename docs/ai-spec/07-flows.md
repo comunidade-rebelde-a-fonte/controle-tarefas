@@ -98,6 +98,11 @@ flowchart TD
 
 Campo de baixa confiança não é inventado.
 
+> **Como foi implementado (TASK-017; D-028).**
+> - No job de triagem roda antes o leitor determinístico do comprovante (o `processar_local` da origem). Vale a leitura com a empresa do documento achada no comprovante e os campos essenciais válidos; senão, o documento segue para o triador e o extrator.
+> - O extrator lê primeiro o texto; com saída inválida ou campo essencial fraco, lê de novo com as páginas renderizadas (até 2 chamadas). Sem texto, vai a imagem.
+> - O validador de campos (M3.4) deixa o lançamento `parcial` com campo nulo, inválido ou abaixo de `LIMIAR_CAMPO`; a duplicata de leiaute diferente é sinalizada; o Contábil fechado na competência deixa o documento em `pendencia_periodo_fechado`.
+
 ## F-006 — Matching e resolvedor
 
 ```mermaid
