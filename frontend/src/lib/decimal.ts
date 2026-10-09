@@ -76,6 +76,13 @@ export function formatMoney(value: string | null | undefined): string {
   return text.startsWith("-") ? `-R$ ${text.slice(1)}` : `R$ ${text}`;
 }
 
+/** Decimal da API com `places` casas, em pt-BR: "1234.56789" → "1.234,5679"; nulo → "—". */
+export function formatDecimal(value: string | null | undefined, places: number): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const p = parse(value);
+  return p ? render(p, places) : value;
+}
+
 /** Fração decimal → percentual: "0.2799" → "27,99%"; nulo → "—". */
 export function formatRate(value: string | null | undefined, places = 2): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -103,6 +110,22 @@ export function parseMoneyInput(input: string): string | null {
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
   const [int = "0", cents = ""] = normalized.split(".");
   return `${int.replace(/^0+(?=\d)/, "")}.${cents.padEnd(2, "0")}`;
+}
+
+/**
+ * Percentual digitado → fração decimal da API, sem float: "27,5" → "0.275", "100" → "1",
+ * "0,5%" → "0.005" (origem: percentualParaTaxa do simulador). Aceita de 0 a 100, com até 4
+ * casas; devolve null fora disso. Só converte a unidade: nenhuma conta tributária.
+ */
+export function parsePercentInput(input: string): string | null {
+  const clean = input.trim().replace(/\s|%/g, "").replace(",", ".");
+  if (!/^\d{1,3}(\.\d{1,4})?$/.test(clean)) return null;
+  const [int = "0", frac = ""] = clean.split(".");
+  if (int.length === 3 && (int > "100" || (int === "100" && /[1-9]/.test(frac)))) return null;
+  const padded = int.padStart(3, "0");
+  const rateInt = padded.slice(0, -2).replace(/^0+(?=\d)/, "");
+  const rateFrac = (padded.slice(-2) + frac).replace(/0+$/, "");
+  return rateFrac ? `${rateInt}.${rateFrac}` : rateInt;
 }
 
 /** Valor da API é maior que zero? Sem float: basta haver dígito não nulo e não ser negativo. */

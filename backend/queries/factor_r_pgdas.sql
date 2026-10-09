@@ -28,20 +28,23 @@ WHERE d.id = $1;
 SELECT * FROM factor_r_pgdas_documents WHERE id = $1 FOR UPDATE;
 
 -- name: ListPgdasDocuments :many
--- Mais recentes primeiro (listar da origem), com o estado do job e o texto do agente.
+-- Mais recentes primeiro (listar da origem), com o estado do job e o texto do agente. O filtro
+-- por empresa traz os extratos vinculados a ela (aba Fator R da ficha, TASK-014b).
 SELECT d.*,
        j.status AS job_status, j.attempts AS job_attempts, j.max_attempts AS job_max_attempts,
        j.last_error_code AS job_last_error_code, COALESCE(r.output ->> 'texto', '')::text AS texto_agente
 FROM factor_r_pgdas_documents d
 LEFT JOIN jobs j ON j.id = d.job_id
 LEFT JOIN ai_runs r ON r.trace_id = d.trace_id
-WHERE sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text
+WHERE (sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text)
+  AND (sqlc.narg('company_id')::uuid IS NULL OR d.company_id = sqlc.narg('company_id')::uuid)
 ORDER BY d.created_at DESC, d.id DESC
 LIMIT sqlc.arg('row_limit') OFFSET sqlc.arg('row_offset');
 
 -- name: CountPgdasDocuments :one
 SELECT count(*) FROM factor_r_pgdas_documents
-WHERE sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text;
+WHERE (sqlc.narg('status')::text IS NULL OR status = sqlc.narg('status')::text)
+  AND (sqlc.narg('company_id')::uuid IS NULL OR company_id = sqlc.narg('company_id')::uuid);
 
 -- name: CountPgdasDocumentsByStatus :many
 SELECT status, count(*) AS total FROM factor_r_pgdas_documents GROUP BY status ORDER BY status;

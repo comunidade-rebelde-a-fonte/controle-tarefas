@@ -4,6 +4,42 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-025 — Telas do inbox PGDAS-D, do simulador, dos agentes e da observabilidade (TASK-014b; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** das telas `inbox`, `inbox/[id]`, `agentes`, `observabilidade` e `observabilidade/traces/[id]` e dos componentes `Simulador`, `Chat` e `CadastroPeloExtrato` do Fator R (commit `9dd7a74`), em `frontend/src/features/factor-r`.
+  - A tela só formata o que a API devolve: decimal por string, half-even, sem float.
+- **Navegação.** A área Fator R ganhou um submenu com Carteira, Inbox PGDAS-D, Agentes e Observabilidade, o mesmo menu da origem.
+  - Rotas: `/factor-r`, `/factor-r/inbox`, `/factor-r/inbox/:id`, `/factor-r/agents`, `/factor-r/runs` e `/factor-r/runs/:traceId`.
+  - A observabilidade fica no Fator R porque o 11 §6 trata essas métricas como do Fator R. As da Conciliação (11 §7) vêm com a TASK-021; o detalhe da corrida é genérico e pode ser reaproveitado lá.
+  - O submenu leva o PA escolhido entre a Carteira e os Agentes.
+- **Inbox.**
+  - Envio por arrastar ou escolher arquivos, vários de uma vez. O envio volta na hora (202) e a tela acompanha cada documento até o worker terminar, consultando a cada 1,5 s só enquanto há documento em processamento. Na origem, o envio esperava a leitura.
+  - Estados com ícone e texto (08 §6): na fila, processando, nova tentativa, falha no processamento, extraído, em revisão, vinculado e rejeitado.
+  - Fila parada (11 §9): documento na fila sem worker ativo mostra o aviso (`worker_online` de `GET /jobs/{id}`). Job com falha mostra o motivo e pode voltar à fila (`POST /jobs/{id}/retry`), ou o documento pode ser rejeitado.
+  - O detalhe mostra também os meses anteriores declarados e se conferem com o RBT12 e a FS12; a origem não mostrava.
+  - Vínculo manual com busca de empresa ativa pelo nome, código ou CNPJ (a origem listava todas as empresas num select).
+  - **Cadastro pelo extrato no formulário canônico da base**, com o CNPJ travado e os dados lidos já preenchidos: razão social, regime Simples Nacional, Fator R e início da atividade.
+    - O analista completa o código interno e o início do atendimento, que a base exige; na origem eram 2 cliques.
+    - CNPJ já cadastrado oferece vincular o extrato à empresa existente, como na origem.
+- **Ficha → aba Fator R** (08 §6): simulador com histórico, consultor da empresa, extratos vinculados e corridas da empresa.
+  - Simulador e consultor só aparecem para empresa sujeita ao Fator R, como na origem.
+  - Na grade, o mês lançado pelo extrato leva ao documento.
+  - API: `GET /factor-r/pgdas` ganhou o filtro `company_id`.
+- **Simulador.** Os percentuais digitados viram fração por string, sem float (origem: `percentualParaTaxa`). Meta vazia é a da política; o aviso "INSS sem teto" continua. O erro de campo da API aparece no próprio campo.
+- **Observabilidade.**
+  - Painel: corridas em 24 h e no total, sem nota humana, acerto ouro e humano, custo e tokens do LLM em 30 dias e a tabela por agente. O "Custo do Claude" da origem virou "Custo do LLM".
+  - Corridas filtráveis por agente, resultado, sem nota humana e empresa (o filtro de empresa vem da ficha), de 50 em 50.
+  - Detalhe com metadados (modelo, alias, versão da configuração, tokens e custo, prompts versionados, erro e Langfuse), os passos com as chamadas ao LLM e o detalhe de cada passo, entrada, saída, decisão, nota ouro e nota humana. Na origem os spans vinham do Langfuse; aqui vêm da trilha local (D-022).
+  - Nota humana: erro exige comentário na tela, na API e no banco.
+- **E2E (TEST-014).**
+  - A suíte sobe também o worker, para o inbox.
+  - O gateway LiteLLM simulado passou a responder `/v1/chat/completions` de forma determinística: a intenção por palavras-chave e um texto sem números, que passa pelo validador. Assim o caminho com LLM roda de ponta a ponta sem provedor real (FR-20; origem: `LLM_PROVIDER=fake`).
+  - A empresa cadastrada pelo extrato no teste é inativada no fim, para a carteira da demonstração não mudar.
+  - A varredura de acessibilidade (axe) passou a cobrir o inbox, o documento, o diálogo de cadastro pelo extrato, os agentes, a observabilidade, o detalhe da corrida e o resultado do simulador. Os blocos JSON do detalhe, que rolam, recebem foco pelo teclado.
+- **Contrato.** `input`, `output` e `decision` da corrida e `data` da decisão passaram a `additionalProperties: true` no OpenAPI. São objetos livres, e o tipo gerado para o frontend era um objeto vazio.
+- **Correção.** Na aba Fator R, a grade mensal (TASK-014a) alargava a coluna da página e criava rolagem horizontal; agora a coluna encolhe e a grade rola dentro do cartão.
+- **Fica para as TASKs do plano:** Dashboard com o Fator R (AC-012, TASK-024), ficha como hub (AC-034, TASK-025) e Design System InovaSala aplicado (AC-035, TASK-029).
+
 ### D-024 — Simulador persistido e agentes consultor e priorizador (TASK-013 e TASK-006b; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `services/simulacao.py`, `agents/{consultor,priorizador,etapas,intencao,guardas,render,llm}.py` e `api/{simulations,agents}.py` do Fator R (commit `9dd7a74`), no pacote `backend/internal/factorr/agents`.

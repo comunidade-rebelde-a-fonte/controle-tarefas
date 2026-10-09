@@ -6,11 +6,15 @@ import { displayCompetence } from "@/lib/competence";
 import { TAX_REGIME_LABELS } from "@/lib/labels";
 import type { Company } from "@/services/companies";
 import { type FactorRCalc, useFactorRCalc } from "@/services/factorR";
+import { CompanyConsultant } from "./agents/CompanyConsultant";
 import { CalcPanel } from "./CalcPanel";
 import { FactorRDisclaimer, PANav } from "./common";
+import { CompanyStatementsCard } from "./inbox/CompanyStatementsCard";
 import { usePA } from "./usePA";
 import { MonthlyGrid } from "./MonthlyGrid";
+import { CompanyRunsCard } from "./runs/CompanyRunsCard";
 import { SettingsCard } from "./SettingsCard";
+import { Simulator } from "./simulator/Simulator";
 
 /** Por que a empresa não está na carteira neste PA (o cálculo continua disponível). */
 function NotMonitored({ company, calc }: { company: Company; calc: FactorRCalc }) {
@@ -40,14 +44,16 @@ function NotMonitored({ company, calc }: { company: Company; calc: FactorRCalc }
 }
 
 /**
- * Aba Fator R da ficha [TASK-014a]: resultado do PA com o cálculo explicado, a janela usada,
- * a grade mensal editável e a configuração da empresa. O PA fica na URL (`?pa=`).
+ * Aba Fator R da ficha [TASK-014a/b]: resultado do PA com o cálculo explicado, a janela usada,
+ * o simulador e o consultor (empresas sujeitas ao Fator R, como na origem), a grade mensal
+ * editável, os extratos e as corridas da empresa e a configuração. O PA fica na URL (`?pa=`).
  */
 export function FactorRTab({ company }: { company: Company }) {
   const { pa, error: paError } = usePA();
   const calc = useFactorRCalc(company.id, pa);
+  const subject = company.factor_r === true;
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-1 gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold">Fator R{pa ? ` — PA ${displayCompetence(pa)}` : ""}</h2>
         <PANav />
@@ -56,7 +62,13 @@ export function FactorRTab({ company }: { company: Company }) {
       {calc.data && !calc.data.monitorada ? <NotMonitored company={company} calc={calc.data} /> : null}
       {calc.isPending && pa !== null ? <Skeleton className="h-64" /> : null}
       {calc.data ? <CalcPanel calc={calc.data} /> : null}
+      {subject && pa ? <Simulator key={pa} companyId={company.id} pa={pa} policyMeta={calc.data?.meta_operacional} /> : null}
+      {subject ? <CompanyConsultant company={company} /> : null}
       {pa ? <MonthlyGrid companyId={company.id} pa={pa} /> : null}
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+        <CompanyStatementsCard companyId={company.id} />
+        <CompanyRunsCard companyId={company.id} />
+      </div>
       <SettingsCard company={company} />
       <FactorRDisclaimer />
     </div>

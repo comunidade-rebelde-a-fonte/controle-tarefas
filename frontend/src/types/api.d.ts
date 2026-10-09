@@ -1345,7 +1345,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Documentos do inbox, mais recentes primeiro, com a contagem por status */
+        /**
+         * Documentos do inbox, mais recentes primeiro, com a contagem por status
+         * @description A contagem por status é a do inbox inteiro, independente dos filtros. Com `company_id`,
+         *     vêm os extratos vinculados à empresa (aba Fator R da ficha).
+         */
         get: operations["listPgdasDocuments"];
         put?: never;
         /**
@@ -2219,7 +2223,9 @@ export interface components {
         AIDecision: {
             id: components["schemas"]["Uuid"];
             kind: string;
-            data: Record<string, never>;
+            data: {
+                [key: string]: unknown;
+            };
             /** Format: date-time */
             created_at: string;
         };
@@ -2262,9 +2268,15 @@ export interface components {
                 [key: string]: string;
             };
             /** @description Entrada sanitizada */
-            input: Record<string, never>;
-            output: Record<string, never>;
-            decision: Record<string, never>;
+            input: {
+                [key: string]: unknown;
+            };
+            output: {
+                [key: string]: unknown;
+            };
+            decision: {
+                [key: string]: unknown;
+            };
             spans: components["schemas"]["AIRunSpan"][];
             decisions: components["schemas"]["AIDecision"][];
             gold_evals: components["schemas"]["AIGoldEval"][];
@@ -5713,6 +5725,8 @@ export interface operations {
         parameters: {
             query?: {
                 status?: components["schemas"]["PgdasStatus"];
+                /** @description Só os extratos vinculados a esta empresa */
+                company_id?: components["schemas"]["Uuid"];
                 limit?: number;
                 offset?: number;
             };

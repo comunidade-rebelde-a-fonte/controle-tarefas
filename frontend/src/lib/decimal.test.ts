@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoney, formatRate, isPositive, moneyToInput, parseMoneyInput } from "./decimal";
+import { formatDecimal, formatMoney, formatRate, isPositive, moneyToInput, parseMoneyInput, parsePercentInput } from "./decimal";
 
 describe("formatação decimal sem float (half-even, como a origem)", () => {
   it("formata reais com milhar e centavos", () => {
@@ -44,6 +44,27 @@ describe("formatação decimal sem float (half-even, como a origem)", () => {
     expect(parseMoneyInput("")).toBe("0.00");
     expect(parseMoneyInput("007")).toBe("7.00");
     for (const bad of ["-1", "1,234", "1.2.3", "abc", "1e3", "12,345"]) expect(parseMoneyInput(bad)).toBeNull();
+  });
+
+  it("converte percentual digitado em fração, sem float (simulador)", () => {
+    expect(parsePercentInput("27,5")).toBe("0.275");
+    expect(parsePercentInput("11")).toBe("0.11");
+    expect(parsePercentInput("100")).toBe("1");
+    expect(parsePercentInput("0")).toBe("0");
+    expect(parsePercentInput("0,5%")).toBe("0.005");
+    expect(parsePercentInput(" 30 % ")).toBe("0.3");
+    expect(parsePercentInput("28.1234")).toBe("0.281234");
+    expect(parsePercentInput("099")).toBe("0.99");
+    expect(parsePercentInput("100,0")).toBe("1");
+    for (const bad of ["", "-1", "100,01", "101", "abc", "1e2", "27,12345", "27,5,1"]) expect(parsePercentInput(bad), bad).toBeNull();
+  });
+
+  it("formata decimal com casas fixas (custo do LLM)", () => {
+    expect(formatDecimal("0.0000125", 4)).toBe("0,0000");
+    expect(formatDecimal("0.00015", 4)).toBe("0,0002");
+    expect(formatDecimal("1234.5", 4)).toBe("1.234,5000");
+    expect(formatDecimal(null, 4)).toBe("—");
+    expect(formatDecimal("1.25E-7", 4)).toBe("1.25E-7");
   });
 
   it("isPositive sem float", () => {

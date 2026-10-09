@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,20 @@ function MonthRow({ companyId, competence, movement }: { companyId: string; comp
       <Th scope="row" className="static bg-card font-medium whitespace-nowrap text-foreground">
         {label}
       </Th>
-      <Td>{movement ? <Badge variant={movement.origem === "pgdas" ? "default" : "muted"}>{ORIGIN_LABELS[movement.origem]}</Badge> : <span className="text-xs text-muted-foreground">sem lançamento</span>}</Td>
+      <Td>
+        {movement?.pgdas_document_id ? (
+          // Mês lido do extrato: leva ao documento do inbox (rastreio série → extrato).
+          <Link to={`/factor-r/inbox/${movement.pgdas_document_id}`} aria-label={`Abrir o extrato PGDAS-D de ${label}`} className="inline-flex min-h-6 items-center">
+            <Badge variant="default" className="underline-offset-2 hover:underline">
+              {ORIGIN_LABELS[movement.origem]}
+            </Badge>
+          </Link>
+        ) : movement ? (
+          <Badge variant={movement.origem === "pgdas" ? "default" : "muted"}>{ORIGIN_LABELS[movement.origem]}</Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">sem lançamento</span>
+        )}
+      </Td>
       {FIELDS.map(([field, fieldLabel]) =>
         showDeclared && field !== "receita_bruta" ? null : (
           <Td key={field}>

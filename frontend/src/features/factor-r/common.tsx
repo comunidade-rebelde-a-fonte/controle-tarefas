@@ -1,9 +1,11 @@
 import { ChevronLeft, ChevronRight, CircleAlert, CircleCheck, CircleHelp, Info, TriangleAlert } from "lucide-react";
+import type { ReactNode } from "react";
 import { CompetenceInput } from "@/components/CompetenceInput";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { displayCompetence, nextCompetence, prevCompetence } from "@/lib/competence";
+import { cn } from "@/lib/utils";
 import type { FactorRLight } from "@/services/factorR";
 import { DISCLAIMER, LIGHT_LABELS } from "./labels";
 import { usePA } from "./usePA";
@@ -62,5 +64,25 @@ export function PANav() {
         PA corrente
       </Button>
     </nav>
+  );
+}
+
+/**
+ * Filtro de lista ligado/desligado (estado na URL), com `aria-pressed`. Botão e não caixa de
+ * seleção: a URL muda numa transição do roteador, e o botão não depende de o estado mudar no clique.
+ */
+export function FilterToggle({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "inline-flex h-8 items-center rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-ring",
+        active ? "border-primary bg-primary/10 text-foreground" : "bg-card text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {children}
+    </button>
   );
 }

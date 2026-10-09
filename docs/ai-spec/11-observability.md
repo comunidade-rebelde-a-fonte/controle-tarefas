@@ -88,6 +88,13 @@ Preservar:
 - por agente: volume, latência, confiança, erros, reviews;
 - carteira/risco e cobertura 12/12.
 
+> **Tela (TASK-014b; D-025).** Fator R → Observabilidade (`/factor-r/runs`):
+> - painel com essas métricas;
+> - corridas filtráveis por agente, resultado, nota humana e empresa;
+> - detalhe da corrida com passos, decisão, nota ouro e nota humana.
+>
+> Custo e tokens vêm da trilha local (D-022). Carteira e cobertura ficam na própria carteira do Fator R.
+
 ## 7. Métricas Conciliação
 
 Preservar/adicionar:

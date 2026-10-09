@@ -118,7 +118,8 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	out, err := h.svc.List(r.Context(), ListInput{Status: r.URL.Query().Get("status"), Limit: limit, Offset: offset})
+	q := r.URL.Query()
+	out, err := h.svc.List(r.Context(), ListInput{Status: q.Get("status"), CompanyID: q.Get("company_id"), Limit: limit, Offset: offset})
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return

@@ -124,6 +124,16 @@ Estados visuais claros:
 - vinculado;
 - rejeitado.
 
+> **Como foi implementado (TASK-014a e TASK-014b; D-018 e D-025).** A área Fator R tem um submenu: Carteira, Inbox PGDAS-D, Agentes e Observabilidade (o menu da origem).
+> - **Inbox** (`/factor-r/inbox`): envio por arrastar ou escolher arquivos e acompanhamento de cada documento até o worker terminar.
+>   - Estados com ícone e texto: na fila, processando, nova tentativa, falha no processamento, extraído, em revisão, vinculado e rejeitado.
+>   - Fila parada (sem worker ativo) aparece como aviso.
+>   - O detalhe tem os campos com a confiança, os meses declarados, o original, o trace e as decisões: vincular, rejeitar e cadastrar pelo extrato (formulário canônico de empresa).
+> - **Aba Fator R da ficha:** além do resultado, da grade e da configuração (TASK-014a), o simulador com histórico, o consultor da empresa, os extratos vinculados e as corridas da empresa.
+> - **Agentes** (`/factor-r/agents`): o priorizador, com a fila do PA, e o consultor. Cada resposta tem o link do trace.
+> - **Observabilidade** (`/factor-r/runs`): painel, corridas filtráveis e detalhe da corrida com passos, decisão, nota ouro e nota humana.
+> - Disclaimer do PGDAS-D em todas as telas (FR-19).
+
 ## 7. Conciliação
 
 ### Documentos

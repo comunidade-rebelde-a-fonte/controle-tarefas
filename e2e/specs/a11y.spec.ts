@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { apiJson, bulkStatus, fixedToday, latestCompetence, openGridRow } from "../support/api";
+import { apiJson, bulkStatus, cnpjWithCheckDigits, fixedToday, latestCompetence, openGridRow, uniqueDigits } from "../support/api";
+import { statement, uploadAndWait } from "../support/pgdas";
 
 /**
  * Acessibilidade [PRD §28.3, §45.4]: axe (WCAG 2.2 A/AA) em todas as telas e modais, sem violações
@@ -37,6 +38,9 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     [`/payroll?competence=${competence}`, "Folha"],
     [`/dctfweb?competence=${competence}`, "DCTFWeb"],
     [`/factor-r?pa=${competence}`, "Fator R"],
+    ["/factor-r/inbox", "Inbox PGDAS-D"],
+    [`/factor-r/agents?pa=${competence}`, "Agentes do Fator R"],
+    ["/factor-r/runs", "Observabilidade dos agentes"],
     ["/credentials", "Procurações e Certificados"],
     [`/backlog?competence=${competence}`, "Backlog"],
     [`/obligations?competence=${competence}&state=overdue`, /Atrasadas/],
@@ -78,11 +82,41 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     await audit(page, `ficha da empresa — ${tab}`);
   }
 
-  // Fator R de uma empresa da carteira: painel, grade mensal editável e configuração.
+  // Fator R de uma empresa da carteira: painel, simulador, consultor, grade mensal editável,
+  // extratos, corridas e configuração.
   await page.goto("/factor-r");
   await page.getByRole("link", { name: "Brisa Serviços Digitais Ltda" }).click();
   await ready(page, "Brisa Serviços Digitais Ltda");
   await audit(page, "ficha da empresa — Fator R (Brisa, com mês do PGDAS-D)");
+  await page.getByRole("button", { name: "Simular" }).click();
+  await expect(page.getByTestId("resultado-simulacao")).toBeVisible({ timeout: 15_000 });
+  await audit(page, "ficha da empresa — Fator R, resultado do simulador");
+});
+
+test("TASK-014b axe: documento do inbox, cadastro pelo extrato, agentes e trace", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  // Extrato de um CNPJ fora do cadastro: fica em revisão, com a oferta de cadastro.
+  const doc = await uploadAndWait(request, "extrato-a11y.txt", statement("txt_padrao", cnpjWithCheckDigits(`63${uniqueDigits()}`)));
+  expect(doc.status).toBe("needs_review");
+  await page.goto(`/factor-r/inbox/${doc.id}`);
+  await ready(page, "Extrato PGDAS-D");
+  await audit(page, "documento do inbox em revisão");
+  await page.getByRole("button", { name: "Cadastrar e vincular" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await audit(page, "diálogo Cadastrar a empresa do extrato");
+  await page.keyboard.press("Escape");
+
+  // Chat do priorizador com a fila e o trace da corrida.
+  await page.goto("/factor-r/agents");
+  await ready(page, "Agentes do Fator R");
+  const chat = page.getByTestId("chat-priorizador");
+  await chat.getByLabel("Pergunta ao Priorizador").fill("O que priorizar esta semana?");
+  await chat.getByRole("button", { name: "Enviar" }).click();
+  await expect(chat.getByTestId("fila-priorizador")).toBeVisible({ timeout: 15_000 });
+  await audit(page, "agentes — fila do priorizador");
+  await chat.getByRole("link", { name: "ver trace" }).click();
+  await ready(page, "Trace do Priorizador");
+  await audit(page, "trace da corrida");
 });
 
 test("T-M7-04 axe: diálogos, menus e popovers sem violações serious/critical", async ({ page, request }) => {

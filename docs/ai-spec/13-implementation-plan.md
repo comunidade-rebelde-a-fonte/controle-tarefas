@@ -324,6 +324,6 @@ Para mostrar cedo a tela de outro sistema, o Fator R sem IA foi adiantado e vali
 | TASK-006a | `company_factor_r_settings`, `factor_r_movements`, `factor_r_policy`, `factor_r_simples_tables` (+ seed das tabelas), tipo decimal exato (ADR-007) | fatia |
 | TASK-006b | `factor_r_pgdas_documents` (FK de `factor_r_movements.pgdas_document_id`), `factor_r_simulations` | `factor_r_pgdas_documents` com a TASK-012 (D-023) e `factor_r_simulations` com a TASK-013 (D-024) |
 | TASK-014a | Carteira (menu "Fator R"), aba "Fator R" da ficha (resultado do PA, cálculo explicável, janela, grade mensal com FR-03, configuração), FR-07, FR-19 | fatia |
-| TASK-014b | Inbox PGDAS-D, simulador (exige simulação persistida com trace), traces e avaliações | com a TASK-012/013 |
+| TASK-014b | Inbox PGDAS-D, simulador (exige simulação persistida com trace), traces e avaliações | depois da TASK-012/013, com os agentes e a observabilidade (D-025) |
 
 "Sujeita ao Fator R" é o `companies.factor_r` do cadastro (D-017), e a carteira só traz empresas do Simples Nacional no PA. O motor do simulador (REQ-013) já foi portado e provado na TASK-010; só a API e a tela ficam para a TASK-013/014b.

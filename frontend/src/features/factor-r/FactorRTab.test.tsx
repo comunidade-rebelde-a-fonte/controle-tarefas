@@ -2,6 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Company } from "@/services/companies";
 import type { FactorRCalc, FactorRMovement, FactorRSettings } from "@/services/factorR";
+import { aiRun, pgdasDocument, TRACE_ID } from "@/test/factorR";
 import { jsonResponse, requestedUrls } from "@/test/fetch";
 import { mockFetchRoutes } from "@/test/fetchRouter";
 import { renderWithProviders } from "@/test/render";
@@ -114,6 +115,14 @@ function mock(overrides: { calc?: FactorRCalc; movements?: FactorRMovement[] } =
       });
     }
     if (method === "GET" && url.pathname === `${base}/settings`) return jsonResponse(settings);
+    // TASK-014b: simulador, extratos e corridas da empresa.
+    if (method === "GET" && url.pathname === `${base}/simulations`) return jsonResponse({ items: [] });
+    if (method === "GET" && url.pathname === "/api/v1/factor-r/pgdas" && url.searchParams.get("company_id") === ID) {
+      return jsonResponse({ items: [pgdasDocument({ id: "doc-brisa", status: "linked", motivo: null, company_id: ID, sugestao_cadastro: null })], total: 1, contagem_por_status: {} });
+    }
+    if (method === "GET" && url.pathname === "/api/v1/ai/runs" && url.searchParams.get("company_id") === ID) {
+      return jsonResponse({ items: [aiRun({ agent: "consultor", trigger: "ficha", company_id: ID, competence: "2026-09" })], total: 1 });
+    }
     if (method === "PUT" && url.pathname.startsWith(`${base}/movements/`)) {
       puts.push({ path: url.pathname, body });
       return jsonResponse(movement(url.pathname.split("/").pop() ?? ""));
@@ -231,6 +240,39 @@ describe("FactorRTab", () => {
     fireEvent.click(screen.getByRole("button", { name: "Salvar 09/2025" }));
     await waitFor(() => expect(puts).toHaveLength(1));
     expect(puts[0]?.body).toMatchObject({ version: 1, pro_labore: "4000.00", salarios_13_ferias: "10000.00", observacao: "Total declarado no PGDAS-D" });
+  });
+
+  it("TASK-014b: simulador, consultor, extratos e corridas da empresa; mês do PGDAS-D leva ao extrato", async () => {
+    mock({
+      movements: [
+        movement("2025-09", {
+          origem: "pgdas",
+          pro_labore: "0.00",
+          folha_total_declarada_pgdas: "14000.00",
+          folha_mes: "14000.00",
+          pgdas_document_id: "doc-brisa",
+        }),
+      ],
+    });
+    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    expect(await screen.findByRole("heading", { name: "Simulador de correção" })).toBeInTheDocument();
+    expect(screen.getByLabelText("PA")).toHaveValue("2026-09");
+    expect(screen.getByTestId("chat-consultor-ficha")).toHaveTextContent("Consultor · Brisa Serviços Digitais Ltda");
+    expect(await screen.findByRole("link", { name: "PA 09/2026" })).toHaveAttribute("href", "/factor-r/inbox/doc-brisa");
+    const runs = screen.getByRole("list", { name: "Corridas da empresa" });
+    expect(await within(runs).findByText(/simulador da ficha/)).toBeInTheDocument();
+    expect(within(runs).getByRole("link")).toHaveAttribute("href", `/factor-r/runs/${TRACE_ID}`);
+    expect(screen.getByRole("link", { name: "Ver todas" })).toHaveAttribute("href", `/factor-r/runs?company=${ID}`);
+    expect(await screen.findByRole("link", { name: "Abrir o extrato PGDAS-D de 09/2025" })).toHaveAttribute("href", "/factor-r/inbox/doc-brisa");
+  });
+
+  it("empresa não sujeita ao Fator R: sem simulador nem consultor, como na origem", async () => {
+    mock();
+    renderWithProviders(<FactorRTab company={{ ...company, factor_r: false }} />, { route: "/?pa=2026-09" });
+    expect(await screen.findByTestId("painel-fator-r")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Simulador de correção" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("chat-consultor-ficha")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Extratos PGDAS-D" })).toBeInTheDocument();
   });
 
   it("configuração: grava pacote, honorário e início de atividade com a versão", async () => {

@@ -1871,10 +1871,17 @@ paths:
       tags: [factor-r]
       operationId: listPgdasDocuments
       summary: Documentos do inbox, mais recentes primeiro, com a contagem por status
+      description: |
+        A contagem por status é a do inbox inteiro, independente dos filtros. Com `company_id`,
+        vêm os extratos vinculados à empresa (aba Fator R da ficha).
       parameters:
         - name: status
           in: query
           schema: { $ref: "#/components/schemas/PgdasStatus" }
+        - name: company_id
+          in: query
+          description: Só os extratos vinculados a esta empresa
+          schema: { $ref: "#/components/schemas/Uuid" }
         - name: limit
           in: query
           schema: { type: integer, minimum: 1, maximum: 200, default: 50 }
@@ -3031,7 +3038,7 @@ components:
       properties:
         id: { $ref: "#/components/schemas/Uuid" }
         kind: { type: string }
-        data: { type: object }
+        data: { type: object, additionalProperties: true }
         created_at: { type: string, format: date-time }
 
     AIGoldEval:
@@ -3077,9 +3084,9 @@ components:
             prompt_version: { type: [string, "null"] }
             error_code: { type: [string, "null"], description: "Código do erro (nunca a mensagem crua)" }
             metadata: { type: object, additionalProperties: { type: string } }
-            input: { type: object, description: "Entrada sanitizada" }
-            output: { type: object }
-            decision: { type: object }
+            input: { type: object, additionalProperties: true, description: "Entrada sanitizada" }
+            output: { type: object, additionalProperties: true }
+            decision: { type: object, additionalProperties: true }
             spans:
               type: array
               items: { $ref: "#/components/schemas/AIRunSpan" }

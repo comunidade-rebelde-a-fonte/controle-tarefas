@@ -393,6 +393,34 @@ func TestKnownCNPJ_LinksAndCreatesRevenueInPACompetence(t *testing.T) {
 	}
 }
 
+// TASK-014b: a aba Fator R da ficha lista os extratos vinculados à empresa; a contagem por status
+// continua a do inbox inteiro.
+func TestList_ByCompany(t *testing.T) {
+	e := setup(t)
+	id := e.company(t, cnpjFormat)
+	other := e.company(t, "45.723.174/0001-10")
+	linked := e.send(t, "extrato.txt", fixture(t, "txt_padrao"))
+	review := e.send(t, "sem-cnpj.txt", fixture(t, "txt_sem_cnpj"))
+	if linked.Status != inbox.StatusLinked || review.Status != inbox.StatusNeedsReview {
+		t.Fatalf("documentos = %s, %s", linked.Status, review.Status)
+	}
+	var list struct {
+		Items []docOut         `json:"items"`
+		Total int64            `json:"total"`
+		Por   map[string]int64 `json:"contagem_por_status"`
+	}
+	e.srv.Get("/api/v1/factor-r/pgdas?company_id="+id).MustStatus(t, http.StatusOK).JSON(t, &list)
+	if len(list.Items) != 1 || list.Items[0].ID != linked.ID || list.Total != 1 || list.Por["linked"] != 1 || list.Por["needs_review"] != 1 {
+		t.Fatalf("lista da empresa = %+v", list)
+	}
+	list.Items = nil
+	e.srv.Get("/api/v1/factor-r/pgdas?company_id="+other+"&status=linked").MustStatus(t, http.StatusOK).JSON(t, &list)
+	if len(list.Items) != 0 || list.Total != 0 {
+		t.Fatalf("lista de outra empresa = %+v", list)
+	}
+	e.srv.Get("/api/v1/factor-r/pgdas?company_id=x").MustStatus(t, http.StatusBadRequest)
+}
+
 func TestExistingCompetenceIsNeverOverwritten(t *testing.T) {
 	e := setup(t)
 	id := e.company(t, cnpjFormat)

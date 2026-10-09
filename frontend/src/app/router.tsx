@@ -14,6 +14,12 @@ import { ImportsPage } from "@/features/imports/ImportsPage";
 import { ReportsPage } from "@/features/reports/ReportsPage";
 import { CompanyDetailPage } from "@/features/companies/detail/CompanyDetailPage";
 import { FactorRPortfolioPage } from "@/features/factor-r/FactorRPortfolioPage";
+import { FactorRLayout } from "@/features/factor-r/FactorRLayout";
+import { AgentsPage } from "@/features/factor-r/agents/AgentsPage";
+import { InboxPage } from "@/features/factor-r/inbox/InboxPage";
+import { PgdasDocumentPage } from "@/features/factor-r/inbox/PgdasDocumentPage";
+import { ObservabilityPage } from "@/features/factor-r/runs/ObservabilityPage";
+import { RunDetailPage } from "@/features/factor-r/runs/RunDetailPage";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -31,7 +37,19 @@ export const routes = [
       { path: "accounting", element: <AccountingPage /> },
       { path: "payroll", element: <PayrollPage /> },
       { path: "dctfweb", element: <DctfwebPage /> },
-      { path: "factor-r", element: <FactorRPortfolioPage /> },
+      {
+        // Área Fator R com submenu (D-025): carteira, inbox PGDAS-D, agentes e observabilidade.
+        path: "factor-r",
+        element: <FactorRLayout />,
+        children: [
+          { index: true, element: <FactorRPortfolioPage /> },
+          { path: "inbox", element: <InboxPage /> },
+          { path: "inbox/:id", element: <PgdasDocumentPage /> },
+          { path: "agents", element: <AgentsPage /> },
+          { path: "runs", element: <ObservabilityPage /> },
+          { path: "runs/:traceId", element: <RunDetailPage /> },
+        ],
+      },
       { path: "credentials", element: <CredentialsPage /> },
       { path: "backlog", element: <BacklogPage /> },
       { path: "obligations", element: <ObligationsListPage /> },

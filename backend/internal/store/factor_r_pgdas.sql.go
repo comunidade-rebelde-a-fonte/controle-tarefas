@@ -14,11 +14,17 @@ import (
 
 const countPgdasDocuments = `-- name: CountPgdasDocuments :one
 SELECT count(*) FROM factor_r_pgdas_documents
-WHERE $1::text IS NULL OR status = $1::text
+WHERE ($1::text IS NULL OR status = $1::text)
+  AND ($2::uuid IS NULL OR company_id = $2::uuid)
 `
 
-func (q *Queries) CountPgdasDocuments(ctx context.Context, status *string) (int64, error) {
-	row := q.db.QueryRow(ctx, countPgdasDocuments, status)
+type CountPgdasDocumentsParams struct {
+	Status    *string
+	CompanyID *string
+}
+
+func (q *Queries) CountPgdasDocuments(ctx context.Context, arg CountPgdasDocumentsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countPgdasDocuments, arg.Status, arg.CompanyID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -256,13 +262,15 @@ SELECT d.id, d.company_id, d.sha256, d.file_ref, d.mime, d.size_bytes, d.origina
 FROM factor_r_pgdas_documents d
 LEFT JOIN jobs j ON j.id = d.job_id
 LEFT JOIN ai_runs r ON r.trace_id = d.trace_id
-WHERE $1::text IS NULL OR d.status = $1::text
+WHERE ($1::text IS NULL OR d.status = $1::text)
+  AND ($2::uuid IS NULL OR d.company_id = $2::uuid)
 ORDER BY d.created_at DESC, d.id DESC
-LIMIT $3 OFFSET $2
+LIMIT $4 OFFSET $3
 `
 
 type ListPgdasDocumentsParams struct {
 	Status    *string
+	CompanyID *string
 	RowOffset int32
 	RowLimit  int32
 }
@@ -296,9 +304,15 @@ type ListPgdasDocumentsRow struct {
 	TextoAgente      string
 }
 
-// Mais recentes primeiro (listar da origem), com o estado do job e o texto do agente.
+// Mais recentes primeiro (listar da origem), com o estado do job e o texto do agente. O filtro
+// por empresa traz os extratos vinculados a ela (aba Fator R da ficha, TASK-014b).
 func (q *Queries) ListPgdasDocuments(ctx context.Context, arg ListPgdasDocumentsParams) ([]ListPgdasDocumentsRow, error) {
-	rows, err := q.db.Query(ctx, listPgdasDocuments, arg.Status, arg.RowOffset, arg.RowLimit)
+	rows, err := q.db.Query(ctx, listPgdasDocuments,
+		arg.Status,
+		arg.CompanyID,
+		arg.RowOffset,
+		arg.RowLimit,
+	)
 	if err != nil {
 		return nil, err
 	}

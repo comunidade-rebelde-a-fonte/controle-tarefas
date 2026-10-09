@@ -123,7 +123,8 @@ Fatia da TASK-006a/010/011/014a (D-016 a D-018):
 - motor em `backend/internal/factorr/engine`: porte fiel do `fator_r/domain` da origem, travado por um golden gerado pelo próprio Python da origem (`testdata/golden_gen.py`);
 - API em `backend/internal/factorr`; dinheiro em `internal/platform/decimal` (ADR-007);
 - "sujeita ao Fator R" é o `companies.factor_r` (D-017);
-- telas do inbox, do simulador, dos agentes e dos traces ficam para a TASK-014b.
+- telas do inbox, do simulador, dos agentes e da observabilidade na TASK-014b (D-025): submenu da área Fator R e rotas em `frontend/src/features/factor-r` (`inbox/`, `simulator/`, `agents/`, `runs/`);
+- o E2E sobe o worker e um gateway LiteLLM simulado que responde os agentes de forma determinística (`e2e/support/fake-litellm.mjs`); nunca provedor real.
 
 Inbox PGDAS-D (TASK-012, D-023):
 - parser em `backend/internal/factorr/pgdas`: porte fiel de `parsing/pgdas.py`, travado por golden gerado pelo próprio Python da origem (`testdata/golden_gen.py`). Regex da origem só por `pytext.Compile`, que mantém `\s`, `\d`, `\b`, IGNORECASE e lookahead do Python;

@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleAlert } from "lucide-react";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
@@ -13,16 +13,12 @@ import { formatCnpj, maskCnpjInput } from "@/lib/cnpj";
 import { applyApiFieldErrors } from "@/lib/formErrors";
 import { MODULE_LABELS, MODULES, PAYROLL_TYPE_LABELS, PAYROLL_TYPES, TAX_REGIME_LABELS, TAX_REGIMES, UFS } from "@/lib/labels";
 import { type Company, useCreateCompany, useUpdateCompany } from "@/services/companies";
+import { type Conflict, conflictFrom } from "./conflict";
 import { toCreatePayload, toUpdatePayload } from "./payload";
 import { useUsers } from "@/services/users";
 import { companyFormSchema, emptyCompanyForm, type CompanyFormValues } from "./schemas";
 
 const FORM_FIELDS = Object.keys(emptyCompanyForm);
-
-interface Conflict {
-  message: string;
-  company: { id: string; internal_code: string; legal_name: string } | null;
-}
 
 function toValues(c: Company): CompanyFormValues {
   return {
@@ -54,15 +50,35 @@ interface CompanyFormProps {
   onCancel: () => void;
   conflict: Conflict | null;
   submitting: boolean;
+  /** Valores iniciais de um cadastro novo (ex.: lidos do extrato PGDAS-D). */
+  defaults?: Partial<CompanyFormValues>;
+  /** CNPJ fixo, sem edição (cadastro pelo extrato: é o CNPJ lido). */
+  cnpjReadOnly?: boolean;
+  submitLabel?: string;
+  /** Ação extra no aviso de conflito (ex.: vincular o extrato à empresa já cadastrada). */
+  conflictAction?: ReactNode;
+  /** Campos além do cadastro, antes dos botões. */
+  extra?: ReactNode;
 }
 
 /** Formulário de cadastro/edição [PRD §7.1]. Regime e módulos iniciais só no cadastro. */
-export function CompanyForm({ company, onSubmit, onCancel, conflict, submitting }: CompanyFormProps) {
+export function CompanyForm({
+  company,
+  onSubmit,
+  onCancel,
+  conflict,
+  submitting,
+  defaults,
+  cnpjReadOnly = false,
+  submitLabel,
+  conflictAction,
+  extra,
+}: CompanyFormProps) {
   const editing = !!company;
   const users = useUsers(true);
   const form = useForm<CompanyFormValues>({
     resolver: zodResolver(companyFormSchema),
-    defaultValues: company ? toValues(company) : emptyCompanyForm,
+    defaultValues: company ? toValues(company) : { ...emptyCompanyForm, ...defaults },
   });
   const { register, handleSubmit, formState, control, setError } = form;
   const errors = formState.errors;
@@ -95,6 +111,7 @@ export function CompanyForm({ company, onSubmit, onCancel, conflict, submitting 
                 Abrir ficha de {conflict.company.internal_code} — {conflict.company.legal_name}
               </Link>
             ) : null}
+            {conflictAction ? <div className="mt-2">{conflictAction}</div> : null}
           </div>
         </div>
       ) : null}
@@ -115,6 +132,7 @@ export function CompanyForm({ company, onSubmit, onCancel, conflict, submitting 
                   {...aria}
                   inputMode="numeric"
                   placeholder="00.000.000/0000-00"
+                  readOnly={cnpjReadOnly}
                   onChange={(e) => field.onChange(maskCnpjInput(e.target.value))}
                 />
               )}
@@ -246,22 +264,18 @@ export function CompanyForm({ company, onSubmit, onCancel, conflict, submitting 
         <Textarea rows={3} {...register("notes")} />
       </Field>
 
+      {extra}
+
       <DialogFooter>
         <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? "Salvando…" : editing ? "Salvar alterações" : "Cadastrar empresa"}
+          {submitting ? "Salvando…" : (submitLabel ?? (editing ? "Salvar alterações" : "Cadastrar empresa"))}
         </Button>
       </DialogFooter>
     </form>
   );
-}
-
-function conflictFrom(err: unknown): Conflict | null {
-  if (!isApiError(err) || (err.code !== "CNPJ_CONFLICT" && err.code !== "CODE_CONFLICT")) return null;
-  const c = err.details.conflicting_company as Conflict["company"] | undefined;
-  return { message: err.message, company: c ?? null };
 }
 
 /** Diálogo de cadastro/edição de empresa. */

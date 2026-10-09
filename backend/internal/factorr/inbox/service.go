@@ -183,13 +183,15 @@ func (s *Service) existing(ctx context.Context, q *store.Queries, sha string) (U
 // ListInput filtra a listagem.
 type ListInput struct {
 	Status string
-	Limit  int32
-	Offset int32
+	// CompanyID traz só os extratos vinculados à empresa (aba Fator R da ficha).
+	CompanyID string
+	Limit     int32
+	Offset    int32
 }
 
-// List lista os documentos, mais recentes primeiro, com a contagem por status.
+// List lista os documentos, mais recentes primeiro, com a contagem por status de todo o inbox.
 func (s *Service) List(ctx context.Context, in ListInput) (DocumentList, error) {
-	var status *string
+	var status, companyID *string
 	if in.Status != "" {
 		valid := false
 		for _, st := range Statuses {
@@ -199,6 +201,12 @@ func (s *Service) List(ctx context.Context, in ListInput) (DocumentList, error) 
 			return DocumentList{}, validate.Field("status", "Status inválido: use received, parsed, needs_review, linked ou rejected.")
 		}
 		status = &in.Status
+	}
+	if in.CompanyID != "" {
+		if !httpx.IsUUID(in.CompanyID) {
+			return DocumentList{}, validate.Field("company_id", "Empresa inválida.")
+		}
+		companyID = &in.CompanyID
 	}
 	limit := in.Limit
 	if limit == 0 {
@@ -211,11 +219,11 @@ func (s *Service) List(ctx context.Context, in ListInput) (DocumentList, error) 
 		return DocumentList{}, validate.Field("offset", "O deslocamento não pode ser negativo.")
 	}
 	q := store.New(s.pool)
-	rows, err := q.ListPgdasDocuments(ctx, store.ListPgdasDocumentsParams{Status: status, RowLimit: limit, RowOffset: in.Offset})
+	rows, err := q.ListPgdasDocuments(ctx, store.ListPgdasDocumentsParams{Status: status, CompanyID: companyID, RowLimit: limit, RowOffset: in.Offset})
 	if err != nil {
 		return DocumentList{}, err
 	}
-	total, err := q.CountPgdasDocuments(ctx, status)
+	total, err := q.CountPgdasDocuments(ctx, store.CountPgdasDocumentsParams{Status: status, CompanyID: companyID})
 	if err != nil {
 		return DocumentList{}, err
 	}

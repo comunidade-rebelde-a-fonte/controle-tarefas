@@ -2,8 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { E2E_GATEWAY_KEY } from "./support/ai";
 
 /**
- * E2E contra uma instância própria da API (porta E2E_API_PORT) apontada para o
- * banco controle_e2e e uma SPA própria (porta E2E_WEB_PORT). Nunca usa o banco de dev.
+ * E2E contra uma instância própria da API (porta E2E_API_PORT) e do worker, apontados para o
+ * banco controle_e2e, e uma SPA própria (porta E2E_WEB_PORT). Nunca usa o banco de dev.
  * `make e2e` recria o controle_e2e (reset + migrate + seed) antes da suíte, com o relógio
  * fixo em E2E_FIXED_TIME tanto no seed quanto na API.
  */
@@ -21,9 +21,14 @@ if (Number.isNaN(Date.parse(fixedTime))) {
 }
 
 const webURL = `http://localhost:${webPort}`;
+// Worker dos jobs (TASK-014b): lê os extratos do inbox PGDAS-D enviados pela tela. Mesmo banco e
+// mesmo armazenamento da API; o healthcheck dele avisa o Playwright de que está no ar.
+const workerHealthPort = process.env.E2E_WORKER_HEALTH_PORT ?? "8094";
+const storageDir = process.env.E2E_STORAGE_DIR ?? "../e2e/.cache/storage";
 
-// Gateway LiteLLM simulado (support/fake-litellm.mjs) para a tela Configurações → IA. A chave é
-// um valor de teste do E2E, conferido pelo simulado: prova que a API usa a chave do gateway.
+// Gateway LiteLLM simulado (support/fake-litellm.mjs) para a tela Configurações → IA e para os
+// agentes do Fator R (LLM determinístico, FR-20). A chave é um valor de teste do E2E, conferido
+// pelo simulado: prova que a API usa a chave do gateway.
 const litellmPort = process.env.E2E_LITELLM_PORT ?? "8093";
 const litellmURL = `http://127.0.0.1:${litellmPort}`;
 // Padrões dos aliases como no .env.example (D-015).
@@ -69,12 +74,30 @@ export default defineConfig({
         HTTP_PORT: apiPort,
         APP_TIMEZONE: "America/Sao_Paulo",
         CORS_ORIGINS: webURL,
-        FILE_STORAGE_DIR: process.env.E2E_STORAGE_DIR ?? "../e2e/.cache/storage",
+        FILE_STORAGE_DIR: storageDir,
         LOG_LEVEL: "warn",
         APP_FIXED_TIME: fixedTime,
         LITELLM_BASE_URL: litellmURL,
         LITELLM_API_KEY: E2E_GATEWAY_KEY,
         ...aiModels,
+      },
+    },
+    {
+      command: "go run ./cmd/api worker",
+      cwd: "../backend",
+      url: `http://localhost:${workerHealthPort}/health`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+      stdout: "ignore",
+      stderr: "pipe",
+      env: {
+        DATABASE_URL: databaseUrl,
+        APP_ENV: "test",
+        APP_TIMEZONE: "America/Sao_Paulo",
+        WORKER_ID: "worker-e2e",
+        WORKER_HEALTH_PORT: workerHealthPort,
+        FILE_STORAGE_DIR: storageDir,
+        LOG_LEVEL: "warn",
       },
     },
     {
