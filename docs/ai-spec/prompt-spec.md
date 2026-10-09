@@ -10,6 +10,11 @@ Cada corrida registra:
 - hash do conteúdo;
 - alias/modelo resolvido.
 
+> **Como foi implementado (TASK-013; D-024).** Os prompts ficam em `backend/internal/ai/prompts/` (pacote `prompts`, embutidos no binário).
+> - A referência `nome@versão#hash` vai para `ai_runs.prompt_version` e `metadata.prompts`; o alias e o modelo resolvidos ficam nas colunas da corrida.
+> - Um teste fixa o hash de cada versão: mudar o texto exige versão nova.
+> - Outro teste confere os itens do contrato comum (§2).
+
 ## 2. Contrato comum
 
 Todo prompt deve conter:

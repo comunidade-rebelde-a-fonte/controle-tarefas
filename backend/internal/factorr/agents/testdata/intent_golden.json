@@ -1,0 +1,701 @@
+{
+ "citada": [
+  {
+   "empresa": "Clínica Alfa Ltda",
+   "mensagem": "simule a clinica alfa ltda para 09/2026 com meta de 32%"
+  },
+  {
+   "empresa": null,
+   "mensagem": "o que priorizar esta semana?"
+  },
+  {
+   "empresa": "Beta Engenharia",
+   "mensagem": "como está a Beta Engenharia?"
+  },
+  {
+   "empresa": "Beta Engenharia",
+   "mensagem": "qual a situação da Beta Engenharia em 09/2026?"
+  },
+  {
+   "empresa": null,
+   "mensagem": "explique o que é fator r"
+  },
+  {
+   "empresa": null,
+   "mensagem": "o que é fator r?"
+  },
+  {
+   "empresa": null,
+   "mensagem": "Por que o anexo mudou?"
+  },
+  {
+   "empresa": null,
+   "mensagem": "Quais empresas atacar primeiro na carteira?"
+  },
+  {
+   "empresa": "Beta Engenharia e Serviços",
+   "mensagem": "situação em 2026-09 da beta engenharia e serviços"
+  },
+  {
+   "empresa": "Ação Já ME",
+   "mensagem": "simular pró-labore para Ação Já ME, meta 30%"
+  },
+  {
+   "empresa": "Alfa",
+   "mensagem": "meta: 29,5 % para a alfa"
+  },
+  {
+   "empresa": null,
+   "mensagem": "meta de 27% não vale"
+  },
+  {
+   "empresa": null,
+   "mensagem": "meta 100%"
+  },
+  {
+   "empresa": null,
+   "mensagem": "meta 3%"
+  },
+  {
+   "empresa": null,
+   "mensagem": "meta de 28%"
+  },
+  {
+   "empresa": null,
+   "mensagem": "meta 28,1 %"
+  },
+  {
+   "empresa": null,
+   "mensagem": "pa 13/2026 e 12/2026"
+  },
+  {
+   "empresa": null,
+   "mensagem": "pa 09/1999"
+  },
+  {
+   "empresa": null,
+   "mensagem": "pa 1999-12 e 2101-01"
+  },
+  {
+   "empresa": null,
+   "mensagem": "período 2026-13"
+  },
+  {
+   "empresa": null,
+   "mensagem": "x09/2026 e 10/20261 e 11/2026"
+  },
+  {
+   "empresa": "MÉDICOS 2000",
+   "mensagem": "status da MÉDICOS 2000 e da Alfa"
+  },
+  {
+   "empresa": null,
+   "mensagem": "fila? reforço? correção?"
+  },
+  {
+   "empresa": null,
+   "mensagem": "como funciona o reforço?"
+  },
+  {
+   "empresa": null,
+   "mensagem": "nenhuma palavra conhecida"
+  },
+  {
+   "empresa": null,
+   "mensagem": ""
+  },
+  {
+   "empresa": "Beta Engenharia",
+   "mensagem": "Simulação para BETA ENGENHARIA"
+  },
+  {
+   "empresa": null,
+   "mensagem": "porque? por que? porque"
+  },
+  {
+   "empresa": null,
+   "mensagem": "situação ٠٩/٢٠٢٦"
+  }
+ ],
+ "empresas": [
+  "Clínica Alfa Ltda",
+  "Beta Engenharia",
+  "Alfa",
+  "Beta Engenharia e Serviços",
+  "Ação Já ME",
+  "MÉDICOS 2000"
+ ],
+ "llm": [
+  {
+   "resultado": {
+    "company_ref": "Beta Engenharia",
+    "intencao": "status_empresa",
+    "meta": null,
+    "ok": true,
+    "pa": "2026-09"
+   },
+   "saida": {
+    "company_ref": "Beta Engenharia",
+    "intencao": "status_empresa",
+    "meta": null,
+    "pa": "2026-09"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.3",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.3,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.3",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.3,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.295",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.295,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.28",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.28,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.27,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 1,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.999999",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": 0.999999,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "1999-12"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2101-01"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": "2100-12"
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2100-12"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": "2000-01"
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2000-01"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "0001-01"
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2026-13"
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2026-9"
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "09/2026"
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "2026-09\n"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "explicar",
+    "meta": null,
+    "pa": "٢٠٢٦-09"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": "",
+    "intencao": "priorizar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": "",
+    "intencao": "priorizar",
+    "meta": null,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "inventada",
+    "meta": null,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "PRIORIZAR",
+    "meta": null,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "priorizar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "intencao": "priorizar"
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "priorizar",
+    "meta": null,
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "extra": "ignorado",
+    "intencao": "priorizar"
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "meta": null,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": 123,
+    "intencao": "simular",
+    "meta": null,
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": null,
+    "pa": 202609
+   }
+  },
+  {
+   "resultado": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.30",
+    "ok": true,
+    "pa": null
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": "0.30",
+    "pa": null
+   }
+  },
+  {
+   "resultado": {
+    "ok": false
+   },
+   "saida": {
+    "company_ref": null,
+    "intencao": "simular",
+    "meta": true,
+    "pa": null
+   }
+  }
+ ],
+ "palavras": [
+  {
+   "company_ref": "Clínica Alfa Ltda",
+   "intencao": "simular",
+   "mensagem": "simule a clinica alfa ltda para 09/2026 com meta de 32%",
+   "meta": "0.32",
+   "pa": "2026-09"
+  },
+  {
+   "company_ref": null,
+   "intencao": "priorizar",
+   "mensagem": "o que priorizar esta semana?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": "Beta Engenharia",
+   "intencao": "status_empresa",
+   "mensagem": "como está a Beta Engenharia?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": "Beta Engenharia",
+   "intencao": "status_empresa",
+   "mensagem": "qual a situação da Beta Engenharia em 09/2026?",
+   "meta": null,
+   "pa": "2026-09"
+  },
+  {
+   "company_ref": null,
+   "intencao": "explicar",
+   "mensagem": "explique o que é fator r",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "explicar",
+   "mensagem": "o que é fator r?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "explicar",
+   "mensagem": "Por que o anexo mudou?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "priorizar",
+   "mensagem": "Quais empresas atacar primeiro na carteira?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": "Beta Engenharia e Serviços",
+   "intencao": "status_empresa",
+   "mensagem": "situação em 2026-09 da beta engenharia e serviços",
+   "meta": null,
+   "pa": "2026-09"
+  },
+  {
+   "company_ref": "Ação Já ME",
+   "intencao": "simular",
+   "mensagem": "simular pró-labore para Ação Já ME, meta 30%",
+   "meta": "0.3",
+   "pa": null
+  },
+  {
+   "company_ref": "Alfa",
+   "intencao": "status_empresa",
+   "mensagem": "meta: 29,5 % para a alfa",
+   "meta": "0.295",
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "meta de 27% não vale",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "meta 100%",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "meta 3%",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "meta de 28%",
+   "meta": "0.28",
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "meta 28,1 %",
+   "meta": "0.281",
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "pa 13/2026 e 12/2026",
+   "meta": null,
+   "pa": "2026-12"
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "pa 09/1999",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "pa 1999-12 e 2101-01",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "período 2026-13",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "x09/2026 e 10/20261 e 11/2026",
+   "meta": null,
+   "pa": "2026-11"
+  },
+  {
+   "company_ref": "MÉDICOS 2000",
+   "intencao": "status_empresa",
+   "mensagem": "status da MÉDICOS 2000 e da Alfa",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "priorizar",
+   "mensagem": "fila? reforço? correção?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "simular",
+   "mensagem": "como funciona o reforço?",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "nenhuma palavra conhecida",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": "Beta Engenharia",
+   "intencao": "simular",
+   "mensagem": "Simulação para BETA ENGENHARIA",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "explicar",
+   "mensagem": "porque? por que? porque",
+   "meta": null,
+   "pa": null
+  },
+  {
+   "company_ref": null,
+   "intencao": "status_empresa",
+   "mensagem": "situação ٠٩/٢٠٢٦",
+   "meta": null,
+   "pa": null
+  }
+ ]
+}

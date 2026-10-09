@@ -1265,6 +1265,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/factor-r/simulations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Histórico de simulações da empresa, mais recentes primeiro */
+        get: operations["listFactorRSimulations"];
+        put?: never;
+        /**
+         * Simula a correção da folha até a meta e grava a simulação no trace [REQ-013, AC-010]
+         * @description Todo valor é calculado pelo motor e pelo simulador portados (nunca pelo LLM). A simulação
+         *     roda numa corrida do agente consultor (gatilho `ficha`, sem LLM) e fica no trace: é ela que
+         *     autoriza uma recomendação "corrigir". Parâmetros ausentes usam os padrões da origem: meta
+         *     da política, pró-labore 100% do reforço, INSS 11%, IRRF 27,5% e 12 meses.
+         */
+        post: operations["createFactorRSimulation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/agents/consult": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agente consultor — situação, simulação ou explicação para uma empresa [REQ-014]
+         * @description O LLM (alias `consultor`, pelo LiteLLM) só classifica a intenção e redige o texto a partir
+         *     da decisão já calculada. O texto é validado contra a decisão: número, data ou palavra de
+         *     valor que não está nela, ou recomendação que contradiz o veredito, faz a resposta usar o
+         *     template. Sem LLM (gateway fora, alias desligado), a intenção vem de palavras-chave e o
+         *     texto do template. "Corrigir" só com simulação gravada (409
+         *     `RECOMMENDATION_WITHOUT_SIMULATION`). Toda resposta traz o disclaimer do PGDAS-D.
+         */
+        post: operations["consultFactorRAgent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/agents/prioritize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agente priorizador — fila da carteira (Anexo V e entre 28% e a meta) por economia de DAS [REQ-014]
+         * @description Só lê a carteira calculada; não altera nada. O LLM (alias `priorizador`) só classifica e
+         *     redige, com a mesma validação do consultor. O worker também registra a fila uma vez por
+         *     semana, aos domingos, sem LLM (gatilho `rotina`).
+         */
+        post: operations["prioritizeFactorRAgent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/factor-r/pgdas": {
         parameters: {
             query?: never;
@@ -2927,6 +3000,81 @@ export interface components {
             meta_operacional: components["schemas"]["DecimalString"];
             kpis: components["schemas"]["FactorRKPIs"];
             linhas: components["schemas"]["FactorRPortfolioLine"][];
+        };
+        /**
+         * @description Veredito do simulador; nulo com dados insuficientes.
+         * @enum {string}
+         */
+        FactorRVerdict: "ja_na_meta" | "corrigir" | "nao_forcar";
+        FactorRSimulationInput: {
+            pa: components["schemas"]["Competence"];
+            /**
+             * @description De 0.28 a menos de 1 (até 6 casas); nulo = meta da política
+             * @example 0.30
+             */
+            meta?: string | null;
+            /** @description Fração do reforço em pró-labore, de 0 a 1 (padrão 1) */
+            fracao_pro_labore?: string | null;
+            /** @description Alíquota do INSS, de 0 a 1 (padrão 0.11) */
+            inss?: string | null;
+            /** @description Alíquota do IRRF, de 0 a 1 (padrão 0.275) */
+            irrf?: string | null;
+            /** @description Padrão 12 */
+            horizonte_meses?: number | null;
+        };
+        FactorRSimulation: {
+            simulation_id: components["schemas"]["Uuid"];
+            /** @description Corrida do consultor que fez a simulação */
+            trace_id: string;
+            pa: components["schemas"]["Competence"];
+            veredito: components["schemas"]["FactorRVerdict"] | null;
+            /** @description Texto do simulador, com o disclaimer do PGDAS-D */
+            texto: string;
+            /** @description meta, fracao_pro_labore, inss, irrf, horizonte_meses e piso_economia_anual usados */
+            parametros: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description ResultadoSimulacao da origem: status, motivo, veredito, parametros, fator_atual,
+             *     reforco_12m, reforco_mensal, pro_labore_extra_mensal, pro_labore_extra_horizonte,
+             *     custo_inss, custo_irrf, custo_total, economia_12m, economia_horizonte e liquido. Os
+             *     valores em reais saem em centavos e o fator com 6 casas; o banco guarda o valor exato.
+             */
+            resultado: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at: string;
+        };
+        FactorRSimulationList: {
+            items: components["schemas"]["FactorRSimulation"][];
+        };
+        FactorRConsultInput: {
+            mensagem: string;
+            /**
+             * Format: uuid
+             * @description A empresa da ficha; sem ela, a empresa citada no pedido
+             */
+            company_id?: string | null;
+        };
+        FactorRPrioritizeInput: {
+            mensagem: string;
+            pa?: components["schemas"]["Competence"] | null;
+        };
+        FactorRAgentResponse: {
+            /** @description Texto validado do LLM ou o template, sempre com o disclaimer do PGDAS-D */
+            texto: string;
+            /**
+             * @description Decisão estruturada com os valores calculados pelo motor (intencao; situação: empresa,
+             *     pa, status, fator_r, anexo, semaforo, rbt12, fs12, gaps, reforços, economia;
+             *     simulação: veredito, simulation_id, reforco_mensal, custo_total, liquido; fila: pa e
+             *     fila com posicao, empresa, semaforo, fator_r, economia_12m e acao; ou erro).
+             */
+            decisao: {
+                [key: string]: unknown;
+            };
+            /** @description Corrida do agente (auditoria local e Langfuse) */
+            trace_id: string;
         };
         /**
          * @description received: enviado, aguardando o job; needs_review: em revisão (CNPJ fora da carteira,
@@ -5417,6 +5565,139 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listFactorRSimulations: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Simulações */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSimulationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createFactorRSimulation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRSimulationInput"];
+            };
+        };
+        responses: {
+            /** @description Simulação gravada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSimulation"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    consultFactorRAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRConsultInput"];
+            };
+        };
+        responses: {
+            /** @description Resposta do agente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRAgentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    prioritizeFactorRAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRPrioritizeInput"];
+            };
+        };
+        responses: {
+            /** @description Resposta do agente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRAgentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
             /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
             422: {
                 headers: {

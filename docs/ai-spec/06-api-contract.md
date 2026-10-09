@@ -92,6 +92,11 @@ Preservar regras do Inbox original.
 
 Retorno inclui texto, decisão estruturada e `trace_id`.
 
+> **Como foi implementado (TASK-013; D-024).** O contrato está no OpenAPI, tag `factor-r`.
+> - Simulação: corpo `{pa, meta?, fracao_pro_labore?, inss?, irrf?, horizonte_meses?}` (decimais como string) e resposta 201 `{simulation_id, trace_id, pa, veredito, texto, parametros, resultado, created_at}`. O histórico aceita `limit` de 1 a 50.
+> - Consultor: `{mensagem, company_id?}`. Priorizador: `{mensagem, pa?}`. Os dois respondem `{texto, decisao, trace_id}`.
+> - Recusas: 404 para empresa inexistente, 422 `SIMPLES_TABLE_NOT_IN_FORCE` e 409 `RECOMMENDATION_WITHOUT_SIMULATION` ("corrigir" sem simulação).
+
 ## 4. Conciliação
 
 ### `POST /reconciliation/documents`

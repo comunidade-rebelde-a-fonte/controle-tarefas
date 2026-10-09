@@ -53,6 +53,9 @@ type Config struct {
 	JobPollInterval time.Duration
 	// JobLease é o prazo da posse de um job; o worker a renova enquanto executa (TASK-005).
 	JobLease time.Duration
+	// RoutinePriorizadorHour é a hora (APP_TIMEZONE) a partir da qual, aos domingos, o worker
+	// roda a fila semanal do priorizador (ROTINA_PRIORIZADOR_HORA; origem: 7).
+	RoutinePriorizadorHour int
 	// LiteLLMBaseURL é o gateway de modelos dos agentes [ADR-004]; vazio = IA não configurada.
 	LiteLLMBaseURL string
 	// LiteLLMAPIKey autentica a aplicação no gateway. As chaves dos provedores (OpenAI etc.)
@@ -209,6 +212,10 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	cfg.WorkerHealthPort = workerPort
 
+	cfg.RoutinePriorizadorHour, err = strconv.Atoi(orDefault(getenv("ROTINA_PRIORIZADOR_HORA"), "7"))
+	if err != nil || cfg.RoutinePriorizadorHour < 0 || cfg.RoutinePriorizadorHour > 23 {
+		errs = append(errs, fmt.Errorf("ROTINA_PRIORIZADOR_HORA inválida: %q (0 a 23)", getenv("ROTINA_PRIORIZADOR_HORA")))
+	}
 	cfg.WorkerConcurrency, err = strconv.Atoi(orDefault(getenv("WORKER_CONCURRENCY"), "1"))
 	if err != nil || cfg.WorkerConcurrency < 1 || cfg.WorkerConcurrency > 16 {
 		errs = append(errs, fmt.Errorf("WORKER_CONCURRENCY inválido: %q (1 a 16)", getenv("WORKER_CONCURRENCY")))

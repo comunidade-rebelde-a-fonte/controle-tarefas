@@ -42,6 +42,8 @@ type fakeProvider struct {
 	mu     sync.Mutex
 	models []string
 	paths  []string
+	// formats guarda o response_format de cada chamada (saída estruturada dos agentes).
+	formats []map[string]any
 }
 
 func (p *fakeProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -62,10 +64,12 @@ func (p *fakeProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Messages []struct {
 			Content string `json:"content"`
 		} `json:"messages"`
+		ResponseFormat map[string]any `json:"response_format"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	p.mu.Lock()
 	p.models = append(p.models, body.Model)
+	p.formats = append(p.formats, body.ResponseFormat)
 	p.mu.Unlock()
 	if len(body.Messages) > 0 && body.Messages[len(body.Messages)-1].Content == "provoque-401" {
 		// O provedor ecoa a chave no erro; o cliente não pode repassá-la.
@@ -73,10 +77,23 @@ func (p *fakeProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintf(w, `{"error":{"message":"Incorrect API key provided: %s","type":"invalid_request_error"}}`, providerKey)
 		return
 	}
+	content := "pong"
+	if body.ResponseFormat != nil {
+		content = `{\"intencao\":\"priorizar\"}`
+	}
 	w.Header().Set("Content-Type", "application/json")
 	_, _ = fmt.Fprintf(w, `{"id":"chatcmpl-1","object":"chat.completion","created":1,"model":%q,`+
-		`"choices":[{"index":0,"message":{"role":"assistant","content":"pong"},"finish_reason":"stop"}],`+
-		`"usage":{"prompt_tokens":7,"completion_tokens":1,"total_tokens":8}}`, body.Model)
+		`"choices":[{"index":0,"message":{"role":"assistant","content":"%s"},"finish_reason":"stop"}],`+
+		`"usage":{"prompt_tokens":7,"completion_tokens":1,"total_tokens":8}}`, body.Model, content)
+}
+
+func (p *fakeProvider) lastFormat() map[string]any {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.formats) == 0 {
+		return nil
+	}
+	return p.formats[len(p.formats)-1]
 }
 
 func (p *fakeProvider) lastModel() string {
@@ -191,6 +208,28 @@ func TestGateway_RoutesEveryAliasToTheProviderWithItsKey(t *testing.T) {
 			}
 		})
 	}
+
+	// Saída estruturada (TASK-013): o plan do consultor pede json_schema estrito; o LiteLLM
+	// repassa o response_format ao provedor e devolve o JSON como conteúdo.
+	t.Run("saída estruturada json_schema", func(t *testing.T) {
+		resolved, err := resolver.Resolve(ai.Consultor)
+		if err != nil {
+			t.Fatal(err)
+		}
+		schema := json.RawMessage(`{"type":"object","properties":{"intencao":{"type":"string","enum":["priorizar"]}},"required":["intencao"],"additionalProperties":false}`)
+		resp, err := client.Chat(ctx, Request{Model: resolved.Model, Messages: ping, JSONSchema: &JSONSchema{Name: "classificar_intencao", Schema: schema}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		rf := provider.lastFormat()
+		js, _ := rf["json_schema"].(map[string]any)
+		if rf["type"] != "json_schema" || js["name"] != "classificar_intencao" || js["strict"] != true || js["schema"] == nil {
+			t.Fatalf("response_format no provedor = %v", rf)
+		}
+		if resp.Content != `{"intencao":"priorizar"}` {
+			t.Fatalf("conteúdo = %q", resp.Content)
+		}
+	})
 
 	// Rota do próprio alias no gateway (compatibilidade com o Conciliador): o LiteLLM resolve pelo .env.
 	t.Run("alias direto no gateway", func(t *testing.T) {

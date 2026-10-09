@@ -24,6 +24,7 @@ import (
 	"controle/internal/demo"
 	"controle/internal/exporter"
 	"controle/internal/factorr"
+	"controle/internal/factorr/agents"
 	"controle/internal/factorr/inbox"
 	"controle/internal/grid"
 	"controle/internal/importer"
@@ -121,6 +122,9 @@ func New(d Deps) *App {
 		// Inbox PGDAS-D (TASK-012): a API guarda o original e enfileira; o worker processa.
 		inbox.NewHandler(inbox.NewService(d.Pool, aiClock, tr, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts),
 			inbox.NewStorage(d.Config.FileStorageDir), companies, d.Logger)).Routes(api)
+		// Simulador e agentes consultor/priorizador (TASK-013): números do motor; o LLM, pelo
+		// gateway com os aliases da tela de IA, só classifica e redige.
+		agents.NewHandler(agents.NewService(d.Pool, d.Clock, aiClock, tr, aliases.NewResolver(d.Config.AIDefaults), gateway, d.Logger)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

@@ -19,6 +19,10 @@ const (
 	DigitClass = `\p{Nd}`
 	// NotDigitClass é o \D do Python.
 	NotDigitClass = `\P{Nd}`
+	// WordClass é o \w do Python (o mesmo conjunto de IsWord).
+	WordClass = `[\p{L}\p{N}_]`
+	// NotWordClass é o \W do Python.
+	NotWordClass = `[^\p{L}\p{N}_]`
 )
 
 // foldI são as letras que o IGNORECASE do Python iguala ao i: além de i e I, o I com ponto
@@ -103,8 +107,10 @@ type Regexp struct {
 }
 
 type assertion struct {
-	group int            // grupo vazio do Go que marca a posição
-	ahead *regexp.Regexp // (?!X): ^(?:X) aplicado ao resto do texto; nil = \b
+	group  int            // grupo vazio do Go que marca a posição
+	ahead  *regexp.Regexp // (?!X): ^(?:X) aplicado ao resto do texto
+	behind *regexp.Regexp // (?<!X): ^(?:X)$ aplicado ao caractere anterior
+	// Nenhum dos dois: \b.
 }
 
 // Compile traduz e compila um padrão do Python. Fora do subconjunto usado pelos portes (\w,
@@ -182,7 +188,11 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 				goGroup++
 				b.WriteString("()")
 				t.asserts = append(t.asserts, assertion{group: goGroup})
-			case 'w', 'W', 'B', 'A', 'Z', 'z', 'G':
+			case 'w':
+				b.WriteString(WordClass)
+			case 'W':
+				b.WriteString(NotWordClass)
+			case 'B', 'A', 'Z', 'z', 'G':
 				return unsupported(`\` + string(e))
 			default:
 				if unicode.IsLetter(e) || unicode.IsDigit(e) {
@@ -239,6 +249,27 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 					b.WriteString("()")
 					t.asserts = append(t.asserts, assertion{group: goGroup, ahead: ahead})
 					i = end
+				case i+3 < len(rs) && rs[i+2] == '<' && rs[i+3] == '!':
+					end := closing(rs, i+4)
+					if end < 0 {
+						return unsupported("lookbehind sem fechamento")
+					}
+					inner, err := translate(string(rs[i+4:end]), ignoreCase)
+					if err != nil {
+						return translation{}, err
+					}
+					if len(inner.groups) > 1 || len(inner.asserts) > 0 {
+						return unsupported("grupo ou asserção dentro de lookbehind")
+					}
+					// Só lookbehind de um caractere: X é conferido contra o caractere anterior.
+					behind, err := regexp.Compile(flags(ignoreCase) + "^(?:" + inner.pattern + ")$")
+					if err != nil {
+						return translation{}, fmt.Errorf("pytext: %q: %w", pattern, err)
+					}
+					goGroup++
+					b.WriteString("()")
+					t.asserts = append(t.asserts, assertion{group: goGroup, behind: behind})
+					i = end
 				default:
 					return unsupported("grupo especial (?" + string(rs[i+2:min(i+3, len(rs))]))
 				}
@@ -249,6 +280,13 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 			b.WriteRune(c)
 		case ignoreCase && (c == 'i' || c == 'I'):
 			b.WriteString("[" + foldI + "]")
+		case c == '$':
+			if i != len(rs)-1 {
+				return unsupported("$ fora do fim do padrão")
+			}
+			// Sem MULTILINE, o $ do Python casa no fim ou antes de um \n final (que fica
+			// dentro da correspondência aqui; os grupos não mudam).
+			b.WriteString(`(?:\n?\z)`)
 		default:
 			b.WriteRune(c)
 		}
@@ -347,18 +385,45 @@ func (r *Regexp) FindAll(s string) []Match {
 	return out
 }
 
+// ReplaceAllString é o re.sub do Python com substituição literal: troca cada correspondência de
+// FindAll por repl.
+func (r *Regexp) ReplaceAllString(s, repl string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range r.FindAll(s) {
+		b.WriteString(s[last:m.Start(0)])
+		b.WriteString(repl)
+		last = m.End(0)
+	}
+	b.WriteString(s[last:])
+	return b.String()
+}
+
+// MatchString diz se há correspondência (re.search do Python como booleano).
+func (r *Regexp) MatchString(s string) bool {
+	_, ok := r.Search(s)
+	return ok
+}
+
 func (r *Regexp) holds(s string, loc []int) bool {
 	for _, a := range r.asserts {
 		p := loc[2*a.group]
 		if p < 0 {
 			continue // a asserção está num ramo que não participou
 		}
-		if a.ahead == nil {
+		switch {
+		case a.ahead != nil:
+			if a.ahead.MatchString(s[p:]) {
+				return false
+			}
+		case a.behind != nil:
+			if r, size := utf8.DecodeLastRuneInString(s[:p]); size > 0 && a.behind.MatchString(string(r)) {
+				return false
+			}
+		default:
 			if !IsWordBoundary(s, p) {
 				return false
 			}
-		} else if a.ahead.MatchString(s[p:]) {
-			return false
 		}
 	}
 	return true

@@ -431,6 +431,30 @@ type FactorRSimplesTable struct {
 	VigenciaFim     *time.Time
 }
 
+type FactorRSimulation struct {
+	ID                string
+	CompanyID         string
+	Pa                time.Time
+	Meta              decimal.Decimal
+	FracaoProLabore   decimal.Decimal
+	Inss              decimal.Decimal
+	Irrf              decimal.Decimal
+	HorizonteMeses    int32
+	PisoEconomiaAnual decimal.Decimal
+	Status            string
+	Veredito          *string
+	Reforco12m        decimal.Decimal
+	ReforcoMensal     decimal.Decimal
+	CustoTotal        decimal.Decimal
+	Economia12m       *decimal.Decimal
+	Liquido           *decimal.Decimal
+	ParametrosJson    []byte
+	ResultadoJson     []byte
+	TraceID           string
+	CreatedBy         *string
+	CreatedAt         time.Time
+}
+
 type Holiday struct {
 	ID         string
 	CalendarID string

@@ -134,6 +134,13 @@ func TestLoad_Worker(t *testing.T) {
 	if cfg.WorkerConcurrency != 1 || cfg.JobMaxAttempts != 3 || cfg.JobPollInterval != time.Second || cfg.JobLease != 5*time.Minute {
 		t.Fatalf("fila = %d, %d, %s, %s", cfg.WorkerConcurrency, cfg.JobMaxAttempts, cfg.JobPollInterval, cfg.JobLease)
 	}
+	// Fila semanal do priorizador: domingo a partir das 7h, como a origem.
+	if cfg.RoutinePriorizadorHour != 7 {
+		t.Fatalf("hora da rotina = %d", cfg.RoutinePriorizadorHour)
+	}
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "ROTINA_PRIORIZADOR_HORA": "0"})); err != nil || cfg.RoutinePriorizadorHour != 0 {
+		t.Fatalf("hora da rotina 0 = %d, %v", cfg.RoutinePriorizadorHour, err)
+	}
 	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "WORKER_CONCURRENCY": "2", "JOB_MAX_TENTATIVAS": "5",
 		"JOB_POLL_SECONDS": "0.5", "JOB_LEASE_SECONDS": "60"}))
 	if err != nil || cfg.WorkerConcurrency != 2 || cfg.JobMaxAttempts != 5 || cfg.JobPollInterval != 500*time.Millisecond || cfg.JobLease != time.Minute {
@@ -166,6 +173,7 @@ func TestLoad_Invalid(t *testing.T) {
 		"tentativas demais":    {"DATABASE_URL": "x", "JOB_MAX_TENTATIVAS": "21"},
 		"espera zero":          {"DATABASE_URL": "x", "JOB_POLL_SECONDS": "0"},
 		"posse curta":          {"DATABASE_URL": "x", "JOB_LEASE_SECONDS": "5"},
+		"hora da rotina":       {"DATABASE_URL": "x", "ROTINA_PRIORIZADOR_HORA": "24"},
 		"litellm sem esquema":  {"DATABASE_URL": "x", "LITELLM_BASE_URL": "litellm:4000"},
 		"litellm timeout":      {"DATABASE_URL": "x", "LITELLM_TIMEOUT_SECONDS": "0"},
 		"modelo sem provedor":  {"DATABASE_URL": "x", "TRIADOR_MODEL": "gpt-6-luna"},

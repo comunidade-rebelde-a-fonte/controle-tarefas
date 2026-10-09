@@ -29,6 +29,10 @@ Preservar meta original de >=80% de acerto ouro para extratos de texto vinculado
 
 `acerto | parcial | erro`, comentário obrigatório em erro.
 
+> **Consultor e priorizador (TASK-013; D-024).** Como na origem, não têm nota ouro. A nota humana vale para as corridas deles (`POST /ai/runs/{trace_id}/evaluation`).
+> - O que garante a resposta é determinístico: o texto do LLM é validado contra a decisão (golden do `validar_texto` da origem, 40 casos) e, se reprovado, vira o template.
+> - A classificação da intenção tem golden das palavras-chave e da validação da saída estruturada.
+
 ## 3. Conciliação
 
 ### Extrato

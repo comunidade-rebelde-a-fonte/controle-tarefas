@@ -55,8 +55,9 @@ tags:
       ouro e humana, status de sincronização com o Langfuse e painel de observabilidade.
   - name: factor-r
     description: |
-      Fator R (consolidação, TASK-011 e TASK-012) — configuração por empresa, série mensal de
-      receita e folha, cálculo do PA, carteira e Inbox PGDAS-D. Os campos do domínio usam os nomes do Fator R de origem e
+      Fator R (consolidação, TASK-011 a TASK-013) — configuração por empresa, série mensal de
+      receita e folha, cálculo do PA, carteira, Inbox PGDAS-D, simulador e agentes consultor e
+      priorizador. Os campos do domínio usam os nomes do Fator R de origem e
       do modelo de dados da consolidação (docs/ai-spec/05 §4); valores decimais são strings.
 
 paths:
@@ -1711,6 +1712,112 @@ paths:
               schema: { $ref: "#/components/schemas/FactorRCalc" }
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}/factor-r/simulations:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [factor-r]
+      operationId: createFactorRSimulation
+      summary: Simula a correção da folha até a meta e grava a simulação no trace [REQ-013, AC-010]
+      description: |
+        Todo valor é calculado pelo motor e pelo simulador portados (nunca pelo LLM). A simulação
+        roda numa corrida do agente consultor (gatilho `ficha`, sem LLM) e fica no trace: é ela que
+        autoriza uma recomendação "corrigir". Parâmetros ausentes usam os padrões da origem: meta
+        da política, pró-labore 100% do reforço, INSS 11%, IRRF 27,5% e 12 meses.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FactorRSimulationInput" }
+      responses:
+        "201":
+          description: Simulação gravada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRSimulation" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422":
+          description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    get:
+      tags: [factor-r]
+      operationId: listFactorRSimulations
+      summary: Histórico de simulações da empresa, mais recentes primeiro
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        "200":
+          description: Simulações
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRSimulationList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /factor-r/agents/consult:
+    post:
+      tags: [factor-r]
+      operationId: consultFactorRAgent
+      summary: Agente consultor — situação, simulação ou explicação para uma empresa [REQ-014]
+      description: |
+        O LLM (alias `consultor`, pelo LiteLLM) só classifica a intenção e redige o texto a partir
+        da decisão já calculada. O texto é validado contra a decisão: número, data ou palavra de
+        valor que não está nela, ou recomendação que contradiz o veredito, faz a resposta usar o
+        template. Sem LLM (gateway fora, alias desligado), a intenção vem de palavras-chave e o
+        texto do template. "Corrigir" só com simulação gravada (409
+        `RECOMMENDATION_WITHOUT_SIMULATION`). Toda resposta traz o disclaimer do PGDAS-D.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FactorRConsultInput" }
+      responses:
+        "200":
+          description: Resposta do agente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRAgentResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422":
+          description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /factor-r/agents/prioritize:
+    post:
+      tags: [factor-r]
+      operationId: prioritizeFactorRAgent
+      summary: Agente priorizador — fila da carteira (Anexo V e entre 28% e a meta) por economia de DAS [REQ-014]
+      description: |
+        Só lê a carteira calculada; não altera nada. O LLM (alias `priorizador`) só classifica e
+        redige, com a mesma validação do consultor. O worker também registra a fila uma vez por
+        semana, aos domingos, sem LLM (gatilho `rotina`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FactorRPrioritizeInput" }
+      responses:
+        "200":
+          description: Resposta do agente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FactorRAgentResponse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
         "422":
           description: Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE)
           content:
@@ -3925,6 +4032,83 @@ components:
         meta_operacional: { $ref: "#/components/schemas/DecimalString" }
         kpis: { $ref: "#/components/schemas/FactorRKPIs" }
         linhas: { type: array, items: { $ref: "#/components/schemas/FactorRPortfolioLine" } }
+
+    FactorRVerdict:
+      type: string
+      enum: [ja_na_meta, corrigir, nao_forcar]
+      description: Veredito do simulador; nulo com dados insuficientes.
+
+    FactorRSimulationInput:
+      type: object
+      additionalProperties: false
+      required: [pa]
+      properties:
+        pa: { $ref: "#/components/schemas/Competence" }
+        meta: { type: [string, "null"], description: "De 0.28 a menos de 1 (até 6 casas); nulo = meta da política", examples: ["0.30"] }
+        fracao_pro_labore: { type: [string, "null"], description: "Fração do reforço em pró-labore, de 0 a 1 (padrão 1)" }
+        inss: { type: [string, "null"], description: "Alíquota do INSS, de 0 a 1 (padrão 0.11)" }
+        irrf: { type: [string, "null"], description: "Alíquota do IRRF, de 0 a 1 (padrão 0.275)" }
+        horizonte_meses: { type: [integer, "null"], minimum: 1, maximum: 60, description: "Padrão 12" }
+
+    FactorRSimulation:
+      type: object
+      required: [simulation_id, trace_id, pa, veredito, texto, parametros, resultado, created_at]
+      properties:
+        simulation_id: { $ref: "#/components/schemas/Uuid" }
+        trace_id: { type: string, description: "Corrida do consultor que fez a simulação" }
+        pa: { $ref: "#/components/schemas/Competence" }
+        veredito: { oneOf: [{ $ref: "#/components/schemas/FactorRVerdict" }, { type: "null" }] }
+        texto: { type: string, description: "Texto do simulador, com o disclaimer do PGDAS-D" }
+        parametros:
+          type: object
+          additionalProperties: true
+          description: meta, fracao_pro_labore, inss, irrf, horizonte_meses e piso_economia_anual usados
+        resultado:
+          type: object
+          additionalProperties: true
+          description: |
+            ResultadoSimulacao da origem: status, motivo, veredito, parametros, fator_atual,
+            reforco_12m, reforco_mensal, pro_labore_extra_mensal, pro_labore_extra_horizonte,
+            custo_inss, custo_irrf, custo_total, economia_12m, economia_horizonte e liquido. Os
+            valores em reais saem em centavos e o fator com 6 casas; o banco guarda o valor exato.
+        created_at: { type: string, format: date-time }
+
+    FactorRSimulationList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/FactorRSimulation" } }
+
+    FactorRConsultInput:
+      type: object
+      additionalProperties: false
+      required: [mensagem]
+      properties:
+        mensagem: { type: string, minLength: 1, maxLength: 1000 }
+        company_id: { type: [string, "null"], format: uuid, description: "A empresa da ficha; sem ela, a empresa citada no pedido" }
+
+    FactorRPrioritizeInput:
+      type: object
+      additionalProperties: false
+      required: [mensagem]
+      properties:
+        mensagem: { type: string, minLength: 1, maxLength: 1000 }
+        pa: { oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }] }
+
+    FactorRAgentResponse:
+      type: object
+      required: [texto, decisao, trace_id]
+      properties:
+        texto: { type: string, description: "Texto validado do LLM ou o template, sempre com o disclaimer do PGDAS-D" }
+        decisao:
+          type: object
+          additionalProperties: true
+          description: |
+            Decisão estruturada com os valores calculados pelo motor (intencao; situação: empresa,
+            pa, status, fator_r, anexo, semaforo, rbt12, fs12, gaps, reforços, economia;
+            simulação: veredito, simulation_id, reforco_mensal, custo_total, liquido; fila: pa e
+            fila com posicao, empresa, semaforo, fator_r, economia_12m e acao; ou erro).
+        trace_id: { type: string, description: "Corrida do agente (auditoria local e Langfuse)" }
 
     PgdasStatus:
       type: string

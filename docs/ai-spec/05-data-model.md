@@ -108,6 +108,12 @@ Regra: movimento PGDAS que traz folha total declarada não deve inventar split.
 Persistir entrada e saída determinística necessária para auditoria:
 - company, PA, meta, reforço, proporção pró-labore, INSS, IRRF, horizonte, economia, custo, líquido, veredito, trace_id opcional do consultor, timestamps.
 
+> **Como foi implementado (TASK-006b/TASK-013; D-024).** Migration `0024_factor_r_simulations.sql`.
+> - Parâmetros tipados: `meta`, `fracao_pro_labore`, `inss`, `irrf`, `horizonte_meses` e `piso_economia_anual`.
+> - Resultado tipado: `status`, `veredito`, `reforco_12m`, `reforco_mensal`, `custo_total`, `economia_12m` e `liquido`, em numeric sem escala, com o valor exato do motor.
+> - Entrada e saída completas ficam em `parametros_json` e `resultado_json`.
+> - `trace_id` é obrigatório: toda simulação nasce numa corrida do consultor (gatilho `ficha` ou `chat`), e só ela autoriza um "corrigir".
+
 ### `factor_r_policy`
 
 Configuração única/local:

@@ -4,6 +4,65 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-024 — Simulador persistido e agentes consultor e priorizador (TASK-013 e TASK-006b; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** de `services/simulacao.py`, `agents/{consultor,priorizador,etapas,intencao,guardas,render,llm}.py` e `api/{simulations,agents}.py` do Fator R (commit `9dd7a74`), no pacote `backend/internal/factorr/agents`.
+  - Todo número vem do motor e do simulador portados na TASK-010; o LLM só classifica a intenção (span `plan`) e redige o texto (span `render`) [AC-010].
+- **Simulador persistido.**
+  - Tabela `factor_r_simulations` (migration `0024`), a parte que faltava da TASK-006b. Guarda parâmetros e resultado exatos em JSON, mais colunas tipadas dos campos do 05 §4.
+  - `trace_id` obrigatório: toda simulação nasce numa corrida do consultor e é ela que autoriza um "corrigir".
+  - `POST /companies/{id}/factor-r/simulations` roda numa corrida `consultor`, gatilho `ficha`, sem LLM. Valem os padrões da origem: meta da política, 100% do reforço em pró-labore, INSS 11%, IRRF 27,5% e 12 meses.
+  - A resposta arredonda só na exibição (centavos e 6 casas), como `para_exibicao`.
+  - O histórico (`GET`) traz o texto da corrida; na origem, vinha vazio.
+- **Agentes** em `POST /factor-r/agents/consult` e `/prioritize`, nos caminhos da spec (a origem usava `/agents/consultor/chat` e `/agents/priorizador/chat`).
+  - Resposta: `texto`, `decisao` e `trace_id`.
+  - Mantido da origem:
+    - a empresa citada é resolvida localmente, nunca pelo LLM; o `company_ref` do LLM é buscado como na origem, por `ILIKE` no nome ou parte do CNPJ;
+    - a intenção `priorizar` dentro do consultor monta a fila na própria corrida;
+    - empresa não identificada deixa a corrida em revisão;
+    - os textos de template;
+    - os tipos de decisão `consultor_resposta`, `simulacao` e `fila_priorizacao`.
+  - A busca local compara com a razão social e também com o nome fantasia; a origem só tinha "nome".
+- **LLM pelo LiteLLM**, com os aliases `consultor` e `priorizador` (OpenAI no início). Na origem era o SDK da Anthropic.
+  - O plan pede saída estruturada (`json_schema` estrito), no lugar do tool use da origem. A saída passa pelas mesmas regras do `Intencao` da origem:
+    - intenção conhecida;
+    - `pa` no padrão `AAAA-MM`, que vira nulo fora de 2000-01 a 2100-12;
+    - `meta` de 0,28 a menos de 1;
+    - o que falha cai no fallback.
+  - O `make test-litellm` passou a provar que o LiteLLM real repassa o `json_schema` ao provedor.
+  - Limites: 512 tokens para classificar e 1024 para redigir. A configuração do alias na tela de IA (`max_tokens`, `temperature`) vence esses padrões.
+  - Cada chamada vira uma geração no trace, com tokens e custo. O modelo resolvido é o snapshot da corrida.
+  - Sem LLM, o agente segue sem chamar o gateway, com intenção por palavras-chave e texto pelo template (o modo determinístico da origem). Isso vale para:
+    - gateway não configurado;
+    - alias desligado ou sem modelo;
+    - erro, saída inválida ou recusa.
+  - A corrida registra o motivo em `metadata.llm_indisponivel` e no span.
+- **Guardas.**
+  - O texto do LLM é validado contra a decisão, porte de `validar_texto`. Reprova o texto que traz:
+    - número ou data que não está na decisão;
+    - número por extenso;
+    - recomendação que contradiz o veredito.
+  - Texto reprovado vira o template, e o span `render` registra os órfãos.
+  - "Corrigir" só com uma simulação gravada com esse veredito: 409 `RECOMMENDATION_WITHOUT_SIMULATION`, com corrida de erro.
+  - Toda resposta termina com o disclaimer do PGDAS-D.
+- **Paridade provada por golden gerado pelo próprio código da origem.**
+  - Validador do texto e formatadores (`render.py` e `money.py`): 40 casos.
+  - Classificador por palavras-chave e empresa citada (`intencao.py`).
+  - Validação da saída do LLM pelo `Intencao` da origem, com pydantic 2.13.5, a versão do `uv.lock`.
+  - Para isso, o `pytext.Compile` passou a aceitar `\w`, lookbehind de um caractere e o `$` do Python. O pacote `decimal` ganhou `ParsePython` (o `Decimal(str)` do Python), `Normalize`, `Abs` e `Key`.
+  - Diferenças onde a origem levantava exceção e derrubava a corrida:
+    - valor `NaN` ou `Infinity` numa decisão;
+    - número que não cabe nos 28 dígitos ao arredondar.
+    - Aqui o valor só não entra nos números aceitos.
+- **Prompts versionados** em `backend/internal/ai/prompts/fatorr/{plan,render}.md` [prompt-spec §1].
+  - Versão 2026.10.1, a partir da 2026.09.1 da origem, com os itens do prompt-spec §2 que faltavam: formato de saída, ferramentas, o que não decide, abstenção, instrução contra injeção, extraído × inferência.
+  - Um teste fixa o hash de cada versão. A corrida grava nome, versão e hash dos dois prompts (`prompt_version` e `metadata.prompts`).
+- **Rotina semanal do priorizador.**
+  - Tarefa do worker, conferida a cada 15 minutos. Aos domingos, a partir de `ROTINA_PRIORIZADOR_HORA` (padrão 7, como na origem), registra a fila uma vez por semana, sem LLM (gatilho `rotina`).
+  - A semana conta de segunda 00:00 no fuso `APP_TIMEZONE`; na origem era UTC.
+  - Se o worker estiver parado na hora, a rotina roda quando ele voltar, ainda no domingo. Na origem, o cron perdia a semana.
+- **Respostas de erro.** Validação de campo segue a base (400 `VALIDATION_ERROR`; a origem dava o 422 do FastAPI). Sem tabela do Simples vigente: 422 `SIMPLES_TABLE_NOT_IN_FORCE`, como na origem.
+
 ### D-023 — Inbox PGDAS-D e agente parser_pgdas (TASK-012 e TASK-006b; 08/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte do Inbox do Fator R** (commit `9dd7a74`): `parsing/{texto,isolado,pgdas}.py`, `agents/parser_pgdas.py`, `api/inbox.py`, `core/uploads.py` e `services/ouro_pgdas.py`.

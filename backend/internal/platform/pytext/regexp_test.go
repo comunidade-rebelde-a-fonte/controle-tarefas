@@ -144,9 +144,38 @@ func TestRegexp_PythonSemantics(t *testing.T) {
 }
 
 func TestCompile_RejectsUnsupported(t *testing.T) {
-	for _, p := range []string{`\w+`, `(?<=a)b`, `(?P<x>a)`, `[\s]`, `(?!(a))`, `[^a]`, `(?i)a`, `[h-j]`} {
+	for _, p := range []string{`\B`, `(?<=a)b`, `(?P<x>a)`, `[\s]`, `(?!(a))`, `[^a]`, `(?i)a`, `[h-j]`, `a$b`} {
 		if _, err := Compile(p, true); err == nil {
 			t.Errorf("Compile(%q) deveria recusar", p)
 		}
+	}
+}
+
+// \w, lookbehind de um caractere, $ do Python e re.sub (resultados conferidos no Python).
+func TestRegexp_WordLookbehindDollarAndSub(t *testing.T) {
+	var words []string
+	for _, m := range MustCompile(`\w+`, false).FindAll("ação_1 x-y ²") {
+		g, _ := m.Group(0)
+		words = append(words, g)
+	}
+	if strings.Join(words, "|") != "ação_1|x|y|²" {
+		t.Errorf(`\w+ = %q`, words)
+	}
+	num := MustCompile(`-?(?<!\d)\d{1,3}(?:\.\d{3})+(?:,\d+)?|-?(?<!\d)\d+(?:[.,]\d+)?`, false)
+	var nums []string
+	for _, m := range num.FindAll("1.2345 x45000 R$-99.000,00 1-2 ٣٤") {
+		g, _ := m.Group(0)
+		nums = append(nums, g)
+	}
+	if strings.Join(nums, "|") != "1.234|45000|-99.000,00|1|-2|٣٤" {
+		t.Errorf("lookbehind = %q", nums)
+	}
+	comp := MustCompile(`^\d{4}-\d{2}$`, false)
+	if !comp.MatchString("2026-09\n") || comp.MatchString("2026-09\nx") || !comp.MatchString("2026-09") {
+		t.Error("$ do Python")
+	}
+	date := MustCompile(`\b(\d{4})-(\d{2})\b|\b(\d{2})/(\d{4})\b`, false)
+	if got := date.ReplaceAllString("PA 2026-09 e 09/2026 x2026-09 2026-091", " "); got != "PA   e   x2026-09 2026-091" {
+		t.Errorf("sub = %q", got)
 	}
 }

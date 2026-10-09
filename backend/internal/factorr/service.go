@@ -470,41 +470,50 @@ func monitored(active bool, factorR *bool, regime string) bool {
 func (s *Service) Calc(ctx context.Context, companyID string, pa competence.Competence) (Calc, error) {
 	var out Calc
 	err := s.read(ctx, func(q *store.Queries) error {
-		co, err := company(ctx, q, companyID, pa)
-		if err != nil {
-			return err
-		}
-		set, _, err := settingsOf(ctx, q, companyID)
-		if err != nil {
-			return err
-		}
-		w := engine.NewWindow(pa)
-		rows, err := q.ListFactorRMovements(ctx, store.ListFactorRMovementsParams{
-			CompanyID: companyID, FromCompetence: w.Start.FirstDay(), ToCompetence: w.End.FirstDay(),
-		})
-		if err != nil {
-			return err
-		}
-		tb, err := tables(ctx, q, pa)
-		if err != nil {
-			return err
-		}
-		pol, err := policy(ctx, q)
-		if err != nil {
-			return err
-		}
-		ms := make([]engine.Movement, len(rows))
-		for i, r := range rows {
-			ms[i] = toEngineMovement(r)
-		}
-		out.Result = engine.Calculate(pa, set.InicioAtividade, ms, tb, pol)
-		if co.TaxRegime != "" {
-			out.RegimeNoPA = &co.TaxRegime
-		}
-		out.Monitorada = monitored(co.Active, co.FactorR, co.TaxRegime)
-		return nil
+		var err error
+		out, err = CalcWith(ctx, q, companyID, pa)
+		return err
 	})
 	return out, err
+}
+
+// CalcWith calcula o Fator R da empresa no PA com as consultas dadas, para quem já está numa
+// transação (o simulador e os agentes, na transação da corrida). Empresa inexistente: 404;
+// sem tabela do Simples vigente no PA: 422.
+func CalcWith(ctx context.Context, q *store.Queries, companyID string, pa competence.Competence) (Calc, error) {
+	co, err := company(ctx, q, companyID, pa)
+	if err != nil {
+		return Calc{}, err
+	}
+	set, _, err := settingsOf(ctx, q, companyID)
+	if err != nil {
+		return Calc{}, err
+	}
+	w := engine.NewWindow(pa)
+	rows, err := q.ListFactorRMovements(ctx, store.ListFactorRMovementsParams{
+		CompanyID: companyID, FromCompetence: w.Start.FirstDay(), ToCompetence: w.End.FirstDay(),
+	})
+	if err != nil {
+		return Calc{}, err
+	}
+	tb, err := tables(ctx, q, pa)
+	if err != nil {
+		return Calc{}, err
+	}
+	pol, err := policy(ctx, q)
+	if err != nil {
+		return Calc{}, err
+	}
+	ms := make([]engine.Movement, len(rows))
+	for i, r := range rows {
+		ms[i] = toEngineMovement(r)
+	}
+	out := Calc{Result: engine.Calculate(pa, set.InicioAtividade, ms, tb, pol)}
+	if co.TaxRegime != "" {
+		out.RegimeNoPA = &co.TaxRegime
+	}
+	out.Monitorada = monitored(co.Active, co.FactorR, co.TaxRegime)
+	return out, nil
 }
 
 // Portfolio monta a carteira do PA: empresas ativas, sujeitas ao Fator R e no Simples Nacional
@@ -513,6 +522,18 @@ func (s *Service) Calc(ctx context.Context, companyID string, pa competence.Comp
 func (s *Service) Portfolio(ctx context.Context, pa competence.Competence) (Portfolio, error) {
 	var out Portfolio
 	err := s.read(ctx, func(q *store.Queries) error {
+		var err error
+		out, err = PortfolioWith(ctx, q, pa)
+		return err
+	})
+	return out, err
+}
+
+// PortfolioWith monta a carteira do PA com as consultas dadas (o priorizador, na transação da
+// corrida).
+func PortfolioWith(ctx context.Context, q *store.Queries, pa competence.Competence) (Portfolio, error) {
+	var out Portfolio
+	err := func() error {
 		rows, err := q.ListFactorRPortfolioCompanies(ctx, pa.FirstDay())
 		if err != nil {
 			return err
@@ -563,6 +584,18 @@ func (s *Service) Portfolio(ctx context.Context, pa competence.Competence) (Port
 			}
 		}
 		return nil
-	})
+	}()
 	return out, err
+}
+
+// Policy devolve a política do escritório: meta operacional, CPP na FS12, piso de economia,
+// limiar do parser e tolerância da nota ouro.
+func Policy(ctx context.Context, q *store.Queries) (store.FactorRPolicy, error) {
+	p, err := q.GetFactorRPolicy(ctx)
+	if err != nil {
+		return store.FactorRPolicy{}, fmt.Errorf("política do Fator R: %w", err)
+	}
+	p.MetaOperacional = rate(p.MetaOperacional)
+	p.PisoEconomiaAnual = money(p.PisoEconomiaAnual)
+	return p, nil
 }

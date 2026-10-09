@@ -123,13 +123,19 @@ Fatia da TASK-006a/010/011/014a (D-016 a D-018):
 - motor em `backend/internal/factorr/engine`: porte fiel do `fator_r/domain` da origem, travado por um golden gerado pelo próprio Python da origem (`testdata/golden_gen.py`);
 - API em `backend/internal/factorr`; dinheiro em `internal/platform/decimal` (ADR-007);
 - "sujeita ao Fator R" é o `companies.factor_r` (D-017);
-- simulador, consultor e priorizador ficam para a TASK-013; telas do inbox, simulador e traces para a TASK-014b.
+- telas do inbox, do simulador, dos agentes e dos traces ficam para a TASK-014b.
 
 Inbox PGDAS-D (TASK-012, D-023):
 - parser em `backend/internal/factorr/pgdas`: porte fiel de `parsing/pgdas.py`, travado por golden gerado pelo próprio Python da origem (`testdata/golden_gen.py`). Regex da origem só por `pytext.Compile`, que mantém `\s`, `\d`, `\b`, IGNORECASE e lookahead do Python;
 - texto do PDF em `backend/internal/platform/pdftext` (PDFium em WebAssembly + algoritmo do pdfplumber, com os limites da origem);
 - inbox em `backend/internal/factorr/inbox`: upload na API (202) e job `pgdas_parse` no worker, com corrida do `parser_pgdas` e nota ouro;
 - gravação do extrato só por `InsertFactorRMovementFromPgdas`: competência vazia, nunca sobrescreve, folha só total declarado e conferido.
+
+Simulador e agentes consultor/priorizador (TASK-013, D-024), em `backend/internal/factorr/agents`:
+- todo número vem do motor; o LLM (aliases `consultor` e `priorizador`) só classifica a intenção e redige o texto;
+- texto do LLM sempre por `ValidateText` (porte do `validar_texto`, com golden da origem); reprovado, vira o template;
+- "corrigir" só com simulação gravada em `factor_r_simulations` (guarda no decide);
+- prompts versionados em `backend/internal/ai/prompts/`: mudar o texto exige versão nova (o teste fixa o hash).
 
 ## UI
 

@@ -216,6 +216,44 @@ func TestTEST006_NumericRoundTripKeepsScale(t *testing.T) {
 	}
 }
 
+// TASK-006b: simulações persistidas, sempre ligadas a uma corrida (o "corrigir" depende delas).
+func TestTEST006b_SimulationConstraints(t *testing.T) {
+	pool := testutil.NewDB(t)
+	ctx := context.Background()
+	id := newCompany(t, pool, "301", "11222333000181")
+	trace := strings.Repeat("a", 32)
+	if _, err := pool.Exec(ctx, `INSERT INTO ai_runs (trace_id, agent, trigger, status, created_at, updated_at) VALUES ($1, 'consultor', 'ficha', 'ok', now(), now())`, trace); err != nil {
+		t.Fatal(err)
+	}
+	ins := `INSERT INTO factor_r_simulations (company_id, pa, meta, fracao_pro_labore, inss, irrf, horizonte_meses, piso_economia_anual,
+	            status, veredito, reforco_12m, reforco_mensal, custo_total, parametros_json, resultado_json, trace_id)
+	        VALUES ($1, $2, $3, 1, 0.11, 0.275, $4, 6000, $5, $6, 0, 0, 0, '{}', '{}', $7)`
+	if _, err := pool.Exec(ctx, ins, id, "2026-09-01", "0.3", 12, "ok", "corrigir", trace); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := pool.Exec(ctx, ins, id, "2026-09-01", "0.3", 12, "dados_insuficientes", nil, trace); err != nil {
+		t.Fatal(err)
+	}
+	cases := []struct {
+		name string
+		args []any
+		code string
+	}{
+		{"veredito sem dados", []any{id, "2026-09-01", "0.3", 12, "dados_insuficientes", "corrigir", trace}, db.CheckViolation},
+		{"ok sem veredito", []any{id, "2026-09-01", "0.3", 12, "ok", nil, trace}, db.CheckViolation},
+		{"veredito inválido", []any{id, "2026-09-01", "0.3", 12, "ok", "talvez", trace}, db.CheckViolation},
+		{"meta abaixo do corte", []any{id, "2026-09-01", "0.27", 12, "ok", "corrigir", trace}, db.CheckViolation},
+		{"horizonte zero", []any{id, "2026-09-01", "0.3", 0, "ok", "corrigir", trace}, db.CheckViolation},
+		{"PA fora do dia 1", []any{id, "2026-09-15", "0.3", 12, "ok", "corrigir", trace}, db.CheckViolation},
+		{"sem corrida", []any{id, "2026-09-01", "0.3", 12, "ok", "corrigir", strings.Repeat("b", 32)}, db.ForeignKeyViolation},
+	}
+	for _, c := range cases {
+		if _, err := pool.Exec(ctx, ins, c.args...); !db.IsConstraint(err, c.code, "") {
+			t.Errorf("%s: esperado erro %s, veio %v", c.name, c.code, err)
+		}
+	}
+}
+
 // TASK-006b: documentos do Inbox PGDAS-D e a FK dos movimentos criados a partir deles.
 func TestTEST006b_PgdasDocumentConstraints(t *testing.T) {
 	pool := testutil.NewDB(t)

@@ -25,6 +25,7 @@ import (
 	"controle/internal/ai/langfuse"
 	"controle/internal/ai/tracer"
 	"controle/internal/app"
+	"controle/internal/factorr/agents"
 	"controle/internal/factorr/inbox"
 	"controle/internal/jobs"
 	"controle/internal/platform/clock"
@@ -98,7 +99,20 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
 	}, worker.Handlers(worker.HandlerDeps{LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse}))
-	var tasks []worker.Task
+	// Fila semanal do priorizador (TASK-013): aos domingos, a partir de ROTINA_PRIORIZADOR_HORA,
+	// uma vez por semana e sem LLM, como a rotina_semanal da origem.
+	routine := agents.NewService(pool, sysClock, sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)), nil, nil, logger)
+	tasks := []worker.Task{{Name: "priorizador_rotina", Every: 15 * time.Minute, Run: func(ctx context.Context) error {
+		now := sysClock.Now()
+		if !agents.RoutineDue(now, cfg.RoutinePriorizadorHour) {
+			return nil
+		}
+		n, err := routine.WeeklyRoutine(ctx, now)
+		if n > 0 {
+			logger.Info("priorizador: fila semanal registrada")
+		}
+		return err
+	}}}
 	if syncer.Configured() {
 		// Reenvio periódico das corridas e notas com falha (origem: de 5 em 5 minutos, 50 por vez).
 		tasks = append(tasks, worker.Task{Name: "langfuse_resync", Every: cfg.LangfuseRetry, Run: func(ctx context.Context) error {

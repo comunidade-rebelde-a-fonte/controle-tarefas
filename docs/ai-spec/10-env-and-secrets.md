@@ -20,6 +20,8 @@ Preservar as variáveis existentes do `controle-tarefas`, incluindo:
 - `FILE_STORAGE_DIR`
 - `DB_MAX_CONNS`
 
+> **Desde a TASK-013 (D-024):** `ROTINA_PRIORIZADOR_HORA` (padrão 7) é a hora, no fuso `APP_TIMEZONE`, a partir da qual o worker registra aos domingos a fila semanal do priorizador, sem LLM.
+
 ## 3. MinIO / Conciliação
 
 Variáveis necessárias, sem valores:
