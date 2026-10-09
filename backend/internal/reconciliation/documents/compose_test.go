@@ -35,20 +35,25 @@ func services(t *testing.T) map[string]string {
 	return out
 }
 
-// 09 §4/§5: a API grava com o usuário da aplicação (sem permissão de apagar); a credencial de
-// administrador do MinIO fica só no MinIO e no minio-init.
+// 09 §4/§5: a API grava e o worker lê com o usuário da aplicação (sem permissão de apagar); a
+// credencial de administrador do MinIO fica só no MinIO e no minio-init.
 func TestCompose_MinIOCredentials(t *testing.T) {
 	svc := services(t)
-	if !strings.Contains(svc["api"], "S3_ENDPOINT: http://minio:9000") || !strings.Contains(svc["api"], "S3_SECRET_KEY") {
-		t.Error("a API deveria gravar os originais no MinIO com o usuário da aplicação")
+	for _, name := range []string{"api", "worker"} {
+		if !strings.Contains(svc[name], "S3_ENDPOINT: http://minio:9000") || !strings.Contains(svc[name], "S3_SECRET_KEY") {
+			t.Errorf("o serviço %s deveria usar o MinIO com o usuário da aplicação", name)
+		}
 	}
 	for name, block := range svc {
 		if strings.Contains(block, "S3_ROOT_PASSWORD") && name != "minio" && name != "minio-init" {
 			t.Errorf("o serviço %s não pode receber a credencial de administrador do MinIO", name)
 		}
-		if strings.Contains(block, "S3_SECRET_KEY") && name != "api" && name != "minio-init" {
+		if strings.Contains(block, "S3_SECRET_KEY") && name != "api" && name != "worker" && name != "minio-init" {
 			t.Errorf("o serviço %s não precisa da credencial do MinIO", name)
 		}
+	}
+	if !strings.Contains(svc["worker"], "LIMIAR_TRIAGEM: ${LIMIAR_TRIAGEM:-0.70}") {
+		t.Error("o worker deveria receber o limiar da triagem (0,70 da origem)")
 	}
 	if strings.Contains(svc["api"], "depends_on:\n      minio") {
 		t.Error("a API não depende do MinIO para subir [D-013]")

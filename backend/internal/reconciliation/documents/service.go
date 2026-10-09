@@ -35,9 +35,8 @@ import (
 	"controle/internal/user"
 )
 
-// KindTriage é o job que processa o documento no worker (triagem e extração; TASK-016). Até lá,
-// o job espera na fila sem gastar tentativa: o worker só adquire tipos que sabe executar (D-019).
-const KindTriage = "reconciliation_triage"
+// KindTriage é o job que tria o documento no worker (TASK-016, pacote pipeline).
+const KindTriage = reconciliation.JobTriage
 
 // MaxFileSize é o limite do envio. A origem não limitava; 20 MB cobrem extratos longos e
 // comprovantes digitalizados.
@@ -48,8 +47,8 @@ const maxFileName = 255
 
 // Estados do documento (contrato congelado da origem, D-020).
 const (
-	StatusPending      = "pendente"
-	StatusClosedPeriod = "pendencia_periodo_fechado"
+	StatusPending      = reconciliation.DocPending
+	StatusClosedPeriod = reconciliation.DocClosedPeriod
 )
 
 // Tipos aceitos, pelo conteúdo: PDF (extratos e comprovantes), imagem (foto ou print de
@@ -313,6 +312,7 @@ type Document struct {
 	PeriodStart      *string         `json:"period_start"`
 	PeriodEnd        *string         `json:"period_end"`
 	TriageConfidence *string         `json:"triage_confidence"`
+	TriageTraceID    *string         `json:"triage_trace_id"`
 	Diagnosis        json.RawMessage `json:"diagnosis"`
 	Job              *JobState       `json:"job"`
 	FileURL          string          `json:"file_url"`
@@ -343,7 +343,8 @@ func toDocument(r store.GetReconciliationDocumentRow) Document {
 		ObjectVersionID: r.ObjectVersionID, Kind: r.Kind, Bank: r.Bank, Branch: r.Branch, Account: r.Account,
 		PeriodStart: dateText(r.PeriodStart, "2006-01-02"), PeriodEnd: dateText(r.PeriodEnd, "2006-01-02"),
 		Diagnosis: json.RawMessage("null"), FileURL: "/api/v1/reconciliation/documents/" + r.ID + "/file",
-		UploadedBy: r.UploadedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
+		TriageTraceID: r.TriageTraceID,
+		UploadedBy:    r.UploadedBy, CreatedAt: r.CreatedAt, UpdatedAt: r.UpdatedAt,
 	}
 	if r.TriageConfidence != nil {
 		v := r.TriageConfidence.String()
@@ -458,16 +459,16 @@ func notFound() error {
 	return apperr.NotFound(codeNotFound, "Documento da Conciliação não encontrado.")
 }
 
-// Get devolve o documento.
-func (s *Service) Get(ctx context.Context, id string) (Document, error) {
+// Get devolve o documento com a importação e as tentativas de extração.
+func (s *Service) Get(ctx context.Context, id string) (DocumentDetail, error) {
 	row, err := store.New(s.pool).GetReconciliationDocument(ctx, id)
 	if errors.Is(err, pgx.ErrNoRows) {
-		return Document{}, notFound()
+		return DocumentDetail{}, notFound()
 	}
 	if err != nil {
-		return Document{}, err
+		return DocumentDetail{}, err
 	}
-	return toDocument(row), nil
+	return s.detail(ctx, toDocument(row))
 }
 
 // Open abre o original gravado (a versão do envio) para leitura; o chamador fecha o corpo.

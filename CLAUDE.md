@@ -120,8 +120,16 @@ Desde a TASK-007 (D-020): schema em `backend/migrations/0020_reconciliation.sql`
 Ingestão (TASK-015, D-026), em `backend/internal/reconciliation/documents`:
 - original no MinIO pelo cliente `internal/platform/objectstore` (SigV4 só com a biblioteca padrão; sem operação de apagar), com a chave `originais/<sha256>` e a versão guardada no documento;
 - arquivo repetido: 409 `DUPLICATE_DOCUMENT`; MinIO fora: 503 sem gravar nada; documento tardio com o Contábil fechado: `pendencia_periodo_fechado`, sem job;
-- o documento nasce `pendente` com o job `reconciliation_triage` na mesma transação; o handler do worker chega na TASK-016;
+- o documento nasce `pendente` com o job `reconciliation_triage` na mesma transação;
 - testes com MinIO real: `testutil.NewMinIO` (mesma imagem e mesmo `init.sh` do compose).
+
+Triagem e extração (TASK-016, D-027):
+- domínio em `backend/internal/reconciliation/statement`: schema e validação do pydantic da origem, validador (portão R$ 0,00 e `validar_saldo`), dicas e leitores determinísticos (CSV, TXT, texto do PDF), travados por golden gerado pelo Python da origem (`testdata/statement_gen.py`);
+- worker em `backend/internal/reconciliation/pipeline`: jobs `reconciliation_triage` (leitor do PDF e triador) e `statement_extract` (leitor do CSV ou extrator com até 3 tentativas e playbook); a importação é atômica e só existe com o portão aprovado;
+- texto e render de PDF em `internal/platform/pdftext` (`Pages` no formato do PyMuPDF, `Render` em PNG), com golden do PyMuPDF (`testdata/mupdf_gen.py`);
+- páginas renderizadas vão ao modelo como imagem (`litellm.Message.Images`);
+- prompts em `internal/ai/prompts/conciliacao/`;
+- `make eval-extrator` avalia o extrator contra o golden com o LiteLLM real (custo de provedor: só com autorização).
 
 ## Fator R
 

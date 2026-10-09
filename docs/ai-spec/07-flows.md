@@ -78,6 +78,11 @@ flowchart TD
 
 Regra crítica: não existe caminho de persistência de `extrato_transacao` com portão reprovado.
 
+> **Como foi implementado (TASK-016; D-027).**
+> - Antes do triador roda o leitor determinístico do PDF (o `processar_local` da origem), agora no job. Com o saldo fechando, importa sem LLM (tentativas = 0); senão, o documento segue para o triador.
+> - O CSV do banco triado como extrato é lido pelo leitor determinístico, sem o extrator.
+> - A persistência atômica resolve a empresa (pela conta cadastrada ou pelo envio) e respeita o fechamento do Contábil: fechado, o documento fica `pendencia_periodo_fechado`.
+
 ## F-005 — Comprovante
 
 ```mermaid

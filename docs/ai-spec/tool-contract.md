@@ -21,6 +21,10 @@ Entrada: schema extraído.
 Saída: exatamente o mesmo `ResultadoValidacao` usado pelo portão de persistência.  
 Regra: não duplicar implementação de cálculo.
 
+> **Como foi implementado (TASK-016; D-027).** Como na origem, o sistema chama as ferramentas e envia o resultado ao agente; o modelo não faz chamada de ferramenta.
+> - `extrair_texto_pdf` e `renderizar_pagina`: `pdftext.Extractor.Pages` e `Render`, só leitura.
+> - `validar_saldo`: a mesma `statement.Validate` do portão.
+
 ### `buscar_candidatos`
 Entrada: company/conta/período/valor/data/sentido conforme contrato.  
 Saída: candidatos somente leitura.

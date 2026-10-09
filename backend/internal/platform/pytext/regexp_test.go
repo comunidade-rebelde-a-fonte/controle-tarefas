@@ -143,8 +143,36 @@ func TestRegexp_PythonSemantics(t *testing.T) {
 	}
 }
 
+// \d e \s dentro de classe e classes negadas (as regex do leitor de extrato do Conciliador,
+// TASK-016; resultados conferidos no Python 3.13).
+func TestRegexp_ClassEscapesAndNegatedClasses(t *testing.T) {
+	cases := []struct {
+		pattern    string
+		ignoreCase bool
+		text       string
+		want       string
+	}{
+		{`([\d.]+,\d{2})`, false, "R$ 1.234,56 e ١٢,٣٤", "1.234,56|١٢,٣٤"},
+		{`Saldo final[^\n]*\n([\d.]+,\d{2})`, true, "SALDO FINAL em 31/08\n213.142,37\n", "SALDO FINAL em 31/08\n213.142,37"},
+		{`Saldo final[^\d]*([\d.]+,\d{2})`, true, "saldo final: R$ 22.325,00", "saldo final: R$ 22.325,00"},
+		{`Saldo final[^\d]*([\d.]+,\d{2})`, true, "Saldo final em 31/08/2026: R$ 22.325,00", ""},
+		{`a[\s,]b`, false, "a　b a,b", "a　b|a,b"},
+		{`[^\d\s]+`, false, "12 ab٣ c", "ab|c"},
+	}
+	for _, c := range cases {
+		var got []string
+		for _, m := range MustCompile(c.pattern, c.ignoreCase).FindAll(c.text) {
+			g, _ := m.Group(0)
+			got = append(got, g)
+		}
+		if strings.Join(got, "|") != c.want {
+			t.Errorf("findall(%q, %q) = %q; quer %q", c.pattern, c.text, got, c.want)
+		}
+	}
+}
+
 func TestCompile_RejectsUnsupported(t *testing.T) {
-	for _, p := range []string{`\B`, `(?<=a)b`, `(?P<x>a)`, `[\s]`, `(?!(a))`, `[^a]`, `(?i)a`, `[h-j]`, `a$b`} {
+	for _, p := range []string{`\B`, `(?<=a)b`, `(?P<x>a)`, `[\S]`, `[\b]`, `(?!(a))`, `[^a]`, `[^]a]`, `[]a]`, `(?i)a`, `[h-j]`, `a$b`} {
 		if _, err := Compile(p, true); err == nil {
 			t.Errorf("Compile(%q) deveria recusar", p)
 		}

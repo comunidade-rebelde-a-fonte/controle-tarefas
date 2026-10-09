@@ -56,8 +56,9 @@ tags:
   - name: reconciliation
     description: |
       Conciliação (consolidação, TASK-015 em diante) — ingestão manual de extratos e comprovantes,
-      com o original imutável no MinIO versionado. Estados e tipos usam o vocabulário do
-      Conciliador de origem (D-020).
+      com o original imutável no MinIO versionado, e o processamento no worker (TASK-016): triagem,
+      extração do extrato com até 3 tentativas e importação só com o saldo fechando em R$ 0,00.
+      Estados e tipos usam o vocabulário do Conciliador de origem (D-020).
   - name: factor-r
     description: |
       Fator R (consolidação, TASK-011 a TASK-013) — configuração por empresa, série mensal de
@@ -2092,14 +2093,42 @@ paths:
     get:
       tags: [reconciliation]
       operationId: getReconciliationDocument
-      summary: Documento da Conciliação — hash, versão do original, triagem, diagnóstico e job
+      summary: Documento da Conciliação — hash, versão do original, triagem, diagnóstico, job, importação e tentativas
       responses:
         "200":
           description: Documento
           content:
             application/json:
-              schema: { $ref: "#/components/schemas/ReconciliationDocument" }
+              schema: { $ref: "#/components/schemas/ReconciliationDocumentDetail" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/documents/{id}/retry:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: retryReconciliationDocument
+      summary: Reprocessa o documento em revisão, parado por período fechado ou com o processamento encerrado sem sucesso [06 §4]
+      description: |
+        Não ignora portão nenhum: o documento volta para a fila e passa de novo pela triagem
+        (`revisao_triagem`, `pendencia_periodo_fechado`, ou `pendente` com o job encerrado sem
+        sucesso) ou pela extração (`revisao_extracao` de extrato, ou `triado` com o job encerrado
+        sem sucesso). Fica no log de extração como intervenção humana (alias `humano`). Importado ou
+        ainda na fila: 409 `DOCUMENT_NOT_RETRYABLE`. Contábil fechado na competência do envio ou do
+        período lido: 423 `PERIOD_CLOSED` [AC-025].
+      responses:
+        "202":
+          description: Documento de volta à fila, com o novo job
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationUpload" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
 
   /reconciliation/documents/{id}/file:
     parameters:
@@ -3957,7 +3986,7 @@ components:
 
     ReconciliationDocument:
       type: object
-      required: [id, status, company_id, competence, file_name, content_type, size_bytes, sha256, object_version_id, kind, bank, branch, account, period_start, period_end, triage_confidence, diagnosis, job, file_url, uploaded_by, created_at, updated_at]
+      required: [id, status, company_id, competence, file_name, content_type, size_bytes, sha256, object_version_id, kind, bank, branch, account, period_start, period_end, triage_confidence, triage_trace_id, diagnosis, job, file_url, uploaded_by, created_at, updated_at]
       properties:
         id: { $ref: "#/components/schemas/Uuid" }
         status: { $ref: "#/components/schemas/ReconciliationDocumentStatus" }
@@ -3979,8 +4008,14 @@ components:
         period_end: { type: [string, "null"], format: date }
         triage_confidence:
           oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        triage_trace_id: { type: [string, "null"], description: "Corrida do triador que classificou o documento (nula nos caminhos determinísticos)" }
         diagnosis:
-          description: Diagnóstico da triagem ou do validador, para a revisão
+          description: |
+            Diagnóstico do documento em revisão ou pendência: `motivo` (confianca_baixa,
+            tipo_desconhecido, documento_ilegivel, agente_desligado, saida_invalida, saldo_nao_fecha,
+            metadados_ausentes, csv_ilegivel, empresa_nao_identificada, conta_de_outra_empresa,
+            periodo_fechado), os detalhes e, quando houver, `validacao` (o ResultadoValidacao da
+            origem).
           oneOf: [{ type: object, additionalProperties: true }, { type: "null" }]
         job:
           oneOf: [{ $ref: "#/components/schemas/DocumentJobState" }, { type: "null" }]
@@ -3988,6 +4023,89 @@ components:
         uploaded_by: { type: [string, "null"], format: uuid }
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
+
+    ReconciliationValidation:
+      type: object
+      description: |
+        ResultadoValidacao da origem: o portão aritmético (tolerância R$ 0,00), o mesmo que a
+        ferramenta validar_saldo responde ao extrator [REQ-021].
+      required: [ok, soma_c, soma_d, saldo_calculado, saldo_esperado, diferenca, linhas_rejeitadas, lacunas_ordem, datas_fora_periodo]
+      properties:
+        ok: { type: boolean }
+        soma_c: { $ref: "#/components/schemas/DecimalString" }
+        soma_d: { $ref: "#/components/schemas/DecimalString" }
+        saldo_calculado: { $ref: "#/components/schemas/DecimalString" }
+        saldo_esperado: { $ref: "#/components/schemas/DecimalString" }
+        diferenca: { $ref: "#/components/schemas/DecimalString" }
+        linhas_rejeitadas:
+          type: array
+          items:
+            type: object
+            required: [ordem, motivo]
+            properties:
+              ordem: { type: integer }
+              motivo: { type: string, enum: [valor_nao_positivo, sentido_invalido] }
+        lacunas_ordem: { type: array, items: { type: integer } }
+        datas_fora_periodo: { type: array, items: { type: integer } }
+
+    ReconciliationStatementImport:
+      type: object
+      description: Importação do extrato (só existe com o portão aprovado) [AC-015]
+      required: [id, company_id, bank_account_id, bank, branch, account, period_start, period_end, opening_balance, closing_balance, attempts, validation, transactions, trace_id, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        bank_account_id: { type: [string, "null"], format: uuid, description: "Conta bancária cadastrada, se houver" }
+        bank: { type: string }
+        branch: { type: string }
+        account: { type: string }
+        period_start: { type: string, format: date }
+        period_end: { type: string, format: date }
+        opening_balance: { $ref: "#/components/schemas/DecimalString" }
+        closing_balance: { $ref: "#/components/schemas/DecimalString" }
+        attempts: { type: integer, minimum: 0, maximum: 3, description: "Tentativas do extrator; 0 = leitor determinístico" }
+        validation: { $ref: "#/components/schemas/ReconciliationValidation" }
+        transactions: { type: integer, format: int64, description: "Transações gravadas por esta importação (as repetidas ficam de fora)" }
+        trace_id: { type: [string, "null"], description: "Corrida do extrator (nula no leitor determinístico)" }
+        created_at: { type: string, format: date-time }
+
+    ReconciliationExtractionAttempt:
+      type: object
+      description: |
+        Linha do log de extração [CC-10]: tentativa do agente (triador, extrator, extrator_forte),
+        leitura determinística (`leitor_local`, tentativa 0) ou intervenção humana (`humano`). A
+        saída bruta não é exposta.
+      required: [id, alias, attempt, model, prompt_version, validation, tokens_in, tokens_out, cost_usd, latency_ms, trace_id, job_id, actor_id, change, error, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        alias: { type: string }
+        attempt: { type: integer, minimum: 0, maximum: 3 }
+        model: { type: [string, "null"], description: "Modelo informado pelo provedor" }
+        prompt_version: { type: [string, "null"], description: "nome@versão#hash dos prompts enviados" }
+        validation:
+          oneOf: [{ $ref: "#/components/schemas/ReconciliationValidation" }, { type: "null" }]
+        tokens_in: { type: [integer, "null"] }
+        tokens_out: { type: [integer, "null"] }
+        cost_usd:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        latency_ms: { type: [integer, "null"] }
+        trace_id: { type: [string, "null"] }
+        job_id: { type: [string, "null"], format: uuid }
+        actor_id: { type: [string, "null"], format: uuid }
+        change: { type: [string, "null"], description: "O que a intervenção humana fez (JSON em texto)" }
+        error: { type: [string, "null"], description: "Por que a tentativa foi perdida (saída fora do schema, leitor)" }
+        created_at: { type: string, format: date-time }
+
+    ReconciliationDocumentDetail:
+      description: Documento com a importação e o histórico das tentativas (AC-014)
+      allOf:
+        - $ref: "#/components/schemas/ReconciliationDocument"
+        - type: object
+          required: [import, attempts]
+          properties:
+            import:
+              oneOf: [{ $ref: "#/components/schemas/ReconciliationStatementImport" }, { type: "null" }]
+            attempts: { type: array, items: { $ref: "#/components/schemas/ReconciliationExtractionAttempt" } }
 
     ReconciliationDocumentList:
       type: object

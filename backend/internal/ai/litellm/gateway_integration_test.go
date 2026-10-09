@@ -44,6 +44,8 @@ type fakeProvider struct {
 	paths  []string
 	// formats guarda o response_format de cada chamada (saída estruturada dos agentes).
 	formats []map[string]any
+	// messages guarda as mensagens de cada chamada como chegaram (texto ou partes com imagem).
+	messages [][]json.RawMessage
 }
 
 func (p *fakeProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,18 +62,23 @@ func (p *fakeProvider) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body struct {
-		Model    string `json:"model"`
-		Messages []struct {
-			Content string `json:"content"`
-		} `json:"messages"`
-		ResponseFormat map[string]any `json:"response_format"`
+		Model          string            `json:"model"`
+		Messages       []json.RawMessage `json:"messages"`
+		ResponseFormat map[string]any    `json:"response_format"`
 	}
 	_ = json.NewDecoder(r.Body).Decode(&body)
 	p.mu.Lock()
 	p.models = append(p.models, body.Model)
 	p.formats = append(p.formats, body.ResponseFormat)
+	p.messages = append(p.messages, body.Messages)
 	p.mu.Unlock()
-	if len(body.Messages) > 0 && body.Messages[len(body.Messages)-1].Content == "provoque-401" {
+	var last struct {
+		Content string `json:"content"`
+	}
+	if len(body.Messages) > 0 {
+		_ = json.Unmarshal(body.Messages[len(body.Messages)-1], &last) // conteúdo em partes fica vazio
+	}
+	if last.Content == "provoque-401" {
 		// O provedor ecoa a chave no erro; o cliente não pode repassá-la.
 		w.WriteHeader(http.StatusUnauthorized)
 		_, _ = fmt.Fprintf(w, `{"error":{"message":"Incorrect API key provided: %s","type":"invalid_request_error"}}`, providerKey)
@@ -94,6 +101,15 @@ func (p *fakeProvider) lastFormat() map[string]any {
 		return nil
 	}
 	return p.formats[len(p.formats)-1]
+}
+
+func (p *fakeProvider) lastMessages() []json.RawMessage {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.messages) == 0 {
+		return nil
+	}
+	return p.messages[len(p.messages)-1]
 }
 
 func (p *fakeProvider) lastModel() string {
@@ -228,6 +244,41 @@ func TestGateway_RoutesEveryAliasToTheProviderWithItsKey(t *testing.T) {
 		}
 		if resp.Content != `{"intencao":"priorizar"}` {
 			t.Fatalf("conteúdo = %q", resp.Content)
+		}
+	})
+
+	// Imagens (TASK-016): o extrator manda as páginas renderizadas em partes (texto e image_url com
+	// data URL); o LiteLLM repassa as partes ao provedor OpenAI como vieram.
+	t.Run("mensagem com imagens", func(t *testing.T) {
+		resolved, err := resolver.Resolve(ai.Extrator)
+		if err != nil {
+			t.Fatal(err)
+		}
+		png := []byte("\x89PNG\r\n\x1a\npagina")
+		msgs := []Message{{Role: "system", Content: "extraia"}, {Role: "user", Content: "estrategia=render_150 dpi=150", Images: []Image{{MIME: "image/png", Data: png, Detail: "high"}}}}
+		if _, err := client.Chat(ctx, Request{Model: resolved.Model, Messages: msgs}); err != nil {
+			t.Fatal(err)
+		}
+		got := provider.lastMessages()
+		if len(got) != 2 {
+			t.Fatalf("mensagens no provedor = %d", len(got))
+		}
+		var user struct {
+			Content []struct {
+				Type     string `json:"type"`
+				Text     string `json:"text"`
+				ImageURL struct {
+					URL    string `json:"url"`
+					Detail string `json:"detail"`
+				} `json:"image_url"`
+			} `json:"content"`
+		}
+		if err := json.Unmarshal(got[1], &user); err != nil {
+			t.Fatalf("mensagem do usuário no provedor = %s (%v)", got[1], err)
+		}
+		if len(user.Content) != 2 || user.Content[0].Type != "text" || user.Content[1].Type != "image_url" ||
+			user.Content[1].ImageURL.URL != "data:image/png;base64,iVBORw0KGgpwYWdpbmE=" || user.Content[1].ImageURL.Detail != "high" {
+			t.Fatalf("partes no provedor = %s", got[1])
 		}
 	})
 

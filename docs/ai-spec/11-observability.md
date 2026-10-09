@@ -107,6 +107,8 @@ Preservar/adicionar:
 - erros detectados após fechamento (meta: zero);
 - sucesso de playbook por banco.
 
+> **Desde a TASK-016 (D-027):** os dados dessas métricas de extração já são gravados: o log de extração por tentativa (alias, modelo, tokens, custo, latência, resultado do validador), a importação com o número de tentativas e os playbooks com sucessos e falhas. O painel chega com a TASK-021/024. `make eval-extrator` mede o extrator contra o golden.
+
 ## 8. Healthchecks
 
 No mínimo:
@@ -135,6 +137,11 @@ No mínimo:
 - job entra em retry com backoff;
 - após limite, estado de revisão/erro operacional;
 - nenhuma regra determinística deve ser contornada.
+
+> **Na Conciliação (TASK-016; D-027):**
+> - o job da triagem ou da extração falha com `LLM_UNAVAILABLE` e a fila tenta de novo; esgotadas as tentativas, ele fica `dead` e o documento volta pela `POST /reconciliation/documents/{id}/retry`;
+> - com o alias desligado na tela de IA, o documento vai direto para a revisão;
+> - os leitores determinísticos (PDF do leiaute conhecido, CSV) funcionam sem o LLM.
 
 ### MinIO fora
 - upload do Conciliador deve falhar antes de criar estado inconsistente;

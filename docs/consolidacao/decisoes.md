@@ -4,6 +4,65 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-027 — Triagem e extração do extrato da Conciliação (TASK-016; 09/10/2026, dentro da autonomia da spec; a validar com a TASK)
+
+- **Porte** de `app/agentes/{triador,extrator_extrato,ferramentas,llm}.py`, `app/domain/{schemas,validador,money,csv_extrato,pdf_extrato}.py` e `app/servicos/{pipeline,importacao,processar_local}.py` do Conciliador (commit `2bc6e26`).
+  - Domínio puro em `backend/internal/reconciliation/statement`: schema do extrato e da triagem com a validação do pydantic, validador, dicas e leitores determinísticos. Travado por golden gerado pelo próprio Python da origem (`testdata/statement_gen.py`, 256 casos) e por testes de propriedade do validador (TEST-016).
+  - Processamento no worker em `backend/internal/reconciliation/pipeline`: os jobs `reconciliation_triage` (nasce no envio) e `statement_extract` (o nome do 04 §7). O comprovante triado ganha o `receipt_extract`, que espera na fila até a TASK-017 (D-019).
+- **Ferramentas de PDF (CC-03).** A origem usa o PyMuPDF; aqui é o mesmo PDFium em WebAssembly do PGDAS-D (`internal/platform/pdftext`).
+  - `extrair_texto_pdf`: texto por página no formato do `page.get_text()` do PyMuPDF (cada célula da tabela numa linha), que o leitor determinístico exige. As regras de linha e espaço foram medidas contra o PyMuPDF 1.25.4, sem copiar código do MuPDF (AGPL).
+  - O golden tem 67 PDFs (o cenário da origem, o PGDAS-D e 46 sintéticos); 65 saem idênticos. As 2 diferenças estão documentadas: o PDFium descarta o texto repetido no mesmo lugar ("negrito falso") e ordena pela posição os objetos de texto de uma mesma linha.
+  - `renderizar_pagina`: PNG em 36 a 600 DPI, sobre fundo branco; página gigante cai de DPI para caber em 25 milhões de pixels.
+  - O `cache_render` (render guardado no storage) não foi portado: a origem não o usava.
+- **Leitor determinístico do PDF (CC-08, o atalho `processar_local`)**, agora no job de triagem e sem LLM: o texto no leiaute do cenário (Banco A Fonte, Banco Beta) que fecha o saldo importa com tentativas = 0, como na origem. Três diferenças:
+  - só lê com o banco nomeado no texto (a origem assumia `a_fonte` para qualquer banco);
+  - se não ler ou não fechar, o documento segue para o triador, em vez de derrubar o job ou ir direto para a revisão sem passar pelo agente;
+  - o `garantir_horizonte` não foi portado: ele criava a empresa da aula para todo PDF; aqui ninguém cria empresa. O leitor de comprovante fica para a TASK-017 e o cenário Horizonte, para a TASK-027.
+- **Triador (REQ-019, CC-04).** Classifica pelo texto das 3 primeiras páginas (até 12.000 caracteres), com o limiar `LIMIAR_TRIAGEM` (0,70, o da origem). Abaixo dele, ou tipo desconhecido, o documento vai para `revisao_triagem` com o diagnóstico.
+  - PDF sem texto vai como a imagem da 1ª página a 72 DPI; foto ou print, como a própria imagem; CSV/TXT, como o conteúdo. A origem mandava ao modelo um texto vazio, ou só a marca "[imagem pagina 0 N bytes]", embora o prompt prometesse a imagem.
+  - Saída fora do schema: a tentativa do job falha (`TRIAGE_INVALID_OUTPUT`) e a fila tenta de novo, como na origem.
+  - Alias desligado na tela de IA: `revisao_triagem` (`agente_desligado`), sem gastar tentativas. PDF ilegível: `documento_ilegivel`.
+- **Extrator (REQ-020, CC-05).** Até 3 tentativas: texto nativo; render a 150 DPI; render a 300 DPI com o `extrator_forte`.
+  - Da 2ª em diante vão o extrato anterior, o resultado do validador (o mesmo JSON do `model_dump_json` da origem, byte a byte) e as dicas.
+  - **Divergência principal:** nas tentativas 2 e 3, a origem mandava só o tamanho do PNG (`render_pagina0_bytes=…`), sem a imagem e sem o texto: o modelo não via o documento, e o loop de correção não tinha como funcionar. Aqui as páginas (até 10) vão como imagem, como o PRD §6.3 e os prompts pedem. O formato com imagem foi provado contra o LiteLLM real em `make test-litellm`.
+  - Sem camada de texto, a 1ª tentativa já vai com as páginas renderizadas (o prompt mandava pedir o render, e não há chamada de ferramenta). Foto ou print vão como imagem em todas as tentativas.
+  - Saída inválida conta como tentativa perdida: JSON quebrado, fora do schema ou dinheiro como número (`TentativaParseError`). Na origem, parte dessas saídas (float no valor, texto não numérico) derrubava o job.
+  - Guardas a mais, que o pydantic aceitava e o banco recusaria: ordem e página de 1 a 2³¹−1, confiança de 0 a 1, valor dentro de numeric(14,2) e período em ordem. Tipos fora do schema estrito (booleano como número, texto como inteiro, data como timestamp) também são recusados.
+  - Saída estruturada com `json_schema` estrito, como o consultor (D-024); a origem pedia `json_object`.
+  - O log grava o alias efetivo: `extrator_forte` na 3ª tentativa (a origem gravava `extrator`).
+- **Portão (REQ-021, CC-06, AC-015, AC-016).** `statement.Validate` é o `validar_extrato` (6 regras, tolerância R$ 0,00) e responde também à ferramenta `validar_saldo`.
+  - Sem o portão aprovado, nada é gravado e o documento vai para `revisao_extracao` com o diagnóstico da última tentativa.
+  - O banco tem ainda o `CHECK (validation_ok)` da D-020.
+- **Importação (CC-07)** atômica, na transação do job, com a chave de dedupe da origem (a transação repetida fica de fora). O porte acrescenta:
+  - **empresa:** a conta bancária cadastrada decide; sem ela, vale a do envio; sem nenhuma, `revisao_extracao` (`empresa_nao_identificada`). Conta de outra empresa: `conta_de_outra_empresa`;
+  - **trava (AC-025):** Contábil fechado em alguma competência do extrato (das transações ou do período) deixa o documento em `pendencia_periodo_fechado`, sem importar. A origem não tinha empresa nem essa trava na importação.
+- **CSV (CC-08).** O CSV do banco (cabeçalho `data;descricao;documento;tipo;valor;saldo`) é lido pelo leitor determinístico no job de extração, sem o extrator.
+  - Banco, agência e conta vêm da triagem (ou da revisão humana da TASK-021); o período, da triagem ou da competência do envio. Faltando algum: `metadados_ausentes`.
+  - A origem só usava o CSV no script do cenário (`carregar_horizonte.py`, TASK-027).
+  - O `metadados_txt` foi portado com golden; a origem não o usava em nenhum fluxo.
+- **Playbooks (REQ-022, CC-09, AC-017).** O playbook válido do banco vai na 1ª tentativa: as instruções no prompt de sistema e o playbook como dado na mensagem.
+  - Falhou na 1ª tentativa, ele é invalidado e as tentativas seguintes redescobrem. A versão nova só nasce com o portão aprovado; o playbook usado com sucesso ganha um sucesso.
+  - Leitura determinística aprovada também cria ou conta playbook, como na origem.
+  - A origem anexava ao prompt de sistema só a linha `PLAYBOOK: banco=… pagina=… decimal=… sinal=…`; aqui vão todos os campos do schema congelado, como dado e não como instrução.
+- **Prompts** em `internal/ai/prompts/conciliacao/` (triador, extrator, correção e o bloco do playbook): os textos da origem com os itens do prompt-spec §2 e a entrada que o sistema de fato envia. A versão e o hash ficam fixados em teste.
+- **Auditoria (CC-10).** O log de extração grava cada tentativa: alias, modelo real, hash e versão do prompt, saída bruta, validador, tokens, custo e latência. Grava também a leitura determinística (`leitor_local`, tentativa 0) e o reprocessamento (`humano`, com o autor).
+  - Triador e extrator têm corrida no tracer (D-022) com a decisão. O documento aponta a corrida do triador; a importação, a do extrator (migration `0026`).
+  - Agência e conta não entram na decisão, que vai ao Langfuse.
+- **API.** `POST /reconciliation/documents/{id}/retry` (06 §4) reprocessa:
+  - a revisão de triagem e a pendência de período fechado, que voltam à triagem;
+  - a revisão de extração, que volta à extração;
+  - o documento com o job encerrado sem sucesso, que repete o mesmo job.
+  - Ele não ignora portão nenhum. Recusa com 409 se o documento já está importado ou na fila, e com 423 se o Contábil está fechado.
+  - O detalhe passa a trazer a importação, as tentativas e a corrida do triador.
+- **Relatório do golden (CC-25, eval-plan §3).** O golden é o cenário da origem (2 extratos, com o gabarito tirado do CSV pelo `extrato_de_csv`).
+  - O relatório pula os leitores determinísticos e traz aprovação na 1ª tentativa, tentativas, custo, latência e as diferenças para o gabarito.
+  - `make test` roda o relatório com o gateway simulado. `make eval-extrator` roda com o LiteLLM do ambiente, com custo de provedor real: **não rodado**, depende do seu aceite.
+- **Configuração.** `LIMIAR_TRIAGEM` no worker. No compose, o worker recebe a chave do MinIO da aplicação (teste: a de administrador continua fora).
+- **Fica para depois:**
+  - TASK-017: extração de comprovante, o leitor determinístico de comprovante e a releitura;
+  - TASK-021: telas da revisão ("que documento é esse?"), dos playbooks e das métricas;
+  - TASK-027: cenário Horizonte no seed-demo.
+
 ### D-026 — Ingestão manual da Conciliação com original no MinIO (TASK-015; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `app/servicos/ingestao.py` e `app/storage.py` do Conciliador (commit `2bc6e26`), em `backend/internal/reconciliation/documents`.
@@ -34,7 +93,7 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
   - O gatilho usa polling, porque a pasta montada do Windows não avisa mudanças ao container, e espera o arquivo terminar de ser gravado.
   - Provado num n8n descartável da mesma imagem: o arquivo solto na pasta chegou ao endpoint no campo `file`, com o nome original.
   - `make n8n-import` importa e ativa o workflow no n8n do ambiente. Não foi rodado: depende do seu aceite.
-- **Fica para a TASK-016:** `POST /reconciliation/documents/{id}/retry` (06 §4). Ele só faz sentido com o processamento, que define quais estados de revisão aceitam novo processamento. Hoje, o job encerrado com falha volta pela `POST /jobs/{id}/retry`.
+- **Fica para a TASK-016:** `POST /reconciliation/documents/{id}/retry` (06 §4). Ele só faz sentido com o processamento, que define quais estados de revisão aceitam novo processamento. Hoje, o job encerrado com falha volta pela `POST /jobs/{id}/retry`. *(Feito na TASK-016, D-027.)*
 - **Ponto para a TASK-021:** a API responde com `X-Frame-Options: DENY`. Se a fila de revisão embutir o original numa moldura, essa rota vai precisar de `SAMEORIGIN`.
 
 ### D-025 — Telas do inbox PGDAS-D, do simulador, dos agentes e da observabilidade (TASK-014b; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)

@@ -231,3 +231,20 @@ func TestLoad_CORSOrigins(t *testing.T) {
 		t.Fatalf("origens = %v", cfg.CORSOrigins)
 	}
 }
+
+// Limiar da triagem da Conciliação (TASK-016): 0,70 por padrão, como a origem; decimal de 0 a 1.
+func TestLoad_TriageThreshold(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil || cfg.TriageThreshold.String() != "0.70" {
+		t.Fatalf("padrão = %s, %v", cfg.TriageThreshold, err)
+	}
+	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": " 0.85 "}))
+	if err != nil || cfg.TriageThreshold.String() != "0.85" {
+		t.Fatalf("0.85 = %s, %v", cfg.TriageThreshold, err)
+	}
+	for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
+		if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": bad})); err == nil || !strings.Contains(err.Error(), "LIMIAR_TRIAGEM") {
+			t.Errorf("LIMIAR_TRIAGEM=%q aceito: %v", bad, err)
+		}
+	}
+}

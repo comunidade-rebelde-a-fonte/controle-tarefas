@@ -215,3 +215,39 @@ func TestSanitize(t *testing.T) {
 		t.Errorf("sanitize deve truncar em 300 caracteres + reticências, veio %d", len([]rune(got)))
 	}
 }
+
+// Com imagens, a mensagem vai em partes (texto e image_url com data URL), o formato da API de chat
+// que o LiteLLM repassa aos provedores com visão (TASK-016); sem imagens, continua texto.
+func TestChat_SendsImagesAsContentParts(t *testing.T) {
+	var got struct {
+		Messages []json.RawMessage `json:"messages"`
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		b, _ := io.ReadAll(r.Body)
+		_ = json.Unmarshal(b, &got)
+		_, _ = io.WriteString(w, okBody("gpt-6-sol"))
+	}))
+	defer srv.Close()
+	_, err := newTestClient(srv.URL).Chat(context.Background(), Request{
+		Model: luna,
+		Messages: []Message{
+			{Role: "system", Content: "Você extrai."},
+			{Role: "user", Content: "estrategia=render_150", Images: []Image{
+				{MIME: "image/png", Data: []byte("\x89PNG"), Detail: "high"},
+				{MIME: "image/jpeg", Data: []byte{0xFF, 0xD8}},
+			}},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got.Messages[0]) != `{"role":"system","content":"Você extrai."}` {
+		t.Fatalf("mensagem de texto = %s", got.Messages[0])
+	}
+	want := `{"role":"user","content":[{"type":"text","text":"estrategia=render_150"},` +
+		`{"type":"image_url","image_url":{"url":"data:image/png;base64,iVBORw==","detail":"high"}},` +
+		`{"type":"image_url","image_url":{"url":"data:image/jpeg;base64,/9g="}}]}`
+	if string(got.Messages[1]) != want {
+		t.Fatalf("mensagem com imagens =\n%s\nwant\n%s", got.Messages[1], want)
+	}
+}

@@ -125,6 +125,11 @@ Somente para estados retry/review compatíveis; não ignora portões.
 > - Rota a mais: `GET /reconciliation/documents/{id}/file` lê a versão gravada do original (inline, ou `?download=1` para baixar).
 > - O `retry` deste item vem com o processamento, na TASK-016. Até lá, o job encerrado com falha volta pela `POST /jobs/{id}/retry`.
 
+> **Desde a TASK-016 (D-027):**
+> - `POST /reconciliation/documents/{id}/retry` responde 202 com o novo job. Recusas: 409 `DOCUMENT_NOT_RETRYABLE` (importado ou já na fila) e 423 `PERIOD_CLOSED`.
+>   - A revisão de triagem e a pendência de período fechado voltam à triagem; a revisão de extração, à extração. O documento com o job encerrado sem sucesso repete o mesmo job.
+> - O detalhe traz também `triage_trace_id`, `import` (a importação aprovada) e `attempts` (o log de extração, sem a saída bruta).
+
 ### `GET /companies/{id}/reconciliation?competence=YYYY-MM`
 
 Resumo da competência: contas, imports, buckets, progresso, fechamento contábil.

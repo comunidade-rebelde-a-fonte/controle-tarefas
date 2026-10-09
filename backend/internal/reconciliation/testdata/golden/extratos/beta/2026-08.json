@@ -1,0 +1,32 @@
+{
+ "banco": "beta",
+ "agencia": "0021",
+ "conta": "33412-7",
+ "periodo_inicio": "2026-08-01",
+ "periodo_fim": "2026-08-31",
+ "saldo_inicial": "15000.00",
+ "saldo_final": "22325.00",
+ "transacoes": [
+  {
+   "ordem": 1,
+   "data": "2026-08-10",
+   "descricao": "BOLETO MADEIREIRA PINHEIRO - FORMAS E ESCORAS",
+   "valor": "12640.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 2,
+   "data": "2026-08-26",
+   "descricao": "PIX RECEBIDO ESCOLA CRESCER LTDA",
+   "valor": "20000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 3,
+   "data": "2026-08-29",
+   "descricao": "TARIFA PACOTE SERVICOS PJ",
+   "valor": "35.00",
+   "sentido": "D"
+  }
+ ]
+}

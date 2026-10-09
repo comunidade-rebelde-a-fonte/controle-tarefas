@@ -7,6 +7,10 @@
 // tolerância de 3 pt). Nas fixtures da origem o texto sai byte a byte igual (testdata). Os
 // limites da origem contra PDF malicioso continuam: 30 s por extração, 1 GiB de memória, duas
 // extrações ao mesmo tempo e 2 milhões de caracteres; o PDFium roda sem acesso ao disco.
+//
+// O mesmo PDFium atende as ferramentas do Conciliador (pages.go, TASK-016): o texto página a
+// página no formato do PyMuPDF (extrair_texto_pdf) e o render da página em PNG
+// (renderizar_pagina).
 package pdftext
 
 import (
@@ -177,51 +181,20 @@ func (e *Extractor) Extract(ctx context.Context, data []byte, mime string) (Extr
 	default:
 		return Extracted{}, fmt.Errorf("pdftext: tipo %q não suportado", mime)
 	}
-	if err := e.init(); err != nil {
+	text, err := run(ctx, e, func(inst pdfium.Pdfium) (string, error) { return pdfText(inst, data) })
+	switch {
+	case errors.Is(err, ErrLimits):
+		return Extracted{Reason: ReasonLimits}, nil
+	case errors.Is(err, ErrUnreadable):
+		// O pdfplumber e o pypdf falharam: PDF ilegível.
+		return Extracted{Reason: ReasonUnreadable}, nil
+	case err != nil:
 		return Extracted{}, err
 	}
-	// O pool tem MaxConcurrent instâncias: pegar uma é o semáforo da origem.
-	inst, err := e.pool.GetInstanceWithContext(ctx)
-	if err != nil {
-		if ctx.Err() != nil {
-			return Extracted{}, ctx.Err()
-		}
-		return Extracted{}, fmt.Errorf("pdftext: instância do PDFium: %w", err)
+	if strings.TrimFunc(text, pytext.IsSpace) == "" {
+		return Extracted{Reason: ReasonNoTextLayer}, nil
 	}
-	type outcome struct {
-		text string
-		err  error
-	}
-	done := make(chan outcome, 1)
-	go func() {
-		defer func() {
-			if p := recover(); p != nil {
-				done <- outcome{err: fmt.Errorf("pdftext: pânico na extração: %v", p)}
-			}
-		}()
-		text, err := pdfText(inst, data)
-		done <- outcome{text, err}
-	}()
-	timer := time.NewTimer(e.timeout)
-	defer timer.Stop()
-	select {
-	case out := <-done:
-		_ = inst.Close() // instância descartada; o erro de fechar não muda o resultado
-		if out.err != nil {
-			// O pdfplumber e o pypdf falharam: PDF ilegível.
-			return Extracted{Reason: ReasonUnreadable}, nil
-		}
-		if strings.TrimFunc(out.text, pytext.IsSpace) == "" {
-			return Extracted{Reason: ReasonNoTextLayer}, nil
-		}
-		return Extracted{Text: truncate(out.text, MaxChars)}, nil
-	case <-timer.C:
-		_ = inst.Kill() // interrompe o WebAssembly em execução
-		return Extracted{Reason: ReasonLimits}, nil
-	case <-ctx.Done():
-		_ = inst.Kill()
-		return Extracted{}, ctx.Err()
-	}
+	return Extracted{Text: truncate(text, MaxChars)}, nil
 }
 
 func truncate(s string, n int) string {

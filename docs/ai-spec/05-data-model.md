@@ -151,6 +151,12 @@ Entidade transversal para documentos de Conciliação se o modelo atual permitir
 Não misturar arbitrariamente com documentos PGDAS se isso apagar estados específicos. Uma camada `documents` pode agregá-los via view/DTO.
 
 > **Desde a TASK-015 (D-026):** `reconciliation_documents.job_id` (migration `0025`) aponta o job de triagem; é nulo no documento parado por período fechado.
+>
+> **Desde a TASK-016 (D-027):**
+> - `reconciliation_documents.triage_trace_id` e `statement_imports.trace_id` (migration `0026`) apontam as corridas do triador e do extrator (nulas nos leitores determinísticos);
+> - `job_id` passa a apontar o job atual (a triagem e, depois, a extração);
+> - o `diagnosis` do documento em revisão ou pendência é `{motivo, …detalhes, validacao}`, onde `validacao` é o ResultadoValidacao;
+> - o log de extração grava as tentativas (`triador`, `extrator`, `extrator_forte`), a leitura determinística (`leitor_local`, tentativa 0) e o reprocessamento (`humano`).
 > - A chave no bucket é `originais/<sha256>`, sem o nome enviado.
 > - `object_version_id` guarda a versão gravada.
 

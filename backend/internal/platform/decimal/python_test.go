@@ -1,6 +1,9 @@
 package decimal
 
-import "testing"
+import (
+	"math"
+	"testing"
+)
 
 // Decimal(str) do Python (valores conferidos no Python 3.14).
 func TestParsePython_MatchesPythonDecimal(t *testing.T) {
@@ -50,5 +53,35 @@ func TestNormalizeKeyAbsTryQuantize(t *testing.T) {
 	}
 	if q, ok := MustParse("2.345").TryQuantize(-2); !ok || q.String() != "2.34" {
 		t.Errorf("TryQuantize = %s", q)
+	}
+}
+
+// repr() do float do Python e Decimal(repr(f)), conferidos no Python 3.13 (TASK-016).
+func TestPythonFloatRepr(t *testing.T) {
+	cases := []struct {
+		f          float64
+		repr, decs string
+	}{
+		{0.1, "0.1", "0.1"}, {0.3, "0.3", "0.3"}, {1.0, "1.0", "1.0"}, {math.Copysign(0, -1), "-0.0", "-0.0"},
+		{100000.0, "100000.0", "100000.0"}, {1e15, "1000000000000000.0", "1000000000000000.0"},
+		{1e16, "1e+16", "1E+16"}, {1.5e16, "1.5e+16", "1.5E+16"}, {1e-4, "0.0001", "0.0001"},
+		{1e-5, "1e-05", "0.00001"}, {1.5e-7, "1.5e-07", "1.5E-7"}, {123.456, "123.456", "123.456"},
+		{1.7976931348623157e308, "1.7976931348623157e+308", "1.7976931348623157E+308"},
+		{5e-324, "5e-324", "5E-324"}, {12345678901234567890.5, "1.2345678901234567e+19", "1.2345678901234567E+19"},
+		{0.95, "0.95", "0.95"}, {2.0, "2.0", "2.0"}, {-1234.5, "-1234.5", "-1234.5"},
+	}
+	for _, c := range cases {
+		if got := PythonFloatRepr(c.f); got != c.repr {
+			t.Errorf("repr(%v) = %q; quer %q", c.f, got, c.repr)
+		}
+		d, ok := FromPythonFloat(c.f)
+		if !ok || d.String() != c.decs {
+			t.Errorf("Decimal(repr(%v)) = %q, %v; quer %q", c.f, d.String(), ok, c.decs)
+		}
+	}
+	for _, f := range []float64{math.Inf(1), math.Inf(-1), math.NaN()} {
+		if _, ok := FromPythonFloat(f); ok {
+			t.Errorf("FromPythonFloat(%v) aceitou", f)
+		}
 	}
 }

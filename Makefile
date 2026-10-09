@@ -54,7 +54,7 @@ E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
-.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -165,6 +165,9 @@ test-frontend:
 
 test-litellm: ## Integração com o LiteLLM real (container) e provedor simulado: alias → modelo → provedor, sem chamada externa
 	cd backend && go test -count=1 -tags litellm -run TestGateway ./internal/ai/litellm/
+
+eval-extrator: ## Avalia o extrator da Conciliação contra o golden com o LiteLLM do ambiente (CUSTO de provedor real: só com autorização)
+	cd backend && LITELLM_BASE_URL=http://localhost:$(LITELLM_PORT) LITELLM_API_KEY=$(LITELLM_MASTER_KEY) EVAL_REPORT=$(CURDIR)/backend/eval-extrator.json go test -count=1 -timeout 30m -tags golden -run TestGoldenReport_RealGateway -v ./internal/reconciliation/pipeline/
 
 test-langfuse: ## Integração com o Langfuse local real (exige make langfuse-up): envia uma corrida e confere pela API pública
 	cd backend && go test -count=1 -tags langfuse -run TestLangfuse ./internal/ai/tracer/

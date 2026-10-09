@@ -22,7 +22,9 @@ import (
 	"time"
 	_ "time/tzdata" // fusos embutidos (imagem final mínima não tem tzdata)
 
+	"controle/internal/ai/aliases"
 	"controle/internal/ai/langfuse"
+	"controle/internal/ai/litellm"
 	"controle/internal/ai/tracer"
 	"controle/internal/app"
 	"controle/internal/factorr/agents"
@@ -32,7 +34,9 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/platform/db"
 	"controle/internal/platform/migrate"
+	"controle/internal/platform/objectstore"
 	"controle/internal/platform/pdftext"
+	"controle/internal/reconciliation/pipeline"
 	"controle/internal/worker"
 	"controle/seed"
 )
@@ -96,9 +100,21 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 	defer func() { _ = extractor.Close() }()
 	pgdasAgent := inbox.NewAgent(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
 		inbox.NewStorage(cfg.FileStorageDir), extractor)
+	// Conciliação (TASK-016): triagem e extração do extrato. O original vem do MinIO; os agentes,
+	// pelo LiteLLM com os aliases da tela de IA.
+	originals := objectstore.New(objectstore.Config{
+		Endpoint: cfg.S3Endpoint, Region: cfg.S3Region, AccessKey: cfg.S3AccessKey, SecretKey: cfg.S3SecretKey.Reveal(), Bucket: cfg.S3Bucket,
+	})
+	processor := pipeline.New(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
+		jobs.NewQueue(sysClock, cfg.JobMaxAttempts), originals, extractor,
+		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults),
+		pipeline.Config{TriageThreshold: cfg.TriageThreshold}, logger)
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
-	}, worker.Handlers(worker.HandlerDeps{LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse}))
+	}, worker.Handlers(worker.HandlerDeps{
+		LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse,
+		ReconciliationTriage: processor.HandleTriage, StatementExtract: processor.HandleExtract,
+	}))
 	// Fila semanal do priorizador (TASK-013): aos domingos, a partir de ROTINA_PRIORIZADOR_HORA,
 	// uma vez por semana e sem LLM, como a rotina_semanal da origem.
 	routine := agents.NewService(pool, sysClock, sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)), nil, nil, logger)

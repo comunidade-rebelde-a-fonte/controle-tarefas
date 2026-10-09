@@ -157,6 +157,12 @@ Implementar ferramentas equivalentes em Go/bibliotecas adequadas. Não mudar sch
 **Aceite:** AC-015, AC-016, AC-017.  
 **Validação:** TEST-016 — golden + property tests do validador.
 
+> **Como foi implementado (D-027).** Domínio em `backend/internal/reconciliation/statement` e processamento no worker em `backend/internal/reconciliation/pipeline` (jobs `reconciliation_triage` e `statement_extract`).
+> - As ferramentas de PDF ficam em `internal/platform/pdftext`: texto no formato do PyMuPDF e render PNG.
+> - O schema lógico e as 3 tentativas foram mantidos. A origem não mandava a página renderizada ao modelo; aqui ela vai como imagem.
+> - Goldens gerados pelo Python da origem (domínio e texto do PDF), testes de propriedade do validador e integração com Postgres e MinIO reais.
+> - O relatório do golden roda em `make eval-extrator`.
+
 ### TASK-017 — Portar extração de comprovantes
 
 **Requisitos:** REQ-023, REQ-030.  

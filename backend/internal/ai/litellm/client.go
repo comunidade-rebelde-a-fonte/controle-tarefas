@@ -9,6 +9,7 @@ package litellm
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -61,10 +62,58 @@ func New(baseURL string, apiKey config.Secret, timeout time.Duration, opts ...Op
 	return c
 }
 
-// Message é uma mensagem do chat.
+// Message é uma mensagem do chat. Com Images, o conteúdo vai em partes (o texto e as imagens),
+// no formato da API de chat da OpenAI que o LiteLLM repassa aos provedores com visão; sem, vai
+// como texto.
 type Message struct {
-	Role    string `json:"role"` // system | user | assistant
-	Content string `json:"content"`
+	Role    string  `json:"role"` // system | user | assistant
+	Content string  `json:"content"`
+	Images  []Image `json:"-"`
+}
+
+// Image é uma imagem anexada à mensagem: a página renderizada ou a foto do documento.
+type Image struct {
+	MIME string // image/png ou image/jpeg
+	Data []byte
+	// Detail é o nível de detalhe pedido ao provedor: "low", "high" ou vazio (auto).
+	Detail string
+}
+
+type textPart struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+type imageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail,omitempty"`
+}
+
+type imagePart struct {
+	Type     string   `json:"type"`
+	ImageURL imageURL `json:"image_url"`
+}
+
+// MarshalJSON escreve a mensagem: conteúdo em texto ou, com imagens, em partes (data URL).
+func (m Message) MarshalJSON() ([]byte, error) {
+	if len(m.Images) == 0 {
+		return json.Marshal(struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{m.Role, m.Content})
+	}
+	parts := make([]any, 0, len(m.Images)+1)
+	if m.Content != "" {
+		parts = append(parts, textPart{Type: "text", Text: m.Content})
+	}
+	for _, img := range m.Images {
+		url := "data:" + img.MIME + ";base64," + base64.StdEncoding.EncodeToString(img.Data)
+		parts = append(parts, imagePart{Type: "image_url", ImageURL: imageURL{URL: url, Detail: img.Detail}})
+	}
+	return json.Marshal(struct {
+		Role    string `json:"role"`
+		Content []any  `json:"content"`
+	}{m.Role, parts})
 }
 
 // JSONSchema pede saída estruturada validada pelo provedor (response_format json_schema, strict).

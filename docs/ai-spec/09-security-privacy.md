@@ -51,6 +51,8 @@ A UI de modelos armazena apenas provider/model/params não secretos.
 - Originais do Conciliador permanecem imutáveis/versionados no MinIO.
 - Originais de outros módulos respeitam storage atual.
 
+> **Desde a TASK-016 (D-027):** o triador e o extrator recebem o texto ou as imagens do documento pelo LiteLLM, como na origem. O Langfuse recebe só contagens e a decisão, sem o texto, as imagens, a agência nem a conta; a saída bruta do modelo fica só no log de extração local.
+
 > **Como foi implementado na Conciliação (TASK-015; D-026).**
 > - O tipo vem do conteúdo (PDF, PNG, JPEG ou texto) e o limite é de 20 MB.
 > - O original vai para o MinIO com a chave `originais/<sha256>`, gravado pelo usuário da aplicação, que não pode apagar objeto nem versão (provado contra o MinIO real).

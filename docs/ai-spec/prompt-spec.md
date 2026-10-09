@@ -51,6 +51,11 @@ Deve respeitar o schema congelado. A cada nova tentativa recebe feedback determi
 
 Estratégias por tentativa devem preservar o comportamento original: texto nativo → render intermediário → render maior/modelo forte, conforme implementável na stack final.
 
+> **Como foi implementado (TASK-016; D-027).** Os prompts estão em `backend/internal/ai/prompts/conciliacao/`: triador, extrator, correção e o bloco do playbook. São os textos da origem com os itens do §2 e a entrada que o sistema envia.
+> - Tentativa 1: texto nativo (ou as páginas renderizadas, sem texto).
+> - Tentativa 2: páginas a 150 DPI, o extrato anterior, o resultado do validador e as dicas.
+> - Tentativa 3: o mesmo a 300 DPI, com o `extrator_forte`.
+
 ## 5. Extrator de comprovante
 
 Saída com confiança por campo e evidência/trecho ou bbox quando disponível. Campo incerto deve ser `null`/marcado, nunca inventado.

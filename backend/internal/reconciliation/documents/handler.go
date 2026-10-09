@@ -28,6 +28,7 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/reconciliation/documents", h.list)
 	r.Get("/reconciliation/documents/{id}", h.get)
 	r.Get("/reconciliation/documents/{id}/file", h.file)
+	r.Post("/reconciliation/documents/{id}/retry", h.retry)
 }
 
 func documentID(r *http.Request) (string, error) {
@@ -155,6 +156,21 @@ func (h *Handler) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	httpx.WriteJSON(w, http.StatusOK, out)
+}
+
+// retry reprocessa o documento (202 com o novo job) [06 §4].
+func (h *Handler) retry(w http.ResponseWriter, r *http.Request) {
+	id, err := documentID(r)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	out, err := h.svc.Retry(r.Context(), id)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusAccepted, out)
 }
 
 // extensions dá a extensão do nome de download pelo tipo detectado no envio.

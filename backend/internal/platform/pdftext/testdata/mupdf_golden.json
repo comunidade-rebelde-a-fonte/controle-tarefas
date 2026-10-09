@@ -1,0 +1,851 @@
+[
+ {
+  "pdf": "pdf_com_texto.pdf",
+  "paginas": [
+   "Extrato do Simples Nacional\nPeríodo de Apuração (PA): 09/2026\nData de abertura no CNPJ: 15/03/2019\nCNPJ Matriz: 11.222.333/0001-81\nNome empresarial: CLINICA EXEMPLO LTDA\nRegime de Apuração: Competência\nOptante pelo Simples Nacional: Sim\n2) Informações da Declaração\n2.1) Discriminativo de Receitas\nValores Declarados                     Mercado Interno   Mercado Externo   Total\nReceita Bruta do PA (RPA) - Competência   50.000,00   0,00   50.000,00\nReceita bruta acumulada nos doze meses anteriores ao PA (RBT12)   600.000,00   0,00   600.000,00\nReceita bruta acumulada no ano-calendário corrente (RBA)   400.000,00   0,00   400.000,00\n2.3) Folha de Salários Anteriores (R$)\nTotal de Folhas de Salários Anteriores (R$)   180.000,00\n2.8) Cálculo do Valor Devido\nEstabelecimento: 11.222.333/0001-81\nAtividade: Prestação de serviços sujeitos ao Fator r - Anexo III\nFator r: 0,30\nValor Total do Débito Declarado (R$): 5.280,00\n"
+  ],
+  "tamanhos": [
+   [
+    612.0,
+    792.0
+   ]
+  ]
+ },
+ {
+  "pdf": "pdf_declaratorio_comercio_sem_fator_r.pdf",
+  "paginas": [
+   "Declaracao: 20260914000000002\nRecibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M\nPagina 1\nSIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nComercio - nao sujeito ao fator r\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz:\n23.456.789/0001-95\nNome empresarial:\nEMPRESA DE COMERCIO B - ANONIMIZADA\nData de abertura no CNPJ:\n05/07/2017\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao:\nCompetencia\nNo da Declaracao:\n20260914000000002\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$)\nMercado Interno\nMercado Externo\nTotal\nReceita Bruta do PA (RPA)\n12.000,00\n0,00\n12.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12)\n144.000,00\n0,00\n144.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA)\n96.000,00\n0,00\n96.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA)\n144.000,00\n0,00\n144.000,00\nLimite de receita bruta proporcionalizado\n4.800.000,00\n4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n12.000,00\n09/2025\n12.000,00\n10/2025\n12.000,00\n11/2025\n12.000,00\n12/2025\n12.000,00\n01/2026\n12.000,00\n02/2026\n12.000,00\n03/2026\n12.000,00\n04/2026\n12.000,00\n05/2026\n12.000,00\n06/2026\n12.000,00\n07/2026\n12.000,00\n2.3 Folha de Salarios Anteriores (R$)\nAplicacao\nResultado\nFolha para fator r\nNao se aplica a esta atividade\n2.4 Fator r\nResultado\nFator r = Nao se aplica - Anexo I\n",
+   "Declaracao: 20260914000000002\nRecibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M\nPagina 2\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia)\nAliquota efetiva\nValor Total do Debito Declarado (R$)\n12.000,00\n4,00%\n480,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo\nInformacao\nCNPJ Estabelecimento\n23.456.789/0001-95\nMunicipio / UF\nCAMPINAS / SP\nEnquadramento\nAnexo I\nValor do Debito por Tributo para a Atividade (R$)\nRevenda de mercadorias no mercado interno - atividade comercial nao sujeita ao fator 'r' (Anexo I).\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n26,40\n16,80\n61,15\n13,25\n199,20\n163,20\n0,00\n0,00\n480,00\nTotais do Estabelecimento\nValor Informado\nTotal do Debito Declarado\nTotal Exigivel\nTotal Suspenso\n12.000,00\n480,00\n480,00\n0,00\n2.8 Total Geral da Empresa\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n26,40\n16,80\n61,15\n13,25\n199,20\n163,20\n0,00\n0,00\n480,00\nResumo didatico do enquadramento\nReceita de comercio: o fator r nao se aplica. O exemplo utiliza o Anexo I.\n",
+   "Declaracao: 20260914000000002\nRecibo: 35.26.10002.0000002-2\nAutenticacao: B2C3D.E4F5G.H6I7J.K8L9M\nPagina 3\n3. Informacoes da Recepcao da Declaracao\nCampo\nInformacao\nData e horario da transmissao\n14/09/2026 09:31:07\nNumero do Recibo\n35.26.10002.0000002-2\nAutenticacao\nB2C3D.E4F5G.H6I7J.K8L9M\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nReceita de comercio: o fator r nao se aplica. O exemplo utiliza o Anexo I.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "pdf_declaratorio_fator_r_abaixo_28.pdf",
+  "paginas": [
+   "Declaracao: 20260914000000001\nRecibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L\nPagina 1\nSIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico sujeito ao fator r - abaixo de 28%\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz:\n12.345.678/0001-95\nNome empresarial:\nEMPRESA DE SERVICOS A - ANONIMIZADA\nData de abertura no CNPJ:\n12/03/2019\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao:\nCompetencia\nNo da Declaracao:\n20260914000000001\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$)\nMercado Interno\nMercado Externo\nTotal\nReceita Bruta do PA (RPA)\n10.000,00\n0,00\n10.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12)\n120.000,00\n0,00\n120.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA)\n80.000,00\n0,00\n80.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA)\n120.000,00\n0,00\n120.000,00\nLimite de receita bruta proporcionalizado\n4.800.000,00\n4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n10.000,00\n09/2025\n10.000,00\n10/2025\n10.000,00\n11/2025\n10.000,00\n12/2025\n10.000,00\n01/2026\n10.000,00\n02/2026\n10.000,00\n03/2026\n10.000,00\n04/2026\n10.000,00\n05/2026\n10.000,00\n06/2026\n10.000,00\n07/2026\n10.000,00\n2.3 Folha de Salarios Anteriores (R$)\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n2.000,00\n09/2025\n2.000,00\n10/2025\n2.000,00\n11/2025\n2.000,00\n12/2025\n2.000,00\n01/2026\n2.000,00\n02/2026\n2.000,00\n03/2026\n2.000,00\n04/2026\n2.000,00\n05/2026\n2.000,00\n06/2026\n2.000,00\n07/2026\n2.000,00\nTotal FS12\n24.000,00\n2.4 Fator r\nResultado\nFator r = 0,20 - Anexo V\n",
+   "Declaracao: 20260914000000001\nRecibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L\nPagina 2\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia)\nAliquota efetiva\nValor Total do Debito Declarado (R$)\n10.000,00\n15,50%\n1.550,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo\nInformacao\nCNPJ Estabelecimento\n12.345.678/0001-95\nMunicipio / UF\nSAO PAULO / SP\nEnquadramento\nAnexo V\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de consultoria e gestao - atividade sujeita ao fator 'r', sem retencao de ISS, com fator\ninferior a 28% (Anexo V).\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n387,50\n232,50\n218,55\n47,27\n447,18\n0,00\n0,00\n217,00\n1.550,00\nTotais do Estabelecimento\nValor Informado\nTotal do Debito Declarado\nTotal Exigivel\nTotal Suspenso\n10.000,00\n1.550,00\n1.550,00\n0,00\n2.8 Total Geral da Empresa\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n387,50\n232,50\n218,55\n47,27\n447,18\n0,00\n0,00\n217,00\n1.550,00\nResumo didatico do enquadramento\nA folha dos 12 meses representa 20% da receita dos 12 meses. Como ficou abaixo de 28%, o exemplo\nutiliza o Anexo V.\n",
+   "Declaracao: 20260914000000001\nRecibo: 35.26.10001.0000001-1\nAutenticacao: A1B2C.D3E4F.G5H6I.J7K8L\nPagina 3\n3. Informacoes da Recepcao da Declaracao\nCampo\nInformacao\nData e horario da transmissao\n14/09/2026 09:12:33\nNumero do Recibo\n35.26.10001.0000001-1\nAutenticacao\nA1B2C.D3E4F.G5H6I.J7K8L\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nA folha dos 12 meses representa 20% da receita dos 12 meses. Como ficou abaixo de 28%, o exemplo\nutiliza o Anexo V.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "pdf_declaratorio_fator_r_acima_28.pdf",
+  "paginas": [
+   "Declaracao: 20260914000000004\nRecibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O\nPagina 1\nSIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico sujeito ao fator r - dentro do limite\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz:\n45.678.901/0001-75\nNome empresarial:\nEMPRESA DE SERVICOS D - ANONIMIZADA\nData de abertura no CNPJ:\n30/09/2016\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao:\nCompetencia\nNo da Declaracao:\n20260914000000004\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$)\nMercado Interno\nMercado Externo\nTotal\nReceita Bruta do PA (RPA)\n10.000,00\n0,00\n10.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12)\n120.000,00\n0,00\n120.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA)\n80.000,00\n0,00\n80.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA)\n120.000,00\n0,00\n120.000,00\nLimite de receita bruta proporcionalizado\n4.800.000,00\n4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n10.000,00\n09/2025\n10.000,00\n10/2025\n10.000,00\n11/2025\n10.000,00\n12/2025\n10.000,00\n01/2026\n10.000,00\n02/2026\n10.000,00\n03/2026\n10.000,00\n04/2026\n10.000,00\n05/2026\n10.000,00\n06/2026\n10.000,00\n07/2026\n10.000,00\n2.3 Folha de Salarios Anteriores (R$)\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n9.200,00\n09/2025\n9.200,00\n10/2025\n9.200,00\n11/2025\n9.200,00\n12/2025\n9.200,00\n01/2026\n9.200,00\n02/2026\n9.200,00\n03/2026\n9.200,00\n04/2026\n9.200,00\n05/2026\n9.200,00\n06/2026\n9.200,00\n07/2026\n9.200,00\nTotal FS12\n110.400,00\n2.4 Fator r\nResultado\nFator r = 0,92 - Anexo III\n",
+   "Declaracao: 20260914000000004\nRecibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O\nPagina 2\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia)\nAliquota efetiva\nValor Total do Debito Declarado (R$)\n10.000,00\n6,00%\n600,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo\nInformacao\nCNPJ Estabelecimento\n45.678.901/0001-75\nMunicipio / UF\nCURITIBA / PR\nEnquadramento\nAnexo III\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de tecnologia - atividade sujeita ao fator 'r', sem retencao de ISS, com fator igual ou\nsuperior a 28% (Anexo III).\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n24,00\n21,00\n76,92\n16,68\n260,40\n0,00\n0,00\n201,00\n600,00\nTotais do Estabelecimento\nValor Informado\nTotal do Debito Declarado\nTotal Exigivel\nTotal Suspenso\n10.000,00\n600,00\n600,00\n0,00\n2.8 Total Geral da Empresa\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n24,00\n21,00\n76,92\n16,68\n260,40\n0,00\n0,00\n201,00\n600,00\nResumo didatico do enquadramento\nA folha dos 12 meses representa 92% da receita dos 12 meses. Como ficou acima de 28%, o exemplo\nutiliza o Anexo III.\n",
+   "Declaracao: 20260914000000004\nRecibo: 41.26.10004.0000004-4\nAutenticacao: D4E5F.G6H7I.J8K9L.M0N1O\nPagina 3\n3. Informacoes da Recepcao da Declaracao\nCampo\nInformacao\nData e horario da transmissao\n14/09/2026 10:44:18\nNumero do Recibo\n41.26.10004.0000004-4\nAutenticacao\nD4E5F.G6H7I.J8K9L.M0N1O\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nA folha dos 12 meses representa 92% da receita dos 12 meses. Como ficou acima de 28%, o exemplo\nutiliza o Anexo III.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "pdf_declaratorio_servico_sem_fator_r.pdf",
+  "paginas": [
+   "Declaracao: 20260914000000003\nRecibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N\nPagina 1\nSIMPLES NACIONAL\nPrograma Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio\nEXEMPLO FICTICIO - SEM VALIDADE FISCAL\nServico - nao sujeito ao fator r\nDeclaracao demonstrativa\nPeriodo de Apuracao: 01/08/2026 a 31/08/2026\n1. Identificacao do Contribuinte\nCNPJ Matriz:\n34.567.890/0001-30\nNome empresarial:\nEMPRESA DE SERVICOS C - ANONIMIZADA\nData de abertura no CNPJ:\n22/01/2021\nOptante pelo Simples Nacional: Sim\nRegime de Apuracao:\nCompetencia\nNo da Declaracao:\n20260914000000003\n1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma\n2. Apuracao do Simples Nacional\n2.1 Discriminativo de Receitas\nTotal de Receitas Brutas (R$)\nMercado Interno\nMercado Externo\nTotal\nReceita Bruta do PA (RPA)\n12.000,00\n0,00\n12.000,00\nReceita bruta acumulada nos 12 meses anteriores (RBT12)\n144.000,00\n0,00\n144.000,00\nReceita bruta acumulada no ano-calendario corrente (RBA)\n96.000,00\n0,00\n96.000,00\nReceita bruta acumulada no ano-calendario anterior (RBAA)\n144.000,00\n0,00\n144.000,00\nLimite de receita bruta proporcionalizado\n4.800.000,00\n4.800.000,00\n2.2 Receitas Brutas Anteriores (R$) - Mercado Interno\nMes\nValor\nMes\nValor\nMes\nValor\n08/2025\n12.000,00\n09/2025\n12.000,00\n10/2025\n12.000,00\n11/2025\n12.000,00\n12/2025\n12.000,00\n01/2026\n12.000,00\n02/2026\n12.000,00\n03/2026\n12.000,00\n04/2026\n12.000,00\n05/2026\n12.000,00\n06/2026\n12.000,00\n07/2026\n12.000,00\n2.3 Folha de Salarios Anteriores (R$)\nAplicacao\nResultado\nFolha para fator r\nNao se aplica a esta atividade\n2.4 Fator r\nResultado\nFator r = Nao se aplica - Anexo III\n",
+   "Declaracao: 20260914000000003\nRecibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N\nPagina 2\n2.5 Valores Fixos\nResultado\nNao se aplica\n2.6 Resumo da Declaracao\nReceita Bruta Auferida (regime competencia)\nAliquota efetiva\nValor Total do Debito Declarado (R$)\n12.000,00\n6,00%\n720,00\n2.7 Informacoes da Declaracao por Estabelecimento\nCampo\nInformacao\nCNPJ Estabelecimento\n34.567.890/0001-30\nMunicipio / UF\nBELO HORIZONTE / MG\nEnquadramento\nAnexo III\nValor do Debito por Tributo para a Atividade (R$)\nPrestacao de servicos de treinamento e cursos livres - atividade nao sujeita ao fator 'r' (Anexo III).\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n28,80\n25,20\n92,30\n20,02\n312,48\n0,00\n0,00\n241,20\n720,00\nTotais do Estabelecimento\nValor Informado\nTotal do Debito Declarado\nTotal Exigivel\nTotal Suspenso\n12.000,00\n720,00\n720,00\n0,00\n2.8 Total Geral da Empresa\nIRPJ\nCSLL\nCOFINS\nPIS/Pasep\nINSS/CPP\nICMS\nIPI\nISS\nTotal\n28,80\n25,20\n92,30\n20,02\n312,48\n0,00\n0,00\n241,20\n720,00\nResumo didatico do enquadramento\nServico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.\n",
+   "Declaracao: 20260914000000003\nRecibo: 31.26.10003.0000003-3\nAutenticacao: C3D4E.F5G6H.I7J8K.L9M0N\nPagina 3\n3. Informacoes da Recepcao da Declaracao\nCampo\nInformacao\nData e horario da transmissao\n14/09/2026 10:02:55\nNumero do Recibo\n31.26.10003.0000003-3\nAutenticacao\nC3D4E.F5G6H.I7J8K.L9M0N\nObservacoes\nDocumento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui\ndeclaracao emitida pelo PGDAS-D e nao possui validade fiscal.\nServico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.\nCriterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator\ninferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus\nanexos proprios.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "pdf_sem_camada_texto.pdf",
+  "paginas": [
+   ""
+  ],
+  "tamanhos": [
+   [
+    612.0,
+    792.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/acentos.pdf",
+  "paginas": [
+   "Agência Histórico · R$ 1.234,56 ç ã õ\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_-0.3.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_-0.81.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_0.3.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_0.79.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_0.81.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/base_1.5.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/cm_escala.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/colunas.pdf",
+  "paginas": [
+   "A1 B1\nC1\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/duas_linhas_td.pdf",
+  "paginas": [
+   "Linha um\nLinha dois\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/espaco_explicito.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/fora_da_pagina.pdf",
+  "paginas": [
+   "DENTRO\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_-0.1.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_-0.5.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_-0.7.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_-0.81.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_-2.0.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.0.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.1.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.14.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.16.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.5.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.79.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_0.81.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/intervalo_1.0.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/maior_15.9.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/maior_16.1.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/maior_2.9.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/maior_3.1.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/menor_1.4.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/menor_1.6.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/menor_7.9.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/menor_8.1.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/negrito_falso.pdf",
+  "paginas": [
+   "Negrito\nNegrito\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/pagina_girada.pdf",
+  "paginas": [
+   "AB CD\n"
+  ],
+  "tamanhos": [
+   [
+    842.0,
+    595.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/render_invisivel.pdf",
+  "paginas": [
+   "Invisivel\nVisivel\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/rotacao_90.pdf",
+  "paginas": [
+   "ABCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/rotacao_mista.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tc_espacamento.pdf",
+  "paginas": [
+   "A B C D\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tc_grande.pdf",
+  "paginas": [
+   "A\nB\nC\nD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tf1_matriz.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tf1_matriz_perto.pdf",
+  "paginas": [
+   "AB\nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tj_ajustes.pdf",
+  "paginas": [
+   "AB CD\nEFGH\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tw_palavras.pdf",
+  "paginas": [
+   "AB \nCD\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/tz_escala.pdf",
+  "paginas": [
+   "ABCD EF\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "mupdf/volta_linha.pdf",
+  "paginas": [
+   "L1\nL2\nL1b\n"
+  ],
+  "tamanhos": [
+   [
+    595.0,
+    842.0
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/05_pix_recebido_ana_lucia_1de4.pdf",
+  "paginas": [
+   "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 1\nID da transação (E2E)\nE7770000020260805091200000000101\nAutenticação: 3C91972E.3C2659CA.0871546C.C665508B\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/06_pix_enviado_aco_brasil_1de2.pdf",
+  "paginas": [
+   "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n06/08/2026 10:20\nValor\nR$ 20.000,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nAco Brasil Distribuidora Ltda\nCNPJ\n89.012.345/0001-67\nChave PIX\nfinanceiro@acobrasil.example\nInstituição\nBanco Comercial Sul (555)\nDescrição\nNF 4410 vergalhoes - parte 1 de 2\nID da transação (E2E)\nE7770000020260806102000000000201\nAutenticação: 6405AF16.15EE7694.26DB0DB6.519DFE0D\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/08_pix_recebido_ana_lucia_2de4.pdf",
+  "paginas": [
+   "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n08/08/2026 14:47\nValor\nR$ 6.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 2\nID da transação (E2E)\nE7770000020260808144700000000102\nAutenticação: 9267881E.922724F9.DB92FD7E.F0475D61\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/09_pix_enviado_aco_brasil_2de2.pdf",
+  "paginas": [
+   "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n09/08/2026 16:05\nValor\nR$ 11.850,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nAco Brasil Distribuidora Ltda\nCNPJ\n89.012.345/0001-67\nChave PIX\nfinanceiro@acobrasil.example\nInstituição\nBanco Comercial Sul (555)\nDescrição\nNF 4410 vergalhoes - parte 2 de 2\nID da transação (E2E)\nE7770000020260809160500000000202\nAutenticação: 94ECB51E.13BFF2E4.8B8234E4.8461AE72\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/10_boleto_madeireira_pinheiro_banco_beta.pdf",
+  "paginas": [
+   "Banco Beta\nComprovante de pagamento de boleto\nData do pagamento\n10/08/2026 09:55\nBeneficiário\nMadeireira Pinheiro Ltda\nCNPJ beneficiário\n01.234.567/0001-89\nPagador\nConstrutora Horizonte Ltda\nConta debitada\nBanco Beta (888) Ag 0021 CC 33412-7\nLinha digitável\n97581.50012 04574.230890 81669.082254 2 22805617247\nReferência\nNF 2203 - formas e escoras\nVencimento\n10/08/2026\nValor do documento\nR$ 12.640,00\n(+) Multa/juros\nR$ 0,00\nValor pago\nR$ 12.640,00\nAutenticação: 8A7314B4.D092BE67.CD106801.C643F59B\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/12_ordem_bancaria_prefeitura_rio_claro.pdf",
+  "paginas": [
+   "Prefeitura Municipal de Rio Claro - Tesouraria\nOrdem bancária / Comprovante de TED\nData\n12/08/2026 13:20\nOrdem bancária\n2026OB004512\nEmpenho\n2026NE001877\nFavorecido\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta de crédito\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDocumento fiscal\nNFS-e 1044 - Pavimentacao Rua das Flores - parcela 2\nValor bruto\nR$ 100.000,00\n(-) ISS retido na fonte 5%\nR$ 5.000,00\nValor líquido creditado\nR$ 95.000,00\nAutenticação: 207E9E1D.17A6E6F5.C112D5EF.6D4C2FD1\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/13_boleto_ceramica_santa_rita_com_juros.pdf",
+  "paginas": [
+   "Banco A Fonte\nComprovante de pagamento de boleto\nData do pagamento\n13/08/2026 15:41\nBeneficiário\nCeramica Santa Rita Ltda\nCNPJ beneficiário\n90.123.456/0001-78\nPagador\nConstrutora Horizonte Ltda\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nLinha digitável\n09895.61919 50391.657517 35383.610727 5 40453621041\nNosso número\n000007719-0\nReferência\nNF 7719 - blocos e tijolos\nVencimento\n08/08/2026\nValor do documento\nR$ 18.300,00\n(+) Multa 2%\nR$ 366,00\n(+) Juros 1% a.m. (5 dias)\nR$ 30,50\n(-) Desconto\nR$ 0,00\nValor pago\nR$ 18.696,50\nAutenticação: B9B5A7E9.2AB37BF7.AE641D29.C4FB5097\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/14_pix_recebido_ana_lucia_3de4.pdf",
+  "paginas": [
+   "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n14/08/2026 11:03\nValor\nR$ 3.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 3\nID da transação (E2E)\nE7770000020260814110300000000103\nAutenticação: 39776CA4.A945D8B3.C1DECA36.87DBEA8F\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/20_pix_enviado_hidraulica_total_1.pdf",
+  "paginas": [
+   "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n20/08/2026 11:30\nValor\nR$ 7.960,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nHidraulica Total Ltda\nCNPJ\n02.345.678/0001-90\nChave PIX\n+55 19 99999-0102\nInstituição\nBanco Digital Nuvem (444)\nDescrição\nNF 5502 tubos e conexoes\nID da transação (E2E)\nE7770000020260820113000000000301\nAutenticação: DEE33257.1B1A3634.43430112.4EFAD520\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/21_pix_enviado_hidraulica_total_2.pdf",
+  "paginas": [
+   "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n21/08/2026 08:02\nValor\nR$ 7.960,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nHidraulica Total Ltda\nCNPJ\n02.345.678/0001-90\nChave PIX\n+55 19 99999-0102\nInstituição\nBanco Digital Nuvem (444)\nDescrição\nNF 5502 tubos e conexoes\nID da transação (E2E)\nE7770000020260821080200000000302\nAutenticação: B68BDE9E.F818ECD9.BEF29D29.7C03CD45\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/21_pix_recebido_ana_lucia_4de4.pdf",
+  "paginas": [
+   "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n21/08/2026 18:30\nValor\nR$ 5.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 4\nID da transação (E2E)\nE7770000020260821183000000000104\nAutenticação: 032448EF.D2E1543B.A80D72DB.1787597F\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/22_boleto_mercado_bom_preco_pago_com_juros.pdf",
+  "paginas": [
+   "Banco Comercial Sul\nComprovante de pagamento de boleto\nData do pagamento\n22/08/2026 10:18\nBeneficiário\nConstrutora Horizonte Ltda\nCNPJ beneficiário\n12.345.678/0001-90\nBanco emissor do boleto\nBanco A Fonte (777)\nPagador\nMercado Bom Preco Ltda\nCNPJ pagador\n56.789.012/0001-34\nLinha digitável\n00924.58870 48700.954244 37241.275050 4 33058692424\nNosso número\n000001047-5\nReferência\nNF 1047 - ampliacao de loja\nVencimento\n15/08/2026\nValor do documento\nR$ 27.000,00\n(+) Multa 2%\nR$ 540,00\n(+) Juros 1% a.m. (7 dias)\nR$ 63,00\nValor pago\nR$ 27.603,00\nAutenticação: 5FE6EAAC.CB90F7FF.919F0F89.2CAD799D\nComprovante enviado pelo cliente ao setor financeiro da Construtora Horizonte.\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/comprovantes/26_pix_recebido_escola_crescer_banco_beta.pdf",
+  "paginas": [
+   "Cooperativa CrediEscola\nComprovante de transferência PIX\nData e hora\n26/08/2026 16:44\nValor\nR$ 20.000,00\nPagador\nEscola Crescer Ltda\nCNPJ\n67.890.123/0001-45\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\nfinanceiro@construtorahorizonte.example\nInstituição\nBanco Beta (888) Ag 0021 CC 33412-7\nDescrição\nNF 1048 cobertura quadra\nID da transação (E2E)\nE7770000020260826164400000000401\nAutenticação: E6F00704.28E76CA0.3617FBF8.F818FD68\nComprovante enviado pelo cliente ao setor financeiro da Construtora Horizonte.\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/extratos/extrato_banco_beta_2026-08.pdf",
+  "paginas": [
+   "Banco Beta\nBanco Beta S.A. - Código 888 - Extrato de conta corrente - 01/08/2026 a 31/08/2026\nCliente: Construtora Horizonte Ltda - CNPJ 12.345.678/0001-90 - Agência 0021 - Conta 33412-7\nData\nHistórico\nDocto\nValor (R$)\nSaldo (R$)\n01/08/2026\nSALDO ANTERIOR\n15.000,00\n10/08/2026\nBoleto Madeireira Pinheiro - Formas E Escoras\n880001\n12.640,00 D\n2.360,00\n26/08/2026\nPix Recebido Escola Crescer Ltda\n880002\n20.000,00 C\n22.360,00\n29/08/2026\nTarifa Pacote Servicos Pj\n880003\n35,00 D\n22.325,00\nSaldo final em 31/08/2026: R$ 22.325,00\nDocumento fictício gerado para fins didáticos.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ },
+ {
+  "pdf": "../../../reconciliation/testdata/conciliacao/extratos/extrato_construtora_horizonte_2026-08.pdf",
+  "paginas": [
+   "BANCO A FONTE S.A.\nExtrato de Conta Corrente  |  Agosto/2026\nDocumento fictício gerado para fins didáticos. Banco A Fonte S.A. - Cód. 777 - SAC 0800 000 0777\nPágina 1\nBanco A Fonte\nBanco A Fonte S.A. - CNPJ 00.777.777/0001-77 - Código de compensação 777\nCliente\nConstrutora Horizonte Ltda\nAgência\n1234\nCNPJ\n12.345.678/0001-90\nConta corrente\n56789-0\nPeríodo\n01/08/2026 a 31/08/2026\nEmissão\n01/09/2026 08:00\nLançamentos\nData\nHistórico\nDocto\nValor (R$)\nSaldo (R$)\n01/08/2026\nSALDO ANTERIOR\n85.430,12\n01/08/2026\nTarifa Manutencao Conta Pj\n260801\n89,90 D\n85.340,22\n01/08/2026\nPagto Folha Salarios 07/2026\n260802\n68.450,00 D\n16.890,22\n04/08/2026\nTed Recebida Incorporadora Vale Verde - Medicao 03 Obra Aurora\n260803\n120.000,00 C\n136.890,22\n05/08/2026\nBoleto Concreteira Forte Mix - Concreto Usinado\n260804\n42.300,00 D\n94.590,22\n05/08/2026\nGps/Fgts Competencia 07/2026\n260805\n5.476,00 D\n89.114,22\n05/08/2026\nPix Recebido Ana Lucia Ferreira\n260806\n2.000,00 C\n91.114,22\n06/08/2026\nPix Enviado Aco Brasil Distribuidora\n260807\n20.000,00 D\n71.114,22\n07/08/2026\nPix Recebido Condominio Jardins - Reforma Fachada\n260808\n35.000,00 C\n106.114,22\n07/08/2026\nDarf Inss Competencia 07/2026\n260809\n14.920,00 D\n91.194,22\n08/08/2026\nBoleto Locadora Maquinas Pesadas - Locacao Retroescavadeira\n260810\n9.800,00 D\n81.394,22\n08/08/2026\nPix Recebido Ana Lucia Ferreira\n260811\n6.000,00 C\n87.394,22\n09/08/2026\nPix Enviado Aco Brasil Distribuidora\n260812\n11.850,00 D\n75.544,22\n11/08/2026\nPix Enviado Posto Rodovia - Combustivel Frota\n260813\n4.320,50 D\n71.223,72\n12/08/2026\nTed Recebida Pref Mun Rio Claro - Pavimentacao R Das Flores P2\n260814\n95.000,00 C\n166.223,72\n12/08/2026\nDeb Automatico Energia Eletrica Canteiro\n260815\n3.187,45 D\n163.036,27\n13/08/2026\nBoleto Ceramica Santa Rita - Blocos E Tijolos\n260816\n18.696,50 D\n144.339,77\n14/08/2026\nPix Enviado Carlos Eletricista Me - Subempreitada Eletrica\n260817\n8.500,00 D\n135.839,77\n14/08/2026\nPix Recebido Ana Lucia Ferreira\n260818\n3.000,00 C\n138.839,77\n15/08/2026\nPix Recebido Joao Pedro Almeida - Residencia Unifamiliar\n260819\n48.000,00 C\n186.839,77\n15/08/2026\nAdiantamento Salarial 08/2026\n260820\n21.300,00 D\n165.539,77\n18/08/2026\nDam Iss Prefeitura Competencia 07/2026\n260821\n6.850,00 D\n158.689,77\n18/08/2026\nBoleto Argamassa & Cia - Cimento E Argamassa\n260822\n15.420,00 D\n143.269,77\n19/08/2026\nTed Recebida Incorporadora Vale Verde - Medicao 04 Obra Aurora\n260823\n110.000,00 C\n253.269,77\n19/08/2026\nDeb Automatico Seguro Risco Engenharia\n260824\n2.780,00 D\n250.489,77\n20/08/2026\nPix Enviado Hidraulica Total - Tubos E Conexoes\n260825\n7.960,00 D\n242.529,77\n20/08/2026\nDarf Irpj/Csll 2 Trim 2026\n260826\n9.400,00 D\n233.129,77\n21/08/2026\nPix Enviado Hidraulica Total - Tubos E Conexoes\n260827\n7.960,00 D\n225.169,77\n21/08/2026\nPix Enviado Epi Seguranca - Equipamentos Protecao\n260828\n3.215,00 D\n221.954,77\n21/08/2026\nPix Recebido Ana Lucia Ferreira\n260829\n5.000,00 C\n226.954,77\n22/08/2026\nLiquidacao Boleto Mercado Bom Preco - Ampliacao Loja\n260830\n27.603,00 C\n254.557,77\n22/08/2026\nPagto Fatura Cartao Corporativo\n260831\n5.734,80 D\n248.822,97\n25/08/2026\nBoleto Vidracaria Cristal - Esquadrias\n260832\n14.200,00 D\n234.622,97\n26/08/2026\nDeb Automatico Agua E Esgoto Canteiro\n260833\n1.245,60 D\n233.377,37\n",
+   "BANCO A FONTE S.A.\nExtrato de Conta Corrente  |  Agosto/2026\nDocumento fictício gerado para fins didáticos. Banco A Fonte S.A. - Cód. 777 - SAC 0800 000 0777\nPágina 2\nData\nHistórico\nDocto\nValor (R$)\nSaldo (R$)\n27/08/2026\nPix Enviado Marcos Pinturas Me - Subempreitada Pintura\n260834\n11.000,00 D\n222.377,37\n28/08/2026\nBoleto Aluguel Escritorio 08/2026\n260835\n4.500,00 D\n217.877,37\n28/08/2026\nPix Enviado Contabil Silva - Honorarios\n260836\n2.800,00 D\n215.077,37\n29/08/2026\nTed Recebida Construtora Xyz - Subempreitada Estrutura\n260837\n30.000,00 C\n245.077,37\n29/08/2026\nParcela Financiamento Caminhao 18/48\n260838\n6.890,00 D\n238.187,37\n29/08/2026\nTarifas Ted/Pix\n260839\n45,00 D\n238.142,37\n31/08/2026\nTransf Distribuicao Lucros Socios\n260840\n25.000,00 D\n213.142,37\nResumo do período\nSaldo anterior (01/08/2026)\n85.430,12\nTotal de créditos\n481.603,00\nTotal de débitos\n353.890,75\nSaldo final (31/08/2026)\n213.142,37\nC = crédito (entrada) D = débito (saída). Valores em reais.\n"
+  ],
+  "tamanhos": [
+   [
+    595.276,
+    841.89
+   ],
+   [
+    595.276,
+    841.89
+   ]
+  ]
+ }
+]

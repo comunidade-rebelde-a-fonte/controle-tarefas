@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"controle/internal/ai"
+	"controle/internal/platform/decimal"
 )
 
 // Environment identifica o ambiente de execução.
@@ -89,6 +90,9 @@ type Config struct {
 	S3AccessKey string
 	S3SecretKey Secret
 	S3Bucket    string
+	// TriageThreshold é o limiar de confiança da triagem da Conciliação (LIMIAR_TRIAGEM, padrão
+	// 0,70 como na origem; TASK-016): abaixo dele, o documento vai para revisao_triagem.
+	TriageThreshold decimal.Decimal
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -262,6 +266,11 @@ func Load(getenv func(string) string) (Config, error) {
 	}
 	errs = append(errs, loadLangfuse(&cfg, getenv)...)
 	errs = append(errs, loadS3(&cfg, getenv)...)
+	threshold, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv("LIMIAR_TRIAGEM")), "0.70"))
+	if terr != nil || threshold.Sign() < 0 || threshold.Cmp(decimal.FromInt(1)) > 0 {
+		errs = append(errs, fmt.Errorf("LIMIAR_TRIAGEM inválido: %q (decimal de 0 a 1, ex.: 0.70)", getenv("LIMIAR_TRIAGEM")))
+	}
+	cfg.TriageThreshold = threshold
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

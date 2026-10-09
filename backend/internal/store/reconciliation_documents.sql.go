@@ -74,7 +74,7 @@ func (q *Queries) CountReconciliationDocumentsByStatus(ctx context.Context) ([]C
 }
 
 const getReconciliationDocument = `-- name: GetReconciliationDocument :one
-SELECT d.id, d.company_id, d.competence, d.storage_backend, d.bucket, d.object_key, d.object_version_id, d.sha256, d.file_name, d.content_type, d.size_bytes, d.kind, d.bank, d.branch, d.account, d.period_start, d.period_end, d.status, d.triage_confidence, d.diagnosis, d.uploaded_by, d.created_at, d.updated_at, d.job_id,
+SELECT d.id, d.company_id, d.competence, d.storage_backend, d.bucket, d.object_key, d.object_version_id, d.sha256, d.file_name, d.content_type, d.size_bytes, d.kind, d.bank, d.branch, d.account, d.period_start, d.period_end, d.status, d.triage_confidence, d.diagnosis, d.uploaded_by, d.created_at, d.updated_at, d.job_id, d.triage_trace_id,
        j.status AS job_status, j.attempts AS job_attempts, j.max_attempts AS job_max_attempts,
        j.last_error_code AS job_last_error_code
 FROM reconciliation_documents d
@@ -107,6 +107,7 @@ type GetReconciliationDocumentRow struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	JobID            *string
+	TriageTraceID    *string
 	JobStatus        *string
 	JobAttempts      *int32
 	JobMaxAttempts   *int32
@@ -142,6 +143,7 @@ func (q *Queries) GetReconciliationDocument(ctx context.Context, id string) (Get
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.JobID,
+		&i.TriageTraceID,
 		&i.JobStatus,
 		&i.JobAttempts,
 		&i.JobMaxAttempts,
@@ -213,7 +215,7 @@ func (q *Queries) InsertReconciliationDocument(ctx context.Context, arg InsertRe
 }
 
 const listReconciliationDocuments = `-- name: ListReconciliationDocuments :many
-SELECT d.id, d.company_id, d.competence, d.storage_backend, d.bucket, d.object_key, d.object_version_id, d.sha256, d.file_name, d.content_type, d.size_bytes, d.kind, d.bank, d.branch, d.account, d.period_start, d.period_end, d.status, d.triage_confidence, d.diagnosis, d.uploaded_by, d.created_at, d.updated_at, d.job_id,
+SELECT d.id, d.company_id, d.competence, d.storage_backend, d.bucket, d.object_key, d.object_version_id, d.sha256, d.file_name, d.content_type, d.size_bytes, d.kind, d.bank, d.branch, d.account, d.period_start, d.period_end, d.status, d.triage_confidence, d.diagnosis, d.uploaded_by, d.created_at, d.updated_at, d.job_id, d.triage_trace_id,
        j.status AS job_status, j.attempts AS job_attempts, j.max_attempts AS job_max_attempts,
        j.last_error_code AS job_last_error_code
 FROM reconciliation_documents d
@@ -264,6 +266,7 @@ type ListReconciliationDocumentsRow struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	JobID            *string
+	TriageTraceID    *string
 	JobStatus        *string
 	JobAttempts      *int32
 	JobMaxAttempts   *int32
@@ -314,6 +317,7 @@ func (q *Queries) ListReconciliationDocuments(ctx context.Context, arg ListRecon
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.JobID,
+			&i.TriageTraceID,
 			&i.JobStatus,
 			&i.JobAttempts,
 			&i.JobMaxAttempts,

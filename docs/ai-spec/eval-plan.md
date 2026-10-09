@@ -46,6 +46,12 @@ Golden set com PDF + JSON esperado:
 
 Gate soberano: saldo deve fechar R$ 0,00 independentemente do score do modelo.
 
+> **Como foi implementado (TASK-016; D-027).**
+> - Golden em `backend/internal/reconciliation/testdata/golden` (convenção da origem): os 2 extratos do cenário, com o gabarito tirado do CSV pelo `extrato_de_csv` da origem.
+> - O relatório pula os leitores determinísticos e traz, por documento e no total: aprovação na 1ª tentativa, tentativas, custo, latência e as diferenças para o gabarito (saldos e, linha a linha, data, valor, sentido e descrição normalizada).
+> - `make test` roda o relatório com o gateway simulado; `make eval-extrator` roda com o LiteLLM do ambiente (provedor real, só por ação explícita).
+> - O schema, o validador e os leitores são travados por golden do Python da origem (256 casos), e o validador por testes de propriedade.
+
 ### Comprovantes
 
 Acurácia por campo em tipos previstos pelo projeto original.

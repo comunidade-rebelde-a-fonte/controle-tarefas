@@ -168,11 +168,22 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 			}
 			e := rs[i]
 			if inClass {
-				if strings.ContainsRune("sSdDwWbB", e) {
+				// \s, \d, \D e \w entram na classe com os conjuntos do Python; \S, \W e \b não.
+				switch e {
+				case 's':
+					b.WriteString(SpaceClass[1 : len(SpaceClass)-1])
+				case 'd':
+					b.WriteString(DigitClass)
+				case 'D':
+					b.WriteString(NotDigitClass)
+				case 'w':
+					b.WriteString(WordClass[1 : len(WordClass)-1])
+				case 'S', 'W', 'b', 'B':
 					return unsupported(`\` + string(e) + " dentro de classe")
+				default:
+					b.WriteRune('\\')
+					b.WriteRune(e)
 				}
-				b.WriteRune('\\')
-				b.WriteRune(e)
 				continue
 			}
 			switch e {
@@ -194,6 +205,10 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 				b.WriteString(NotWordClass)
 			case 'B', 'A', 'Z', 'z', 'G':
 				return unsupported(`\` + string(e))
+			case 'n', 't', 'r', 'f', 'v', 'a':
+				// Escapes de controle: os mesmos no Python e no Go.
+				b.WriteRune('\\')
+				b.WriteRune(e)
 			default:
 				if unicode.IsLetter(e) || unicode.IsDigit(e) {
 					return unsupported(`\` + string(e))
@@ -218,11 +233,23 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 			}
 			b.WriteRune(c)
 		case c == '[':
-			if i+1 < len(rs) && (rs[i+1] == ']' || rs[i+1] == '^') {
-				return unsupported("classe negada ou começando com ]")
+			if i+1 < len(rs) && rs[i+1] == ']' {
+				return unsupported("classe começando com ]")
 			}
 			inClass = true
 			b.WriteRune(c)
+			if i+1 < len(rs) && rs[i+1] == '^' {
+				// Classe negada: com IGNORECASE, só sem letras (o Python e o Go igualam letras
+				// de forma diferente, ver foldI).
+				if i+2 < len(rs) && rs[i+2] == ']' {
+					return unsupported("classe negada começando com ]")
+				}
+				if ignoreCase && classHasLetter(rs, i+2) {
+					return unsupported("classe negada com letras e IGNORECASE")
+				}
+				b.WriteRune('^')
+				i++
+			}
 		case c == '(':
 			if i+1 < len(rs) && rs[i+1] == '?' {
 				switch {
@@ -299,6 +326,21 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 }
 
 // closing acha o ")" que fecha um grupo aberto antes de start (sem grupos aninhados).
+// classHasLetter informa se a classe que começa em start (depois do [ e do ^) tem letra literal
+// (os escapes, como \d e \n, não contam).
+func classHasLetter(rs []rune, start int) bool {
+	for i := start; i < len(rs) && rs[i] != ']'; i++ {
+		if rs[i] == '\\' {
+			i++
+			continue
+		}
+		if unicode.IsLetter(rs[i]) {
+			return true
+		}
+	}
+	return false
+}
+
 func closing(rs []rune, start int) int {
 	inClass := false
 	for i := start; i < len(rs); i++ {

@@ -1522,10 +1522,37 @@ export interface paths {
             };
             cookie?: never;
         };
-        /** Documento da Conciliação — hash, versão do original, triagem, diagnóstico e job */
+        /** Documento da Conciliação — hash, versão do original, triagem, diagnóstico, job, importação e tentativas */
         get: operations["getReconciliationDocument"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reprocessa o documento em revisão, parado por período fechado ou com o processamento encerrado sem sucesso [06 §4]
+         * @description Não ignora portão nenhum: o documento volta para a fila e passa de novo pela triagem
+         *     (`revisao_triagem`, `pendencia_periodo_fechado`, ou `pendente` com o job encerrado sem
+         *     sucesso) ou pela extração (`revisao_extracao` de extrato, ou `triado` com o job encerrado
+         *     sem sucesso). Fica no log de extração como intervenção humana (alias `humano`). Importado ou
+         *     ainda na fila: 409 `DOCUMENT_NOT_RETRYABLE`. Contábil fechado na competência do envio ou do
+         *     período lido: 423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["retryReconciliationDocument"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2923,7 +2950,15 @@ export interface components {
             /** Format: date */
             period_end: string | null;
             triage_confidence: components["schemas"]["DecimalString"] | null;
-            /** @description Diagnóstico da triagem ou do validador, para a revisão */
+            /** @description Corrida do triador que classificou o documento (nula nos caminhos determinísticos) */
+            triage_trace_id: string | null;
+            /**
+             * @description Diagnóstico do documento em revisão ou pendência: `motivo` (confianca_baixa,
+             *     tipo_desconhecido, documento_ilegivel, agente_desligado, saida_invalida, saldo_nao_fecha,
+             *     metadados_ausentes, csv_ilegivel, empresa_nao_identificada, conta_de_outra_empresa,
+             *     periodo_fechado), os detalhes e, quando houver, `validacao` (o ResultadoValidacao da
+             *     origem).
+             */
             diagnosis: {
                 [key: string]: unknown;
             } | null;
@@ -2939,6 +2974,91 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        /**
+         * @description ResultadoValidacao da origem: o portão aritmético (tolerância R$ 0,00), o mesmo que a
+         *     ferramenta validar_saldo responde ao extrator [REQ-021].
+         */
+        ReconciliationValidation: {
+            ok: boolean;
+            soma_c: components["schemas"]["DecimalString"];
+            soma_d: components["schemas"]["DecimalString"];
+            saldo_calculado: components["schemas"]["DecimalString"];
+            saldo_esperado: components["schemas"]["DecimalString"];
+            diferenca: components["schemas"]["DecimalString"];
+            linhas_rejeitadas: {
+                ordem: number;
+                /** @enum {string} */
+                motivo: "valor_nao_positivo" | "sentido_invalido";
+            }[];
+            lacunas_ordem: number[];
+            datas_fora_periodo: number[];
+        };
+        /** @description Importação do extrato (só existe com o portão aprovado) [AC-015] */
+        ReconciliationStatementImport: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Conta bancária cadastrada, se houver
+             */
+            bank_account_id: string | null;
+            bank: string;
+            branch: string;
+            account: string;
+            /** Format: date */
+            period_start: string;
+            /** Format: date */
+            period_end: string;
+            opening_balance: components["schemas"]["DecimalString"];
+            closing_balance: components["schemas"]["DecimalString"];
+            /** @description Tentativas do extrator; 0 = leitor determinístico */
+            attempts: number;
+            validation: components["schemas"]["ReconciliationValidation"];
+            /**
+             * Format: int64
+             * @description Transações gravadas por esta importação (as repetidas ficam de fora)
+             */
+            transactions: number;
+            /** @description Corrida do extrator (nula no leitor determinístico) */
+            trace_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description Linha do log de extração [CC-10]: tentativa do agente (triador, extrator, extrator_forte),
+         *     leitura determinística (`leitor_local`, tentativa 0) ou intervenção humana (`humano`). A
+         *     saída bruta não é exposta.
+         */
+        ReconciliationExtractionAttempt: {
+            id: components["schemas"]["Uuid"];
+            alias: string;
+            attempt: number;
+            /** @description Modelo informado pelo provedor */
+            model: string | null;
+            /** @description nome@versão#hash dos prompts enviados */
+            prompt_version: string | null;
+            validation: components["schemas"]["ReconciliationValidation"] | null;
+            tokens_in: number | null;
+            tokens_out: number | null;
+            cost_usd: components["schemas"]["DecimalString"] | null;
+            latency_ms: number | null;
+            trace_id: string | null;
+            /** Format: uuid */
+            job_id: string | null;
+            /** Format: uuid */
+            actor_id: string | null;
+            /** @description O que a intervenção humana fez (JSON em texto) */
+            change: string | null;
+            /** @description Por que a tentativa foi perdida (saída fora do schema, leitor) */
+            error: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /** @description Documento com a importação e o histórico das tentativas (AC-014) */
+        ReconciliationDocumentDetail: components["schemas"]["ReconciliationDocument"] & {
+            import: components["schemas"]["ReconciliationStatementImport"] | null;
+            attempts: components["schemas"]["ReconciliationExtractionAttempt"][];
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -6211,10 +6331,43 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReconciliationDocument"];
+                    "application/json": components["schemas"]["ReconciliationDocumentDetail"];
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    retryReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento de volta à fila, com o novo job */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     downloadReconciliationDocument: {

@@ -36,6 +36,10 @@ Variáveis necessárias, sem valores:
 | `S3_ROOT_USER` / `S3_ROOT_PASSWORD` | administrador do MinIO; usado só pelo `minio-init` (bucket, versionamento, usuário e política), nunca pela aplicação | sim |
 
 > **Desde a TASK-015 (D-026):** a API lê `S3_ENDPOINT` (sem ele, o envio da Conciliação responde 503 e nada é gravado), `S3_REGION` (padrão `us-east-1`), `S3_ACCESS_KEY`, `S3_SECRET_KEY` e `S3_BUCKET`. No compose, só a API e o `minio-init` recebem a chave da aplicação.
+>
+> **Desde a TASK-016 (D-027):**
+> - o worker também recebe a chave da aplicação, para ler os originais; a de administrador continua só no MinIO e no `minio-init` (teste);
+> - `LIMIAR_TRIAGEM` (não secreta, padrão `0.70`, o da origem) é o limiar de confiança da triagem.
 
 Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a TASK-003, a ausência de delete também é garantida no storage: a política do usuário da aplicação nega exclusão de objeto, de versão e do bucket, e a suspensão do versionamento (`docker/minio/init.sh`, D-013).
 

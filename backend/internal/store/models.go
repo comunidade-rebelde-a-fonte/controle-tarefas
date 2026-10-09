@@ -619,6 +619,7 @@ type ReconciliationDocument struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	JobID            *string
+	TriageTraceID    *string
 }
 
 type ReconciliationItem struct {
@@ -664,6 +665,7 @@ type StatementImport struct {
 	Validation     []byte
 	Attempts       int32
 	CreatedAt      time.Time
+	TraceID        *string
 }
 
 type StatementTransaction struct {

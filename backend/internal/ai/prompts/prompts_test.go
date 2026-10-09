@@ -11,6 +11,11 @@ import (
 var pinned = map[string]string{
 	"fatorr/plan@2026.10.1":   "eddce0a92af0",
 	"fatorr/render@2026.10.1": "6df09143757a",
+
+	"conciliacao/triador@2026.10.1":                   "e4db8b1c7752",
+	"conciliacao/extrator_extrato@2026.10.1":          "0f65d93356b6",
+	"conciliacao/extrator_extrato_correcao@2026.10.1": "5dac592e2910",
+	"conciliacao/playbook@2026.10.1":                  "9ad8a00dd7f0",
 }
 
 func TestPrompts_VersionAndHashPinned(t *testing.T) {
@@ -41,7 +46,7 @@ func TestPrompts_CommonContract(t *testing.T) {
 		name  string
 		forms []string
 	}{
-		{"papel", []string{"você classifica", "você escreve"}},
+		{"papel", []string{"você classifica", "você escreve", "você extrai"}},
 		{"schema de saída", []string{"responda só com"}},
 		{"ferramentas", []string{"não há outras ferramentas", "não há ferramentas"}},
 		{"o que não decide", []string{"decididos pelo sistema", "calculada pelo sistema"}},
@@ -51,6 +56,9 @@ func TestPrompts_CommonContract(t *testing.T) {
 		{"extraído × inferência", []string{"copie o que está escrito", "não apresente suposição como fato"}},
 	}
 	for _, n := range Names() {
+		if IsFragment(n) {
+			continue
+		}
 		text := strings.Join(strings.Fields(strings.ToLower(Get(n).Text)), " ")
 		for _, it := range items {
 			found := false
