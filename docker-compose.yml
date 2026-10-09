@@ -61,6 +61,12 @@ services:
       # Auditoria de IA (TASK-009): a API só monta o link do trace no Langfuse; quem envia é o worker.
       LANGFUSE_PUBLIC_URL: http://localhost:${LANGFUSE_WEB_PORT:-3100}
       LANGFUSE_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado-dev}
+      # Originais da Conciliação (TASK-015): usuário da aplicação no MinIO, sem permissão de
+      # apagar (docker/minio/init.sh). Com o MinIO fora, só o envio da Conciliação falha (503).
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-only-change-me-app}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:
@@ -241,8 +247,15 @@ services:
       TZ: ${APP_TIMEZONE:-America/Sao_Paulo}
       N8N_DIAGNOSTICS_ENABLED: "false"
       N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
-      # O workflow de ingestão (n8n/workflows) observa /data/inbox.
+      # O workflow de ingestão (n8n/workflows/ingestao.json, importado com make n8n-import)
+      # observa /data/inbox e envia cada arquivo novo para a Conciliação (TASK-015).
       N8N_RESTRICT_FILE_ACCESS_TO: /data/inbox
+      # O n8n 2.x desliga por padrão o gatilho de pasta: aqui só ele é religado; executar comando
+      # continua desligado.
+      NODES_EXCLUDE: '["n8n-nodes-base.executeCommand"]'
+      # O workflow lê o endereço da API em $env.CONTROLE_API_URL (nada secreto no ambiente do n8n).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      CONTROLE_API_URL: http://api:${HTTP_PORT:-8080}
     ports:
       - "127.0.0.1:${N8N_PORT:-5678}:5678"
     volumes:

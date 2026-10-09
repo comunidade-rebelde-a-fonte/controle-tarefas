@@ -34,7 +34,9 @@ import (
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
+	"controle/internal/platform/objectstore"
 	"controle/internal/platform/settings"
+	"controle/internal/reconciliation/documents"
 	"controle/internal/report"
 	"controle/internal/user"
 )
@@ -125,6 +127,12 @@ func New(d Deps) *App {
 		// Simulador e agentes consultor/priorizador (TASK-013): números do motor; o LLM, pelo
 		// gateway com os aliases da tela de IA, só classifica e redige.
 		agents.NewHandler(agents.NewService(d.Pool, d.Clock, aiClock, tr, aliases.NewResolver(d.Config.AIDefaults), gateway, d.Logger)).Routes(api)
+		// Conciliação (TASK-015): o original vai para o MinIO versionado e a triagem para a fila.
+		originals := objectstore.New(objectstore.Config{
+			Endpoint: d.Config.S3Endpoint, Region: d.Config.S3Region, AccessKey: d.Config.S3AccessKey,
+			SecretKey: d.Config.S3SecretKey.Reveal(), Bucket: d.Config.S3Bucket,
+		})
+		documents.NewHandler(documents.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts), originals, d.Logger)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

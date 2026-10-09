@@ -4,6 +4,39 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-026 — Ingestão manual da Conciliação com original no MinIO (TASK-015; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** de `app/servicos/ingestao.py` e `app/storage.py` do Conciliador (commit `2bc6e26`), em `backend/internal/reconciliation/documents`.
+- **Endpoints** nos caminhos do 06 §4, no lugar do `POST /ingestao/arquivo` da origem:
+  - `POST /reconciliation/documents`: multipart com o arquivo no campo `file` e, opcionais, `company_id` e `competence`. Responde 202 `{document_id, job_id, status}`.
+  - `GET /reconciliation/documents`: filtros de status, empresa, tipo, banco e competência, com a contagem por status.
+  - `GET /reconciliation/documents/{id}`: hash, versão do original, triagem, diagnóstico e o estado do job [AC-014].
+  - `GET /reconciliation/documents/{id}/file`: a versão gravada do original, para ver (inline, como a rota `/documentos/{id}/pdf` da origem) ou baixar (`?download=1`), com `nosniff` e sem cache.
+  - Um arquivo por envio; a origem aceitava vários e redirecionava para a lista HTML. A interface (TASK-021) envia um a um.
+- **Original imutável e versionado [REQ-043, 09 §5].**
+  - A chave no bucket é só o SHA-256 (`originais/<hash>`). A origem usava `originais/<hash>/<nome enviado>`, e o 09 §5 proíbe o nome do usuário na chave.
+  - A API grava com o usuário da aplicação, que a política do `docker/minio/init.sh` impede de apagar objeto ou versão. O documento guarda a versão do objeto (`object_version_id`), e a leitura usa essa versão.
+  - Cliente S3 próprio, só com a biblioteca padrão: AWS Signature V4, conferida contra os exemplos da documentação da AWS e contra o MinIO real. Não tem operação de apagar, como o `Storage` da origem. Sem dependência nova.
+- **Dedupe pelo SHA-256, como na origem:** o mesmo arquivo é recusado com 409 `DUPLICATE_DOCUMENT`, com o documento existente em `details.document_id`. Não grava documento, job nem versão nova.
+  - O estado `duplicado` continua no contrato (D-020), mas a origem também nunca o gravava: o arquivo repetido não vira documento.
+- **Tipo pelo conteúdo, até 20 MB.**
+  - Aceita PDF, imagem PNG ou JPEG (foto ou print de comprovante) e texto (CSV/TXT de extrato), com o charset detectado (UTF-8 ou windows-1252).
+  - A origem aceitava qualquer arquivo e não tinha limite. Aqui o resto dá 415 e o excesso dá 413.
+- **Fila [REQ-046].**
+  - O documento nasce `pendente`, com o job `reconciliation_triage` na mesma transação e a coluna `job_id` (migration `0025`).
+  - O processamento (triagem e extração) chega com a TASK-016. Até lá, o job espera na fila sem gastar tentativa, porque o worker só adquire os tipos que sabe executar (D-019).
+  - O atalho da origem que processava na hora o PDF com texto (`processar_local`) passa para o job, na TASK-016: a API não espera o processamento [AC-014].
+- **Documento tardio (F-009).** Com `company_id` e `competence` no envio e o Contábil fechado nessa competência, o original é guardado e o documento fica como `pendencia_periodo_fechado`, sem job, como no `ingerir_arquivo` da origem. Não é recusado com 423, porque guardar o documento não é mutação da conciliação (AC-025).
+- **MinIO fora ou não configurado:** 503 `STORAGE_UNAVAILABLE`, sem gravar documento nem job e sem guardar o original em outro lugar (11 §9). Configuração em `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` e `S3_BUCKET`. No compose, só a API e o `minio-init` recebem a chave da aplicação, e a de administrador nunca chega à API (teste).
+- **n8n [REQ-045].**
+  - O workflow `n8n/workflows/ingestao.json` foi refeito: observa `/data/inbox` (pasta `n8n/inbox`), lê o arquivo e envia no campo `file` para `$env.CONTROLE_API_URL/api/v1/reconciliation/documents`. A origem apontava para `http://app:8000/ingestao/arquivo` sem campo de arquivo e com login, e não funcionava.
+  - O n8n 2.x desliga por padrão o gatilho de pasta: o compose religa só esse nó (`NODES_EXCLUDE` mantém o de executar comando desligado) e libera `$env` para o endereço da API.
+  - O gatilho usa polling, porque a pasta montada do Windows não avisa mudanças ao container, e espera o arquivo terminar de ser gravado.
+  - Provado num n8n descartável da mesma imagem: o arquivo solto na pasta chegou ao endpoint no campo `file`, com o nome original.
+  - `make n8n-import` importa e ativa o workflow no n8n do ambiente. Não foi rodado: depende do seu aceite.
+- **Fica para a TASK-016:** `POST /reconciliation/documents/{id}/retry` (06 §4). Ele só faz sentido com o processamento, que define quais estados de revisão aceitam novo processamento. Hoje, o job encerrado com falha volta pela `POST /jobs/{id}/retry`.
+- **Ponto para a TASK-021:** a API responde com `X-Frame-Options: DENY`. Se a fila de revisão embutir o original numa moldura, essa rota vai precisar de `SAMEORIGIN`.
+
 ### D-025 — Telas do inbox PGDAS-D, do simulador, dos agentes e da observabilidade (TASK-014b; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** das telas `inbox`, `inbox/[id]`, `agentes`, `observabilidade` e `observabilidade/traces/[id]` e dos componentes `Simulador`, `Chat` e `CadastroPeloExtrato` do Fator R (commit `9dd7a74`), em `frontend/src/features/factor-r`.

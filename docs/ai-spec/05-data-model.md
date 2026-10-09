@@ -150,6 +150,10 @@ Entidade transversal para documentos de Conciliação se o modelo atual permitir
 
 Não misturar arbitrariamente com documentos PGDAS se isso apagar estados específicos. Uma camada `documents` pode agregá-los via view/DTO.
 
+> **Desde a TASK-015 (D-026):** `reconciliation_documents.job_id` (migration `0025`) aponta o job de triagem; é nulo no documento parado por período fechado.
+> - A chave no bucket é `originais/<sha256>`, sem o nome enviado.
+> - `object_version_id` guarda a versão gravada.
+
 ### `statement_imports`
 
 Cabeçalho de importação com saldos, período, banco/conta, resultado de validação, tentativas e documento de origem.

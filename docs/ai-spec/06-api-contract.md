@@ -115,6 +115,16 @@ Detalhes, diagnóstico e URL/endpoint seguro de visualização.
 
 Somente para estados retry/review compatíveis; não ignora portões.
 
+> **Como foi implementado (TASK-015; D-026).** O contrato está no OpenAPI, tag `reconciliation`.
+> - O envio é multipart, com o arquivo no campo `file` e, opcionais, `company_id` e `competence`: PDF, PNG, JPEG ou texto, validados pelo conteúdo, até 20 MB.
+>   - Responde 202 `{document_id, job_id, status}`.
+>   - Recusas: 409 `DUPLICATE_DOCUMENT` (com `details.document_id`), 413, 415 e 503 `STORAGE_UNAVAILABLE` (sem gravar nada).
+>   - Com o Contábil fechado na competência informada, o documento fica `pendencia_periodo_fechado`, sem job.
+> - A lista filtra por `status`, `company_id`, `kind`, `bank` e `competence`, esta pela competência do envio ou pelo período lido na triagem. Traz `count_by_status`.
+> - O detalhe traz o hash, a versão do original, a triagem, o diagnóstico e o `job` (AC-014).
+> - Rota a mais: `GET /reconciliation/documents/{id}/file` lê a versão gravada do original (inline, ou `?download=1` para baixar).
+> - O `retry` deste item vem com o processamento, na TASK-016. Até lá, o job encerrado com falha volta pela `POST /jobs/{id}/retry`.
+
 ### `GET /companies/{id}/reconciliation?competence=YYYY-MM`
 
 Resumo da competência: contas, imports, buckets, progresso, fechamento contábil.

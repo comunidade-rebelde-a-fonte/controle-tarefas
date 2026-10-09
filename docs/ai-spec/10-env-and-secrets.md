@@ -35,6 +35,8 @@ Variáveis necessárias, sem valores:
 | `S3_REGION` | compatibilidade S3 | não |
 | `S3_ROOT_USER` / `S3_ROOT_PASSWORD` | administrador do MinIO; usado só pelo `minio-init` (bucket, versionamento, usuário e política), nunca pela aplicação | sim |
 
+> **Desde a TASK-015 (D-026):** a API lê `S3_ENDPOINT` (sem ele, o envio da Conciliação responde 503 e nada é gravado), `S3_REGION` (padrão `us-east-1`), `S3_ACCESS_KEY`, `S3_SECRET_KEY` e `S3_BUCKET`. No compose, só a API e o `minio-init` recebem a chave da aplicação.
+
 Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a TASK-003, a ausência de delete também é garantida no storage: a política do usuário da aplicação nega exclusão de objeto, de versão e do bucket, e a suspensão do versionamento (`docker/minio/init.sh`, D-013).
 
 ## 4. LiteLLM / OpenAI
@@ -90,6 +92,11 @@ Preservar as variáveis do stack self-hosted atual, como:
 ## 7. n8n
 
 Manter variáveis necessárias ao serviço atual. Não adicionar credenciais de canal externo até existir fluxo solicitado. `N8N_PORT`: porta do editor no host (só 127.0.0.1).
+
+> **Desde a TASK-015 (D-026):** o workflow de ingestão usa estas variáveis do compose, nenhuma secreta:
+> - `CONTROLE_API_URL`, o endereço da API na rede do compose;
+> - `N8N_BLOCK_ENV_ACCESS_IN_NODE=false`, para o workflow ler `$env`;
+> - `NODES_EXCLUDE`, que religa o gatilho de pasta, desligado por padrão no n8n 2.x, e mantém o de executar comando desligado.
 
 ## 8. Jobs
 

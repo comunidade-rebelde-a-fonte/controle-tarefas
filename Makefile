@@ -54,7 +54,7 @@ E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
 
-.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -96,6 +96,12 @@ langfuse-logs: ## Acompanha os logs do Langfuse
 
 obs-net: ## Cria a rede do worker com o Langfuse (controle-obs), se ainda não existir
 	@docker network inspect $(OBS_NET) >/dev/null 2>&1 || docker network create $(OBS_NET) >/dev/null
+
+n8n-import: ## Importa e ativa no n8n o workflow de ingestão da pasta n8n/inbox (Conciliação, TASK-015)
+	$(COMPOSE) exec -T n8n n8n import:workflow --input=/workflows/ingestao.json
+	$(COMPOSE) exec -T n8n n8n update:workflow --id=ConcilIngestInbx --active=true
+	$(COMPOSE) restart n8n
+	@echo ">>> arquivos colocados em n8n/inbox/ vão para POST /api/v1/reconciliation/documents"
 
 health: ## Mostra a saúde de cada serviço local (API, banco, worker, MinIO, LiteLLM, n8n, Langfuse)
 	@scripts/health.sh

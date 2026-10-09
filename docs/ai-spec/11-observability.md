@@ -140,6 +140,8 @@ No mínimo:
 - upload do Conciliador deve falhar antes de criar estado inconsistente;
 - não armazenar original temporariamente em local alternativo silencioso.
 
+> **Desde a TASK-015 (D-026):** o envio responde 503 `STORAGE_UNAVAILABLE` sem gravar documento nem job (testado com o MinIO fora e sem configuração). API e worker continuam saudáveis.
+
 ### Worker parado
 - uploads continuam registrados apenas se storage + transação puderem garantir consistência;
 - jobs permanecem pendentes;

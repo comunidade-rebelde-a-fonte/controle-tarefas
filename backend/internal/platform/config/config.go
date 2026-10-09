@@ -81,6 +81,14 @@ type Config struct {
 	// LangfusePublicURL e LangfuseProjectID montam o link do trace para o navegador.
 	LangfusePublicURL string
 	LangfuseProjectID string
+	// Originais da Conciliação no MinIO (S3, bucket versionado; REQ-043, TASK-015). S3Endpoint
+	// vazio = armazenamento não configurado: o envio responde 503 STORAGE_UNAVAILABLE. A
+	// credencial é a do usuário da aplicação, sem permissão de apagar (docker/minio/init.sh).
+	S3Endpoint  string
+	S3Region    string
+	S3AccessKey string
+	S3SecretKey Secret
+	S3Bucket    string
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -253,6 +261,7 @@ func Load(getenv func(string) string) (Config, error) {
 		errs = append(errs, err)
 	}
 	errs = append(errs, loadLangfuse(&cfg, getenv)...)
+	errs = append(errs, loadS3(&cfg, getenv)...)
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)
@@ -266,6 +275,32 @@ var (
 )
 
 // loadLangfuse lê LANGFUSE_* e TRACE_PAYLOAD_MAX_KB (TASK-009).
+// loadS3 lê o armazenamento dos originais da Conciliação. Com endpoint, credencial e bucket são
+// obrigatórios.
+func loadS3(cfg *Config, getenv func(string) string) []error {
+	var errs []error
+	cfg.S3Endpoint = strings.TrimRight(strings.TrimSpace(getenv("S3_ENDPOINT")), "/")
+	if cfg.S3Endpoint != "" {
+		if u, err := url.Parse(cfg.S3Endpoint); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || (u.Path != "" && u.Path != "/") {
+			errs = append(errs, fmt.Errorf("S3_ENDPOINT inválido: %q (use http://host:porta)", cfg.S3Endpoint))
+		}
+	}
+	cfg.S3Region = orDefault(strings.TrimSpace(getenv("S3_REGION")), "us-east-1")
+	cfg.S3AccessKey = strings.TrimSpace(getenv("S3_ACCESS_KEY"))
+	cfg.S3SecretKey = Secret(strings.TrimSpace(getenv("S3_SECRET_KEY")))
+	cfg.S3Bucket = strings.TrimSpace(getenv("S3_BUCKET"))
+	if cfg.S3Endpoint != "" && (cfg.S3AccessKey == "" || cfg.S3SecretKey == "" || cfg.S3Bucket == "") {
+		errs = append(errs, errors.New("S3_ENDPOINT exige S3_ACCESS_KEY, S3_SECRET_KEY e S3_BUCKET"))
+	}
+	if cfg.S3Bucket != "" && !s3BucketRe.MatchString(cfg.S3Bucket) {
+		errs = append(errs, fmt.Errorf("S3_BUCKET inválido: %q (3 a 63 caracteres: minúsculas, dígitos, ponto e hífen)", cfg.S3Bucket))
+	}
+	return errs
+}
+
+// s3BucketRe são os nomes de bucket aceitos pelo S3/MinIO (forma simplificada).
+var s3BucketRe = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`)
+
 func loadLangfuse(cfg *Config, getenv func(string) string) []error {
 	var errs []error
 	httpURL := func(name, v string) string {

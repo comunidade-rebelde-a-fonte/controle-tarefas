@@ -108,8 +108,8 @@ Legenda da coluna **Spec**:
 
 | ID | Capacidade (comportamento de origem) | Fonte | TASK | Spec |
 |---|---|---|---|---|
-| CC-01 | Ingestão burra: `POST /ingestao/arquivo` (n8n) + upload manual; SHA-256; duplicata → 409 + status `duplicado`; original no MinIO versionado sem delete; `documento_origem` `pendente`; enfileira triagem; não interpreta | PRD §6.1; plan M1.1 | 015 | coberta |
-| CC-02 | Fluxo n8n "pasta monitorada → endpoint" (`n8n/workflows/ingestao.json`) | plan M1.2 | 003, 015 | coberta |
+| CC-01 | Ingestão burra: `POST /ingestao/arquivo` (n8n) + upload manual; SHA-256; duplicata → 409 + status `duplicado`; original no MinIO versionado sem delete; `documento_origem` `pendente`; enfileira triagem; não interpreta | PRD §6.1; plan M1.1 | 015 | coberta (D-026): `POST /reconciliation/documents`; a duplicata é recusada com 409 e, como na origem, não vira documento `duplicado` |
+| CC-02 | Fluxo n8n "pasta monitorada → endpoint" (`n8n/workflows/ingestao.json`) | plan M1.2 | 003, 015 | coberta (D-026): workflow refeito para o n8n 2.x e provado; `make n8n-import` |
 | CC-03 | Ferramentas `extrair_texto_pdf` e `renderizar_pagina` (DPI ajustável, cache do render no storage), via PyMuPDF | plan §1, M1.3 | 016 | coberta (biblioteca Go: decisão na TASK-016) |
 | CC-04 | Triador: primeiras N páginas (texto ou imagem); saída `{tipo, banco, conta, período, confiança}`; abaixo do limiar → `revisao_triagem` | PRD §6.2; M1.4 | 016 | coberta |
 | CC-05 | Extrator de extrato: schema PRD §7; até 3 tentativas com feedback numérico e dicas (linha pulada, separador decimal); estratégias texto nativo → render 150 DPI → render 300 DPI + `extrator_forte`; JSON inválido conta como tentativa | PRD §6.3; M1.8 | 016 | coberta |

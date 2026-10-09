@@ -16,7 +16,9 @@ set -eu
 : "${S3_BUCKET:?defina S3_BUCKET}"
 POLICY=conciliacao-app
 
-mc alias set local http://minio:9000 "$S3_ROOT_USER" "$S3_ROOT_PASSWORD" >/dev/null
+# MINIO_URL: o endereço do MinIO para o mc (no compose, o serviço minio; nos testes de integração,
+# o próprio container).
+mc alias set local "${MINIO_URL:-http://minio:9000}" "$S3_ROOT_USER" "$S3_ROOT_PASSWORD" >/dev/null
 mc mb --ignore-existing "local/$S3_BUCKET"
 mc version enable "local/$S3_BUCKET"
 

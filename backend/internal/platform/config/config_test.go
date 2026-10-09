@@ -92,6 +92,30 @@ func TestLoad_Langfuse(t *testing.T) {
 	}
 }
 
+// TASK-015: originais da Conciliação no MinIO; sem endpoint, o armazenamento fica desligado.
+func TestLoad_S3(t *testing.T) {
+	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.S3Endpoint != "" || cfg.S3Region != "us-east-1" {
+		t.Fatalf("padrões = %q %q", cfg.S3Endpoint, cfg.S3Region)
+	}
+	cfg, err = Load(env(map[string]string{
+		"DATABASE_URL": "x", "S3_ENDPOINT": " http://minio:9000/ ", "S3_ACCESS_KEY": "conciliacao-app",
+		"S3_SECRET_KEY": "segredo-do-minio", "S3_BUCKET": "conciliacao-originais", "S3_REGION": "sa-east-1",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cfg.S3Endpoint != "http://minio:9000" || cfg.S3Region != "sa-east-1" || cfg.S3Bucket != "conciliacao-originais" || cfg.S3SecretKey.Reveal() != "segredo-do-minio" {
+		t.Fatalf("S3 = %q %q %q", cfg.S3Endpoint, cfg.S3Region, cfg.S3Bucket)
+	}
+	if b, _ := json.Marshal(cfg); strings.Contains(string(b), "segredo-do-minio") || strings.Contains(fmt.Sprintf("%+v", cfg), "segredo-do-minio") {
+		t.Fatal("a chave do MinIO aparece na configuração impressa")
+	}
+}
+
 // A chave do gateway nunca aparece em print, log ou JSON [spec 09 §4].
 func TestSecret_NeverPrinted(t *testing.T) {
 	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "LITELLM_API_KEY": "sk-segredo-real-123"}))
@@ -184,6 +208,10 @@ func TestLoad_Invalid(t *testing.T) {
 		"reenvio curto":        {"DATABASE_URL": "x", "LANGFUSE_RETRY_SECONDS": "5"},
 		"payload enorme":       {"DATABASE_URL": "x", "TRACE_PAYLOAD_MAX_KB": "4096"},
 		"projeto inválido":     {"DATABASE_URL": "x", "LANGFUSE_PROJECT_ID": "a/b"},
+		"s3 sem chaves":        {"DATABASE_URL": "x", "S3_ENDPOINT": "http://minio:9000", "S3_BUCKET": "b-1"},
+		"s3 sem esquema":       {"DATABASE_URL": "x", "S3_ENDPOINT": "minio:9000", "S3_ACCESS_KEY": "a", "S3_SECRET_KEY": "s", "S3_BUCKET": "b-1"},
+		"s3 com caminho":       {"DATABASE_URL": "x", "S3_ENDPOINT": "http://minio:9000/bucket", "S3_ACCESS_KEY": "a", "S3_SECRET_KEY": "s", "S3_BUCKET": "b-1"},
+		"bucket inválido":      {"DATABASE_URL": "x", "S3_BUCKET": "Bucket_Errado"},
 	}
 	for name, m := range cases {
 		t.Run(name, func(t *testing.T) {

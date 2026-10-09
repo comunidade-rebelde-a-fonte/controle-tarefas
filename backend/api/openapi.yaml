@@ -53,6 +53,11 @@ tags:
     description: |
       Auditoria local das corridas de agente (TASK-009) — trilha local (fonte de verdade), notas
       ouro e humana, status de sincronização com o Langfuse e painel de observabilidade.
+  - name: reconciliation
+    description: |
+      Conciliação (consolidação, TASK-015 em diante) — ingestão manual de extratos e comprovantes,
+      com o original imutável no MinIO versionado. Estados e tipos usam o vocabulário do
+      Conciliador de origem (D-020).
   - name: factor-r
     description: |
       Fator R (consolidação, TASK-011 a TASK-013) — configuração por empresa, série mensal de
@@ -2008,6 +2013,128 @@ paths:
         "409": { $ref: "#/components/responses/Conflict" }
         "422": { $ref: "#/components/responses/Unprocessable" }
 
+  /reconciliation/documents:
+    post:
+      tags: [reconciliation]
+      operationId: uploadReconciliationDocument
+      summary: Envia um extrato ou comprovante; guarda o original no MinIO e enfileira a triagem [REQ-018, AC-013, AC-014]
+      description: |
+        PDF, imagem (PNG ou JPEG) ou texto (CSV/TXT), validado pelo conteúdo e nunca pela
+        extensão, até 20 MB. O original vai para o bucket versionado com o SHA-256 como chave (o
+        nome enviado é só metadado) e o documento nasce `pendente`, com o job
+        `reconciliation_triage` na fila: a resposta não espera o processamento. O mesmo arquivo de
+        novo é recusado (409 `DUPLICATE_DOCUMENT`, com o documento existente em
+        `details.document_id`), como na origem. Com `company_id` e `competence` informados e o
+        Contábil fechado na competência, o original é guardado e o documento fica como
+        `pendencia_periodo_fechado`, sem job. Com o MinIO fora ou não configurado, nada é gravado
+        (503 `STORAGE_UNAVAILABLE`). É também o endpoint do workflow de ingestão do n8n.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                company_id: { $ref: "#/components/schemas/Uuid" }
+                competence: { $ref: "#/components/schemas/Competence" }
+      responses:
+        "202":
+          description: Documento recebido (pendente, com a triagem na fila, ou parado por período fechado)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationUpload" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "413":
+          description: Arquivo acima de 20 MB (FILE_TOO_LARGE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "415":
+          description: O conteúdo não é PDF, imagem PNG/JPEG nem texto (UNSUPPORTED_FILE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "503":
+          description: MinIO fora ou não configurado (STORAGE_UNAVAILABLE); nada foi gravado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    get:
+      tags: [reconciliation]
+      operationId: listReconciliationDocuments
+      summary: Documentos da Conciliação, mais recentes primeiro, com a contagem por status
+      description: |
+        A competência casa com a informada no envio ou com o período do extrato lido na triagem
+        que encosta no mês. A contagem por status é a de todos os documentos, independente dos
+        filtros.
+      parameters:
+        - { name: status, in: query, schema: { $ref: "#/components/schemas/ReconciliationDocumentStatus" } }
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/ReconciliationDocumentKind" } }
+        - { name: bank, in: query, description: "Banco lido na triagem (sem diferenciar maiúsculas)", schema: { type: string } }
+        - { name: competence, in: query, schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        "200":
+          description: Documentos
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationDocumentList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /reconciliation/documents/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationDocument
+      summary: Documento da Conciliação — hash, versão do original, triagem, diagnóstico e job
+      responses:
+        "200":
+          description: Documento
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationDocument" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/documents/{id}/file:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: downloadReconciliationDocument
+      summary: Lê a versão gravada do original, para ver (inline) ou baixar (?download=1)
+      description: |
+        O tipo é o detectado no envio (`nosniff`, sem cache); o nome enviado só vai no
+        Content-Disposition. O original nunca é servido por diretório público [09 §5].
+      parameters:
+        - name: download
+          in: query
+          description: "1 = como anexo"
+          schema: { type: string, enum: ["1"] }
+      responses:
+        "200":
+          description: O original enviado
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+            image/png:
+              schema: { type: string, format: binary }
+            image/jpeg:
+              schema: { type: string, format: binary }
+            text/plain:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "503":
+          description: MinIO fora (STORAGE_UNAVAILABLE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
   /jobs/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -3795,6 +3922,80 @@ components:
         email: { type: [string, "null"], maxLength: 200 }
         role: { $ref: "#/components/schemas/UserRole" }
         active: { type: boolean }
+
+    ReconciliationDocumentStatus:
+      type: string
+      enum: [pendente, triado, extraido, importado, revisao_triagem, revisao_extracao, duplicado, pendencia_periodo_fechado]
+      description: |
+        Estados do Conciliador de origem (contrato congelado, D-020): pendente → triado → extraido →
+        importado, com as revisões; pendencia_periodo_fechado é o documento tardio com o Contábil
+        fechado na competência.
+
+    ReconciliationDocumentKind:
+      type: string
+      enum: [extrato, comprovante, desconhecido]
+      description: Tipo definido pela triagem (nulo até ela)
+
+    ReconciliationUpload:
+      type: object
+      required: [document_id, job_id, status]
+      properties:
+        document_id: { $ref: "#/components/schemas/Uuid" }
+        job_id: { type: [string, "null"], format: uuid, description: "Job de triagem; nulo no documento parado por período fechado" }
+        status: { $ref: "#/components/schemas/ReconciliationDocumentStatus" }
+
+    DocumentJobState:
+      type: object
+      description: Estado do job que processa o documento [AC-014]
+      required: [id, status, attempts, max_attempts, last_error_code]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        attempts: { type: integer, format: int32 }
+        max_attempts: { type: integer, format: int32 }
+        last_error_code: { type: [string, "null"] }
+
+    ReconciliationDocument:
+      type: object
+      required: [id, status, company_id, competence, file_name, content_type, size_bytes, sha256, object_version_id, kind, bank, branch, account, period_start, period_end, triage_confidence, diagnosis, job, file_url, uploaded_by, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/ReconciliationDocumentStatus" }
+        company_id: { type: [string, "null"], format: uuid, description: "Informada no envio ou definida na triagem" }
+        competence:
+          description: Competência informada no envio
+          oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }]
+        file_name: { type: string, description: "Nome enviado (só metadado)" }
+        content_type: { type: string, description: "Tipo detectado pelo conteúdo", examples: ["application/pdf", "text/plain; charset=utf-8"] }
+        size_bytes: { type: [integer, "null"], format: int64 }
+        sha256: { type: string, pattern: "^[0-9a-f]{64}$", description: "Hash do original: chave no bucket e dedupe" }
+        object_version_id: { type: [string, "null"], description: "Versão do objeto no bucket versionado" }
+        kind:
+          oneOf: [{ $ref: "#/components/schemas/ReconciliationDocumentKind" }, { type: "null" }]
+        bank: { type: [string, "null"] }
+        branch: { type: [string, "null"] }
+        account: { type: [string, "null"] }
+        period_start: { type: [string, "null"], format: date }
+        period_end: { type: [string, "null"], format: date }
+        triage_confidence:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        diagnosis:
+          description: Diagnóstico da triagem ou do validador, para a revisão
+          oneOf: [{ type: object, additionalProperties: true }, { type: "null" }]
+        job:
+          oneOf: [{ $ref: "#/components/schemas/DocumentJobState" }, { type: "null" }]
+        file_url: { type: string, description: "Endpoint de leitura do original", examples: ["/api/v1/reconciliation/documents/{id}/file"] }
+        uploaded_by: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ReconciliationDocumentList:
+      type: object
+      required: [items, total, count_by_status]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ReconciliationDocument" } }
+        total: { type: integer, format: int64, description: "Total com os filtros" }
+        count_by_status: { type: object, additionalProperties: { type: integer, format: int64 } }
 
     JobStatus:
       type: string

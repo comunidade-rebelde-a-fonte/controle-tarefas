@@ -1479,6 +1479,82 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reconciliation/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Documentos da Conciliação, mais recentes primeiro, com a contagem por status
+         * @description A competência casa com a informada no envio ou com o período do extrato lido na triagem
+         *     que encosta no mês. A contagem por status é a de todos os documentos, independente dos
+         *     filtros.
+         */
+        get: operations["listReconciliationDocuments"];
+        put?: never;
+        /**
+         * Envia um extrato ou comprovante; guarda o original no MinIO e enfileira a triagem [REQ-018, AC-013, AC-014]
+         * @description PDF, imagem (PNG ou JPEG) ou texto (CSV/TXT), validado pelo conteúdo e nunca pela
+         *     extensão, até 20 MB. O original vai para o bucket versionado com o SHA-256 como chave (o
+         *     nome enviado é só metadado) e o documento nasce `pendente`, com o job
+         *     `reconciliation_triage` na fila: a resposta não espera o processamento. O mesmo arquivo de
+         *     novo é recusado (409 `DUPLICATE_DOCUMENT`, com o documento existente em
+         *     `details.document_id`), como na origem. Com `company_id` e `competence` informados e o
+         *     Contábil fechado na competência, o original é guardado e o documento fica como
+         *     `pendencia_periodo_fechado`, sem job. Com o MinIO fora ou não configurado, nada é gravado
+         *     (503 `STORAGE_UNAVAILABLE`). É também o endpoint do workflow de ingestão do n8n.
+         */
+        post: operations["uploadReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Documento da Conciliação — hash, versão do original, triagem, diagnóstico e job */
+        get: operations["getReconciliationDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Lê a versão gravada do original, para ver (inline) ou baixar (?download=1)
+         * @description O tipo é o detectado no envio (`nosniff`, sem cache); o nome enviado só vai no
+         *     Content-Disposition. O original nunca é servido por diretório público [09 §5].
+         */
+        get: operations["downloadReconciliationDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -2782,6 +2858,98 @@ export interface components {
             email?: string | null;
             role?: components["schemas"]["UserRole"];
             active?: boolean;
+        };
+        /**
+         * @description Estados do Conciliador de origem (contrato congelado, D-020): pendente → triado → extraido →
+         *     importado, com as revisões; pendencia_periodo_fechado é o documento tardio com o Contábil
+         *     fechado na competência.
+         * @enum {string}
+         */
+        ReconciliationDocumentStatus: "pendente" | "triado" | "extraido" | "importado" | "revisao_triagem" | "revisao_extracao" | "duplicado" | "pendencia_periodo_fechado";
+        /**
+         * @description Tipo definido pela triagem (nulo até ela)
+         * @enum {string}
+         */
+        ReconciliationDocumentKind: "extrato" | "comprovante" | "desconhecido";
+        ReconciliationUpload: {
+            document_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Job de triagem; nulo no documento parado por período fechado
+             */
+            job_id: string | null;
+            status: components["schemas"]["ReconciliationDocumentStatus"];
+        };
+        /** @description Estado do job que processa o documento [AC-014] */
+        DocumentJobState: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            last_error_code: string | null;
+        };
+        ReconciliationDocument: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["ReconciliationDocumentStatus"];
+            /**
+             * Format: uuid
+             * @description Informada no envio ou definida na triagem
+             */
+            company_id: string | null;
+            /** @description Competência informada no envio */
+            competence: components["schemas"]["Competence"] | null;
+            /** @description Nome enviado (só metadado) */
+            file_name: string;
+            /**
+             * @description Tipo detectado pelo conteúdo
+             * @example application/pdf
+             * @example text/plain; charset=utf-8
+             */
+            content_type: string;
+            /** Format: int64 */
+            size_bytes: number | null;
+            /** @description Hash do original: chave no bucket e dedupe */
+            sha256: string;
+            /** @description Versão do objeto no bucket versionado */
+            object_version_id: string | null;
+            kind: components["schemas"]["ReconciliationDocumentKind"] | null;
+            bank: string | null;
+            branch: string | null;
+            account: string | null;
+            /** Format: date */
+            period_start: string | null;
+            /** Format: date */
+            period_end: string | null;
+            triage_confidence: components["schemas"]["DecimalString"] | null;
+            /** @description Diagnóstico da triagem ou do validador, para a revisão */
+            diagnosis: {
+                [key: string]: unknown;
+            } | null;
+            job: components["schemas"]["DocumentJobState"] | null;
+            /**
+             * @description Endpoint de leitura do original
+             * @example /api/v1/reconciliation/documents/{id}/file
+             */
+            file_url: string;
+            /** Format: uuid */
+            uploaded_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ReconciliationDocumentList: {
+            items: components["schemas"]["ReconciliationDocument"][];
+            /**
+             * Format: int64
+             * @description Total com os filtros
+             */
+            total: number;
+            count_by_status: {
+                [key: string]: number;
+            };
         };
         /**
          * @description pending: na fila; running: em execução por um worker; retry: nova tentativa agendada
@@ -5936,6 +6104,155 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             422: components["responses"]["Unprocessable"];
+        };
+    };
+    listReconciliationDocuments: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["ReconciliationDocumentStatus"];
+                company_id?: components["schemas"]["Uuid"];
+                kind?: components["schemas"]["ReconciliationDocumentKind"];
+                /** @description Banco lido na triagem (sem diferenciar maiúsculas) */
+                bank?: string;
+                competence?: components["schemas"]["Competence"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDocumentList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    uploadReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    company_id?: components["schemas"]["Uuid"];
+                    competence?: components["schemas"]["Competence"];
+                };
+            };
+        };
+        responses: {
+            /** @description Documento recebido (pendente, com a triagem na fila, ou parado por período fechado) */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+            /** @description Arquivo acima de 20 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description O conteúdo não é PDF, imagem PNG/JPEG nem texto (UNSUPPORTED_FILE) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description MinIO fora ou não configurado (STORAGE_UNAVAILABLE); nada foi gravado */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDocument"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    downloadReconciliationDocument: {
+        parameters: {
+            query?: {
+                /** @description 1 = como anexo */
+                download?: "1";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O original enviado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "image/png": string;
+                    "image/jpeg": string;
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description MinIO fora (STORAGE_UNAVAILABLE) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
         };
     };
     getJob: {

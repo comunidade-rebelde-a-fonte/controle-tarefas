@@ -618,6 +618,7 @@ type ReconciliationDocument struct {
 	UploadedBy       *string
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
+	JobID            *string
 }
 
 type ReconciliationItem struct {

@@ -117,6 +117,12 @@ Desde a TASK-005 (D-019): fila em `backend/internal/jobs` (SKIP LOCKED, tentativ
 
 Desde a TASK-007 (D-020): schema em `backend/migrations/0020_reconciliation.sql` (mapeamento origem → consolidado na D-020); chave de dedupe e trava pelo fechamento Contábil em `backend/internal/reconciliation`. Toda mutação da Conciliação chama `reconciliation.RequireOpen` (AC-025).
 
+Ingestão (TASK-015, D-026), em `backend/internal/reconciliation/documents`:
+- original no MinIO pelo cliente `internal/platform/objectstore` (SigV4 só com a biblioteca padrão; sem operação de apagar), com a chave `originais/<sha256>` e a versão guardada no documento;
+- arquivo repetido: 409 `DUPLICATE_DOCUMENT`; MinIO fora: 503 sem gravar nada; documento tardio com o Contábil fechado: `pendencia_periodo_fechado`, sem job;
+- o documento nasce `pendente` com o job `reconciliation_triage` na mesma transação; o handler do worker chega na TASK-016;
+- testes com MinIO real: `testutil.NewMinIO` (mesma imagem e mesmo `init.sh` do compose).
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

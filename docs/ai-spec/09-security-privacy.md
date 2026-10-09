@@ -51,6 +51,11 @@ A UI de modelos armazena apenas provider/model/params não secretos.
 - Originais do Conciliador permanecem imutáveis/versionados no MinIO.
 - Originais de outros módulos respeitam storage atual.
 
+> **Como foi implementado na Conciliação (TASK-015; D-026).**
+> - O tipo vem do conteúdo (PDF, PNG, JPEG ou texto) e o limite é de 20 MB.
+> - O original vai para o MinIO com a chave `originais/<sha256>`, gravado pelo usuário da aplicação, que não pode apagar objeto nem versão (provado contra o MinIO real).
+> - A leitura sai pela API, na versão gravada, com o tipo detectado, `nosniff` e sem cache. O nome enviado só aparece no Content-Disposition.
+
 > **Como foi implementado no Inbox PGDAS-D (TASK-012; D-023).**
 > - O tipo vem do conteúdo (assinatura do PDF; texto sem byte nulo, UTF-8 ou latin-1 imprimível) e o limite é de 10 MB.
 > - O original fica em `FILE_STORAGE_DIR/pgdas/<sha256>` com permissão 0600 e é lido por `os.Root`. O nome enviado é só metadado.
