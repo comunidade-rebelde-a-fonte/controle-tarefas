@@ -67,6 +67,11 @@ Acurácia por campo em tipos previstos pelo projeto original.
 
 Testes determinísticos por passe, inclusive ambiguidade e casos de borda.
 
+> **Como foi implementado (TASK-018; D-029, ADR-008).**
+> - Golden do Python da origem em `backend/internal/reconciliation/matching/testdata`: Jaro-Winkler bit a bit, 513 cascatas (os quatro passes, scores e divergências), o pré-filtro, as marcações de borda, o `buscar_candidatos` e o cenário Horizonte inteiro.
+> - A regra dos dois lados (ADR-008) é provada contra o golden: sem disputa, o resultado é o da origem; com disputa, todo casamento é mútuo e único no passe.
+> - O cenário Horizonte roda também de ponta a ponta (envio, leitores determinísticos, rodada no worker), com o mesmo resultado da origem.
+
 ## 4. Regressão de porte
 
 Antes de substituir uma capacidade do projeto auxiliar pela implementação Go:

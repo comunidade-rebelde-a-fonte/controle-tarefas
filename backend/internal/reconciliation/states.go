@@ -14,9 +14,11 @@ const (
 )
 
 // Jobs do processamento dos documentos [04 §7; TASK-015, TASK-016]: a triagem nasce no envio; o
-// extrato triado ganha a extração; o comprovante, a extração de comprovante (TASK-017).
+// extrato triado ganha a extração; o comprovante, a extração de comprovante (TASK-017). A rodada
+// do matching (TASK-018) é enfileirada quando chega extrato importado ou lançamento novo.
 const (
 	JobTriage           = "reconciliation_triage"
 	JobStatementExtract = "statement_extract"
 	JobReceiptExtract   = "receipt_extract"
+	JobRun              = "reconciliation_run"
 )

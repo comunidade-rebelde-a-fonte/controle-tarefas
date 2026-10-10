@@ -138,6 +138,12 @@ Comprovantes e lançamentos (TASK-017, D-028):
 - lançamentos manuais (formulário e CSV, tudo ou nada) em `backend/internal/reconciliation/entries`, com a trava do Contábil;
 - `consultar_cnpj` não existe: aguarda decisão (P-007).
 
+Matching (TASK-018, D-029, ADR-008):
+- domínio em `backend/internal/reconciliation/matching`: Jaro-Winkler, cascata dos passes 1 a 4, pré-filtro e bordas da origem e `buscar_candidatos`, travados por golden gerado pelo Python da origem (`testdata/matching_gen.py`);
+- regra dos dois lados (ADR-008): só concilia o que não é ambíguo nem para a linha nem para o comprovante; casos de borda vão à fila marcados; parcial fica fora do automático até a revisão. A regra da origem (`Options.OneSided`) é só para o golden;
+- rodada em `backend/internal/reconciliation/reconcile`: `POST /companies/{id}/reconciliation/run?competence=` e o job `reconciliation_run` (o worker enfileira ao importar extrato ou gravar comprovante, via `reconciliation.EnqueueRun`); idempotente, serializada por empresa, com a trava do Contábil;
+- conciliação automática com origem `auto` e sem autor; marcas da fila em `statement_transactions.flags` (`divergencia` ou `borda`), trocadas a cada rodada.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

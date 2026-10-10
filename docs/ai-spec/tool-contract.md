@@ -29,6 +29,8 @@ Regra: não duplicar implementação de cálculo.
 Entrada: company/conta/período/valor/data/sentido conforme contrato.  
 Saída: candidatos somente leitura.
 
+> **Na TASK-018 (D-029):** o domínio está portado com golden da origem (`matching.Candidates`: mesmo valor e sentido em D±3). A ferramenta do resolvedor chega com a TASK-019.
+
 ### `historico_classificacao`
 Entrada: company + contraparte/descritivo.  
 Saída: histórico somente leitura.

@@ -58,6 +58,11 @@ func TestCompose_MinIOCredentials(t *testing.T) {
 	if !strings.Contains(svc["worker"], "LIMIAR_CAMPO: ${LIMIAR_CAMPO:-0.70}") {
 		t.Error("o worker deveria receber o limiar por campo do comprovante (0,70 da origem)")
 	}
+	for _, name := range []string{"api", "worker"} {
+		if !strings.Contains(svc[name], "LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}") {
+			t.Errorf("o serviço %s deveria receber o limiar do passe 3 do matching (0,86 da origem)", name)
+		}
+	}
 	if strings.Contains(svc["api"], "depends_on:\n      minio") {
 		t.Error("a API não depende do MinIO para subir [D-013]")
 	}

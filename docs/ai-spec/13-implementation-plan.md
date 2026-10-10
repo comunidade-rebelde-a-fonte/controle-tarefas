@@ -180,6 +180,10 @@ Implementar ferramentas equivalentes em Go/bibliotecas adequadas. Não mudar sch
 **Aceite:** AC-018.  
 **Validação:** TEST-018 — casos determinísticos, ambiguidade, N:1 única.
 
+> **Como foi implementado (D-029, ADR-008).** Domínio em `backend/internal/reconciliation/matching` (cascata, pré-filtro, bordas e `buscar_candidatos`, com golden da origem) e rodada em `backend/internal/reconciliation/reconcile` (API e job `reconciliation_run`).
+> - Por decisão do usuário (ADR-008): ambiguidade dos dois lados, casos de borda marcados e fora do automático, parciais só depois da revisão.
+> - O cenário Horizonte inteiro dá o mesmo resultado da origem, de ponta a ponta.
+
 ### TASK-019 — Portar resolvedor de exceções
 
 **Requisitos:** REQ-025, REQ-038 a REQ-042.  

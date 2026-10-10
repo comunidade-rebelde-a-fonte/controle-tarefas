@@ -29,7 +29,10 @@ import (
 	"controle/internal/platform/decimal"
 	"controle/internal/platform/objectstore"
 	"controle/internal/platform/pdftext"
+	"controle/internal/reconciliation"
+	"controle/internal/reconciliation/matching"
 	"controle/internal/reconciliation/pipeline"
+	"controle/internal/reconciliation/reconcile"
 	"controle/internal/testutil"
 	"controle/internal/user"
 )
@@ -109,16 +112,18 @@ func setupWith(t *testing.T, gw pipeline.Gateway, defaults ai.Defaults, cfg pipe
 	q := jobs.NewQueue(sys, 3)
 	originals := objectstore.New(objectstore.Config{Endpoint: m.Endpoint, Region: "us-east-1", AccessKey: m.AccessKey, SecretKey: m.SecretKey, Bucket: m.Bucket})
 	proc := pipeline.New(sys, tracer.New(sys, q), q, originals, pdf, gw, aliases.NewResolver(defaults), cfg, quiet)
+	// O worker inteiro da Conciliação: também a rodada do matching que o pipeline enfileira.
+	rounds := reconcile.NewService(pool, sys, matching.DefaultOptions(), quiet)
 	runner := jobs.NewRunner(pool, sys, quiet, jobs.RunnerConfig{WorkerID: "w-conciliacao", Concurrency: 1, PollInterval: time.Millisecond, Lease: 10 * time.Minute},
 		map[string]jobs.Handler{pipeline.KindTriage: proc.HandleTriage, pipeline.KindStatementExtract: proc.HandleExtract,
-			pipeline.KindReceiptExtract: proc.HandleReceipt})
+			pipeline.KindReceiptExtract: proc.HandleReceipt, reconciliation.JobRun: rounds.HandleRun})
 	return env{srv: srv, pool: pool, runner: runner}
 }
 
 // process executa os jobs prontos (o worker).
 func (e env) process(t *testing.T) {
 	t.Helper()
-	for range 20 {
+	for range 200 {
 		ok, err := e.runner.ProcessOne(ctx)
 		if err != nil {
 			t.Fatal(err)

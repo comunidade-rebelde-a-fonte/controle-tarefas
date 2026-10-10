@@ -1,0 +1,37 @@
+data;historico;documento;entrada;saida;saldo_contabil
+01/08/2026;Saldo inicial;;;;85.430,12
+01/08/2026;Pagto folha salarios 07/2026;CP-001;;68.450,00;16.980,12
+04/08/2026;Recebimento NF 1041 Incorporadora Vale Verde;NF 1041;120.000,00;;136.980,12
+05/08/2026;Pagto boleto Concreteira Forte Mix;CP-002;;42.300,00;94.680,12
+05/08/2026;Pagto FGTS 07/2026;CP-003;;5.476,00;89.204,12
+06/08/2026;Pagto Aco Brasil NF 4410;CP-004;;31.850,00;57.354,12
+07/08/2026;Recebimento NF 1043 Condominio Jardins;NF 1043;35.000,00;;92.354,12
+07/08/2026;Pagto INSS 07/2026;CP-005;;14.920,00;77.434,12
+08/08/2026;Pagto boleto Locadora Maquinas Pesadas;CP-006;;9.800,00;67.634,12
+10/08/2026;Pagto boleto Madeireira Pinheiro;CP-007;;12.640,00;54.994,12
+11/08/2026;Pagto Posto Rodovia combustivel;CP-008;;4.320,50;50.673,62
+12/08/2026;Recebimento NF 1044 Prefeitura Rio Claro;NF 1044;100.000,00;;150.673,62
+12/08/2026;Pagto energia eletrica canteiro;CP-009;;3.187,45;147.486,17
+13/08/2026;Pagto boleto Ceramica Santa Rita;CP-010;;18.300,00;129.186,17
+14/08/2026;Pagto Carlos Eletricista;CP-011;;8.500,00;120.686,17
+15/08/2026;Recebimento NF 1045 Joao Pedro Almeida;NF 1045;48.000,00;;168.686,17
+15/08/2026;Adiantamento salarial 08/2026;CP-012;;21.300,00;147.386,17
+18/08/2026;Pagto ISS 07/2026;CP-013;;6.850,00;140.536,17
+18/08/2026;Pagto boleto Argamassa & Cia;CP-014;;15.420,00;125.116,17
+19/08/2026;Recebimento NF 1046 Incorporadora Vale Verde;NF 1046;110.000,00;;235.116,17
+19/08/2026;Pagto seguro de obra;CP-015;;2.780,00;232.336,17
+20/08/2026;Pagto Hidraulica Total NF 5502;CP-016;;7.960,00;224.376,17
+20/08/2026;Pagto IRPJ/CSLL 2T/2026;CP-017;;9.400,00;214.976,17
+21/08/2026;Pagto EPI Seguranca;CP-018;;3.215,00;211.761,17
+21/08/2026;Recebimento NF 1042 Ana Lucia Ferreira;NF 1042;10.000,00;;221.761,17
+22/08/2026;Recebimento NF 1047 Mercado Bom Preco;NF 1047;27.000,00;;248.761,17
+22/08/2026;Pagto fatura cartao corporativo;CP-019;;5.734,80;243.026,37
+25/08/2026;Pagto boleto Vidracaria Cristal;CP-020;;14.200,00;228.826,37
+26/08/2026;Recebimento NF 1048 Escola Crescer;NF 1048;20.000,00;;248.826,37
+26/08/2026;Pagto agua e esgoto canteiro;CP-021;;1.245,60;247.580,77
+27/08/2026;Pagto Marcos Pinturas;CP-022;;11.000,00;236.580,77
+28/08/2026;Pagto aluguel escritorio;CP-023;;4.500,00;232.080,77
+28/08/2026;Pagto Contabil Silva honorarios;CP-024;;2.800,00;229.280,77
+29/08/2026;Recebimento NF 1049 Construtora XYZ;NF 1049;30.000,00;;259.280,77
+29/08/2026;Pagto parcela financiamento caminhao 18/48;CP-025;;6.890,00;252.390,77
+31/08/2026;Distribuicao de lucros aos socios;CP-026;;25.000,00;227.390,77

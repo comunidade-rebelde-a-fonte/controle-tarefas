@@ -120,6 +120,11 @@ flowchart TD
   F -- não --> H[Permanece exceção/correção]
 ```
 
+> **Como foi implementado (TASK-018; D-029, ADR-008).**
+> - Antes do passe 1, o pré-filtro da origem e os casos de borda tiram linhas do automático, com o motivo marcado para a fila.
+> - Cada passe só concilia o que não é ambíguo dos dois lados: o comprovante disputado vira divergência e ainda pode ser resolvido pelo passe seguinte.
+> - Só entram os lançamentos extraídos e manuais; o parcial espera a revisão. O resolvedor (TASK-019) fica para os remanescentes.
+
 ## F-007 — Classificação e razão
 
 ```mermaid

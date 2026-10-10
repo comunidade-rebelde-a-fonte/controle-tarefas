@@ -1633,6 +1633,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/reconciliation/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Roda o matching determinístico da competência (passes 1 a 4) e devolve os baldes [REQ-024, AC-018]
+         * @description O rodar_matching da origem para a empresa e a competência: as linhas livres do extrato da
+         *     competência contra os lançamentos livres da empresa. Antes da cascata, o pré-filtro da
+         *     origem e os casos de borda (transferência entre contas, estorno em até 7 dias, bruto ×
+         *     líquido até R$ 20,00 em D±3) tiram linhas do automático, com o motivo marcado para a fila
+         *     [REQ-030]. A cascata só concilia o que não é ambíguo dos dois lados (ADR-008); entram no
+         *     automático os lançamentos extraídos e manuais (o parcial espera a revisão). Conciliação
+         *     automática tem origem `auto`, o passe, o método e o score, sem autor. Idempotente: a rodada
+         *     repetida não concilia de novo nem duplica marcas. O worker também roda a competência
+         *     quando chega extrato importado ou comprovante (job `reconciliation_run`). Contábil fechado:
+         *     423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["runReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -3217,6 +3248,32 @@ export interface components {
         ReconciliationEntriesImport: {
             inserted: number;
             ids: components["schemas"]["Uuid"][];
+        };
+        /**
+         * @description Resultado da rodada do matching e os baldes da competência (PRD §8 da origem). As linhas
+         *     livres marcadas levam em `flags` a divergência (`tipo` divergencia: o `motivo`, os
+         *     `candidatos` e as linhas `concorrentes`) ou o caso de borda (`tipo` borda: o `motivo` e os
+         *     `relacionados`).
+         */
+        ReconciliationRunSummary: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description Conciliações automáticas desta rodada */
+            new_matches: number;
+            /** @description Conciliações desta rodada por passe (passe_1 a passe_4) */
+            by_pass: {
+                [key: string]: number;
+            };
+            /** @description Linhas da competência conciliadas (balde conciliado) */
+            reconciled: number;
+            /** @description Linhas livres marcadas para a fila: divergência ou caso de borda */
+            divergent: number;
+            /** @description Linhas livres sem marca (extrato sem comprovante) */
+            without_receipt: number;
+            /** @description Lançamentos livres da competência que passaram pelo automático sem linha (comprovante sem extrato) */
+            without_statement: number;
+            /** @description Lançamentos parciais da competência, fora do automático até a revisão */
+            awaiting_review: number;
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -6666,6 +6723,41 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    runReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado da rodada e baldes da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationRunSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
             /** @description Contábil fechado (PERIOD_CLOSED) */
             423: {
                 headers: {

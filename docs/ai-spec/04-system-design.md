@@ -208,6 +208,8 @@ Cada trace deve usar `trace_id` correlacionável com o registro local.
 
 Mudança exige ADR + aprovação humana.
 
+> **Na TASK-018:** os passes 1–4 ganharam, com aprovação do usuário, a ambiguidade dos dois lados, os casos de borda fora do automático e os parciais só depois da revisão (ADR-008). Os critérios de cada passe são os da origem.
+
 ## 11. Performance
 
 - Preservar baseline do Controle: ~300 empresas.

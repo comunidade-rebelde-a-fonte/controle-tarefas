@@ -38,6 +38,7 @@ import (
 	"controle/internal/platform/settings"
 	"controle/internal/reconciliation/documents"
 	"controle/internal/reconciliation/entries"
+	"controle/internal/reconciliation/reconcile"
 	"controle/internal/report"
 	"controle/internal/user"
 )
@@ -136,6 +137,8 @@ func New(d Deps) *App {
 		documents.NewHandler(documents.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts), originals, d.Logger)).Routes(api)
 		// Lançamentos do cliente (TASK-017): os lidos dos comprovantes e os manuais (CC-12).
 		entries.NewHandler(entries.NewService(d.Pool, aiClock)).Routes(api)
+		// Rodada do matching da competência (TASK-018): passes 1 a 4 com a regra dos dois lados.
+		reconcile.NewHandler(reconcile.NewService(d.Pool, aiClock, reconcile.OptionsFrom(d.Config.FuzzyThreshold), d.Logger)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

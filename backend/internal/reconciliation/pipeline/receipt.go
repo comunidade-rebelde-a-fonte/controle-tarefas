@@ -227,9 +227,16 @@ func (p *Processor) saveReceipt(ctx context.Context, tx pgx.Tx, doc store.Reconc
 		return out, fmt.Errorf("gravar o lançamento do comprovante: %w", err)
 	}
 	out.entryID, out.status = id, docStatus
-	return out, q.SaveReconciliationReceiptDocument(ctx, store.SaveReconciliationReceiptDocumentParams{
+	if err := q.SaveReconciliationReceiptDocument(ctx, store.SaveReconciliationReceiptDocumentParams{
 		Status: docStatus, CompanyID: &company.id, Diagnosis: diag, Now: now, ID: doc.ID,
-	})
+	}); err != nil {
+		return out, err
+	}
+	// Lançamento novo: a rodada do matching da competência dele (TASK-018).
+	if r.Date != nil {
+		return out, reconciliation.EnqueueRun(ctx, p.queue, tx, company.id, competence.FromDate(*r.Date))
+	}
+	return out, nil
 }
 
 func deref(s *string) string {

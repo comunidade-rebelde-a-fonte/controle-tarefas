@@ -1,0 +1,27 @@
+titulo;fornecedor;documento;descricao;vencimento;valor_original;forma_pagto;data_pagamento;valor_pago;conta_bancaria;observacao
+CP-001;Folha de pagamento;FOLHA 07/2026;Salarios competencia 07/2026;01/08/2026;68.450,00;TRANSF;01/08/2026;68.450,00;A Fonte;
+CP-002;Concreteira Forte Mix Ltda;NF 8871;Concreto usinado;05/08/2026;42.300,00;BOLETO;05/08/2026;42.300,00;A Fonte;
+CP-003;FGTS;GPS/FGTS 07/2026;FGTS competencia 07/2026;07/08/2026;5.476,00;GUIA;05/08/2026;5.476,00;A Fonte;
+CP-004;Aco Brasil Distribuidora Ltda;NF 4410;Vergalhoes CA-50;06/08/2026;31.850,00;PIX;06/08 e 09/08/2026;31.850,00;A Fonte;Pago em 2 PIX: 20.000,00 (06/08) + 11.850,00 (09/08)
+CP-005;INSS;DARF 07/2026;INSS competencia 07/2026;20/08/2026;14.920,00;DARF;07/08/2026;14.920,00;A Fonte;
+CP-006;Locadora Maquinas Pesadas Ltda;NF 315;Locacao retroescavadeira;08/08/2026;9.800,00;BOLETO;08/08/2026;9.800,00;A Fonte;
+CP-007;Madeireira Pinheiro Ltda;NF 2203;Formas e escoras;10/08/2026;12.640,00;BOLETO;10/08/2026;12.640,00;Beta;Pago pela conta do Banco Beta
+CP-008;Posto Rodovia Ltda;CF 77812;Combustivel frota;11/08/2026;4.320,50;PIX;11/08/2026;4.320,50;A Fonte;
+CP-009;Energia Eletrica;FAT 08/2026;Energia canteiro;12/08/2026;3.187,45;DEB AUT;12/08/2026;3.187,45;A Fonte;
+CP-010;Ceramica Santa Rita Ltda;NF 7719;Blocos e tijolos;08/08/2026;18.300,00;BOLETO;13/08/2026;18.696,50;A Fonte;Pago 5 dias apos o vencimento: multa 366,00 + juros 30,50
+CP-011;Carlos Eletricista ME;NF 88;Subempreitada eletrica;14/08/2026;8.500,00;PIX;14/08/2026;8.500,00;A Fonte;
+CP-012;Folha de pagamento;ADIANT 08/2026;Adiantamento salarial;15/08/2026;21.300,00;TRANSF;15/08/2026;21.300,00;A Fonte;
+CP-013;ISS Prefeitura;DAM 07/2026;ISS competencia 07/2026;18/08/2026;6.850,00;DAM;18/08/2026;6.850,00;A Fonte;
+CP-014;Argamassa & Cia Ltda;NF 1290;Cimento e argamassa;18/08/2026;15.420,00;BOLETO;18/08/2026;15.420,00;A Fonte;
+CP-015;Seguradora Risco Engenharia;APOLICE 5521;Seguro de obra;19/08/2026;2.780,00;DEB AUT;19/08/2026;2.780,00;A Fonte;
+CP-016;Hidraulica Total Ltda;NF 5502;Tubos e conexoes;20/08/2026;7.960,00;PIX;20/08/2026;7.960,00;A Fonte;ATENCAO: banco mostra segundo PIX igual em 21/08 (duplicidade)
+CP-017;IRPJ/CSLL;DARF 2T/2026;IRPJ e CSLL 2 trimestre;31/08/2026;9.400,00;DARF;20/08/2026;9.400,00;A Fonte;
+CP-018;EPI Seguranca Ltda;NF 940;Equipamentos de protecao;21/08/2026;3.215,00;PIX;21/08/2026;3.215,00;A Fonte;
+CP-019;Cartao corporativo;FAT 08/2026;Fatura cartao corporativo;22/08/2026;5.734,80;DEB AUT;22/08/2026;5.734,80;A Fonte;
+CP-020;Vidracaria Cristal Ltda;NF 611;Esquadrias;25/08/2026;14.200,00;BOLETO;25/08/2026;14.200,00;A Fonte;
+CP-021;Agua e Esgoto;FAT 08/2026;Agua canteiro;26/08/2026;1.245,60;DEB AUT;26/08/2026;1.245,60;A Fonte;
+CP-022;Marcos Pinturas ME;NF 41;Subempreitada pintura;27/08/2026;11.000,00;PIX;27/08/2026;11.000,00;A Fonte;
+CP-023;Imobiliaria Central;RECIBO 08/2026;Aluguel escritorio;28/08/2026;4.500,00;BOLETO;28/08/2026;4.500,00;A Fonte;
+CP-024;Contabil Silva;NF 210;Honorarios contabeis;28/08/2026;2.800,00;PIX;28/08/2026;2.800,00;A Fonte;
+CP-025;Banco A Fonte - Financiamento;CONTRATO 7781 18/48;Parcela financiamento caminhao;29/08/2026;6.890,00;DEB AUT;29/08/2026;6.890,00;A Fonte;
+CP-026;Socios;ATA 03/2026;Distribuicao de lucros;31/08/2026;25.000,00;TRANSF;31/08/2026;25.000,00;A Fonte;

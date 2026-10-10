@@ -4,6 +4,33 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-029 — Matching da Conciliação: passes 1 a 4, pré-filtro e bordas (TASK-018; 09/10/2026; regra dos passes por decisão do usuário, ADR-008; o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** de `app/domain/{conciliacao,similaridade,bordas}.py` e do `rodar_matching` com o pré-filtro `_ids_divergentes` (`app/servicos/matching.py`) do Conciliador (commit `2bc6e26`).
+  - Domínio puro em `backend/internal/reconciliation/matching`: Jaro-Winkler, a cascata, o pré-filtro, as marcações de borda e o `buscar_candidatos` (a ferramenta do resolvedor, para a TASK-019).
+  - Travado por golden gerado pelo próprio Python da origem (`testdata/matching_gen.py`): 175 pares de Jaro-Winkler (bit a bit), 513 cascatas, 300 pré-filtros, 200 casos de borda, 150 buscas de candidatos e o cenário Horizonte inteiro, como o `carregar_horizonte.py` o carrega.
+  - Rodada no banco em `backend/internal/reconciliation/reconcile`.
+- **Três mudanças no contrato congelado dos passes, aprovadas pelo usuário (ADR-008):**
+  - ambiguidade dos dois lados: o comprovante disputado por duas linhas não vai para a primeira da ordem; vira divergência, e o passe seguinte ainda pode resolver (o 3, pelo nome). No passe 4, a solução que divide lançamento com a de outra linha também é divergência;
+  - casos de borda (transferência entre contas, estorno em até 7 dias, bruto × líquido até R$ 20,00 em D±3) são marcados e saem do automático. A origem tinha as funções, mas não as chamava;
+  - só entram no automático os lançamentos extraídos e manuais; o parcial espera a revisão.
+- **Fidelidade.** Sem disputa, o resultado é o da origem: no golden, os 500 casos sem disputa saem idênticos e os 13 com disputa saem mútuos. O cenário Horizonte inteiro, pelo fluxo real (contas a pagar e a receber pela API, os 2 extratos e os 13 comprovantes pelos leitores determinísticos, a rodada no worker), dá o mesmo resultado da origem: 25 casamentos no passe 1, as mesmas 14 linhas tiradas pelo pré-filtro com o motivo (parcelado, juros no boleto, ISS retido, NF em vários PDFs, contraparte repetida) e a disputa da Escola Crescer (o título a receber e o comprovante).
+- **Rodada.** Por empresa e competência: as linhas livres da competência contra os lançamentos livres da empresa (o passe 3 da origem não olha a data). A origem rodava sobre todas as linhas e todos os clientes do banco.
+  - O pré-filtro olha todos os lançamentos da empresa, como a origem olhava os do cliente; as bordas olham as linhas a até 7 dias da competência, conciliadas ou não.
+  - Conciliação automática com origem `auto`, passe, método e score da origem, sem autor (o banco exige, D-020); N:1 em `reconciliation_items`.
+  - Marcas da fila em `statement_transactions.flags`: `{tipo: "divergencia", motivo, candidatos, concorrentes}` (o formato da origem, mais as linhas concorrentes) e `{tipo: "borda", motivo, relacionados}`. A rodada troca as marcas derivadas da rodada anterior em vez de acumular (a origem repetia a divergência a cada rodada); a linha conciliada fica sem elas; marcas de outro tipo ficam.
+  - Idempotente e serializada por empresa (lock transacional): rodar de novo não concilia de novo nem duplica marca.
+  - Trava do Contábil (AC-025): competência fechada, a API responde 423 e o job não faz nada.
+  - O passe 4 tem orçamento de combinações por linha; passando dele, a linha vira divergência (`passe_4_extenso`) em vez de prender o job. A origem enumerava sem limite. A soma é feita em centavos, com o corte dos ramos que passam do valor (valores positivos), sem mudar o resultado.
+- **Quando roda.**
+  - `POST /companies/{id}/reconciliation/run?competence=AAAA-MM` (06 §4), na hora, com os baldes da competência: conciliado, divergente (marcado), extrato sem comprovante, comprovante sem extrato e aguardando revisão (parciais). O resolvedor para os remanescentes vem na TASK-019.
+  - O job `reconciliation_run` (04 §7), que o worker enfileira quando importa extrato ou grava comprovante, como a origem rodava o matching depois de cada envio. Sem chave de dedupe: a rodada é idempotente, e o gatilho não pode se perder com outra rodada em andamento. Lançamento manual não dispara a rodada (a origem também não); o usuário roda pela API.
+- **Configuração.** `LIMIAR_FUZZY` (0,86, o da origem), na API e no worker; maior que 0 e até 1.
+- **Fica para depois:**
+  - TASK-019: o resolvedor para os remanescentes (`buscar_candidatos` já portado);
+  - TASK-021: a fila (baldes, marcas, conciliar e desfazer à mão), que também roda a competência depois da correção de um parcial;
+  - TASK-022: a sincronização com a obrigação Conciliação.
+
 ### D-028 — Extração de comprovantes e lançamentos manuais da Conciliação (TASK-017; 09/10/2026, dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `app/domain/schemas.py` (`ComprovanteExtraido`), `app/agentes/extrator_comprovante.py`, `app/servicos/comprovantes.py`, do leitor de comprovante de `app/servicos/processar_local.py` e das rotas `/lancamentos` e `/lancamentos/csv` do Conciliador (commit `2bc6e26`).

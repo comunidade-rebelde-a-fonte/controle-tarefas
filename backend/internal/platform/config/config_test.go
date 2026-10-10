@@ -232,18 +232,21 @@ func TestLoad_CORSOrigins(t *testing.T) {
 	}
 }
 
-// Limiares da Conciliação: o da triagem (TASK-016) e o por campo do comprovante (TASK-017), 0,70
-// por padrão, como a origem; decimal de 0 a 1.
+// Limiares da Conciliação, com os padrões da origem: o da triagem (TASK-016) e o por campo do
+// comprovante (TASK-017), 0,70; o do passe 3 do matching (TASK-018), 0,86; decimal de 0 a 1.
 func TestLoad_ReconciliationThresholds(t *testing.T) {
 	cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"}))
-	if err != nil || cfg.TriageThreshold.String() != "0.70" || cfg.FieldThreshold.String() != "0.70" {
-		t.Fatalf("padrão = %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, err)
+	if err != nil || cfg.TriageThreshold.String() != "0.70" || cfg.FieldThreshold.String() != "0.70" || cfg.FuzzyThreshold.String() != "0.86" {
+		t.Fatalf("padrão = %s, %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, cfg.FuzzyThreshold, err)
 	}
-	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": " 0.85 ", "LIMIAR_CAMPO": "0.9"}))
-	if err != nil || cfg.TriageThreshold.String() != "0.85" || cfg.FieldThreshold.String() != "0.9" {
-		t.Fatalf("0.85 e 0.9 = %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, err)
+	cfg, err = Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_TRIAGEM": " 0.85 ", "LIMIAR_CAMPO": "0.9", "LIMIAR_FUZZY": "0.8"}))
+	if err != nil || cfg.TriageThreshold.String() != "0.85" || cfg.FieldThreshold.String() != "0.9" || cfg.FuzzyThreshold.String() != "0.8" {
+		t.Fatalf("0.85, 0.9 e 0.8 = %s, %s e %s, %v", cfg.TriageThreshold, cfg.FieldThreshold, cfg.FuzzyThreshold, err)
 	}
-	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO"} {
+	if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_FUZZY": "0"})); err == nil || !strings.Contains(err.Error(), "LIMIAR_FUZZY") {
+		t.Errorf("LIMIAR_FUZZY=0 aceito: %v", err)
+	}
+	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO", "LIMIAR_FUZZY"} {
 		for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
 			if _, err := Load(env(map[string]string{"DATABASE_URL": "x", name: bad})); err == nil || !strings.Contains(err.Error(), name) {
 				t.Errorf("%s=%q aceito: %v", name, bad, err)

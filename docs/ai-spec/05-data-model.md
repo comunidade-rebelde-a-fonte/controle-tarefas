@@ -199,6 +199,10 @@ Dados normalizados de comprovantes, com confiança por campo e referências/bbox
 
 Se N:1 exigir tabela associativa, usar `reconciliation_items` em vez de arrays JSON sem integridade.
 
+> **Desde a TASK-018 (D-029, ADR-008):**
+> - a rodada do matching grava a conciliação automática com origem `auto`, `pass` 1 a 4, `method` `passe_N` e o `score` da origem, sem autor; o N:1 do passe 4 vai em `reconciliation_items`;
+> - as linhas livres que não conciliam levam em `statement_transactions.flags` a marca da fila: `{tipo: "divergencia", motivo, candidatos, concorrentes}` ou `{tipo: "borda", motivo, relacionados}`. A rodada troca essas marcas a cada execução; as de outro tipo ficam.
+
 ### `chart_accounts`
 
 Plano de contas por empresa, com capacidade de copiar padrão.

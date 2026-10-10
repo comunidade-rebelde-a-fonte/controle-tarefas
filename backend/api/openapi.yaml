@@ -2252,6 +2252,40 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /companies/{id}/reconciliation/run:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: runReconciliation
+      summary: Roda o matching determinístico da competência (passes 1 a 4) e devolve os baldes [REQ-024, AC-018]
+      description: |
+        O rodar_matching da origem para a empresa e a competência: as linhas livres do extrato da
+        competência contra os lançamentos livres da empresa. Antes da cascata, o pré-filtro da
+        origem e os casos de borda (transferência entre contas, estorno em até 7 dias, bruto ×
+        líquido até R$ 20,00 em D±3) tiram linhas do automático, com o motivo marcado para a fila
+        [REQ-030]. A cascata só concilia o que não é ambíguo dos dois lados (ADR-008); entram no
+        automático os lançamentos extraídos e manuais (o parcial espera a revisão). Conciliação
+        automática tem origem `auto`, o passe, o método e o score, sem autor. Idempotente: a rodada
+        repetida não concilia de novo nem duplica marcas. O worker também roda a competência
+        quando chega extrato importado ou comprovante (job `reconciliation_run`). Contábil fechado:
+        423 `PERIOD_CLOSED` [AC-025].
+      parameters:
+        - { name: competence, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Resultado da rodada e baldes da competência
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationRunSummary" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
   /jobs/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -4295,6 +4329,28 @@ components:
       properties:
         inserted: { type: integer }
         ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+
+    ReconciliationRunSummary:
+      type: object
+      description: |
+        Resultado da rodada do matching e os baldes da competência (PRD §8 da origem). As linhas
+        livres marcadas levam em `flags` a divergência (`tipo` divergencia: o `motivo`, os
+        `candidatos` e as linhas `concorrentes`) ou o caso de borda (`tipo` borda: o `motivo` e os
+        `relacionados`).
+      required: [company_id, competence, new_matches, by_pass, reconciled, divergent, without_receipt, without_statement, awaiting_review]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        competence: { $ref: "#/components/schemas/Competence" }
+        new_matches: { type: integer, description: "Conciliações automáticas desta rodada" }
+        by_pass:
+          type: object
+          description: "Conciliações desta rodada por passe (passe_1 a passe_4)"
+          additionalProperties: { type: integer }
+        reconciled: { type: integer, description: "Linhas da competência conciliadas (balde conciliado)" }
+        divergent: { type: integer, description: "Linhas livres marcadas para a fila: divergência ou caso de borda" }
+        without_receipt: { type: integer, description: "Linhas livres sem marca (extrato sem comprovante)" }
+        without_statement: { type: integer, description: "Lançamentos livres da competência que passaram pelo automático sem linha (comprovante sem extrato)" }
+        awaiting_review: { type: integer, description: "Lançamentos parciais da competência, fora do automático até a revisão" }
 
     ReconciliationDocumentList:
       type: object

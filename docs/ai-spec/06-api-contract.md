@@ -158,6 +158,11 @@ Toda ação registra auditoria.
 
 Roda matching determinístico e, se configurado, enfileira resolvedor para remanescentes.
 
+> **Como foi implementado (TASK-018; D-029, ADR-008).** Roda na hora e devolve os baldes da competência (`new_matches`, `by_pass`, `reconciled`, `divergent`, `without_receipt`, `without_statement`, `awaiting_review`).
+> - Idempotente; 404 para empresa inexistente, 400 para competência inválida e 423 `PERIOD_CLOSED` com o Contábil fechado.
+> - O worker também roda a competência (job `reconciliation_run`) quando importa extrato ou grava comprovante.
+> - O resolvedor para os remanescentes chega com a TASK-019.
+
 ### `GET /companies/{id}/ledger?from=YYYY-MM&to=YYYY-MM`
 
 Razão como projeção.

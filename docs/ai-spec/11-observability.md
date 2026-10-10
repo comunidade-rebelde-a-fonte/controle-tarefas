@@ -110,6 +110,8 @@ Preservar/adicionar:
 > **Desde a TASK-016 (D-027):** os dados dessas métricas de extração já são gravados: o log de extração por tentativa (alias, modelo, tokens, custo, latência, resultado do validador), a importação com o número de tentativas e os playbooks com sucessos e falhas. O painel chega com a TASK-021/024. `make eval-extrator` mede o extrator contra o golden.
 >
 > **Desde a TASK-017 (D-028):** o comprovante grava o mesmo log por tentativa, com as regras de campo no lugar do validador, e o lançamento `parcial` ou `extraido`. `make eval-extrator` mede também o extrator de comprovante, com a acurácia por campo.
+>
+> **Desde a TASK-018 (D-029):** a conciliação automática guarda o passe, o método e o score, e as linhas que vão à fila guardam o motivo; a rodada devolve os baldes da competência e as conciliações por passe (a taxa por passe do painel vem com a TASK-021/024).
 
 ## 8. Healthchecks
 

@@ -37,6 +37,7 @@ import (
 	"controle/internal/platform/objectstore"
 	"controle/internal/platform/pdftext"
 	"controle/internal/reconciliation/pipeline"
+	"controle/internal/reconciliation/reconcile"
 	"controle/internal/worker"
 	"controle/seed"
 )
@@ -109,12 +110,14 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 		jobs.NewQueue(sysClock, cfg.JobMaxAttempts), originals, extractor,
 		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults),
 		pipeline.Config{TriageThreshold: cfg.TriageThreshold, FieldThreshold: cfg.FieldThreshold}, logger)
+	// Rodada do matching (TASK-018), enfileirada quando chega extrato importado ou comprovante.
+	rounds := reconcile.NewService(pool, sysClock, reconcile.OptionsFrom(cfg.FuzzyThreshold), logger)
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
 	}, worker.Handlers(worker.HandlerDeps{
 		LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse,
 		ReconciliationTriage: processor.HandleTriage, StatementExtract: processor.HandleExtract,
-		ReceiptExtract: processor.HandleReceipt,
+		ReceiptExtract: processor.HandleReceipt, ReconciliationRun: rounds.HandleRun,
 	}))
 	// Fila semanal do priorizador (TASK-013): aos domingos, a partir de ROTINA_PRIORIZADOR_HORA,
 	// uma vez por semana e sem LLM, como a rotina_semanal da origem.

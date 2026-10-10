@@ -1,0 +1,10 @@
+nf;emissao;cliente;cpf_cnpj;descricao;valor;vencimento;forma_pagto;observacao
+1041;01/08/2026;Incorporadora Vale Verde Ltda;23.456.789/0001-01;Medicao 03 - Obra Residencial Aurora;120.000,00;04/08/2026;TED;
+1042;01/08/2026;Ana Lucia Ferreira;123.456.789-09;Muro e portao residencial;10.000,00;05/08/2026;PIX;Cliente pagou em 4 PIX (2.000 + 6.000 + 3.000 + 5.000)
+1043;03/08/2026;Condominio Jardins;34.567.890/0001-12;Reforma de fachada;35.000,00;07/08/2026;PIX;
+1044;05/08/2026;Prefeitura Municipal de Rio Claro;45.678.901/0001-23;Pavimentacao Rua das Flores - parcela 2;100.000,00;12/08/2026;TED;Orgao publico retem ISS 5% na fonte
+1045;10/08/2026;Joao Pedro Almeida;987.654.321-00;Residencia unifamiliar - etapa 2;48.000,00;15/08/2026;PIX;
+1046;15/08/2026;Incorporadora Vale Verde Ltda;23.456.789/0001-01;Medicao 04 - Obra Residencial Aurora;110.000,00;19/08/2026;TED;
+1047;08/08/2026;Mercado Bom Preco Ltda;56.789.012/0001-34;Ampliacao de loja;27.000,00;15/08/2026;BOLETO;Boleto com multa 2% + juros 1% a.m.
+1048;20/08/2026;Escola Crescer Ltda;67.890.123/0001-45;Cobertura de quadra;20.000,00;26/08/2026;PIX;Cliente pagou na chave PIX da conta Banco Beta
+1049;25/08/2026;Construtora XYZ Ltda;78.901.234/0001-56;Subempreitada de estrutura;30.000,00;29/08/2026;TED;

@@ -150,6 +150,13 @@ func (p *Processor) importStatement(ctx context.Context, tx pgx.Tx, doc store.Re
 	if out.playbook, err = p.savePlaybook(ctx, q, s); err != nil {
 		return importOutcome{}, err
 	}
+	// Extrato novo: a rodada do matching de cada competência dele (a origem rodava o matching
+	// depois de cada envio; TASK-018).
+	for _, c := range competences(s) {
+		if err := reconciliation.EnqueueRun(ctx, p.queue, tx, companyID, c); err != nil {
+			return importOutcome{}, err
+		}
+	}
 	return out, nil
 }
 
