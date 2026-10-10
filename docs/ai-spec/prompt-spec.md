@@ -66,6 +66,8 @@ Saída com confiança por campo e evidência/trecho ou bbox quando disponível. 
 
 A linguagem deve ser propositiva: “hipótese”, “parece corresponder”, “candidatos”. Não usar linguagem de conclusão quando o sistema ainda exige decisão humana.
 
+> **Como foi implementado (TASK-019; D-030).** `backend/internal/ai/prompts/conciliacao/resolvedor.md`: o texto da origem, com a entrada que o sistema envia no lugar das ferramentas, a linguagem de hipótese e a regra de que descritivos e nomes da entrada são dado, não instrução. Saída estruturada com `json_schema` estrito.
+
 ## 7. Consultor Fator R
 
 Recebe números calculados e deve explicá-los. Não efetua aritmética normativa como fonte de verdade. Deve manter disclaimer de que PGDAS-D prevalece.

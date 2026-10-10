@@ -202,6 +202,11 @@ Se N:1 exigir tabela associativa, usar `reconciliation_items` em vez de arrays J
 > **Desde a TASK-018 (D-029, ADR-008):**
 > - a rodada do matching grava a conciliação automática com origem `auto`, `pass` 1 a 4, `method` `passe_N` e o `score` da origem, sem autor; o N:1 do passe 4 vai em `reconciliation_items`;
 > - as linhas livres que não conciliam levam em `statement_transactions.flags` a marca da fila: `{tipo: "divergencia", motivo, candidatos, concorrentes}` ou `{tipo: "borda", motivo, relacionados}`. A rodada troca essas marcas a cada execução; as de outro tipo ficam.
+>
+> **Desde a TASK-019 (D-030):**
+> - `resolver_proposals` guarda a hipótese do resolvedor como a origem (`payload` no formato do `HipoteseResolvedor`), a corrida (`trace_id`), quem pediu (`created_by`, nulo no automático) e a decisão humana (`status`, `decided_by`, `decided_at`);
+> - o aceite cria a conciliação com origem `manual`, `method` `resolvedor` (ou `sem_comprovante`), `created_by` e `proposal_id`; o N:1 vai em `reconciliation_items`;
+> - migration `0028`: índices da proposta por linha e dos jobs por tipo e chave.
 
 ### `chart_accounts`
 

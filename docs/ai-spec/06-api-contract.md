@@ -154,6 +154,11 @@ Filtros por bucket, empresa, competência, tipo e estado.
 
 Toda ação registra auditoria.
 
+> **Como foi implementado o resolvedor (TASK-019; D-030).** O `{id}` é a linha do extrato.
+> - Rotas a mais: `POST /reconciliation/review/{id}/proposal` pede a hipótese (202 com o job `agent_resolver`; o mesmo job se o pedido já está na fila, com `already_queued`) e `GET /reconciliation/review/{id}/proposals` lista as propostas da linha, da mais recente para a mais antiga.
+> - `accept-proposal` e `reject-proposal` recebem `{proposal_id}`. O aceite devolve a proposta e as conciliações criadas; só concilia linhas e lançamentos da empresa ainda livres.
+> - Recusas: 404 (`RECONCILIATION_LINE_NOT_FOUND`, `PROPOSAL_NOT_FOUND`), 400 sem a proposta, 409 (`LINE_RECONCILED`, `PROPOSAL_DECIDED`, `PROPOSAL_NOTHING_TO_ACCEPT`) e 423 `PERIOD_CLOSED`.
+
 ### `POST /companies/{id}/reconciliation/run?competence=YYYY-MM`
 
 Roda matching determinístico e, se configurado, enfileira resolvedor para remanescentes.
@@ -162,6 +167,8 @@ Roda matching determinístico e, se configurado, enfileira resolvedor para reman
 > - Idempotente; 404 para empresa inexistente, 400 para competência inválida e 423 `PERIOD_CLOSED` com o Contábil fechado.
 > - O worker também roda a competência (job `reconciliation_run`) quando importa extrato ou grava comprovante.
 > - O resolvedor para os remanescentes chega com a TASK-019.
+>
+> **Desde a TASK-019 (D-030):** com `RESOLVEDOR_AUTOMATICO` (padrão desligado), a rodada enfileira o resolvedor uma só vez para cada linha livre sem proposta nem pedido anterior e devolve `resolver_requested`.
 
 ### `GET /companies/{id}/ledger?from=YYYY-MM&to=YYYY-MM`
 

@@ -144,6 +144,12 @@ Matching (TASK-018, D-029, ADR-008):
 - rodada em `backend/internal/reconciliation/reconcile`: `POST /companies/{id}/reconciliation/run?competence=` e o job `reconciliation_run` (o worker enfileira ao importar extrato ou gravar comprovante, via `reconciliation.EnqueueRun`); idempotente, serializada por empresa, com a trava do Contábil;
 - conciliação automática com origem `auto` e sem autor; marcas da fila em `statement_transactions.flags` (`divergencia` ou `borda`), trocadas a cada rodada.
 
+Resolvedor de exceções (TASK-019, D-030):
+- domínio em `backend/internal/reconciliation/resolver`: schema do `HipoteseResolvedor` (golden da origem, `testdata/resolver_gen.py`), contexto do modelo e plano do aceite;
+- agente, API e aceite em `backend/internal/reconciliation/proposals`: `POST /reconciliation/review/{id}/proposal` enfileira o job `agent_resolver`; o agente grava só a proposta, com a corrida no tracer;
+- só o aceite humano (`accept-proposal`) cria conciliação: origem `manual`, método `resolvedor` ou `sem_comprovante`, autor e proposta, só com linhas e lançamentos livres da empresa. Nunca chame `InsertManualReconciliation` ou `InsertAutoReconciliation` de outro lugar (o TEST-019 confere no código);
+- `RESOLVEDOR_AUTOMATICO` (padrão `false`): a rodada pede hipótese uma só vez para cada linha que sobrou.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

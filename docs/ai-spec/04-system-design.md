@@ -161,6 +161,8 @@ Reutilizar:
 - `agent_resolver`
 - `langfuse_sync_retry`
 
+> **Desde a TASK-019 (D-030):** `agent_resolver` pede ao resolvedor a hipótese de uma linha do extrato: a pedido do contador ou, com `RESOLVEDOR_AUTOMATICO`, pela rodada do matching. Grava só a proposta.
+
 ## 8. LiteLLM
 
 Manter aliases e expandir para todos os agentes:
@@ -209,6 +211,8 @@ Cada trace deve usar `trace_id` correlacionável com o registro local.
 Mudança exige ADR + aprovação humana.
 
 > **Na TASK-018:** os passes 1–4 ganharam, com aprovação do usuário, a ambiguidade dos dois lados, os casos de borda fora do automático e os parciais só depois da revisão (ADR-008). Os critérios de cada passe são os da origem.
+>
+> **Na TASK-019 (D-030):** o resolvedor só propõe. Só duas consultas criam conciliação, a da rodada determinística e a do aceite humano, e um teste prova no código que o agente não chama nenhuma delas.
 
 ## 11. Performance
 

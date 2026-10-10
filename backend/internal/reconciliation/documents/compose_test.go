@@ -62,6 +62,10 @@ func TestCompose_MinIOCredentials(t *testing.T) {
 		if !strings.Contains(svc[name], "LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}") {
 			t.Errorf("o serviço %s deveria receber o limiar do passe 3 do matching (0,86 da origem)", name)
 		}
+		// TASK-019: o resolvedor automático nasce desligado (custo de provedor por linha).
+		if !strings.Contains(svc[name], "RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}") {
+			t.Errorf("o serviço %s deveria receber RESOLVEDOR_AUTOMATICO desligado por padrão", name)
+		}
 	}
 	if strings.Contains(svc["api"], "depends_on:\n      minio") {
 		t.Error("a API não depende do MinIO para subir [D-013]")

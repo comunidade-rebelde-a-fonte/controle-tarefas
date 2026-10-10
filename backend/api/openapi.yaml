@@ -2286,6 +2286,128 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /reconciliation/review/{id}/proposal:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: requestResolverProposal
+      summary: Pede ao resolvedor uma hipótese para a linha do extrato [REQ-025, AC-019]
+      description: |
+        O pedir_hipotese da origem, agora assíncrono: enfileira o job `agent_resolver` e responde
+        sem esperar o modelo. O resolvedor só grava a proposta (hipótese, justificativa e pares),
+        com o trace da corrida; nada é conciliado até o aceite humano. Com um pedido da mesma
+        linha já na fila, devolve o mesmo job (`already_queued`). Linha conciliada: 409
+        `LINE_RECONCILED`; Contábil fechado: 423 `PERIOD_CLOSED` [AC-025]. O pedido fica no log
+        de extração como ação humana.
+      responses:
+        "202":
+          description: Pedido na fila
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResolverProposalRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Linha já conciliada (LINE_RECONCILED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/proposals:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    get:
+      tags: [reconciliation]
+      operationId: listResolverProposals
+      summary: Propostas do resolvedor para a linha, da mais recente para a mais antiga
+      responses:
+        "200":
+          description: Propostas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResolverProposalList" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/review/{id}/accept-proposal:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: acceptResolverProposal
+      summary: Aceita a proposta do resolvedor — o único caminho do resolvedor até a conciliação [AC-019]
+      description: |
+        O aceitar_hip da origem: cada par vira conciliação com origem `manual`, o método
+        `resolvedor` (ou `sem_comprovante`, no par de extrato sem comprovante), o autor e a
+        proposta. A linha do par (ou, sem ela, a linha da proposta) e os lançamentos só entram se
+        forem da empresa e estiverem livres; os outros são ignorados, como na origem. Sem nenhum
+        par a conciliar, nada muda e a proposta segue pendente (409
+        `PROPOSAL_NOTHING_TO_ACCEPT`: rejeite). Proposta já decidida: 409 `PROPOSAL_DECIDED`;
+        Contábil fechado em alguma competência das linhas: 423 `PERIOD_CLOSED` [AC-025].
+        Serializado com a rodada do matching da empresa.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResolverProposalDecision" }
+      responses:
+        "200":
+          description: Proposta aceita e conciliações criadas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResolverProposalAccept" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Proposta já decidida (PROPOSAL_DECIDED) ou sem par a conciliar (PROPOSAL_NOTHING_TO_ACCEPT)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/reject-proposal:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: rejectResolverProposal
+      summary: Rejeita a proposta do resolvedor; nada é conciliado
+      description: |
+        O rejeitar_hip da origem: a proposta fica `rejeitada`, com o autor e a data, e a ação vai
+        para o log de extração. Proposta já decidida: 409 `PROPOSAL_DECIDED`; Contábil fechado:
+        423 `PERIOD_CLOSED` [AC-025].
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResolverProposalDecision" }
+      responses:
+        "200":
+          description: Proposta rejeitada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ResolverProposal" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Proposta já decidida (PROPOSAL_DECIDED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
   /jobs/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -4337,7 +4459,7 @@ components:
         livres marcadas levam em `flags` a divergência (`tipo` divergencia: o `motivo`, os
         `candidatos` e as linhas `concorrentes`) ou o caso de borda (`tipo` borda: o `motivo` e os
         `relacionados`).
-      required: [company_id, competence, new_matches, by_pass, reconciled, divergent, without_receipt, without_statement, awaiting_review]
+      required: [company_id, competence, new_matches, by_pass, reconciled, divergent, without_receipt, without_statement, awaiting_review, resolver_requested]
       properties:
         company_id: { $ref: "#/components/schemas/Uuid" }
         competence: { $ref: "#/components/schemas/Competence" }
@@ -4351,6 +4473,81 @@ components:
         without_receipt: { type: integer, description: "Linhas livres sem marca (extrato sem comprovante)" }
         without_statement: { type: integer, description: "Lançamentos livres da competência que passaram pelo automático sem linha (comprovante sem extrato)" }
         awaiting_review: { type: integer, description: "Lançamentos parciais da competência, fora do automático até a revisão" }
+        resolver_requested:
+          type: integer
+          description: |
+            Pedidos de hipótese que a rodada enfileirou para as linhas livres que nunca tiveram
+            proposta nem pedido (RESOLVEDOR_AUTOMATICO; zero quando desligado). O resolvedor só
+            sugere.
+
+    ResolverPair:
+      type: object
+      description: |
+        Par proposto pelo resolvedor (ParProposto da origem). Os IDs são os que o modelo devolveu:
+        o aceite só concilia os da empresa ainda livres.
+      required: [extrato_transacao_id, lancamento_cliente_ids, tipo, confianca]
+      properties:
+        extrato_transacao_id: { type: [string, "null"], description: "Linha do extrato (nula: a linha da proposta)" }
+        lancamento_cliente_ids: { type: array, items: { type: string } }
+        tipo:
+          type: string
+          description: "1:1, N:1, extrato_sem_comprovante, comprovante_sem_extrato, bruto_liquido, transferencia_interna, estorno ou outro"
+        confianca: { type: string, description: "Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. \"0.85\")" }
+
+    ResolverHypothesis:
+      type: object
+      description: A hipótese do resolvedor (HipoteseResolvedor da origem), gravada como veio do modelo validado.
+      required: [hipotese, justificativa, pares_propostos, confianca, pede_humano]
+      properties:
+        hipotese: { type: string }
+        justificativa: { type: string }
+        pares_propostos: { type: array, items: { $ref: "#/components/schemas/ResolverPair" } }
+        confianca: { type: string, description: "Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. \"0.85\")" }
+        pede_humano: { type: boolean }
+
+    ResolverProposal:
+      type: object
+      description: Proposta do resolvedor para uma linha do extrato; só o aceite humano concilia [AC-019].
+      required: [id, company_id, statement_transaction_id, status, hypothesis, trace_id, created_by, created_at, decided_by, decided_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+        status: { type: string, enum: [pendente, aceita, rejeitada] }
+        hypothesis: { $ref: "#/components/schemas/ResolverHypothesis" }
+        trace_id: { type: [string, "null"], description: "Corrida do resolvedor na auditoria de IA" }
+        created_by: { type: [string, "null"], format: uuid, description: "Quem pediu (nulo no resolvedor automático)" }
+        created_at: { type: string, format: date-time }
+        decided_by: { type: [string, "null"], format: uuid }
+        decided_at: { type: [string, "null"], format: date-time }
+
+    ResolverProposalList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ResolverProposal" } }
+
+    ResolverProposalRequest:
+      type: object
+      required: [job_id, status, already_queued]
+      properties:
+        job_id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        already_queued: { type: boolean, description: "O pedido da linha já estava na fila (mesmo job)" }
+
+    ResolverProposalDecision:
+      type: object
+      required: [proposal_id]
+      additionalProperties: false
+      properties:
+        proposal_id: { $ref: "#/components/schemas/Uuid" }
+
+    ResolverProposalAccept:
+      type: object
+      required: [proposal, reconciliation_ids]
+      properties:
+        proposal: { $ref: "#/components/schemas/ResolverProposal" }
+        reconciliation_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
 
     ReconciliationDocumentList:
       type: object

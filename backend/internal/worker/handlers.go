@@ -29,6 +29,9 @@ const KindReceiptExtract = "receipt_extract"
 // KindReconciliationRun roda o matching da empresa na competência (TASK-018).
 const KindReconciliationRun = "reconciliation_run"
 
+// KindAgentResolver pede ao resolvedor a hipótese de uma linha do extrato (TASK-019).
+const KindAgentResolver = "agent_resolver"
+
 // HandlerDeps são os handlers que dependem de configuração.
 type HandlerDeps struct {
 	// LangfuseSync é o tracer.Syncer.Handle.
@@ -41,6 +44,8 @@ type HandlerDeps struct {
 	StatementExtract     jobs.Handler
 	ReceiptExtract       jobs.Handler
 	ReconciliationRun    jobs.Handler
+	// AgentResolver é o resolvedor de exceções (proposals.Agent.HandleResolve).
+	AgentResolver jobs.Handler
 }
 
 // Handlers são os tipos de job que este worker executa. Cada TASK que cria um tipo de job
@@ -57,6 +62,7 @@ func Handlers(d HandlerDeps) map[string]jobs.Handler {
 		KindStatementExtract:     d.StatementExtract,
 		KindReceiptExtract:       d.ReceiptExtract,
 		KindReconciliationRun:    d.ReconciliationRun,
+		KindAgentResolver:        d.AgentResolver,
 	} {
 		if handler != nil {
 			h[kind] = handler

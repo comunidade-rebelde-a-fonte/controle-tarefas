@@ -1664,6 +1664,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reconciliation/review/{id}/proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pede ao resolvedor uma hipótese para a linha do extrato [REQ-025, AC-019]
+         * @description O pedir_hipotese da origem, agora assíncrono: enfileira o job `agent_resolver` e responde
+         *     sem esperar o modelo. O resolvedor só grava a proposta (hipótese, justificativa e pares),
+         *     com o trace da corrida; nada é conciliado até o aceite humano. Com um pedido da mesma
+         *     linha já na fila, devolve o mesmo job (`already_queued`). Linha conciliada: 409
+         *     `LINE_RECONCILED`; Contábil fechado: 423 `PERIOD_CLOSED` [AC-025]. O pedido fica no log
+         *     de extração como ação humana.
+         */
+        post: operations["requestResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /** Propostas do resolvedor para a linha, da mais recente para a mais antiga */
+        get: operations["listResolverProposals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/accept-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aceita a proposta do resolvedor — o único caminho do resolvedor até a conciliação [AC-019]
+         * @description O aceitar_hip da origem: cada par vira conciliação com origem `manual`, o método
+         *     `resolvedor` (ou `sem_comprovante`, no par de extrato sem comprovante), o autor e a
+         *     proposta. A linha do par (ou, sem ela, a linha da proposta) e os lançamentos só entram se
+         *     forem da empresa e estiverem livres; os outros são ignorados, como na origem. Sem nenhum
+         *     par a conciliar, nada muda e a proposta segue pendente (409
+         *     `PROPOSAL_NOTHING_TO_ACCEPT`: rejeite). Proposta já decidida: 409 `PROPOSAL_DECIDED`;
+         *     Contábil fechado em alguma competência das linhas: 423 `PERIOD_CLOSED` [AC-025].
+         *     Serializado com a rodada do matching da empresa.
+         */
+        post: operations["acceptResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/reject-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rejeita a proposta do resolvedor; nada é conciliado
+         * @description O rejeitar_hip da origem: a proposta fica `rejeitada`, com o autor e a data, e a ação vai
+         *     para o log de extração. Proposta já decidida: 409 `PROPOSAL_DECIDED`; Contábil fechado:
+         *     423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["rejectResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -3274,6 +3377,72 @@ export interface components {
             without_statement: number;
             /** @description Lançamentos parciais da competência, fora do automático até a revisão */
             awaiting_review: number;
+            /**
+             * @description Pedidos de hipótese que a rodada enfileirou para as linhas livres que nunca tiveram
+             *     proposta nem pedido (RESOLVEDOR_AUTOMATICO; zero quando desligado). O resolvedor só
+             *     sugere.
+             */
+            resolver_requested: number;
+        };
+        /**
+         * @description Par proposto pelo resolvedor (ParProposto da origem). Os IDs são os que o modelo devolveu:
+         *     o aceite só concilia os da empresa ainda livres.
+         */
+        ResolverPair: {
+            /** @description Linha do extrato (nula: a linha da proposta) */
+            extrato_transacao_id: string | null;
+            lancamento_cliente_ids: string[];
+            /** @description 1:1, N:1, extrato_sem_comprovante, comprovante_sem_extrato, bruto_liquido, transferencia_interna, estorno ou outro */
+            tipo: string;
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. "0.85") */
+            confianca: string;
+        };
+        /** @description A hipótese do resolvedor (HipoteseResolvedor da origem), gravada como veio do modelo validado. */
+        ResolverHypothesis: {
+            hipotese: string;
+            justificativa: string;
+            pares_propostos: components["schemas"]["ResolverPair"][];
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. "0.85") */
+            confianca: string;
+            pede_humano: boolean;
+        };
+        /** @description Proposta do resolvedor para uma linha do extrato; só o aceite humano concilia [AC-019]. */
+        ResolverProposal: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            status: "pendente" | "aceita" | "rejeitada";
+            hypothesis: components["schemas"]["ResolverHypothesis"];
+            /** @description Corrida do resolvedor na auditoria de IA */
+            trace_id: string | null;
+            /**
+             * Format: uuid
+             * @description Quem pediu (nulo no resolvedor automático)
+             */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            decided_by: string | null;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        ResolverProposalList: {
+            items: components["schemas"]["ResolverProposal"][];
+        };
+        ResolverProposalRequest: {
+            job_id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** @description O pedido da linha já estava na fila (mesmo job) */
+            already_queued: boolean;
+        };
+        ResolverProposalDecision: {
+            proposal_id: components["schemas"]["Uuid"];
+        };
+        ResolverProposalAccept: {
+            proposal: components["schemas"]["ResolverProposal"];
+            reconciliation_ids: components["schemas"]["Uuid"][];
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -6758,6 +6927,166 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pedido na fila */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Linha já conciliada (LINE_RECONCILED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listResolverProposals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Propostas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolverProposalDecision"];
+            };
+        };
+        responses: {
+            /** @description Proposta aceita e conciliações criadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalAccept"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Proposta já decidida (PROPOSAL_DECIDED) ou sem par a conciliar (PROPOSAL_NOTHING_TO_ACCEPT) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    rejectResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolverProposalDecision"];
+            };
+        };
+        responses: {
+            /** @description Proposta rejeitada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposal"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Proposta já decidida (PROPOSAL_DECIDED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
             /** @description Contábil fechado (PERIOD_CLOSED) */
             423: {
                 headers: {

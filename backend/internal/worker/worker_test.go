@@ -11,6 +11,11 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5"
+
+	"controle/internal/jobs"
+	"controle/internal/reconciliation"
 )
 
 type fakeDB struct{ err error }
@@ -112,5 +117,20 @@ func TestRun_PeriodicTasks(t *testing.T) {
 	time.Sleep(30 * time.Millisecond)
 	if calls.Load() != after {
 		t.Fatal("a rotina continuou depois do encerramento")
+	}
+}
+
+// Os tipos de job da Conciliação que o worker registra são os que o domínio enfileira; handler
+// ausente não é registrado (TASK-018/019).
+func TestHandlers_ReconciliationKinds(t *testing.T) {
+	if KindReconciliationRun != reconciliation.JobRun || KindAgentResolver != reconciliation.JobResolve {
+		t.Fatalf("tipos divergentes: %s/%s, %s/%s", KindReconciliationRun, reconciliation.JobRun, KindAgentResolver, reconciliation.JobResolve)
+	}
+	noop := func(context.Context, pgx.Tx, jobs.Claimed) error { return nil }
+	if _, ok := Handlers(HandlerDeps{})[KindAgentResolver]; ok {
+		t.Fatal("registrou o resolvedor sem handler")
+	}
+	if _, ok := Handlers(HandlerDeps{AgentResolver: noop})[KindAgentResolver]; !ok {
+		t.Fatal("o resolvedor não foi registrado")
 	}
 }

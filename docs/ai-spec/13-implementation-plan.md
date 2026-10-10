@@ -190,6 +190,10 @@ Implementar ferramentas equivalentes em Go/bibliotecas adequadas. Não mudar sch
 **Aceite:** AC-019, AC-029, AC-030.  
 **Validação:** TEST-019 — prova de que nenhum caminho cria conciliação sem ação humana.
 
+> **Como foi implementado (D-030).** Domínio em `backend/internal/reconciliation/resolver` (schema com golden da origem, contexto e aceite) e agente, API e aceite em `backend/internal/reconciliation/proposals` (job `agent_resolver`).
+> - O agente grava só a proposta, com a corrida; a conciliação nasce do aceite humano. O TEST-019 prova isso no banco, de ponta a ponta, e no código.
+> - Resolvedor automático depois da rodada só com `RESOLVEDOR_AUTOMATICO` (padrão desligado).
+
 ### TASK-020 — Portar classificação e razão
 
 **Requisitos:** REQ-026 a REQ-029.  

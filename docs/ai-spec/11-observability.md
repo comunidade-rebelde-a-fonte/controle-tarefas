@@ -112,6 +112,8 @@ Preservar/adicionar:
 > **Desde a TASK-017 (D-028):** o comprovante grava o mesmo log por tentativa, com as regras de campo no lugar do validador, e o lançamento `parcial` ou `extraido`. `make eval-extrator` mede também o extrator de comprovante, com a acurácia por campo.
 >
 > **Desde a TASK-018 (D-029):** a conciliação automática guarda o passe, o método e o score, e as linhas que vão à fila guardam o motivo; a rodada devolve os baldes da competência e as conciliações por passe (a taxa por passe do painel vem com a TASK-021/024).
+>
+> **Desde a TASK-019 (D-030):** cada hipótese tem a corrida `resolvedor` (gatilho `pedido` ou `rodada`, status `needs_review`) com a decisão `proposta_resolvedor`, que aponta a proposta e os ids citados fora do contexto; a proposta guarda o `trace_id`. O pedido, o aceite e a rejeição ficam no log de extração.
 
 ## 8. Healthchecks
 

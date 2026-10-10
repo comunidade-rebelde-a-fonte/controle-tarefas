@@ -124,6 +124,8 @@ flowchart TD
 > - Antes do passe 1, o pré-filtro da origem e os casos de borda tiram linhas do automático, com o motivo marcado para a fila.
 > - Cada passe só concilia o que não é ambíguo dos dois lados: o comprovante disputado vira divergência e ainda pode ser resolvido pelo passe seguinte.
 > - Só entram os lançamentos extraídos e manuais; o parcial espera a revisão. O resolvedor (TASK-019) fica para os remanescentes.
+>
+> **Desde a TASK-019 (D-030):** o resolvedor roda no worker, a pedido do contador ou, com `RESOLVEDOR_AUTOMATICO`, depois da rodada. Grava a proposta; o aceite cria a conciliação manual e a rejeição a encerra ("permanece exceção"). Nada é conciliado sem o aceite.
 
 ## F-007 — Classificação e razão
 

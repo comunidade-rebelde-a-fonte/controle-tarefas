@@ -72,6 +72,15 @@ Testes determinísticos por passe, inclusive ambiguidade e casos de borda.
 > - A regra dos dois lados (ADR-008) é provada contra o golden: sem disputa, o resultado é o da origem; com disputa, todo casamento é mútuo e único no passe.
 > - O cenário Horizonte roda também de ponta a ponta (envio, leitores determinísticos, rodada no worker), com o mesmo resultado da origem.
 
+### Resolvedor
+
+Critério de parada: resolvedor persistir conciliação (§7).
+
+> **Como foi implementado (TASK-019; D-030).**
+> - O schema da hipótese é travado por golden do Python da origem (56 saídas, válidas e recusadas).
+> - O TEST-019 prova que o agente não concilia: no banco, de ponta a ponta com o gateway simulado (inclusive com confiança alta e sem pedir humano), e no código (só o aceite chama a consulta que cria conciliação manual).
+> - A origem não tem golden de hipóteses: a qualidade das hipóteses fica para a avaliação humana (TASK-024).
+
 ## 4. Regressão de porte
 
 Antes de substituir uma capacidade do projeto auxiliar pela implementação Go:

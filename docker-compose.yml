@@ -69,6 +69,8 @@ services:
       S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
       # Matching da Conciliação (TASK-018): a rodada pela API usa o limiar do passe 3 da origem.
       LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}
+      # Resolvedor (TASK-019): desligado, a hipótese só sai a pedido do contador na fila.
+      RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:
@@ -156,6 +158,9 @@ services:
       LIMIAR_TRIAGEM: ${LIMIAR_TRIAGEM:-0.70}
       LIMIAR_CAMPO: ${LIMIAR_CAMPO:-0.70}
       LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}
+      # Resolvedor (TASK-019): ligado, a rodada pede hipótese para cada linha que sobrou sem
+      # proposta; o resolvedor só sugere, quem concilia é o contador.
+      RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
       # Langfuse (TASK-009): o worker envia traces e notas pela rede controle-obs, onde o
       # langfuse-web responde como "langfuse". Fora do ar, as corridas ficam failed e o worker
       # reenvia a cada LANGFUSE_RETRY_SECONDS; o domínio não para [AC-030].

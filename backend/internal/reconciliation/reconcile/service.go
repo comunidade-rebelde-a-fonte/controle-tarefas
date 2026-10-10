@@ -40,6 +40,15 @@ type Service struct {
 	clock  clock.Clock
 	opts   matching.Options
 	logger *slog.Logger
+	// resolverQueue liga o resolvedor automático (RESOLVEDOR_AUTOMATICO, TASK-019): nil, desligado.
+	resolverQueue *jobs.Queue
+}
+
+// AutoResolve faz a rodada pedir hipótese ao resolvedor para as linhas que sobraram e nunca
+// tiveram proposta (uma vez por linha: a rejeitada não volta sozinha) [06 §4].
+func (s *Service) AutoResolve(q *jobs.Queue) *Service {
+	s.resolverQueue = q
+	return s
 }
 
 // NewService cria o serviço. opts são os parâmetros da cascata (OptionsFrom).
@@ -77,6 +86,9 @@ type Summary struct {
 	// AwaitingReview são os lançamentos parciais da competência: ficam fora do automático até a
 	// correção campo a campo (ADR-008).
 	AwaitingReview int `json:"awaiting_review"`
+	// ResolverRequested são os pedidos de hipótese que a rodada enfileirou (resolvedor
+	// automático; zero quando desligado).
+	ResolverRequested int `json:"resolver_requested"`
 }
 
 // Run executa a rodada numa transação própria (a API).
@@ -224,6 +236,23 @@ func (s *Service) RunTx(ctx context.Context, tx pgx.Tx, companyID string, comp c
 			sum.WithoutStatement++
 		case r.Status == entries.StatusPartial:
 			sum.AwaitingReview++
+		}
+	}
+	if s.resolverQueue != nil {
+		lines, err := q.ListFreeLinesWithoutProposal(ctx, store.ListFreeLinesWithoutProposalParams{
+			CompanyID: companyID, Competence: &first, JobKind: reconciliation.JobResolve,
+		})
+		if err != nil {
+			return Summary{}, err
+		}
+		for _, id := range lines {
+			_, created, err := reconciliation.EnqueueResolve(ctx, s.resolverQueue, tx, id, nil)
+			if err != nil {
+				return Summary{}, err
+			}
+			if created {
+				sum.ResolverRequested++
+			}
 		}
 	}
 	return sum, nil

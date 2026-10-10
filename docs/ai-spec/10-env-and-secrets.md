@@ -44,6 +44,8 @@ Variáveis necessárias, sem valores:
 > **Desde a TASK-017 (D-028):** `LIMIAR_CAMPO` (não secreta, padrão `0.70`, o da origem) é o limiar de confiança por campo do comprovante, no worker.
 >
 > **Desde a TASK-018 (D-029):** `LIMIAR_FUZZY` (não secreta, padrão `0.86`, o da origem; maior que 0) é o limiar de similaridade do passe 3 do matching, na API e no worker.
+>
+> **Desde a TASK-019 (D-030):** `RESOLVEDOR_AUTOMATICO` (não secreta, padrão `false`), na API e no worker: ligada, a rodada do matching pede hipótese ao resolvedor para as linhas que sobraram, com custo de provedor por linha.
 
 Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a TASK-003, a ausência de delete também é garantida no storage: a política do usuário da aplicação nega exclusão de objeto, de versão e do bucket, e a suspensão do versionamento (`docker/minio/init.sh`, D-013).
 

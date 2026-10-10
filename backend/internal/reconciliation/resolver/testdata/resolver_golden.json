@@ -1,0 +1,711 @@
+[
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "```json\n{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}\n```",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "Hipótese:\n{\n  \"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\",\n  \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\",\n  \"pares_propostos\": [\n    {\n      \"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\",\n      \"lancamento_cliente_ids\": [\n        \"00000000-0000-0002-0000-000000000001\",\n        \"00000000-0000-0002-0000-000000000002\"\n      ],\n      \"tipo\": \"N:1\",\n      \"confianca\": 0.8\n    }\n  ],\n  \"confianca\": 0.6,\n  \"pede_humano\": true\n}\nfim",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": null, \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": null, \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": null, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": null, \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": null}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": 5, \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": [], \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 1, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "1",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.75, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.75",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": \"0.75\", \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.75",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": \"1\", \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "1",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 1.5, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "1.5",
+   "pede_humano": true
+  },
+  "guarda": [
+   "confianca"
+  ]
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": -0.1, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "-0.1",
+   "pede_humano": true
+  },
+  "guarda": [
+   "confianca"
+  ]
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": \"NaN\", \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": \"abc\", \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": true, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.123456789, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.123456789",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": false}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": false
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\", \"00000000-0000-0002-0000-000000000002\"], \"tipo\": \"N:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true, \"extra\": \"ignorado\"}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001",
+      "00000000-0000-0002-0000-000000000002"
+     ],
+     "tipo": "N:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8}, {\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [], \"tipo\": \"extrato_sem_comprovante\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    },
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [],
+     "tipo": "extrato_sem_comprovante",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": null, \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": null,
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": null,
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": 5, \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": null, \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [1], \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": \"x\", \"tipo\": \"1:1\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": null, \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"qualquer coisa\", \"confianca\": 0.8}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "qualquer coisa",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\"}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.00"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": null}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": \"0.9\"}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.9"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 2}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "2"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": [
+   "confianca"
+  ]
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": -1}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "-1"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": [
+   "confianca"
+  ]
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [{\"extrato_transacao_id\": \"00000000-0000-0001-0000-000000000001\", \"lancamento_cliente_ids\": [\"00000000-0000-0002-0000-000000000001\"], \"tipo\": \"1:1\", \"confianca\": 0.8, \"extra\": 1}], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "ok",
+  "saida": {
+   "hipotese": "O débito de R$ 300,00 parece corresponder à soma de dois boletos.",
+   "justificativa": "Mesmo fornecedor e vencimento no mesmo dia.",
+   "pares_propostos": [
+    {
+     "extrato_transacao_id": "00000000-0000-0001-0000-000000000001",
+     "lancamento_cliente_ids": [
+      "00000000-0000-0002-0000-000000000001"
+     ],
+     "tipo": "1:1",
+     "confianca": "0.8"
+    }
+   ],
+   "confianca": "0.6",
+   "pede_humano": true
+  },
+  "guarda": []
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [5], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": [\"x\"], \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"O d\\u00e9bito de R$ 300,00 parece corresponder \\u00e0 soma de dois boletos.\", \"justificativa\": \"Mesmo fornecedor e vencimento no mesmo dia.\", \"pares_propostos\": null, \"confianca\": 0.6, \"pede_humano\": true}",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "não é json",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "[]",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "null",
+  "resultado": "invalido"
+ },
+ {
+  "entrada": "{\"hipotese\": \"a\"} lixo",
+  "resultado": "invalido"
+ }
+]

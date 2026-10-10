@@ -246,6 +246,16 @@ func TestLoad_ReconciliationThresholds(t *testing.T) {
 	if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "LIMIAR_FUZZY": "0"})); err == nil || !strings.Contains(err.Error(), "LIMIAR_FUZZY") {
 		t.Errorf("LIMIAR_FUZZY=0 aceito: %v", err)
 	}
+	// O resolvedor automático (TASK-019) é desligado por padrão: cada pedido é uma chamada de modelo.
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"})); err != nil || cfg.ResolverAuto {
+		t.Errorf("RESOLVEDOR_AUTOMATICO padrão = %v, %v", cfg.ResolverAuto, err)
+	}
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "RESOLVEDOR_AUTOMATICO": "true"})); err != nil || !cfg.ResolverAuto {
+		t.Errorf("RESOLVEDOR_AUTOMATICO=true = %v, %v", cfg.ResolverAuto, err)
+	}
+	if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "RESOLVEDOR_AUTOMATICO": "talvez"})); err == nil {
+		t.Error("RESOLVEDOR_AUTOMATICO inválido aceito")
+	}
 	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO", "LIMIAR_FUZZY"} {
 		for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
 			if _, err := Load(env(map[string]string{"DATABASE_URL": "x", name: bad})); err == nil || !strings.Contains(err.Error(), name) {

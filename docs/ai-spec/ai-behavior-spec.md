@@ -50,6 +50,8 @@ Alias de escalada da tentativa final. Mesmos limites do extrator.
 **Saída:** hipótese, justificativa, pares propostos, confiança.  
 **Não pode:** criar conciliação.
 
+> **Como foi implementado (TASK-019; D-030).** A entrada é o contexto da origem (a linha com o motivo e as marcas, os candidatos, os comprovantes soltos próximos e as linhas irmãs), só da empresa da linha. O histórico de classificação chega com a TASK-020. A saída vira proposta pendente; saída fora do schema não vira proposta.
+
 ### `classificador`
 
 Quando necessário pelo comportamento original, sugere conta para item sem regra/histórico. Sempre sujeito à confirmação.

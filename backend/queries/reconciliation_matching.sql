@@ -22,8 +22,9 @@ WHERE t.company_id = sqlc.arg('company_id') AND t.txn_date BETWEEN sqlc.arg('dat
 ORDER BY t.txn_date, t.statement_import_id, t.position, t.id;
 
 -- name: ListClientEntriesForMatching :many
--- Todos os lançamentos da empresa, com o sinal de livre (sem conciliação ativa).
-SELECT e.id, e.entry_date, e.amount, e.direction, e.counterparty, e.document_ref, e.status, e.flags,
+-- Todos os lançamentos da empresa, com o sinal de livre (sem conciliação ativa). O resolvedor
+-- (TASK-019) usa a mesma lista no contexto.
+SELECT e.id, e.entry_date, e.amount, e.direction, e.counterparty, e.document_ref, e.operation_type, e.status, e.flags,
        NOT EXISTS (
            SELECT 1 FROM reconciliation_items i JOIN reconciliations r ON r.id = i.reconciliation_id
            WHERE i.client_entry_id = e.id AND i.released_at IS NULL AND r.undone_at IS NULL

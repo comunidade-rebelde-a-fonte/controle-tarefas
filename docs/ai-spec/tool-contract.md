@@ -30,6 +30,8 @@ Entrada: company/conta/período/valor/data/sentido conforme contrato.
 Saída: candidatos somente leitura.
 
 > **Na TASK-018 (D-029):** o domínio está portado com golden da origem (`matching.Candidates`: mesmo valor e sentido em D±3). A ferramenta do resolvedor chega com a TASK-019.
+>
+> **Na TASK-019 (D-030):** como na origem, o sistema monta os candidatos e os envia no contexto do resolvedor; o modelo não chama ferramenta. Só lê a empresa da linha.
 
 ### `historico_classificacao`
 Entrada: company + contraparte/descritivo.  

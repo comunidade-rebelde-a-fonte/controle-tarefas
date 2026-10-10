@@ -21,4 +21,7 @@ const (
 	JobStatementExtract = "statement_extract"
 	JobReceiptExtract   = "receipt_extract"
 	JobRun              = "reconciliation_run"
+	// JobResolve pede ao resolvedor uma hipótese para a linha (TASK-019): o agente grava só a
+	// proposta.
+	JobResolve = "agent_resolver"
 )

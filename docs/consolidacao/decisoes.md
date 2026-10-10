@@ -4,6 +4,42 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-030 — Resolvedor de exceções da Conciliação (TASK-019; 10/10/2026; plano aceito pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** de `app/agentes/resolvedor.py`, do `HipoteseResolvedor` (`app/domain/schemas.py`), do `contexto_resolvedor` e das rotas `pedir_hipotese`, `aceitar_hip` e `rejeitar_hip` (`app/web/rotas.py`) do Conciliador (commit `2bc6e26`).
+  - Domínio puro em `backend/internal/reconciliation/resolver`: o schema com a validação do pydantic, o contexto que o modelo recebe e o plano do aceite.
+  - O schema é travado por golden gerado pelo próprio Python da origem (`testdata/resolver_gen.py`): 56 saídas do modelo, 28 válidas e 28 recusadas. O contexto e o aceite têm testes escritos a partir do código da origem.
+  - Agente, API e aceite em `backend/internal/reconciliation/proposals`.
+- **O resolvedor só propõe (REQ-025, AC-019).** O agente grava a proposta pendente (a hipótese como a origem a gravava, com a corrida no tracer) e nada mais.
+  - Só duas consultas criam conciliação: a da rodada determinística (AC-018) e a do aceite humano. Um teste lê o código e prova que a do aceite só é chamada pelo aceite e que o agente não chama nenhuma.
+  - Nem a confiança alta nem `pede_humano: false` conciliam: o teste de ponta a ponta confere que o banco fica sem conciliação até o aceite.
+- **Pedido assíncrono (REQ-046).** A origem chamava o modelo dentro da requisição. Aqui, `POST /reconciliation/review/{id}/proposal` enfileira o job `agent_resolver` e responde 202.
+  - Com um pedido da mesma linha na fila, devolve o mesmo job (`already_queued`), sem novo registro no log.
+  - O job confere de novo a linha: conciliada enquanto esperava, ou com o Contábil fechado, termina sem chamar o modelo.
+  - Saída fora do schema: a corrida fica com erro e o job morre sem nova tentativa, porque cada chamada tem custo. A origem também não gravava proposta. Alias desligado na tela de IA: o job morre sem chamar o modelo.
+- **Contexto (`contexto_resolvedor`).** Os mesmos blocos da origem: a linha com o motivo da divergência; os candidatos (livres, de mesmo valor e sentido em D±3, mais os anotados pelo matching); até 15 comprovantes soltos próximos; as linhas irmãs; a observação e as regras da origem. Três diferenças:
+  - só a empresa da linha. A origem olhava os lançamentos e as linhas de todos os clientes do banco;
+  - a linha leva também as `marcas` (divergências e casos de borda da TASK-018), e cada comprovante leva o `status`, porque agora o parcial chega ao contexto;
+  - sem ferramentas: como na origem, o sistema monta o contexto e o modelo não chama nada. `historico_classificacao` chega com a classificação (TASK-020); `consultar_cnpj` aguarda decisão (P-007).
+- **Aceite (`aceitar_hip`).** Cada par vira conciliação com origem `manual`, o método `resolvedor` (ou `sem_comprovante`, no par de extrato sem comprovante sem lançamento), o autor e a proposta. O N:1 vai em `reconciliation_items`, como na TASK-018; a origem gravava uma linha de conciliação por lançamento.
+  - Como na origem, id inventado, fora do formato ou já conciliado é ignorado.
+  - Diferenças: linha ou lançamento de outra empresa também é ignorado. Sem nenhum par conciliável, o aceite responde 409 `PROPOSAL_NOTHING_TO_ACCEPT` e a proposta segue pendente; a origem a marcava aceita com zero conciliações.
+  - Serializado com a rodada do matching da empresa (o mesmo lock). Trava do Contábil (AC-025) em cada competência das linhas.
+- **Rejeição (`rejeitar_hip`).** A proposta fica `rejeitada`, com o autor e a data. Diferença: proposta já decidida responde 409 `PROPOSAL_DECIDED`; a origem rejeitava de novo até a aceita.
+- **Auditoria.** O pedido, o aceite e a rejeição vão para o log de extração como ação humana (o `_auditar` da origem).
+  - Corrida `resolvedor` no tracer: gatilho `pedido` (com quem pediu) ou `rodada` (automático), o contexto resumido na entrada (motivo e contagens, sem descritivos) e a decisão `proposta_resolvedor`.
+  - A decisão traz os ids que o modelo citou fora do contexto (`ids_fora_do_contexto`), que o aceite ignora se não forem da empresa e livres.
+- **Resolvedor automático (`RESOLVEDOR_AUTOMATICO`, padrão desligado).** O 06 §4 prevê a rodada enfileirando o resolvedor "se configurado"; a origem só o chamava a pedido.
+  - Ligado, a rodada pede hipótese uma só vez para cada linha livre da competência sem proposta nem pedido anterior. A rejeitada e a de job com falha não voltam sozinhas; o contador pede de novo na fila.
+  - A rodada devolve `resolver_requested`. O padrão é desligado pelo custo de provedor por linha.
+- **Prompt** `conciliacao/resolvedor.md` (versão 2026.10.1): o texto da origem, com a entrada que o sistema envia no lugar das ferramentas e a regra de que o conteúdo da entrada é dado, não instrução. Saída estruturada com `json_schema` estrito; o `tipo` fica na lista do prompt da origem.
+- **API.** `POST /reconciliation/review/{id}/proposal` (202), `GET /reconciliation/review/{id}/proposals`, `POST /reconciliation/review/{id}/accept-proposal` e `/reject-proposal` (corpo `{proposal_id}`). O `{id}` é a linha do extrato, como nas outras ações da fila do 06 §4.
+- **Banco.** Migration `0028`: índices da proposta por linha e dos jobs por tipo e chave (o "uma só vez por linha" do automático). A chave da proposta para a corrida já existia (0022).
+- **Fica para depois:**
+  - TASK-020: o `historico_classificacao` como entrada do resolvedor, se a classificação o pedir;
+  - TASK-021: a fila na interface, com a hipótese visível como sugestão (08 §Fila de revisão);
+  - eval do resolvedor com provedor real: não há golden de hipóteses na origem; fica para a avaliação humana (TASK-024).
+
 ### D-029 — Matching da Conciliação: passes 1 a 4, pré-filtro e bordas (TASK-018; 09/10/2026; regra dos passes por decisão do usuário, ADR-008; o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `app/domain/{conciliacao,similaridade,bordas}.py` e do `rodar_matching` com o pré-filtro `_ids_divergentes` (`app/servicos/matching.py`) do Conciliador (commit `2bc6e26`).

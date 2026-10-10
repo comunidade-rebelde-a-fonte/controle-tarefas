@@ -99,6 +99,10 @@ type Config struct {
 	// FuzzyThreshold é o limiar de similaridade do passe 3 do matching (LIMIAR_FUZZY, padrão 0,86
 	// como na origem; TASK-018): contraparte × descritivo pelo Jaro-Winkler.
 	FuzzyThreshold decimal.Decimal
+	// ResolverAuto faz a rodada do matching pedir hipótese ao resolvedor para as linhas que
+	// sobraram, uma vez por linha (RESOLVEDOR_AUTOMATICO, padrão false; TASK-019). A origem só
+	// pedia à mão; cada pedido é uma chamada de modelo.
+	ResolverAuto bool
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -286,6 +290,11 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 		*l.dst = threshold
 	}
+	resolverAuto, rerr := strconv.ParseBool(orDefault(strings.TrimSpace(getenv("RESOLVEDOR_AUTOMATICO")), "false"))
+	if rerr != nil {
+		errs = append(errs, fmt.Errorf("RESOLVEDOR_AUTOMATICO inválido: %q (true ou false)", getenv("RESOLVEDOR_AUTOMATICO")))
+	}
+	cfg.ResolverAuto = resolverAuto
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)
