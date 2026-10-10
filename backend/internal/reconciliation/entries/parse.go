@@ -130,9 +130,9 @@ type LineError struct {
 	Message string `json:"message"`
 }
 
-// decodeCSV lê o arquivo em UTF-8 (sem o BOM) ou, se não for UTF-8 válido, em Windows-1252 (o
+// DecodeCSV lê o arquivo em UTF-8 (sem o BOM) ou, se não for UTF-8 válido, em Windows-1252 (o
 // CSV do Excel); a origem só aceitava UTF-8.
-func decodeCSV(data []byte) string {
+func DecodeCSV(data []byte) string {
 	if utf8.Valid(data) {
 		return strings.TrimPrefix(string(data), "\xef\xbb\xbf")
 	}
@@ -149,7 +149,7 @@ func decodeCSV(data []byte) string {
 func parseCSV(data []byte) ([]manualLine, []LineError) {
 	var out []manualLine
 	var errs []LineError
-	for i, line := range pytext.SplitLines(decodeCSV(data)) {
+	for i, line := range pytext.SplitLines(DecodeCSV(data)) {
 		n := i + 1
 		if i == 0 && strings.Contains(strings.ToLower(line), "data") {
 			continue

@@ -37,6 +37,8 @@ Saída: candidatos somente leitura.
 Entrada: company + contraparte/descritivo.  
 Saída: histórico somente leitura.
 
+> **Na TASK-020 (D-031):** o sistema monta e envia no contexto do classificador: até 10 classificações confirmadas da empresa (meses anteriores) com a chave mais parecida (Jaro-Winkler a partir de 0,80), sem a mesma chave. Só leitura; o modelo não chama ferramenta.
+
 ### `consultar_cnpj`
 Entrada: identificação parcial permitida.  
 Saída: dados de apoio.  

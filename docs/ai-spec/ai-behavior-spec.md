@@ -56,6 +56,8 @@ Alias de escalada da tentativa final. Mesmos limites do extrator.
 
 Quando necessário pelo comportamento original, sugere conta para item sem regra/histórico. Sempre sujeito à confirmação.
 
+> **Como foi implementado (TASK-020; D-031).** Só para a linha conciliada que a regra e o histórico não classificaram (o job roda os dois de novo antes do modelo). Recebe o lançamento, o plano ativo e o histórico parecido; a conta precisa estar no plano. A sugestão fica pendente e só o aceite humano muda a conta.
+
 ## 3. Seleção de modelo
 
 - Resolvida por alias no início da corrida.

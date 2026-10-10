@@ -256,6 +256,17 @@ func TestLoad_ReconciliationThresholds(t *testing.T) {
 	if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "RESOLVEDOR_AUTOMATICO": "talvez"})); err == nil {
 		t.Error("RESOLVEDOR_AUTOMATICO inválido aceito")
 	}
+	// O classificador automático (TASK-020) também nasce desligado.
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"})); err != nil || cfg.ClassifierAuto {
+		t.Errorf("CLASSIFICADOR_AUTOMATICO padrão = %v, %v", cfg.ClassifierAuto, err)
+	}
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "CLASSIFICADOR_AUTOMATICO": "1"})); err != nil || !cfg.ClassifierAuto {
+		t.Errorf("CLASSIFICADOR_AUTOMATICO=1 = %v, %v", cfg.ClassifierAuto, err)
+	}
+	if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "CLASSIFICADOR_AUTOMATICO": "sim"})); err == nil ||
+		!strings.Contains(err.Error(), "CLASSIFICADOR_AUTOMATICO") {
+		t.Errorf("CLASSIFICADOR_AUTOMATICO inválido aceito: %v", err)
+	}
 	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO", "LIMIAR_FUZZY"} {
 		for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
 			if _, err := Load(env(map[string]string{"DATABASE_URL": "x", name: bad})); err == nil || !strings.Contains(err.Error(), name) {

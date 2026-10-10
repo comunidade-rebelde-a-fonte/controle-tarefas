@@ -36,6 +36,7 @@ import (
 	"controle/internal/platform/migrate"
 	"controle/internal/platform/objectstore"
 	"controle/internal/platform/pdftext"
+	"controle/internal/reconciliation/classify"
 	"controle/internal/reconciliation/pipeline"
 	"controle/internal/reconciliation/proposals"
 	"controle/internal/reconciliation/reconcile"
@@ -112,13 +113,21 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults),
 		pipeline.Config{TriageThreshold: cfg.TriageThreshold, FieldThreshold: cfg.FieldThreshold}, logger)
 	// Rodada do matching (TASK-018), enfileirada quando chega extrato importado ou comprovante; com
-	// RESOLVEDOR_AUTOMATICO, pede hipótese para as linhas que sobraram (TASK-019).
+	// RESOLVEDOR_AUTOMATICO, pede hipótese para as linhas que sobraram (TASK-019); com
+	// CLASSIFICADOR_AUTOMATICO, sugestão de conta para as conciliadas sem regra nem histórico (TASK-020).
 	rounds := reconcile.NewService(pool, sysClock, reconcile.OptionsFrom(cfg.FuzzyThreshold), logger)
 	if cfg.ResolverAuto {
 		rounds.AutoResolve(jobs.NewQueue(sysClock, cfg.JobMaxAttempts))
 	}
+	if cfg.ClassifierAuto {
+		rounds.AutoClassify(jobs.NewQueue(sysClock, cfg.JobMaxAttempts))
+	}
 	// Resolvedor de exceções (TASK-019): grava só a proposta.
 	resolverAgent := proposals.NewAgent(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
+		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults), logger)
+	// Classificador (TASK-020): só para o que a regra e o histórico não classificaram; grava só a
+	// sugestão.
+	classifierAgent := classify.NewAgent(sysClock, tracer.New(sysClock, jobs.NewQueue(sysClock, cfg.JobMaxAttempts)),
 		litellm.New(cfg.LiteLLMBaseURL, cfg.LiteLLMAPIKey, cfg.LiteLLMTimeout), aliases.NewResolver(cfg.AIDefaults), logger)
 	runner := jobs.NewRunner(pool, sysClock, logger, jobs.RunnerConfig{
 		WorkerID: cfg.WorkerID, Concurrency: cfg.WorkerConcurrency, PollInterval: cfg.JobPollInterval, Lease: cfg.JobLease,
@@ -126,6 +135,7 @@ func runWorker(ctx context.Context, cfg config.Config, logger *slog.Logger) erro
 		LangfuseSync: syncer.Handle, PgdasParse: pgdasAgent.HandleParse,
 		ReconciliationTriage: processor.HandleTriage, StatementExtract: processor.HandleExtract,
 		ReceiptExtract: processor.HandleReceipt, ReconciliationRun: rounds.HandleRun, AgentResolver: resolverAgent.HandleResolve,
+		AgentClassifier: classifierAgent.HandleSuggest,
 	}))
 	// Fila semanal do priorizador (TASK-013): aos domingos, a partir de ROTINA_PRIORIZADOR_HORA,
 	// uma vez por semana e sem LLM, como a rotina_semanal da origem.

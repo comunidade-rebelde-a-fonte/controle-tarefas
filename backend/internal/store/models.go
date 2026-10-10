@@ -147,15 +147,32 @@ type ChartAccount struct {
 }
 
 type ClassificationRule struct {
-	ID          string
-	CompanyID   string
-	RuleType    string
-	Pattern     string
-	AccountCode string
-	Active      bool
-	CreatedBy   *string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID                           string
+	CompanyID                    string
+	RuleType                     string
+	Pattern                      string
+	AccountCode                  string
+	Active                       bool
+	CreatedBy                    *string
+	CreatedAt                    time.Time
+	UpdatedAt                    time.Time
+	SourceStatementTransactionID *string
+	DeactivatedBy                *string
+	DeactivatedAt                *time.Time
+}
+
+type ClassificationSuggestion struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Payload                []byte
+	AccountCode            *string
+	Status                 string
+	TraceID                *string
+	CreatedBy              *string
+	CreatedAt              time.Time
+	DecidedBy              *string
+	DecidedAt              *time.Time
 }
 
 type ClientEntry struct {
@@ -670,24 +687,29 @@ type StatementImport struct {
 }
 
 type StatementTransaction struct {
-	ID                    string
-	CompanyID             string
-	StatementImportID     string
-	Position              int32
-	TxnDate               time.Time
-	Competence            *time.Time
-	Description           string
-	DocumentRef           *string
-	Amount                decimal.Decimal
-	Direction             string
-	BalanceAfter          *decimal.Decimal
-	DedupeKey             string
-	Confidence            *decimal.Decimal
-	Flags                 []byte
-	AccountCode           *string
-	ClassificationOrigin  *string
-	ClassificationPending bool
-	CreatedAt             time.Time
+	ID                         string
+	CompanyID                  string
+	StatementImportID          string
+	Position                   int32
+	TxnDate                    time.Time
+	Competence                 *time.Time
+	Description                string
+	DocumentRef                *string
+	Amount                     decimal.Decimal
+	Direction                  string
+	BalanceAfter               *decimal.Decimal
+	DedupeKey                  string
+	Confidence                 *decimal.Decimal
+	Flags                      []byte
+	AccountCode                *string
+	ClassificationOrigin       *string
+	ClassificationPending      bool
+	CreatedAt                  time.Time
+	ClassificationRuleID       *string
+	ClassificationHistoryID    *string
+	ClassificationSuggestionID *string
+	ClassifiedBy               *string
+	ClassifiedAt               *time.Time
 }
 
 type StatusDefinition struct {

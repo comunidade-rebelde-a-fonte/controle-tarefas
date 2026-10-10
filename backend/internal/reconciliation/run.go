@@ -40,6 +40,20 @@ func EnqueueResolve(ctx context.Context, q *jobs.Queue, tx pgx.Tx, lineID string
 		DedupeKey: lineID})
 }
 
+// ClassifyPayload é o payload do job agent_classifier: a linha e quem pediu (nulo no pedido da
+// rodada automática).
+type ClassifyPayload struct {
+	StatementTransactionID string  `json:"statement_transaction_id"`
+	RequestedBy            *string `json:"requested_by,omitempty"`
+}
+
+// EnqueueClassify enfileira o pedido de sugestão de conta para a linha. A chave é a linha: com um
+// pedido já na fila, devolve o mesmo job.
+func EnqueueClassify(ctx context.Context, q *jobs.Queue, tx pgx.Tx, lineID string, requestedBy *string) (jobs.Job, bool, error) {
+	return q.Enqueue(ctx, tx, jobs.Spec{Kind: JobClassify, Payload: ClassifyPayload{StatementTransactionID: lineID, RequestedBy: requestedBy},
+		DedupeKey: lineID})
+}
+
 // IsPeriodClosed informa se o erro é a trava do fechamento Contábil (ErrPeriodClosed).
 func IsPeriodClosed(err error) bool {
 	var e *apperr.Error

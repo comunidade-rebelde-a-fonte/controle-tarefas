@@ -36,8 +36,11 @@ import (
 	"controle/internal/platform/httpx"
 	"controle/internal/platform/objectstore"
 	"controle/internal/platform/settings"
+	"controle/internal/reconciliation/chart"
+	"controle/internal/reconciliation/classify"
 	"controle/internal/reconciliation/documents"
 	"controle/internal/reconciliation/entries"
+	"controle/internal/reconciliation/ledger"
 	"controle/internal/reconciliation/proposals"
 	"controle/internal/reconciliation/reconcile"
 	"controle/internal/report"
@@ -144,10 +147,18 @@ func New(d Deps) *App {
 		if d.Config.ResolverAuto {
 			rounds.AutoResolve(jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
 		}
+		if d.Config.ClassifierAuto {
+			rounds.AutoClassify(jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
+		}
 		reconcile.NewHandler(rounds).Routes(api)
 		// Resolvedor de exceções (TASK-019): pedir a hipótese (o agente roda no worker), aceitar e
 		// rejeitar. Só o aceite humano concilia.
 		proposals.NewHandler(proposals.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
+		// Classificação e razão (TASK-020): plano de contas e regras por empresa; a classificação
+		// regra → histórico → agente (o agente roda no worker e só sugere); o razão como consulta.
+		chart.NewHandler(chart.NewService(d.Pool, aiClock)).Routes(api)
+		classify.NewHandler(classify.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
+		ledger.NewHandler(ledger.NewService(d.Pool)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

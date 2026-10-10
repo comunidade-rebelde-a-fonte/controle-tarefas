@@ -222,9 +222,9 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 				b.WriteRune(c)
 				continue
 			}
-			if c == '-' && ignoreCase && rs[i-1] != '[' && i+1 < len(rs) && rs[i+1] != ']' {
+			if c == '-' && ignoreCase && rs[i-1] != '[' && i+1 < len(rs) && rs[i+1] != ']' && !uncasedRange(rs, i) {
 				// O IGNORECASE do Python iguala ı, İ, K e ſ às letras ASCII de um intervalo; o
-				// do Go não iguala ı e İ.
+				// do Go não iguala ı e İ. Intervalo sem letra com caixa (como [0-9]) é igual.
 				return unsupported("intervalo em classe com IGNORECASE")
 			}
 			if ignoreCase && (c == 'i' || c == 'I') {
@@ -323,6 +323,25 @@ func translate(pattern string, ignoreCase bool) (translation, error) {
 	}
 	t.pattern = b.String()
 	return t, nil
+}
+
+// uncasedRange informa se o "-" em rs[i] forma um intervalo de dois caracteres literais sem
+// nenhum caractere com caixa entre eles (nem ı e İ, que só o Python iguala a i e I): com
+// IGNORECASE, o intervalo casa igual no Python e no Go.
+func uncasedRange(rs []rune, i int) bool {
+	if i < 2 || rs[i-2] == '\\' || i+1 >= len(rs) || rs[i+1] == '\\' {
+		return false
+	}
+	lo, hi := rs[i-1], rs[i+1]
+	if lo > hi {
+		return false
+	}
+	for r := lo; r <= hi; r++ {
+		if unicode.SimpleFold(r) != r || r == 'ı' || r == 'İ' {
+			return false
+		}
+	}
+	return true
 }
 
 // closing acha o ")" que fecha um grupo aberto antes de start (sem grupos aninhados).

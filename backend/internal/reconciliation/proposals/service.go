@@ -17,6 +17,7 @@ import (
 	"controle/internal/platform/competence"
 	"controle/internal/platform/httpx"
 	"controle/internal/reconciliation"
+	"controle/internal/reconciliation/classify"
 	"controle/internal/reconciliation/resolver"
 	"controle/internal/store"
 	"controle/internal/user"
@@ -247,6 +248,15 @@ func (s *Service) Accept(ctx context.Context, lineID, proposalID string) (Accept
 				}
 			}
 			out.Reconciliations = append(out.Reconciliations, id)
+		}
+		// As linhas conciliadas entram na classificação (regra → histórico; sem os dois, à espera
+		// do agente ou do contador; TASK-020).
+		lines := make([]string, 0, len(plan))
+		for _, c := range plan {
+			lines = append(lines, c.StatementID)
+		}
+		if _, err := classify.Lines(ctx, tx, p.CompanyID, lines, now); err != nil {
+			return err
 		}
 		if err := q.DecideResolverProposal(ctx, store.DecideResolverProposalParams{Status: StatusAccepted, DecidedBy: &uid, Now: &now, ID: p.ID}); err != nil {
 			return err

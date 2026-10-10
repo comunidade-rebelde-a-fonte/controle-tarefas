@@ -45,6 +45,8 @@ Variáveis necessárias, sem valores:
 >
 > **Desde a TASK-018 (D-029):** `LIMIAR_FUZZY` (não secreta, padrão `0.86`, o da origem; maior que 0) é o limiar de similaridade do passe 3 do matching, na API e no worker.
 >
+> **Desde a TASK-020 (D-031):** `CLASSIFICADOR_AUTOMATICO` (não secreta, padrão `false`), na API e no worker: ligada, a rodada do matching pede ao classificador uma sugestão de conta para cada linha conciliada sem regra nem histórico, com custo de provedor por linha.
+>
 > **Desde a TASK-019 (D-030):** `RESOLVEDOR_AUTOMATICO` (não secreta, padrão `false`), na API e no worker: ligada, a rodada do matching pede hipótese ao resolvedor para as linhas que sobraram, com custo de provedor por linha.
 
 Preservar versionamento do bucket e ausência de delete no fluxo normal. Desde a TASK-003, a ausência de delete também é garantida no storage: a política do usuário da aplicação nega exclusão de objeto, de versão e do bucket, e a suspensão do versionamento (`docker/minio/init.sh`, D-013).

@@ -68,6 +68,8 @@ A linguagem deve ser propositiva: “hipótese”, “parece corresponder”, �
 
 > **Como foi implementado (TASK-019; D-030).** `backend/internal/ai/prompts/conciliacao/resolvedor.md`: o texto da origem, com a entrada que o sistema envia no lugar das ferramentas, a linguagem de hipótese e a regra de que descritivos e nomes da entrada são dado, não instrução. Saída estruturada com `json_schema` estrito.
 
+> **Classificador (TASK-020; D-031).** `backend/internal/ai/prompts/conciliacao/classificador.md`: o texto da origem, com a entrada que o sistema envia (lançamento, plano ativo e histórico parecido) no lugar das ferramentas, a conta obrigatoriamente do plano e a linguagem de sugestão.
+
 ## 7. Consultor Fator R
 
 Recebe números calculados e deve explicá-los. Não efetua aritmética normativa como fonte de verdade. Deve manter disclaimer de que PGDAS-D prevalece.

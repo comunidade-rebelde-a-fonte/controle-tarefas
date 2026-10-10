@@ -103,6 +103,10 @@ type Config struct {
 	// sobraram, uma vez por linha (RESOLVEDOR_AUTOMATICO, padrão false; TASK-019). A origem só
 	// pedia à mão; cada pedido é uma chamada de modelo.
 	ResolverAuto bool
+	// ClassifierAuto faz a rodada do matching pedir sugestão de conta ao classificador para as
+	// linhas conciliadas sem regra nem histórico, uma vez por linha (CLASSIFICADOR_AUTOMATICO,
+	// padrão false; TASK-020). Cada pedido é uma chamada de modelo.
+	ClassifierAuto bool
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -290,11 +294,16 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 		*l.dst = threshold
 	}
-	resolverAuto, rerr := strconv.ParseBool(orDefault(strings.TrimSpace(getenv("RESOLVEDOR_AUTOMATICO")), "false"))
-	if rerr != nil {
-		errs = append(errs, fmt.Errorf("RESOLVEDOR_AUTOMATICO inválido: %q (true ou false)", getenv("RESOLVEDOR_AUTOMATICO")))
+	for _, f := range []struct {
+		name string
+		dst  *bool
+	}{{"RESOLVEDOR_AUTOMATICO", &cfg.ResolverAuto}, {"CLASSIFICADOR_AUTOMATICO", &cfg.ClassifierAuto}} {
+		on, ferr := strconv.ParseBool(orDefault(strings.TrimSpace(getenv(f.name)), "false"))
+		if ferr != nil {
+			errs = append(errs, fmt.Errorf("%s inválido: %q (true ou false)", f.name, getenv(f.name)))
+		}
+		*f.dst = on
 	}
-	cfg.ResolverAuto = resolverAuto
 
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)

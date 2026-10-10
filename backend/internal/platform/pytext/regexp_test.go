@@ -172,10 +172,28 @@ func TestRegexp_ClassEscapesAndNegatedClasses(t *testing.T) {
 }
 
 func TestCompile_RejectsUnsupported(t *testing.T) {
-	for _, p := range []string{`\B`, `(?<=a)b`, `(?P<x>a)`, `[\S]`, `[\b]`, `(?!(a))`, `[^a]`, `[^]a]`, `[]a]`, `(?i)a`, `[h-j]`, `a$b`} {
+	for _, p := range []string{`\B`, `(?<=a)b`, `(?P<x>a)`, `[\S]`, `[\b]`, `(?!(a))`, `[^a]`, `[^]a]`, `[]a]`, `(?i)a`, `[h-j]`, `a$b`,
+		`[0-z]`, `[À-ÿ]`, `[\d-z]`} {
 		if _, err := Compile(p, true); err == nil {
 			t.Errorf("Compile(%q) deveria recusar", p)
 		}
+	}
+}
+
+// Com IGNORECASE, intervalo sem letra com caixa (dígitos, pontuação) casa igual no Python
+// (TASK-020: regras de classificação como "nf [0-9]+$").
+func TestCompile_UncasedRangeWithIgnoreCase(t *testing.T) {
+	re, err := Compile(`nf [0-9]+$`, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for text, want := range map[string]bool{"Boleto - NF 991": true, "nf 12\n": true, "NF x1": false, "nf ١٢": false} {
+		if _, ok := re.Search(text); ok != want {
+			t.Errorf("search(%q) = %v; quer %v", text, ok, want)
+		}
+	}
+	if _, err := Compile(`[!-/]`, true); err != nil {
+		t.Errorf("intervalo de pontuação recusado: %v", err)
 	}
 }
 

@@ -113,6 +113,8 @@ Preservar/adicionar:
 >
 > **Desde a TASK-018 (D-029):** a conciliação automática guarda o passe, o método e o score, e as linhas que vão à fila guardam o motivo; a rodada devolve os baldes da competência e as conciliações por passe (a taxa por passe do painel vem com a TASK-021/024).
 >
+> **Desde a TASK-020 (D-031):** cada sugestão de conta tem a corrida `classificador` (gatilho `pedido` ou `rodada`, status `needs_review`) com a decisão `sugestao_classificacao` (só códigos e contagens); a linha guarda o que a classificou (regra, linha do histórico ou sugestão) e quem confirmou; as ações humanas da classificação ficam no log de extração.
+>
 > **Desde a TASK-019 (D-030):** cada hipótese tem a corrida `resolvedor` (gatilho `pedido` ou `rodada`, status `needs_review`) com a decisão `proposta_resolvedor`, que aponta a proposta e os ids citados fora do contexto; a proposta guarda o `trace_id`. O pedido, o aceite e a rejeição ficam no log de extração.
 
 ## 8. Healthchecks

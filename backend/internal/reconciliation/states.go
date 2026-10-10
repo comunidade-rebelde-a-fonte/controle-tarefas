@@ -24,4 +24,7 @@ const (
 	// JobResolve pede ao resolvedor uma hipótese para a linha (TASK-019): o agente grava só a
 	// proposta.
 	JobResolve = "agent_resolver"
+	// JobClassify pede ao classificador uma conta para a linha conciliada sem regra nem histórico
+	// (TASK-020): o agente grava só a sugestão.
+	JobClassify = "agent_classifier"
 )

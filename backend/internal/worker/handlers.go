@@ -32,6 +32,9 @@ const KindReconciliationRun = "reconciliation_run"
 // KindAgentResolver pede ao resolvedor a hipótese de uma linha do extrato (TASK-019).
 const KindAgentResolver = "agent_resolver"
 
+// KindAgentClassifier pede ao classificador a sugestão de conta de uma linha conciliada (TASK-020).
+const KindAgentClassifier = "agent_classifier"
+
 // HandlerDeps são os handlers que dependem de configuração.
 type HandlerDeps struct {
 	// LangfuseSync é o tracer.Syncer.Handle.
@@ -46,6 +49,8 @@ type HandlerDeps struct {
 	ReconciliationRun    jobs.Handler
 	// AgentResolver é o resolvedor de exceções (proposals.Agent.HandleResolve).
 	AgentResolver jobs.Handler
+	// AgentClassifier é o classificador contábil (classify.Agent.HandleSuggest).
+	AgentClassifier jobs.Handler
 }
 
 // Handlers são os tipos de job que este worker executa. Cada TASK que cria um tipo de job
@@ -63,6 +68,7 @@ func Handlers(d HandlerDeps) map[string]jobs.Handler {
 		KindReceiptExtract:       d.ReceiptExtract,
 		KindReconciliationRun:    d.ReconciliationRun,
 		KindAgentResolver:        d.AgentResolver,
+		KindAgentClassifier:      d.AgentClassifier,
 	} {
 		if handler != nil {
 			h[kind] = handler

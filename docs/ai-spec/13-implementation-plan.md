@@ -200,6 +200,10 @@ Implementar ferramentas equivalentes em Go/bibliotecas adequadas. Não mudar sch
 **Aceite:** AC-020, AC-021, AC-022.  
 **Validação:** TEST-020 — precedência, regras aprendidas confirmadas, view/query do razão.
 
+> **Como foi implementado (D-031).** Domínio em `backend/internal/reconciliation/classification` (golden da origem), plano e regras em `chart`, classificação e agente em `classify`, razão em `ledger`.
+> - Por decisão do usuário: classificação na linha conciliada, agente só a pedido, histórico com a mais recente e a regra mais nova vale.
+> - A origem não ligava o motor nem o agente: o fluxo do M5 foi ligado de ponta a ponta. O CSV do razão fica aqui; o XLSX, na TASK-028.
+
 ### TASK-021 — UI completa da Conciliação em React
 
 **Requisitos:** REQ-018 a REQ-030, REQ-036, REQ-050 a REQ-052.  

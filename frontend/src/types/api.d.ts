@@ -1767,6 +1767,367 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/chart-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Plano de contas da empresa, por código [REQ-026, CC-20] */
+        get: operations["listChartAccounts"];
+        put?: never;
+        /**
+         * Inclui uma conta no plano da empresa (M5.1)
+         * @description Código sem espaço nem ponto e vírgula, até 32 caracteres; nome até 255. Código repetido na
+         *     empresa: 409 `ACCOUNT_CODE_EXISTS`. A ação fica no log de extração.
+         */
+        post: operations["createChartAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                accountId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Altera o nome ou desativa (reativa) a conta; o código não muda
+         * @description Desativada, a conta sai das novas classificações, das regras que apontam para ela e do
+         *     histórico; as classificações feitas ficam. Nada é apagado.
+         */
+        patch: operations["updateChartAccount"];
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importa o plano de contas de um CSV (codigo;nome) [CC-20]
+         * @description Uma conta por linha, separada por ponto e vírgula (colunas a mais são ignoradas); a 1ª linha
+         *     com "codigo" é o cabeçalho; linhas em branco são puladas. Tudo ou nada: com uma linha
+         *     inválida (ou código repetido no arquivo), nada é gravado e a resposta traz o erro de cada
+         *     linha (400 `INVALID_ACCOUNTS_CSV`, com `details.lines`). Conta que já existe ganha o nome do
+         *     arquivo e volta a ativa. UTF-8 ou Windows-1252, até 2 MB e 5.000 contas.
+         */
+        post: operations["importChartAccounts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copia o plano de outra empresa (o padrão) [CC-20, D-020]
+         * @description As contas ativas da empresa padrão que esta ainda não tem; as que ela já tem ficam como
+         *     estão (`skipped`).
+         */
+        post: operations["copyChartAccounts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Regras de classificação, da mais nova para a mais antiga (a ordem em que valem) */
+        get: operations["listClassificationRules"];
+        put?: never;
+        /**
+         * Confirma uma regra de classificação (M5.2, M5.5) [REQ-027]
+         * @description CNPJ (só os dígitos, 11 ou 14), contraparte (comparada normalizada) ou regex do descritivo
+         *     (o `re` do Python, com IGNORECASE, no subconjunto que o porte traduz). A conta precisa estar
+         *     no plano ativo. A regra vale para as próximas classificações e nunca troca o que já foi
+         *     confirmado; a mais nova vale, e a ativa com o mesmo tipo e padrão é desativada
+         *     (`replaced_rule_ids`). É também como o contador confirma a regra proposta depois da
+         *     correção ou do aceite da sugestão.
+         */
+        post: operations["createClassificationRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification-rules/{ruleId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                ruleId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desativa a regra (nunca apaga) */
+        post: operations["deactivateClassificationRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Classifica as linhas conciliadas da competência — regra, depois histórico [REQ-026, AC-020]
+         * @description A rodada do matching já classifica o que concilia; esta rota aplica uma regra recém-
+         *     confirmada às linhas que ainda esperam classificação. Só preenche o que não foi confirmado:
+         *     a classificação do contador nunca é trocada. Sem regra nem histórico (as classificações
+         *     confirmadas dos meses anteriores, a mais recente vale), a linha fica à espera do agente ou
+         *     do contador. Contábil fechado: 423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["runClassification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Classifica a linha à mão e propõe a regra derivada (M5.5) [REQ-027]
+         * @description Origem `manual`, com o autor. A resposta traz a regra derivada da correção (CNPJ, senão
+         *     contraparte, senão o descritivo escapado), que só vale depois de confirmada em
+         *     `POST /companies/{id}/classification-rules`. Só a linha conciliada é classificada (409
+         *     `LINE_NOT_RECONCILED`); a conta precisa estar no plano ativo (400); Contábil fechado: 423.
+         */
+        put: operations["correctClassification"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pede ao agente classificador uma conta para a linha [AC-020]
+         * @description Enfileira o job `agent_classifier` (o mesmo job se o pedido já está na fila). Antes do
+         *     modelo, o job roda de novo a regra e o histórico; o agente só sugere uma conta do plano
+         *     ativo, e a sugestão fica pendente até o contador aceitar ou rejeitar. Recusas: 409
+         *     `LINE_NOT_RECONCILED`, `LINE_ALREADY_CLASSIFIED` (regra, histórico ou contador) e
+         *     `CHART_EMPTY`; 423 `PERIOD_CLOSED`.
+         */
+        post: operations["requestClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /** Sugestões do agente para a linha, da mais recente para a mais antiga */
+        get: operations["listClassificationSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/accept-classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirma a sugestão do agente — a única forma de a sugestão virar classificação [AC-020]
+         * @description A linha ganha a conta com a origem `agente`, o autor e a sugestão. A resposta propõe a regra
+         *     sugerida pelo agente (ou, sem ela, a derivada), que só vale confirmada. Recusas: 404
+         *     `SUGGESTION_NOT_FOUND`; 409 `SUGGESTION_DECIDED`, `SUGGESTION_WITHOUT_ACCOUNT` (conta fora
+         *     do plano), `ACCOUNT_INACTIVE` e `LINE_NOT_RECONCILED`; 423 `PERIOD_CLOSED`.
+         */
+        post: operations["acceptClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/reject-classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rejeita a sugestão; a linha continua à espera da classificação */
+        post: operations["rejectClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Razão como consulta — uma linha por conciliação ativa [REQ-028, AC-021]
+         * @description O linhas_razao da origem: as conciliações ativas das competências do período, por data e
+         *     conta bancária, com a conta contábil e a origem da classificação, a contraparte, o débito
+         *     (saída do extrato) e o crédito (entrada), e os ids do drill-down (conciliação, transação,
+         *     original do extrato, comprovantes e originais deles). Nunca tabela escrita: reclassificar ou
+         *     desfazer muda o razão porque muda a origem. `account` filtra como a origem: a conta bancária
+         *     contém o texto (sem caixa) ou a conta contábil é igual a ele.
+         */
+        get: operations["getLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/ledger/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Exporta o razão filtrado em CSV [REQ-029, AC-022]
+         * @description As colunas da origem (`data;conta;historico;debito;credito`) e as do AC-022 (`competencia`,
+         *     `conta_contabil`, `nome_conta`, `contraparte`, `origem_classificacao`, `origem_conciliacao`),
+         *     separadas por ponto e vírgula, na ordem do razão: determinístico para o mesmo banco. O XLSX
+         *     chega com a TASK-028.
+         */
+        get: operations["exportLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/reconciliations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Conciliação no drill-down do razão — classificação, transação e documentos [AC-021] */
+        get: operations["getReconciliation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -3383,6 +3744,13 @@ export interface components {
              *     sugere.
              */
             resolver_requested: number;
+            /** @description Classificação das linhas conciliadas da competência (regra → histórico; TASK-020) */
+            classification: components["schemas"]["ClassificationRunSummary"];
+            /**
+             * @description Pedidos de sugestão de conta que a rodada enfileirou para as linhas à espera do agente
+             *     que nunca tiveram sugestão nem pedido (CLASSIFICADOR_AUTOMATICO; zero quando desligado).
+             */
+            classifier_requested: number;
         };
         /**
          * @description Par proposto pelo resolvedor (ParProposto da origem). Os IDs são os que o modelo devolveu:
@@ -3443,6 +3811,275 @@ export interface components {
         ResolverProposalAccept: {
             proposal: components["schemas"]["ResolverProposal"];
             reconciliation_ids: components["schemas"]["Uuid"][];
+        };
+        /** @description Conta do plano de contas da empresa (plano_contas da origem). */
+        ChartAccount: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            active: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ChartAccountList: {
+            items: components["schemas"]["ChartAccount"][];
+        };
+        ChartAccountCreate: {
+            /** @description Sem espaço nem ponto e vírgula */
+            code: string;
+            name: string;
+        };
+        ChartAccountPatch: {
+            name?: string;
+            active?: boolean;
+        };
+        ChartAccountsImport: {
+            /** @description Contas novas */
+            inserted: number;
+            /** @description Contas que já existiam: nome do arquivo e reativadas */
+            updated: number;
+        };
+        ChartAccountsCopy: {
+            /** @description Contas copiadas da empresa padrão */
+            inserted: number;
+            /** @description Contas que a empresa já tinha */
+            skipped: number;
+        };
+        /** @enum {string} */
+        ClassificationRuleType: "cnpj" | "contraparte" | "regex_descritivo";
+        /** @description Regra de classificação (regra_classificacao da origem); a mais nova vale. */
+        ClassificationRule: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            /** @description CNPJ só com os dígitos, contraparte ou regex do re do Python (IGNORECASE) */
+            pattern: string;
+            account_code: string;
+            active: boolean;
+            /**
+             * Format: uuid
+             * @description Linha cuja correção originou a regra
+             */
+            source_statement_transaction_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            deactivated_by: string | null;
+            /** Format: date-time */
+            deactivated_at: string | null;
+        };
+        ClassificationRuleList: {
+            items: components["schemas"]["ClassificationRule"][];
+        };
+        ClassificationRuleCreate: {
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            pattern: string;
+            account_code: string;
+            /** Format: uuid */
+            source_statement_transaction_id?: string | null;
+        };
+        ClassificationRuleCreated: {
+            rule: components["schemas"]["ClassificationRule"];
+            /** @description Regras ativas de mesmo tipo e padrão, desativadas */
+            replaced_rule_ids: components["schemas"]["Uuid"][];
+        };
+        /** @description Regra que o sistema propõe ao contador (M5.5); só vale confirmada em POST /companies/{id}/classification-rules. */
+        ClassificationRuleProposal: {
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            pattern: string;
+            account_code: string;
+            source_statement_transaction_id: components["schemas"]["Uuid"];
+        };
+        /**
+         * @description agente com pending: à espera do agente ou do contador; agente sem pending: sugestão aceita
+         * @enum {string}
+         */
+        ClassificationOrigin: "regra" | "historico" | "agente" | "manual";
+        /** @description Classificação das linhas conciliadas da competência. */
+        ClassificationRunSummary: {
+            by_rule: number;
+            by_history: number;
+            /** @description Linhas sem regra nem histórico, à espera do agente ou do contador */
+            pending: number;
+        };
+        LineClassification: {
+            statement_transaction_id: components["schemas"]["Uuid"];
+            account_code: string | null;
+            origin: components["schemas"]["ClassificationOrigin"] | null;
+            pending: boolean;
+            /** Format: uuid */
+            rule_id: string | null;
+            /**
+             * Format: uuid
+             * @description Linha do histórico que classificou
+             */
+            history_line_id: string | null;
+            /** Format: uuid */
+            suggestion_id: string | null;
+            /** Format: uuid */
+            classified_by: string | null;
+            /** Format: date-time */
+            classified_at: string | null;
+        };
+        ClassificationCorrection: {
+            classification: components["schemas"]["LineClassification"];
+            proposed_rule: components["schemas"]["ClassificationRuleProposal"] | null;
+        };
+        /** @description A SugestaoClassificacao da origem, como o agente a devolveu (validada). */
+        ClassifierSuggestionPayload: {
+            conta_codigo: string | null;
+            conta_nome: string | null;
+            justificativa: string;
+            regra_sugerida: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava */
+            confianca: string;
+        };
+        /** @description Sugestão do agente classificador; só o aceite humano muda a conta da linha [AC-020]. */
+        ClassificationSuggestion: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            status: "pendente" | "aceita" | "rejeitada";
+            /** @description A conta sugerida, só quando está no plano ativo */
+            account_code: string | null;
+            suggestion: components["schemas"]["ClassifierSuggestionPayload"];
+            trace_id: string | null;
+            /**
+             * Format: uuid
+             * @description Quem pediu (nulo no classificador automático)
+             */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            decided_by: string | null;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        ClassificationSuggestionList: {
+            items: components["schemas"]["ClassificationSuggestion"][];
+        };
+        ClassificationSuggestionRequest: {
+            job_id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            already_queued: boolean;
+        };
+        ClassificationSuggestionDecision: {
+            suggestion_id: components["schemas"]["Uuid"];
+        };
+        ClassificationSuggestionAccept: {
+            classification: components["schemas"]["LineClassification"];
+            suggestion: components["schemas"]["ClassificationSuggestion"];
+            proposed_rule: components["schemas"]["ClassificationRuleProposal"] | null;
+        };
+        /** @description Linha do razão (uma conciliação ativa), com os ids do drill-down. */
+        LedgerLine: {
+            /** Format: date */
+            date: string;
+            competence: components["schemas"]["Competence"];
+            /** @description Conta bancária de origem (banco agência/conta) */
+            bank_account: string;
+            account_code: string | null;
+            account_name: string | null;
+            classification_origin: components["schemas"]["ClassificationOrigin"] | null;
+            classification_pending: boolean;
+            /** @description Descritivo do extrato */
+            history: string;
+            /** @description Contrapartes distintas dos comprovantes */
+            counterparty: string | null;
+            debit: components["schemas"]["DecimalString"];
+            credit: components["schemas"]["DecimalString"];
+            reconciliation_id: components["schemas"]["Uuid"];
+            reconciliation_method: string;
+            /** @enum {string} */
+            reconciliation_origin: "auto" | "manual";
+            statement_transaction_id: components["schemas"]["Uuid"];
+            statement_document_id: components["schemas"]["Uuid"];
+            entry_ids: components["schemas"]["Uuid"][];
+            receipt_document_ids: components["schemas"]["Uuid"][];
+        };
+        Ledger: {
+            company_id: components["schemas"]["Uuid"];
+            from: components["schemas"]["Competence"];
+            to: components["schemas"]["Competence"];
+            items: components["schemas"]["LedgerLine"][];
+            total_debit: components["schemas"]["DecimalString"];
+            total_credit: components["schemas"]["DecimalString"];
+        };
+        /** @description Conciliação no drill-down do razão (AC-021). */
+        ReconciliationDetail: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            method: string;
+            /** @enum {string} */
+            origin: "auto" | "manual";
+            pass: number | null;
+            score: components["schemas"]["DecimalString"] | null;
+            /** Format: uuid */
+            proposal_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            undone_at: string | null;
+            statement_transaction: {
+                id: components["schemas"]["Uuid"];
+                /** Format: date */
+                date: string;
+                competence: components["schemas"]["Competence"];
+                description: string;
+                amount: components["schemas"]["DecimalString"];
+                /** @enum {string} */
+                direction: "C" | "D";
+                bank_account: string;
+                statement_import_id: components["schemas"]["Uuid"];
+                statement_document_id: components["schemas"]["Uuid"];
+            };
+            entries: {
+                id: components["schemas"]["Uuid"];
+                /** Format: date */
+                date: string | null;
+                amount: components["schemas"]["DecimalString"] | null;
+                /** @enum {string|null} */
+                direction: "C" | "D" | null;
+                counterparty: string | null;
+                counterparty_doc: string | null;
+                document_ref: string | null;
+                status: components["schemas"]["ReconciliationEntryStatus"];
+                /**
+                 * Format: uuid
+                 * @description Original do comprovante
+                 */
+                document_id: string | null;
+            }[];
+            classification: {
+                account_code: string | null;
+                account_name: string | null;
+                origin: components["schemas"]["ClassificationOrigin"] | null;
+                pending: boolean;
+                rule: {
+                    id: components["schemas"]["Uuid"];
+                    rule_type: components["schemas"]["ClassificationRuleType"];
+                    pattern: string;
+                } | null;
+                /** Format: uuid */
+                history_line_id: string | null;
+                /** Format: uuid */
+                suggestion_id: string | null;
+                /** Format: uuid */
+                classified_by: string | null;
+                /** Format: date-time */
+                classified_at: string | null;
+            };
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -7096,6 +7733,559 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    listChartAccounts: {
+        parameters: {
+            query?: {
+                /** @description true: só as contas ativas */
+                active?: "true";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createChartAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChartAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Conta incluída */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    updateChartAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                accountId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChartAccountPatch"];
+            };
+        };
+        responses: {
+            /** @description Conta alterada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    importChartAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Plano importado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountsImport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description CSV acima de 2 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    copyChartAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    source_company_id: components["schemas"]["Uuid"];
+                };
+            };
+        };
+        responses: {
+            /** @description Contas copiadas */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountsCopy"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listClassificationRules: {
+        parameters: {
+            query?: {
+                /** @description true: só as ativas */
+                active?: "true";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regras */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRuleList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createClassificationRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationRuleCreate"];
+            };
+        };
+        responses: {
+            /** @description Regra confirmada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRuleCreated"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deactivateClassificationRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                ruleId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regra desativada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRule"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Regra já desativada (RULE_INACTIVE) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    runClassification: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Classificação da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRunSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    correctClassification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    account_code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Classificação gravada e regra proposta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationCorrection"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Linha não conciliada (LINE_NOT_RECONCILED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pedido na fila */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listClassificationSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sugestões */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationSuggestionDecision"];
+            };
+        };
+        responses: {
+            /** @description Sugestão aceita */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionAccept"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    rejectClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationSuggestionDecision"];
+            };
+        };
+        responses: {
+            /** @description Sugestão rejeitada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Sugestão já decidida (SUGGESTION_DECIDED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLedger: {
+        parameters: {
+            query: {
+                /** @description Competência inicial */
+                from: components["schemas"]["Competence"];
+                /** @description Competência final */
+                to: components["schemas"]["Competence"];
+                account?: string;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Razão do período */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ledger"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    exportLedger: {
+        parameters: {
+            query: {
+                format?: "csv";
+                from: components["schemas"]["Competence"];
+                to: components["schemas"]["Competence"];
+                account?: string;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description CSV do razão (razao-<cnpj>-<de>-<até>.csv) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getReconciliation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conciliação */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     getJob: {

@@ -150,6 +150,14 @@ Resolvedor de exceções (TASK-019, D-030):
 - só o aceite humano (`accept-proposal`) cria conciliação: origem `manual`, método `resolvedor` ou `sem_comprovante`, autor e proposta, só com linhas e lançamentos livres da empresa. Nunca chame `InsertManualReconciliation` ou `InsertAutoReconciliation` de outro lugar (o TEST-019 confere no código);
 - `RESOLVEDOR_AUTOMATICO` (padrão `false`): a rodada pede hipótese uma só vez para cada linha que sobrou.
 
+Classificação e razão (TASK-020, D-031):
+- domínio em `backend/internal/reconciliation/classification`: `classificar` (regra → histórico → agente), regra derivada da correção, `re.escape` e o schema da sugestão, travados por golden do Python da origem (`testdata/classification_gen.py`);
+- a classificação fica na linha do extrato conciliada (uma conta por linha do razão); regra e histórico rodam ao conciliar (`classify.Competence` na rodada, `classify.Lines` no aceite) e só preenchem o que não foi confirmado. Toda conciliação nova feita à mão deve passar por `classify.Lines`;
+- plano de contas e regras em `backend/internal/reconciliation/chart` (a regra mais nova vale; a do mesmo tipo e padrão substitui a antiga; regex só pelo `pytext`); correção, sugestão e agente `classificador` (job `agent_classifier`, só sugere) em `backend/internal/reconciliation/classify`;
+- a correção e o aceite só **propõem** a regra; ela vale quando confirmada em `POST /companies/{id}/classification-rules`;
+- razão em `backend/internal/reconciliation/ledger`: consulta sobre as conciliações ativas (nunca tabela), drill-down em `GET /reconciliation/reconciliations/{id}` e CSV; o XLSX é da TASK-028;
+- `CLASSIFICADOR_AUTOMATICO` (padrão `false`): a rodada pede sugestão de conta uma só vez por linha.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -29,6 +30,7 @@ import (
 	"controle/internal/platform/decimal"
 	"controle/internal/platform/httpx"
 	"controle/internal/reconciliation"
+	"controle/internal/reconciliation/classify"
 	"controle/internal/reconciliation/entries"
 	"controle/internal/reconciliation/matching"
 	"controle/internal/store"
@@ -42,12 +44,22 @@ type Service struct {
 	logger *slog.Logger
 	// resolverQueue liga o resolvedor automático (RESOLVEDOR_AUTOMATICO, TASK-019): nil, desligado.
 	resolverQueue *jobs.Queue
+	// classifierQueue liga o classificador automático (CLASSIFICADOR_AUTOMATICO, TASK-020): nil,
+	// desligado.
+	classifierQueue *jobs.Queue
 }
 
 // AutoResolve faz a rodada pedir hipótese ao resolvedor para as linhas que sobraram e nunca
 // tiveram proposta (uma vez por linha: a rejeitada não volta sozinha) [06 §4].
 func (s *Service) AutoResolve(q *jobs.Queue) *Service {
 	s.resolverQueue = q
+	return s
+}
+
+// AutoClassify faz a rodada pedir sugestão de conta ao agente para as linhas conciliadas que a
+// regra e o histórico não classificaram (uma vez por linha; D-031).
+func (s *Service) AutoClassify(q *jobs.Queue) *Service {
+	s.classifierQueue = q
 	return s
 }
 
@@ -89,6 +101,12 @@ type Summary struct {
 	// ResolverRequested são os pedidos de hipótese que a rodada enfileirou (resolvedor
 	// automático; zero quando desligado).
 	ResolverRequested int `json:"resolver_requested"`
+	// Classification é a classificação das linhas conciliadas da competência (regra → histórico;
+	// sem os dois, à espera do agente ou do contador; TASK-020).
+	Classification classify.Summary `json:"classification"`
+	// ClassifierRequested são os pedidos de sugestão de conta que a rodada enfileirou
+	// (classificador automático; zero quando desligado).
+	ClassifierRequested int `json:"classifier_requested"`
 }
 
 // Run executa a rodada numa transação própria (a API).
@@ -238,6 +256,12 @@ func (s *Service) RunTx(ctx context.Context, tx pgx.Tx, companyID string, comp c
 			sum.AwaitingReview++
 		}
 	}
+	if sum.Classification, err = classify.Competence(ctx, tx, companyID, comp, s.clock.Now()); err != nil {
+		return Summary{}, err
+	}
+	if err := s.autoClassify(ctx, tx, q, companyID, first, &sum); err != nil {
+		return Summary{}, err
+	}
 	if s.resolverQueue != nil {
 		lines, err := q.ListFreeLinesWithoutProposal(ctx, store.ListFreeLinesWithoutProposalParams{
 			CompanyID: companyID, Competence: &first, JobKind: reconciliation.JobResolve,
@@ -256,6 +280,33 @@ func (s *Service) RunTx(ctx context.Context, tx pgx.Tx, companyID string, comp c
 		}
 	}
 	return sum, nil
+}
+
+// autoClassify pede ao agente sugestão de conta para as linhas à espera dele que nunca tiveram
+// sugestão nem pedido (com o classificador automático e plano de contas).
+func (s *Service) autoClassify(ctx context.Context, tx pgx.Tx, q *store.Queries, companyID string, first time.Time, sum *Summary) error {
+	if s.classifierQueue == nil {
+		return nil
+	}
+	if n, err := q.CountActiveChartAccounts(ctx, companyID); err != nil || n == 0 {
+		return err
+	}
+	lines, err := q.ListLinesAwaitingAgent(ctx, store.ListLinesAwaitingAgentParams{
+		CompanyID: companyID, Competence: &first, JobKind: reconciliation.JobClassify,
+	})
+	if err != nil {
+		return err
+	}
+	for _, id := range lines {
+		_, created, err := reconciliation.EnqueueClassify(ctx, s.classifierQueue, tx, id, nil)
+		if err != nil {
+			return err
+		}
+		if created {
+			sum.ClassifierRequested++
+		}
+	}
+	return nil
 }
 
 // passNumber é o passe da cascata (1 a 4) na coluna smallint.

@@ -66,6 +66,10 @@ func TestCompose_MinIOCredentials(t *testing.T) {
 		if !strings.Contains(svc[name], "RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}") {
 			t.Errorf("o serviço %s deveria receber RESOLVEDOR_AUTOMATICO desligado por padrão", name)
 		}
+		// TASK-020: o classificador automático também nasce desligado.
+		if !strings.Contains(svc[name], "CLASSIFICADOR_AUTOMATICO: ${CLASSIFICADOR_AUTOMATICO:-false}") {
+			t.Errorf("o serviço %s deveria receber CLASSIFICADOR_AUTOMATICO desligado por padrão", name)
+		}
 	}
 	if strings.Contains(svc["api"], "depends_on:\n      minio") {
 		t.Error("a API não depende do MinIO para subir [D-013]")

@@ -363,6 +363,11 @@ func TestTEST019_AgentOnlyProposesAndHumanAcceptReconciles(t *testing.T) {
 		AND change::jsonb->>'proposta' = $1`, p.ID); n != 1 {
 		t.Fatal("aceite fora do log de extração")
 	}
+	// A linha conciliada entra na classificação (TASK-020): sem plano nem regra, à espera do agente.
+	if n := e.count(t, `SELECT count(*) FROM statement_transactions WHERE id = $1 AND classification_origin = 'agente'
+		AND classification_pending AND account_code IS NULL`, line); n != 1 {
+		t.Fatal("o aceite não passou a linha pela classificação")
+	}
 
 	// Decidida, a proposta não volta: aceitar ou rejeitar de novo é 409; a linha conciliada não
 	// pede outra hipótese.

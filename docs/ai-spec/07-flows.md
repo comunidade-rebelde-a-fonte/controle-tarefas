@@ -142,6 +142,11 @@ flowchart TD
   G --> H[Drill-down até documento]
 ```
 
+> **Como foi implementado (TASK-020; D-031).**
+> - A regra e o histórico (as classificações confirmadas dos meses anteriores, a mais recente vale) rodam ao conciliar: na rodada do matching e no aceite do resolvedor.
+> - Sem os dois, a linha fica à espera; o agente sugere a pedido do contador (ou com `CLASSIFICADOR_AUTOMATICO`), e a sugestão só vale aceita.
+> - A correção do contador propõe a regra derivada, que só vale confirmada. O razão é consulta sobre as conciliações ativas, com drill-down até os originais.
+
 ## F-008 — Integração Conciliação → Obrigação Contábil
 
 ```mermaid

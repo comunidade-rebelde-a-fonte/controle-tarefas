@@ -176,6 +176,13 @@ Razão como projeção.
 
 ### `GET /companies/{id}/ledger/export?format=xlsx|csv`
 
+> **Como foi implementado (TASK-020; D-031).**
+> - `GET /companies/{id}/ledger`: uma linha por conciliação ativa, com a conta bancária, a conta contábil e a origem da classificação, a contraparte, débito e crédito, os totais e os ids do drill-down; filtro `account` da origem. `GET /reconciliation/reconciliations/{id}` é o drill-down (classificação com a regra, transação e comprovantes com os originais).
+> - `export`: `format=csv` (as colunas da origem e as do AC-022); o XLSX chega com a TASK-028.
+> - Rotas a mais, do plano e das regras (M5.1, M5.2): `GET`/`POST /companies/{id}/chart-accounts`, `PATCH .../chart-accounts/{accountId}`, `POST .../chart-accounts/import` (CSV `codigo;nome`, tudo ou nada) e `POST .../chart-accounts/copy`; `GET`/`POST /companies/{id}/classification-rules` e `POST .../classification-rules/{ruleId}/deactivate`.
+> - Da classificação: `POST /companies/{id}/classification/run?competence=`; na revisão (o `{id}` é a linha), `PUT .../classification` (correção, com a regra derivada proposta), `POST .../classification-suggestion` (202, job `agent_classifier`), `GET .../classification-suggestions` e `POST .../accept-classification-suggestion` e `.../reject-classification-suggestion`.
+> - A rodada do matching devolve também `classification` (por regra, por histórico, pendentes) e `classifier_requested`.
+
 ## 5. Fechamento e sincronização
 
 Usar endpoints atuais do módulo Contábil para fechar/reabrir. A Conciliação deve refletir o estado.

@@ -2408,6 +2408,441 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
 
+  /companies/{id}/chart-accounts:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: listChartAccounts
+      summary: Plano de contas da empresa, por código [REQ-026, CC-20]
+      parameters:
+        - { name: active, in: query, description: "true: só as contas ativas", schema: { type: string, enum: ["true"] } }
+      responses:
+        "200":
+          description: Contas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartAccountList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [reconciliation]
+      operationId: createChartAccount
+      summary: Inclui uma conta no plano da empresa (M5.1)
+      description: |
+        Código sem espaço nem ponto e vírgula, até 32 caracteres; nome até 255. Código repetido na
+        empresa: 409 `ACCOUNT_CODE_EXISTS`. A ação fica no log de extração.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChartAccountCreate" }
+      responses:
+        "201":
+          description: Conta incluída
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartAccount" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /companies/{id}/chart-accounts/{accountId}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - { name: accountId, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    patch:
+      tags: [reconciliation]
+      operationId: updateChartAccount
+      summary: Altera o nome ou desativa (reativa) a conta; o código não muda
+      description: |
+        Desativada, a conta sai das novas classificações, das regras que apontam para ela e do
+        histórico; as classificações feitas ficam. Nada é apagado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ChartAccountPatch" }
+      responses:
+        "200":
+          description: Conta alterada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartAccount" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/chart-accounts/import:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: importChartAccounts
+      summary: Importa o plano de contas de um CSV (codigo;nome) [CC-20]
+      description: |
+        Uma conta por linha, separada por ponto e vírgula (colunas a mais são ignoradas); a 1ª linha
+        com "codigo" é o cabeçalho; linhas em branco são puladas. Tudo ou nada: com uma linha
+        inválida (ou código repetido no arquivo), nada é gravado e a resposta traz o erro de cada
+        linha (400 `INVALID_ACCOUNTS_CSV`, com `details.lines`). Conta que já existe ganha o nome do
+        arquivo e volta a ativa. UTF-8 ou Windows-1252, até 2 MB e 5.000 contas.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        "201":
+          description: Plano importado
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartAccountsImport" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "413":
+          description: CSV acima de 2 MB (FILE_TOO_LARGE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}/chart-accounts/copy:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: copyChartAccounts
+      summary: Copia o plano de outra empresa (o padrão) [CC-20, D-020]
+      description: |
+        As contas ativas da empresa padrão que esta ainda não tem; as que ela já tem ficam como
+        estão (`skipped`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_company_id]
+              additionalProperties: false
+              properties:
+                source_company_id: { $ref: "#/components/schemas/Uuid" }
+      responses:
+        "201":
+          description: Contas copiadas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartAccountsCopy" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/classification-rules:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: listClassificationRules
+      summary: Regras de classificação, da mais nova para a mais antiga (a ordem em que valem)
+      parameters:
+        - { name: active, in: query, description: "true: só as ativas", schema: { type: string, enum: ["true"] } }
+      responses:
+        "200":
+          description: Regras
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationRuleList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [reconciliation]
+      operationId: createClassificationRule
+      summary: Confirma uma regra de classificação (M5.2, M5.5) [REQ-027]
+      description: |
+        CNPJ (só os dígitos, 11 ou 14), contraparte (comparada normalizada) ou regex do descritivo
+        (o `re` do Python, com IGNORECASE, no subconjunto que o porte traduz). A conta precisa estar
+        no plano ativo. A regra vale para as próximas classificações e nunca troca o que já foi
+        confirmado; a mais nova vale, e a ativa com o mesmo tipo e padrão é desativada
+        (`replaced_rule_ids`). É também como o contador confirma a regra proposta depois da
+        correção ou do aceite da sugestão.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClassificationRuleCreate" }
+      responses:
+        "201":
+          description: Regra confirmada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationRuleCreated" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/classification-rules/{ruleId}/deactivate:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - { name: ruleId, in: path, required: true, schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: deactivateClassificationRule
+      summary: Desativa a regra (nunca apaga)
+      responses:
+        "200":
+          description: Regra desativada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationRule" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Regra já desativada (RULE_INACTIVE)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}/classification/run:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: runClassification
+      summary: Classifica as linhas conciliadas da competência — regra, depois histórico [REQ-026, AC-020]
+      description: |
+        A rodada do matching já classifica o que concilia; esta rota aplica uma regra recém-
+        confirmada às linhas que ainda esperam classificação. Só preenche o que não foi confirmado:
+        a classificação do contador nunca é trocada. Sem regra nem histórico (as classificações
+        confirmadas dos meses anteriores, a mais recente vale), a linha fica à espera do agente ou
+        do contador. Contábil fechado: 423 `PERIOD_CLOSED` [AC-025].
+      parameters:
+        - { name: competence, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Classificação da competência
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationRunSummary" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/classification:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    put:
+      tags: [reconciliation]
+      operationId: correctClassification
+      summary: Classifica a linha à mão e propõe a regra derivada (M5.5) [REQ-027]
+      description: |
+        Origem `manual`, com o autor. A resposta traz a regra derivada da correção (CNPJ, senão
+        contraparte, senão o descritivo escapado), que só vale depois de confirmada em
+        `POST /companies/{id}/classification-rules`. Só a linha conciliada é classificada (409
+        `LINE_NOT_RECONCILED`); a conta precisa estar no plano ativo (400); Contábil fechado: 423.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [account_code]
+              additionalProperties: false
+              properties:
+                account_code: { type: string }
+      responses:
+        "200":
+          description: Classificação gravada e regra proposta
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationCorrection" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Linha não conciliada (LINE_NOT_RECONCILED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/classification-suggestion:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: requestClassificationSuggestion
+      summary: Pede ao agente classificador uma conta para a linha [AC-020]
+      description: |
+        Enfileira o job `agent_classifier` (o mesmo job se o pedido já está na fila). Antes do
+        modelo, o job roda de novo a regra e o histórico; o agente só sugere uma conta do plano
+        ativo, e a sugestão fica pendente até o contador aceitar ou rejeitar. Recusas: 409
+        `LINE_NOT_RECONCILED`, `LINE_ALREADY_CLASSIFIED` (regra, histórico ou contador) e
+        `CHART_EMPTY`; 423 `PERIOD_CLOSED`.
+      responses:
+        "202":
+          description: Pedido na fila
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationSuggestionRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/classification-suggestions:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    get:
+      tags: [reconciliation]
+      operationId: listClassificationSuggestions
+      summary: Sugestões do agente para a linha, da mais recente para a mais antiga
+      responses:
+        "200":
+          description: Sugestões
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationSuggestionList" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/review/{id}/accept-classification-suggestion:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: acceptClassificationSuggestion
+      summary: Confirma a sugestão do agente — a única forma de a sugestão virar classificação [AC-020]
+      description: |
+        A linha ganha a conta com a origem `agente`, o autor e a sugestão. A resposta propõe a regra
+        sugerida pelo agente (ou, sem ela, a derivada), que só vale confirmada. Recusas: 404
+        `SUGGESTION_NOT_FOUND`; 409 `SUGGESTION_DECIDED`, `SUGGESTION_WITHOUT_ACCOUNT` (conta fora
+        do plano), `ACCOUNT_INACTIVE` e `LINE_NOT_RECONCILED`; 423 `PERIOD_CLOSED`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClassificationSuggestionDecision" }
+      responses:
+        "200":
+          description: Sugestão aceita
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationSuggestionAccept" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/reject-classification-suggestion:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: rejectClassificationSuggestion
+      summary: Rejeita a sugestão; a linha continua à espera da classificação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ClassificationSuggestionDecision" }
+      responses:
+        "200":
+          description: Sugestão rejeitada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ClassificationSuggestion" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409":
+          description: Sugestão já decidida (SUGGESTION_DECIDED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /companies/{id}/ledger:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getLedger
+      summary: Razão como consulta — uma linha por conciliação ativa [REQ-028, AC-021]
+      description: |
+        O linhas_razao da origem: as conciliações ativas das competências do período, por data e
+        conta bancária, com a conta contábil e a origem da classificação, a contraparte, o débito
+        (saída do extrato) e o crédito (entrada), e os ids do drill-down (conciliação, transação,
+        original do extrato, comprovantes e originais deles). Nunca tabela escrita: reclassificar ou
+        desfazer muda o razão porque muda a origem. `account` filtra como a origem: a conta bancária
+        contém o texto (sem caixa) ou a conta contábil é igual a ele.
+      parameters:
+        - { name: from, in: query, required: true, description: "Competência inicial", schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: to, in: query, required: true, description: "Competência final", schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: account, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: Razão do período
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ledger" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/ledger/export:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: exportLedger
+      summary: Exporta o razão filtrado em CSV [REQ-029, AC-022]
+      description: |
+        As colunas da origem (`data;conta;historico;debito;credito`) e as do AC-022 (`competencia`,
+        `conta_contabil`, `nome_conta`, `contraparte`, `origem_classificacao`, `origem_conciliacao`),
+        separadas por ponto e vírgula, na ordem do razão: determinístico para o mesmo banco. O XLSX
+        chega com a TASK-028.
+      parameters:
+        - { name: format, in: query, schema: { type: string, enum: [csv], default: csv } }
+        - { name: from, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: to, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: account, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: CSV do razão (razao-<cnpj>-<de>-<até>.csv)
+          content:
+            text/csv:
+              schema: { type: string }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/reconciliations/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliation
+      summary: Conciliação no drill-down do razão — classificação, transação e documentos [AC-021]
+      responses:
+        "200":
+          description: Conciliação
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
   /jobs/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -4459,7 +4894,7 @@ components:
         livres marcadas levam em `flags` a divergência (`tipo` divergencia: o `motivo`, os
         `candidatos` e as linhas `concorrentes`) ou o caso de borda (`tipo` borda: o `motivo` e os
         `relacionados`).
-      required: [company_id, competence, new_matches, by_pass, reconciled, divergent, without_receipt, without_statement, awaiting_review, resolver_requested]
+      required: [company_id, competence, new_matches, by_pass, reconciled, divergent, without_receipt, without_statement, awaiting_review, resolver_requested, classification, classifier_requested]
       properties:
         company_id: { $ref: "#/components/schemas/Uuid" }
         competence: { $ref: "#/components/schemas/Competence" }
@@ -4479,6 +4914,14 @@ components:
             Pedidos de hipótese que a rodada enfileirou para as linhas livres que nunca tiveram
             proposta nem pedido (RESOLVEDOR_AUTOMATICO; zero quando desligado). O resolvedor só
             sugere.
+        classification:
+          allOf: [{ $ref: "#/components/schemas/ClassificationRunSummary" }]
+          description: Classificação das linhas conciliadas da competência (regra → histórico; TASK-020)
+        classifier_requested:
+          type: integer
+          description: |
+            Pedidos de sugestão de conta que a rodada enfileirou para as linhas à espera do agente
+            que nunca tiveram sugestão nem pedido (CLASSIFICADOR_AUTOMATICO; zero quando desligado).
 
     ResolverPair:
       type: object
@@ -4548,6 +4991,307 @@ components:
       properties:
         proposal: { $ref: "#/components/schemas/ResolverProposal" }
         reconciliation_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+
+    ChartAccount:
+      type: object
+      description: Conta do plano de contas da empresa (plano_contas da origem).
+      required: [id, company_id, code, name, active, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        code: { type: string, maxLength: 32 }
+        name: { type: string, maxLength: 255 }
+        active: { type: boolean }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ChartAccountList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ChartAccount" } }
+
+    ChartAccountCreate:
+      type: object
+      required: [code, name]
+      additionalProperties: false
+      properties:
+        code: { type: string, maxLength: 32, description: "Sem espaço nem ponto e vírgula" }
+        name: { type: string, maxLength: 255 }
+
+    ChartAccountPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, maxLength: 255 }
+        active: { type: boolean }
+
+    ChartAccountsImport:
+      type: object
+      required: [inserted, updated]
+      properties:
+        inserted: { type: integer, description: "Contas novas" }
+        updated: { type: integer, description: "Contas que já existiam: nome do arquivo e reativadas" }
+
+    ChartAccountsCopy:
+      type: object
+      required: [inserted, skipped]
+      properties:
+        inserted: { type: integer, description: "Contas copiadas da empresa padrão" }
+        skipped: { type: integer, description: "Contas que a empresa já tinha" }
+
+    ClassificationRuleType:
+      type: string
+      enum: [cnpj, contraparte, regex_descritivo]
+
+    ClassificationRule:
+      type: object
+      description: Regra de classificação (regra_classificacao da origem); a mais nova vale.
+      required: [id, company_id, rule_type, pattern, account_code, active, source_statement_transaction_id, created_by, created_at, deactivated_by, deactivated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        rule_type: { $ref: "#/components/schemas/ClassificationRuleType" }
+        pattern: { type: string, description: "CNPJ só com os dígitos, contraparte ou regex do re do Python (IGNORECASE)" }
+        account_code: { type: string }
+        active: { type: boolean }
+        source_statement_transaction_id: { type: [string, "null"], format: uuid, description: "Linha cuja correção originou a regra" }
+        created_by: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+        deactivated_by: { type: [string, "null"], format: uuid }
+        deactivated_at: { type: [string, "null"], format: date-time }
+
+    ClassificationRuleList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ClassificationRule" } }
+
+    ClassificationRuleCreate:
+      type: object
+      required: [rule_type, pattern, account_code]
+      additionalProperties: false
+      properties:
+        rule_type: { $ref: "#/components/schemas/ClassificationRuleType" }
+        pattern: { type: string, maxLength: 512 }
+        account_code: { type: string }
+        source_statement_transaction_id: { type: [string, "null"], format: uuid }
+
+    ClassificationRuleCreated:
+      type: object
+      required: [rule, replaced_rule_ids]
+      properties:
+        rule: { $ref: "#/components/schemas/ClassificationRule" }
+        replaced_rule_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" }, description: "Regras ativas de mesmo tipo e padrão, desativadas" }
+
+    ClassificationRuleProposal:
+      type: object
+      description: Regra que o sistema propõe ao contador (M5.5); só vale confirmada em POST /companies/{id}/classification-rules.
+      required: [rule_type, pattern, account_code, source_statement_transaction_id]
+      properties:
+        rule_type: { $ref: "#/components/schemas/ClassificationRuleType" }
+        pattern: { type: string }
+        account_code: { type: string }
+        source_statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+
+    ClassificationOrigin:
+      type: string
+      enum: [regra, historico, agente, manual]
+      description: "agente com pending: à espera do agente ou do contador; agente sem pending: sugestão aceita"
+
+    ClassificationRunSummary:
+      type: object
+      description: Classificação das linhas conciliadas da competência.
+      required: [by_rule, by_history, pending]
+      properties:
+        by_rule: { type: integer }
+        by_history: { type: integer }
+        pending: { type: integer, description: "Linhas sem regra nem histórico, à espera do agente ou do contador" }
+
+    LineClassification:
+      type: object
+      required: [statement_transaction_id, account_code, origin, pending, rule_id, history_line_id, suggestion_id, classified_by, classified_at]
+      properties:
+        statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+        account_code: { type: [string, "null"] }
+        origin:
+          oneOf: [{ $ref: "#/components/schemas/ClassificationOrigin" }, { type: "null" }]
+        pending: { type: boolean }
+        rule_id: { type: [string, "null"], format: uuid }
+        history_line_id: { type: [string, "null"], format: uuid, description: "Linha do histórico que classificou" }
+        suggestion_id: { type: [string, "null"], format: uuid }
+        classified_by: { type: [string, "null"], format: uuid }
+        classified_at: { type: [string, "null"], format: date-time }
+
+    ClassificationCorrection:
+      type: object
+      required: [classification, proposed_rule]
+      properties:
+        classification: { $ref: "#/components/schemas/LineClassification" }
+        proposed_rule:
+          oneOf: [{ $ref: "#/components/schemas/ClassificationRuleProposal" }, { type: "null" }]
+
+    ClassifierSuggestionPayload:
+      type: object
+      description: A SugestaoClassificacao da origem, como o agente a devolveu (validada).
+      required: [conta_codigo, conta_nome, justificativa, regra_sugerida, confianca]
+      properties:
+        conta_codigo: { type: [string, "null"] }
+        conta_nome: { type: [string, "null"] }
+        justificativa: { type: string }
+        regra_sugerida: { type: [object, "null"], additionalProperties: true }
+        confianca: { type: string, description: "Decimal de 0 a 1 em texto, como o pydantic da origem o grava" }
+
+    ClassificationSuggestion:
+      type: object
+      description: Sugestão do agente classificador; só o aceite humano muda a conta da linha [AC-020].
+      required: [id, company_id, statement_transaction_id, status, account_code, suggestion, trace_id, created_by, created_at, decided_by, decided_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+        status: { type: string, enum: [pendente, aceita, rejeitada] }
+        account_code: { type: [string, "null"], description: "A conta sugerida, só quando está no plano ativo" }
+        suggestion: { $ref: "#/components/schemas/ClassifierSuggestionPayload" }
+        trace_id: { type: [string, "null"] }
+        created_by: { type: [string, "null"], format: uuid, description: "Quem pediu (nulo no classificador automático)" }
+        created_at: { type: string, format: date-time }
+        decided_by: { type: [string, "null"], format: uuid }
+        decided_at: { type: [string, "null"], format: date-time }
+
+    ClassificationSuggestionList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ClassificationSuggestion" } }
+
+    ClassificationSuggestionRequest:
+      type: object
+      required: [job_id, status, already_queued]
+      properties:
+        job_id: { $ref: "#/components/schemas/Uuid" }
+        status: { $ref: "#/components/schemas/JobStatus" }
+        already_queued: { type: boolean }
+
+    ClassificationSuggestionDecision:
+      type: object
+      required: [suggestion_id]
+      additionalProperties: false
+      properties:
+        suggestion_id: { $ref: "#/components/schemas/Uuid" }
+
+    ClassificationSuggestionAccept:
+      type: object
+      required: [classification, suggestion, proposed_rule]
+      properties:
+        classification: { $ref: "#/components/schemas/LineClassification" }
+        suggestion: { $ref: "#/components/schemas/ClassificationSuggestion" }
+        proposed_rule:
+          oneOf: [{ $ref: "#/components/schemas/ClassificationRuleProposal" }, { type: "null" }]
+
+    LedgerLine:
+      type: object
+      description: Linha do razão (uma conciliação ativa), com os ids do drill-down.
+      required: [date, competence, bank_account, account_code, account_name, classification_origin, classification_pending, history, counterparty, debit, credit, reconciliation_id, reconciliation_method, reconciliation_origin, statement_transaction_id, statement_document_id, entry_ids, receipt_document_ids]
+      properties:
+        date: { type: string, format: date }
+        competence: { $ref: "#/components/schemas/Competence" }
+        bank_account: { type: string, description: "Conta bancária de origem (banco agência/conta)" }
+        account_code: { type: [string, "null"] }
+        account_name: { type: [string, "null"] }
+        classification_origin:
+          oneOf: [{ $ref: "#/components/schemas/ClassificationOrigin" }, { type: "null" }]
+        classification_pending: { type: boolean }
+        history: { type: string, description: "Descritivo do extrato" }
+        counterparty: { type: [string, "null"], description: "Contrapartes distintas dos comprovantes" }
+        debit: { $ref: "#/components/schemas/DecimalString" }
+        credit: { $ref: "#/components/schemas/DecimalString" }
+        reconciliation_id: { $ref: "#/components/schemas/Uuid" }
+        reconciliation_method: { type: string }
+        reconciliation_origin: { type: string, enum: [auto, manual] }
+        statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+        statement_document_id: { $ref: "#/components/schemas/Uuid" }
+        entry_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+        receipt_document_ids: { type: array, items: { $ref: "#/components/schemas/Uuid" } }
+
+    Ledger:
+      type: object
+      required: [company_id, from, to, items, total_debit, total_credit]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        from: { $ref: "#/components/schemas/Competence" }
+        to: { $ref: "#/components/schemas/Competence" }
+        items: { type: array, items: { $ref: "#/components/schemas/LedgerLine" } }
+        total_debit: { $ref: "#/components/schemas/DecimalString" }
+        total_credit: { $ref: "#/components/schemas/DecimalString" }
+
+    ReconciliationDetail:
+      type: object
+      description: Conciliação no drill-down do razão (AC-021).
+      required: [id, company_id, method, origin, pass, score, proposal_id, created_by, created_at, undone_at, statement_transaction, entries, classification]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        method: { type: string }
+        origin: { type: string, enum: [auto, manual] }
+        pass: { type: [integer, "null"] }
+        score:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        proposal_id: { type: [string, "null"], format: uuid }
+        created_by: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+        undone_at: { type: [string, "null"], format: date-time }
+        statement_transaction:
+          type: object
+          required: [id, date, competence, description, amount, direction, bank_account, statement_import_id, statement_document_id]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            date: { type: string, format: date }
+            competence: { $ref: "#/components/schemas/Competence" }
+            description: { type: string }
+            amount: { $ref: "#/components/schemas/DecimalString" }
+            direction: { type: string, enum: [C, D] }
+            bank_account: { type: string }
+            statement_import_id: { $ref: "#/components/schemas/Uuid" }
+            statement_document_id: { $ref: "#/components/schemas/Uuid" }
+        entries:
+          type: array
+          items:
+            type: object
+            required: [id, date, amount, direction, counterparty, counterparty_doc, document_ref, status, document_id]
+            properties:
+              id: { $ref: "#/components/schemas/Uuid" }
+              date: { type: [string, "null"], format: date }
+              amount:
+                oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+              direction: { type: [string, "null"], enum: [C, D, null] }
+              counterparty: { type: [string, "null"] }
+              counterparty_doc: { type: [string, "null"] }
+              document_ref: { type: [string, "null"] }
+              status: { $ref: "#/components/schemas/ReconciliationEntryStatus" }
+              document_id: { type: [string, "null"], format: uuid, description: "Original do comprovante" }
+        classification:
+          type: object
+          required: [account_code, account_name, origin, pending, rule, history_line_id, suggestion_id, classified_by, classified_at]
+          properties:
+            account_code: { type: [string, "null"] }
+            account_name: { type: [string, "null"] }
+            origin:
+              oneOf: [{ $ref: "#/components/schemas/ClassificationOrigin" }, { type: "null" }]
+            pending: { type: boolean }
+            rule:
+              oneOf:
+                - type: object
+                  required: [id, rule_type, pattern]
+                  properties:
+                    id: { $ref: "#/components/schemas/Uuid" }
+                    rule_type: { $ref: "#/components/schemas/ClassificationRuleType" }
+                    pattern: { type: string }
+                - { type: "null" }
+            history_line_id: { type: [string, "null"], format: uuid }
+            suggestion_id: { type: [string, "null"], format: uuid }
+            classified_by: { type: [string, "null"], format: uuid }
+            classified_at: { type: [string, "null"], format: date-time }
 
     ReconciliationDocumentList:
       type: object

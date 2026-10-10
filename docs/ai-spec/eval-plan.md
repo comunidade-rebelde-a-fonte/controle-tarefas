@@ -81,6 +81,15 @@ Critério de parada: resolvedor persistir conciliação (§7).
 > - O TEST-019 prova que o agente não concilia: no banco, de ponta a ponta com o gateway simulado (inclusive com confiança alta e sem pedir humano), e no código (só o aceite chama a consulta que cria conciliação manual).
 > - A origem não tem golden de hipóteses: a qualidade das hipóteses fica para a avaliação humana (TASK-024).
 
+### Classificação e razão
+
+Critério de parada: classificação agentic dispensar confirmação indevidamente (§7).
+
+> **Como foi implementado (TASK-020; D-031).**
+> - Golden do Python da origem em `backend/internal/reconciliation/classification/testdata`: `classificar` (precedência, regras na ordem dada, histórico), a regra derivada, o `re.escape` e a `SugestaoClassificacao`.
+> - O TEST-020 prova, no banco: a precedência na rodada; que a correção só propõe a regra; que a regra confirmada vale e nunca troca o confirmado; que a sugestão do agente só muda a conta aceita; e o razão como consulta, com drill-down e CSV determinístico.
+> - A origem não tem golden de sugestões de conta: a qualidade fica para a avaliação humana (TASK-024).
+
 ## 4. Regressão de porte
 
 Antes de substituir uma capacidade do projeto auxiliar pela implementação Go:

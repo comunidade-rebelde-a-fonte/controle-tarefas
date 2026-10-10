@@ -216,6 +216,12 @@ Plano de contas por empresa, com capacidade de copiar padrão.
 
 Regra por empresa/padrão/cnpj/contraparte/regex → conta.
 
+> **Desde a TASK-020 (D-031, migration `0029`):**
+> - a classificação fica na linha do extrato conciliada (`account_code`, `classification_origin`, `classification_pending`), com o que a produziu (`classification_rule_id`, `classification_history_id`, `classification_suggestion_id`) e quem confirmou (`classified_by`, `classified_at`). Um CHECK garante a coerência de cada origem, e a conta é do plano da empresa (FK);
+> - a regra aponta a conta do plano e, quando veio de uma correção, a linha de origem; desativar guarda quem e quando (nada é apagado);
+> - `classification_suggestions` guarda a sugestão do agente (`payload` da `SugestaoClassificacao`, a conta só se estiver no plano, a corrida e a decisão humana);
+> - o razão é consulta sobre `reconciliations` ativas, sem tabela.
+
 ### `bank_playbooks`
 
 Preservar schema lógico congelado do Conciliador: banco, versão, localização da tabela/saldos, formato de data, separador decimal, sinal, páginas ignoradas, estratégia vencedora, valido, validado_em, métricas.

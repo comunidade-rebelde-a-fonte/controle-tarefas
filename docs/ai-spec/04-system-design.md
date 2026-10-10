@@ -161,6 +161,8 @@ Reutilizar:
 - `agent_resolver`
 - `langfuse_sync_retry`
 
+> **Desde a TASK-020 (D-031):** `agent_classifier` pede ao classificador a sugestão de conta de uma linha conciliada sem regra nem histórico (a pedido ou, com `CLASSIFICADOR_AUTOMATICO`, pela rodada). Grava só a sugestão.
+>
 > **Desde a TASK-019 (D-030):** `agent_resolver` pede ao resolvedor a hipótese de uma linha do extrato: a pedido do contador ou, com `RESOLVEDOR_AUTOMATICO`, pela rodada do matching. Grava só a proposta.
 
 ## 8. LiteLLM
@@ -211,6 +213,8 @@ Cada trace deve usar `trace_id` correlacionável com o registro local.
 Mudança exige ADR + aprovação humana.
 
 > **Na TASK-018:** os passes 1–4 ganharam, com aprovação do usuário, a ambiguidade dos dois lados, os casos de borda fora do automático e os parciais só depois da revisão (ADR-008). Os critérios de cada passe são os da origem.
+>
+> **Na TASK-020 (D-031):** a precedência regra → histórico → agente é a da origem; a sugestão do agente só muda a conta com o aceite humano, e a classificação automática nunca troca a confirmada. Por decisão do usuário, a classificação fica na linha conciliada e a regra mais nova vale.
 >
 > **Na TASK-019 (D-030):** o resolvedor só propõe. Só duas consultas criam conciliação, a da rodada determinística e a do aceite humano, e um teste prova no código que o agente não chama nenhuma delas.
 
