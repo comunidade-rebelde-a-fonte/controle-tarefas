@@ -149,6 +149,11 @@ Preservar o objetivo original da UI:
 - ações de teclado onde úteis;
 - justificativa do resolvedor visível como sugestão, não como fato.
 
+> **Como foi implementado (TASK-021a; D-032).** Área Conciliação no menu, com o submenu Fila de revisão (`/reconciliation`) e Documentos (`/reconciliation/documents`).
+> - **Fila:** os baldes com a contagem (revisão, divergências, extrato sem comprovante, comprovante sem extrato, classificação), filtros por empresa e competência, o motivo em texto. O item aberto mostra o original à esquerda e, à direita, os dados, os candidatos e as ações: conciliar (N:1), não há comprovante, desfazer com motivo, corrigir campo, "que documento é esse?", a hipótese do resolvedor e a classificação. J e K passam de item; Esc fecha.
+> - **Original:** as páginas do PDF como imagem, com a marcação de cada campo lido (bbox); imagem como está; CSV e TXT como texto.
+> - **Documentos:** envio por arrastar ou escolher, acompanhamento até o worker terminar (fila parada e falha com reenvio), lista filtrável e o detalhe com o original, os dados, a importação, os campos e as tentativas.
+
 ### Razão
 
 Tabela com filtros e drill-down em cadeia:

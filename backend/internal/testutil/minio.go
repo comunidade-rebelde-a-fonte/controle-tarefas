@@ -80,20 +80,29 @@ func startMinIO() {
 		minioErr = fmt.Errorf("subir MinIO de teste (Docker está rodando?): %w", err)
 		return
 	}
-	code, out, err := ctr.Exec(ctx, []string{"sh", "/scripts/init.sh"}, tcexec.Multiplexed(), tcexec.WithEnv([]string{
-		"MINIO_URL=http://localhost:9000",
-		"S3_ROOT_USER=" + m.RootUser, "S3_ROOT_PASSWORD=" + m.RootPassword,
-		"S3_ACCESS_KEY=" + m.AccessKey, "S3_SECRET_KEY=" + m.SecretKey, "S3_BUCKET=" + m.Bucket,
-	}))
-	if err != nil {
-		minioErr = fmt.Errorf("inicializar o MinIO de teste (init.sh): %w", err)
-		return
-	}
-	if code != 0 {
+	// O /minio/health/live responde antes de o servidor aceitar a administração: sob carga (todos
+	// os pacotes ao mesmo tempo), o init.sh pode ver "Server not initialized yet". Tenta de novo.
+	for attempt := 1; ; attempt++ {
+		code, out, err := ctr.Exec(ctx, []string{"sh", "/scripts/init.sh"}, tcexec.Multiplexed(), tcexec.WithEnv([]string{
+			"MINIO_URL=http://localhost:9000",
+			"S3_ROOT_USER=" + m.RootUser, "S3_ROOT_PASSWORD=" + m.RootPassword,
+			"S3_ACCESS_KEY=" + m.AccessKey, "S3_SECRET_KEY=" + m.SecretKey, "S3_BUCKET=" + m.Bucket,
+		}))
+		if err != nil {
+			minioErr = fmt.Errorf("inicializar o MinIO de teste (init.sh): %w", err)
+			return
+		}
+		if code == 0 {
+			break
+		}
 		msg := ""
 		if out != nil {
 			b, _ := io.ReadAll(out)
 			msg = string(b)
+		}
+		if attempt < 15 && strings.Contains(msg, "not initialized") {
+			time.Sleep(time.Second)
+			continue
 		}
 		minioErr = fmt.Errorf("inicializar o MinIO de teste (init.sh, código %d): %s", code, msg)
 		return

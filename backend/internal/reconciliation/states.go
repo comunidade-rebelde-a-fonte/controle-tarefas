@@ -1,5 +1,7 @@
 package reconciliation
 
+import "encoding/json"
+
 // Estados do documento da Conciliação (contrato congelado da origem, D-020): pendente → triado →
 // importado, com os desvios de revisão e de período fechado.
 const (
@@ -28,3 +30,22 @@ const (
 	// (TASK-020): o agente grava só a sugestão.
 	JobClassify = "agent_classifier"
 )
+
+// MarkUndone é a marca da linha cuja conciliação foi desfeita (TASK-021a): fica na linha (a
+// rodada não a troca) e tira a linha do automático, que não volta a casar sozinho o que o
+// contador desfez. A linha vai para a fila como divergência, com o motivo do desfazer.
+const MarkUndone = "desfeita"
+
+// HasMark informa se a lista de marcas (statement_transactions.flags) tem uma marca do tipo dado.
+func HasMark(flags []byte, kind string) bool {
+	var list []any
+	if json.Unmarshal(flags, &list) != nil {
+		return false
+	}
+	for _, x := range list {
+		if obj, ok := x.(map[string]any); ok && obj["tipo"] == kind {
+			return true
+		}
+	}
+	return false
+}

@@ -88,7 +88,8 @@ type Summary struct {
 	ByPass     map[string]int `json:"by_pass"`
 	// Reconciled são as linhas da competência conciliadas (balde "conciliado").
 	Reconciled int `json:"reconciled"`
-	// Divergent são as linhas livres marcadas para a fila: divergência ou caso de borda.
+	// Divergent são as linhas livres marcadas para a fila: divergência, caso de borda ou conciliação
+	// desfeita.
 	Divergent int `json:"divergent"`
 	// WithoutReceipt são as linhas livres sem marca (balde "extrato sem comprovante").
 	WithoutReceipt int `json:"without_receipt"`
@@ -179,6 +180,11 @@ func (s *Service) RunTx(ctx context.Context, tx pgx.Tx, companyID string, comp c
 	}
 	in := matching.RunInput{Options: s.opts}
 	for _, t := range free {
+		// A linha cuja conciliação foi desfeita não volta ao automático (TASK-021a): espera o
+		// contador na fila.
+		if reconciliation.HasMark(t.Flags, reconciliation.MarkUndone) {
+			continue
+		}
 		in.Statements = append(in.Statements, matching.Statement{ID: t.ID, Date: t.TxnDate, Amount: t.Amount, Direction: t.Direction, Description: t.Description})
 	}
 	for _, t := range near {
@@ -224,7 +230,7 @@ func (s *Service) RunTx(ctx context.Context, tx pgx.Tx, companyID string, comp c
 		var marks []matching.StatementMark
 		if !matched[t.ID] {
 			marks = out.Marks[t.ID]
-			if len(marks) > 0 {
+			if len(marks) > 0 || reconciliation.HasMark(t.Flags, reconciliation.MarkUndone) {
 				sum.Divergent++
 			} else {
 				sum.WithoutReceipt++

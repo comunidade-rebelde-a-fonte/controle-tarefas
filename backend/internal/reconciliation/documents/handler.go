@@ -29,6 +29,27 @@ func (h *Handler) Routes(r chi.Router) {
 	r.Get("/reconciliation/documents/{id}", h.get)
 	r.Get("/reconciliation/documents/{id}/file", h.file)
 	r.Post("/reconciliation/documents/{id}/retry", h.retry)
+	r.Post("/reconciliation/documents/{id}/identify", h.identify)
+}
+
+// identify é "que documento é esse?" (TASK-021a): 202, com o job da extração.
+func (h *Handler) identify(w http.ResponseWriter, r *http.Request) {
+	id, err := documentID(r)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	var in IdentifyInput
+	if err := httpx.DecodeJSON(w, r, &in); err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	out, err := h.svc.Identify(r.Context(), id, in)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusAccepted, out)
 }
 
 func documentID(r *http.Request) (string, error) {

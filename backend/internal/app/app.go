@@ -35,6 +35,7 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
 	"controle/internal/platform/objectstore"
+	"controle/internal/platform/pdftext"
 	"controle/internal/platform/settings"
 	"controle/internal/reconciliation/chart"
 	"controle/internal/reconciliation/classify"
@@ -43,6 +44,7 @@ import (
 	"controle/internal/reconciliation/ledger"
 	"controle/internal/reconciliation/proposals"
 	"controle/internal/reconciliation/reconcile"
+	"controle/internal/reconciliation/review"
 	"controle/internal/report"
 	"controle/internal/user"
 )
@@ -138,7 +140,11 @@ func New(d Deps) *App {
 			Endpoint: d.Config.S3Endpoint, Region: d.Config.S3Region, AccessKey: d.Config.S3AccessKey,
 			SecretKey: d.Config.S3SecretKey.Reveal(), Bucket: d.Config.S3Bucket,
 		})
-		documents.NewHandler(documents.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts), originals, d.Logger)).Routes(api)
+		docs := documents.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts), originals, d.Logger)
+		documents.NewHandler(docs).Routes(api)
+		// Visualizador da fila (TASK-021a): as páginas do PDF como imagem, no DPI do extrator; o
+		// PDFium só carrega na primeira página pedida.
+		documents.NewViewer(docs, pdftext.New(0)).Routes(api)
 		// Lançamentos do cliente (TASK-017): os lidos dos comprovantes e os manuais (CC-12).
 		entries.NewHandler(entries.NewService(d.Pool, aiClock)).Routes(api)
 		// Rodada do matching da competência (TASK-018): passes 1 a 4 com a regra dos dois lados; com
@@ -157,6 +163,9 @@ func New(d Deps) *App {
 		// Classificação e razão (TASK-020): plano de contas e regras por empresa; a classificação
 		// regra → histórico → agente (o agente roda no worker e só sugere); o razão como consulta.
 		chart.NewHandler(chart.NewService(d.Pool, aiClock)).Routes(api)
+		// Fila de revisão (TASK-021a): os baldes, a linha com os candidatos e as ações humanas
+		// (conciliar à mão, sem comprovante, desfazer e corrigir o comprovante).
+		review.NewHandler(review.NewService(d.Pool, aiClock, rounds)).Routes(api)
 		classify.NewHandler(classify.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
 		ledger.NewHandler(ledger.NewService(d.Pool)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.

@@ -158,6 +158,12 @@ Classificação e razão (TASK-020, D-031):
 - razão em `backend/internal/reconciliation/ledger`: consulta sobre as conciliações ativas (nunca tabela), drill-down em `GET /reconciliation/reconciliations/{id}` e CSV; o XLSX é da TASK-028;
 - `CLASSIFICADOR_AUTOMATICO` (padrão `false`): a rodada pede sugestão de conta uma só vez por linha.
 
+Fila de revisão e documentos (TASK-021a, D-032; a TASK-021 vai em três partes: 021a, 021b e 021c):
+- API da fila em `backend/internal/reconciliation/review`: baldes (revisão, divergência, extrato sem comprovante, comprovante sem extrato, classificação), a linha com os candidatos da origem, conciliar à mão (N:1), sem comprovante, desfazer (também a automática, com motivo; a linha ganha a marca `desfeita` e sai do automático) e a correção campo a campo do comprovante (roda a competência de novo);
+- "que documento é esse?" (`POST /reconciliation/documents/{id}/identify`) e o original como imagem (`.../pages/{page}`, PNG no DPI do extrator, para o bbox dos campos) em `documents`;
+- telas em `frontend/src/features/reconciliation` (`review/`, `documents/`), área Conciliação no menu com submenu;
+- `make e2e` sobe um MinIO só do E2E (projeto compose `controle-e2e`, porta 9102): nunca use o MinIO de dev em teste.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

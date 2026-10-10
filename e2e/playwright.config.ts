@@ -21,6 +21,15 @@ if (Number.isNaN(Date.parse(fixedTime))) {
 }
 
 const webURL = `http://localhost:${webPort}`;
+// MinIO só do E2E (make e2e: projeto compose controle-e2e), para os originais da Conciliação
+// (TASK-021a). Sem ele, o envio da Conciliação responde 503 e os testes dela não rodam.
+const s3 = {
+  S3_ENDPOINT: process.env.E2E_S3_ENDPOINT ?? "",
+  S3_REGION: "us-east-1",
+  S3_BUCKET: process.env.E2E_S3_BUCKET ?? "",
+  S3_ACCESS_KEY: process.env.E2E_S3_ACCESS_KEY ?? "",
+  S3_SECRET_KEY: process.env.E2E_S3_SECRET_KEY ?? "",
+};
 // Worker dos jobs (TASK-014b): lê os extratos do inbox PGDAS-D enviados pela tela. Mesmo banco e
 // mesmo armazenamento da API; o healthcheck dele avisa o Playwright de que está no ar.
 const workerHealthPort = process.env.E2E_WORKER_HEALTH_PORT ?? "8094";
@@ -80,6 +89,7 @@ export default defineConfig({
         LITELLM_BASE_URL: litellmURL,
         LITELLM_API_KEY: E2E_GATEWAY_KEY,
         ...aiModels,
+        ...s3,
       },
     },
     {
@@ -98,6 +108,8 @@ export default defineConfig({
         WORKER_HEALTH_PORT: workerHealthPort,
         FILE_STORAGE_DIR: storageDir,
         LOG_LEVEL: "warn",
+        // Os documentos da Conciliação nos E2E seguem os leitores determinísticos (sem LLM).
+        ...s3,
       },
     },
     {

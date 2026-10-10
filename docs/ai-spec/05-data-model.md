@@ -221,6 +221,8 @@ Regra por empresa/padrão/cnpj/contraparte/regex → conta.
 > - a regra aponta a conta do plano e, quando veio de uma correção, a linha de origem; desativar guarda quem e quando (nada é apagado);
 > - `classification_suggestions` guarda a sugestão do agente (`payload` da `SugestaoClassificacao`, a conta só se estiver no plano, a corrida e a decisão humana);
 > - o razão é consulta sobre `reconciliations` ativas, sem tabela.
+>
+> **Desde a TASK-021a (D-032):** desfazer marca `undone_at`, `undone_by` e `undo_reason` e libera os itens (`released_at`); a linha ganha em `flags` a marca `{tipo: "desfeita", motivo: "conciliacao_desfeita", conciliacao, metodo, origem, justificativa}`, que a rodada não troca e que a tira do automático.
 
 ### `bank_playbooks`
 

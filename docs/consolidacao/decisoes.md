@@ -4,6 +4,41 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-032 — Fila de revisão e documentos da Conciliação (TASK-021a; 10/10/2026; recorte, desfazer e visualizador decididos pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Recorte (decisão do usuário).** A TASK-021 foi dividida em três partes, cada uma com validação e commit:
+  - 021a: a fila de revisão e os documentos, com as ações da fila na API (a prioridade de UX);
+  - 021b: lançamentos, razão com drill-down, plano de contas e regras (a API já existe);
+  - 021c: playbooks, métricas e a aba Conciliação da ficha.
+- **Porte** da rota `/fila` e das ações `conciliar`, `sem-comprovante` e `desfazer` (`app/web/rotas.py`), de `candidatos_para_extrato` e `candidatos_para_comprovante` e das telas `fila.html`, `documentos.html` e `documento.html` do Conciliador (commit `2bc6e26`).
+  - API em `backend/internal/reconciliation/review`; o visualizador e "que documento é esse?" em `documents`.
+  - Telas em `frontend/src/features/reconciliation`.
+- **Fila (08 §7).** Os baldes da origem com a contagem:
+  - `revisao`: documento em revisão da triagem ou da extração, ou parado por período fechado, e comprovante parcial;
+  - `divergencia`: linha livre com divergência, caso de borda (TASK-018) ou conciliação desfeita;
+  - `extrato_sem`: linha livre sem marca;
+  - `comprovante_sem`: comprovante completo sem extrato;
+  - `classificacao` (novo): linha conciliada à espera da classificação (TASK-020).
+  - Filtros por empresa, competência e balde. A origem não filtrava: listava tudo do banco.
+  - O item aberto mostra o original à esquerda e, à direita, os dados, os candidatos e as ações. J e K passam de item; Esc fecha.
+  - O motivo aparece em texto, com os textos da origem (`motivo_legivel`).
+- **Ações da fila**, todas humanas, no log de extração, com a trava do Contábil (AC-025) e serializadas com a rodada da empresa:
+  - **conciliar à mão:** a origem casava um comprovante; aqui são um ou mais (N:1), com a diferença de valor na resposta (a origem não conferia o valor). A linha passa pela classificação;
+  - **"não há comprovante":** como a origem (`sem_comprovante`), também com a classificação;
+  - **desfazer (decisão do usuário):** vale para a conciliação automática também, com motivo obrigatório. A origem apagava a conciliação, e só a manual. Nada é apagado: ficam quem, quando e por quê, e os comprovantes ficam livres. A linha perde a classificação e ganha a marca `desfeita`, que a rodada não troca: ela volta para a fila como divergência e não volta sozinha ao automático;
+  - **corrigir o comprovante campo a campo** (REQ-023; a origem só planejava, M2.6): os campos enviados, com as regras do lançamento manual. O campo corrigido ganha confiança 1 e origem humana. Com os essenciais preenchidos, o parcial vira `extraido` e a competência roda de novo, na mesma transação;
+  - **"que documento é esse?"** (a origem só listava esses documentos): o contador diz o tipo, a empresa e, no extrato, banco, agência, conta e período. Os dados que ele não informa ficam como a triagem leu. O documento volta à extração, com os mesmos portões. Documento que não é da Conciliação continua em revisão: não há estado de descarte no contrato congelado.
+- **Candidatos** da origem: os lançamentos livres de mesmo valor e sentido em D±3 e os anotados pelo matching, do mais perto ao mais longe; para o comprovante, as linhas livres em D±3.
+- **Original (decisão do usuário):** as páginas do PDF como imagem, renderizadas pela API com o mesmo PDFium do extrator, no DPI do extrator do comprovante (150). Assim o bbox de cada campo lido cai no lugar e é desenhado por cima. Os cabeçalhos de segurança da API não mudaram (o PDF numa moldura exigiria `X-Frame-Options: SAMEORIGIN`). Imagem aparece como está; CSV e TXT, como texto.
+- **Documentos.** Envio por arrastar ou escolher, com a empresa e a competência opcionais. A tela acompanha cada documento até o worker terminar e mostra a fila parada e a falha com reenvio. A lista filtra por status e empresa. O detalhe mostra o original, os dados da triagem, a importação, os campos do comprovante (com a confiança e a correção), as tentativas e as ações.
+- **Resolvedor e classificação na fila.** A hipótese do resolvedor e a sugestão do agente aparecem como sugestão, não como fato (08 §7), com aceitar e rejeitar. A correção da conta e o aceite mostram a regra proposta, com "confirmar regra".
+- **Menu.** A área Conciliação entrou no menu principal (08 §2), com o submenu Fila de revisão e Documentos.
+- **E2E.** `make e2e` sobe também um MinIO só do E2E: projeto compose próprio (`controle-e2e`), porta 9102, volume e credenciais de teste. Nunca usa o MinIO de dev.
+  - O TEST-021a envia o extrato e um comprovante do cenário Horizonte, que o worker lê sem LLM.
+  - Depois concilia à mão, desfaz com motivo, confirma "não há comprovante" e abre o documento com a página como imagem.
+  - O axe roda em quatro telas e diálogos.
+- **Fica para depois:** 021b (lançamentos, razão, plano e regras) e 021c (playbooks, métricas, aba da ficha).
+
 ### D-031 — Classificação contábil e razão da Conciliação (TASK-020; 10/10/2026; quatro regras de negócio decididas pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** de `app/domain/classificacao.py`, `app/agentes/classificador.py` (com o prompt), da `SugestaoClassificacao` (`app/domain/schemas.py`), dos modelos `PlanoContas` e `RegraClassificacao` e de `app/servicos/razao.py` do Conciliador (commit `2bc6e26`).

@@ -53,6 +53,15 @@ E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
+# MinIO só do E2E (TASK-021a): projeto compose próprio (controle-e2e), com volume, porta e
+# credenciais próprios; nunca o MinIO de dev. O mesmo init.sh: bucket versionado e usuário da
+# aplicação sem permissão de apagar. As credenciais são de teste, descartáveis.
+E2E_MINIO_PORT ?= 9102
+E2E_MINIO_CONSOLE_PORT ?= 9103
+E2E_S3_BUCKET := conciliacao-e2e
+E2E_S3_ACCESS_KEY := conciliacao-e2e-app
+E2E_S3_SECRET_KEY := e2e-only-not-a-secret-app
+E2E_MINIO := MINIO_PORT=$(E2E_MINIO_PORT) MINIO_CONSOLE_PORT=$(E2E_MINIO_CONSOLE_PORT) S3_ROOT_USER=minio-e2e S3_ROOT_PASSWORD=e2e-only-not-a-secret-root 	S3_BUCKET=$(E2E_S3_BUCKET) S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) $(COMPOSE) -p controle-e2e
 
 .PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
 
@@ -201,10 +210,12 @@ perf-generate: ## Massa sintética no controle_perf (COMPANIES=300 COMPETENCES=3
 perf-bench: ## Mede grades, dashboard, backlog, exportações, ensure, PATCH e bulk no controle_perf (BENCH_ARGS="-iterations 50")
 	@$(LOADGEN) bench $(BENCH_ARGS)
 
-e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
+e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução) e o MinIO só do E2E
 	$(COMPOSE) up -d --wait db
+	$(E2E_MINIO) up -d --wait minio
+	$(E2E_MINIO) run --rm minio-init
 	@APP_FIXED_TIME='$(E2E_FIXED_TIME)' $(MAKE) --no-print-directory db-clean DB=e2e
 	@test -d e2e/node_modules || (cd e2e && npm ci --no-audit --no-fund)
 	@cd e2e && npx playwright install chromium >/dev/null
 	@echo ">>> playwright (API :$(E2E_API_PORT) e SPA :$(E2E_WEB_PORT) sobre controle_e2e, relógio fixo em $(E2E_FIXED_TIME))"
-	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_FIXED_TIME='$(E2E_FIXED_TIME)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) npx playwright test $(ARGS)
+	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_FIXED_TIME='$(E2E_FIXED_TIME)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) 		E2E_S3_ENDPOINT=http://localhost:$(E2E_MINIO_PORT) E2E_S3_BUCKET=$(E2E_S3_BUCKET) E2E_S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) 		E2E_S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) npx playwright test $(ARGS)

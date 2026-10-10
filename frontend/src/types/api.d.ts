@@ -2128,6 +2128,250 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reconciliation/review-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fila de revisão por balde, com as contagens [08 §7, REQ-019, REQ-024]
+         * @description A fila da origem (/fila): documentos e comprovantes parciais em revisão (`revisao`), linhas
+         *     livres marcadas (`divergencia`: divergência, caso de borda ou conciliação desfeita) e sem
+         *     marca (`extrato_sem`), comprovantes completos sem extrato (`comprovante_sem`) e, da TASK-020,
+         *     linhas conciliadas à espera da classificação (`classificacao`). Filtros opcionais por
+         *     empresa, competência (itens sem data aparecem em qualquer competência) e balde.
+         */
+        get: operations["getReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A linha do extrato na fila — conciliação ou candidatos
+         * @description A linha com a empresa, a conta bancária, o original do extrato e as marcas. Conciliada, a
+         *     conciliação ativa com os comprovantes; livre, os candidatos da origem
+         *     (candidatos_para_extrato): lançamentos livres de mesmo valor e sentido em D±3, mais os que o
+         *     matching anotou, do mais perto ao mais longe.
+         */
+        get: operations["getReviewLine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/manual-match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Concilia a linha à mão com um ou mais lançamentos (N:1) [REQ-024]
+         * @description O conciliar_manual da origem, com N lançamentos: origem `manual`, método `manual` e o autor.
+         *     Os lançamentos precisam ser da empresa e estar livres (409 `ENTRY_NOT_FREE`); a linha, livre
+         *     (409 `LINE_RECONCILED`). O valor não é conferido, como na origem: a diferença vai na
+         *     resposta. A linha passa pela classificação (TASK-020). Contábil fechado: 423.
+         */
+        post: operations["manualMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/confirm-no-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * "Não há comprovante": concilia a linha sem lançamento
+         * @description O marcar_sem da origem: método `sem_comprovante`, origem `manual` e o autor; a linha passa
+         *     pela classificação. Linha conciliada: 409 `LINE_RECONCILED`; Contábil fechado: 423.
+         */
+        post: operations["confirmNoReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * O comprovante na fila — conciliação ou linhas candidatas
+         * @description O lançamento, a conciliação ativa (se houver) e, livre e completo, as linhas candidatas da
+         *     origem (candidatos_para_comprovante): linhas livres de mesmo valor e sentido em D±3.
+         */
+        get: operations["getReconciliationEntry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Corrige campos do comprovante — a revisão campo a campo [REQ-023]
+         * @description Só os campos enviados mudam (texto vazio limpa o opcional), com as regras do lançamento
+         *     manual. O campo corrigido ganha confiança 1 e origem humana. Com os campos essenciais
+         *     (data, valor, sentido, contraparte), o parcial sai da revisão (`extraido`; o manual continua
+         *     manual) e a competência roda de novo (`round`). Só o lançamento livre (409
+         *     `ENTRY_RECONCILED`); Contábil fechado na data antiga ou nova: 423.
+         */
+        patch: operations["correctReconciliationEntry"];
+        trace?: never;
+    };
+    "/reconciliation/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** As últimas conciliações ativas (para desfazer) */
+        get: operations["listRecentReconciliations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/reconciliations/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desfaz a conciliação, automática ou manual, com motivo [D-032]
+         * @description Nada é apagado: a conciliação guarda quem, quando e por quê, e os lançamentos ficam livres.
+         *     A linha perde a classificação e ganha a marca `desfeita`: volta para a fila como divergência
+         *     e não volta sozinha ao automático. Já desfeita: 409 `RECONCILIATION_UNDONE`; Contábil
+         *     fechado: 423.
+         */
+        post: operations["undoReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/identify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * "Que documento é esse?": o contador diz o tipo e a empresa [REQ-019]
+         * @description Para o documento em revisão da triagem ou da extração (o comprovante sem lançamento): o tipo
+         *     (extrato ou comprovante), a empresa e, no extrato, banco, agência, conta e período (os não
+         *     informados ficam como a triagem leu). O documento volta para a extração (202, com o job),
+         *     com os mesmos portões. Outro estado: 409 `DOCUMENT_NOT_IDENTIFIABLE`; já na fila: 409
+         *     `DOCUMENT_NOT_RETRYABLE`; Contábil fechado: 423.
+         */
+        post: operations["identifyReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Como mostrar o original na fila — páginas do PDF como imagem [D-032]
+         * @description PDF: o total de páginas, renderizadas em `GET .../pages/{page}` no DPI do extrator do
+         *     comprovante (o bbox de cada campo cai no lugar). Sem páginas (`pages` 0: imagem ou texto),
+         *     a tela abre o próprio arquivo (`GET .../file`).
+         */
+        get: operations["getReconciliationDocumentPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                /** @description Página, a partir de 1 */
+                page: number;
+            };
+            cookie?: never;
+        };
+        /** A página do PDF renderizada (PNG) */
+        get: operations["getReconciliationDocumentPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/jobs/{id}": {
         parameters: {
             query?: never;
@@ -4080,6 +4324,185 @@ export interface components {
                 /** Format: date-time */
                 classified_at: string | null;
             };
+        };
+        /**
+         * @description revisao: documento em revisão (triagem, extração, período fechado) ou comprovante parcial;
+         *     divergencia: linha livre com divergência, caso de borda ou conciliação desfeita;
+         *     extrato_sem: linha livre sem marca; comprovante_sem: comprovante completo sem extrato;
+         *     classificacao: linha conciliada à espera da classificação.
+         * @enum {string}
+         */
+        ReviewBucket: "revisao" | "divergencia" | "extrato_sem" | "comprovante_sem" | "classificacao";
+        ReviewQueueItem: {
+            /** @enum {string} */
+            kind: "linha" | "comprovante" | "documento";
+            id: components["schemas"]["Uuid"];
+            bucket: components["schemas"]["ReviewBucket"];
+            /** Format: uuid */
+            company_id: string | null;
+            company_code: string | null;
+            company_name: string | null;
+            /** @description Estado do documento, status do lançamento ou tipo da marca da linha */
+            state: string;
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            /** @description Descritivo, contraparte ou nome do arquivo */
+            summary: string;
+            /** @description Código do motivo (a tela mostra o texto) */
+            reason: string | null;
+            competence: components["schemas"]["Competence"] | null;
+        };
+        ReviewQueue: {
+            items: components["schemas"]["ReviewQueueItem"][];
+            /** @description Por balde e o total (total) */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        ReviewLine: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            company_code: string;
+            company_name: string;
+            /** Format: date */
+            date: string;
+            competence: components["schemas"]["Competence"];
+            description: string;
+            document_ref: string | null;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            balance_after: components["schemas"]["DecimalString"] | null;
+            bank_account: string;
+            statement_import_id: components["schemas"]["Uuid"];
+            statement_document_id: components["schemas"]["Uuid"];
+            /** @description Marcas da linha: divergência, borda, desfeita (objetos com tipo e motivo) */
+            marks: unknown[];
+            account_code: string | null;
+            classification_origin: components["schemas"]["ClassificationOrigin"] | null;
+            classification_pending: boolean;
+        };
+        ReviewEntry: {
+            id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            counterparty: string | null;
+            counterparty_doc: string | null;
+            document_ref: string | null;
+            status: components["schemas"]["ReconciliationEntryStatus"];
+            /** Format: uuid */
+            document_id: string | null;
+        };
+        ReviewCandidate: components["schemas"]["ReviewEntry"] & {
+            operation_type: string | null;
+            /** @description Dias até a linha (nulo sem data) */
+            days_apart: number | null;
+            /** @description Anotado pelo matching na divergência */
+            annotated: boolean;
+        };
+        ReviewLineDetail: {
+            line: components["schemas"]["ReviewLine"];
+            reconciliation: {
+                id: components["schemas"]["Uuid"];
+                method: string;
+                /** @enum {string} */
+                origin: "auto" | "manual";
+                pass: number | null;
+                /** Format: uuid */
+                created_by: string | null;
+                /** Format: date-time */
+                created_at: string;
+                entries: components["schemas"]["ReviewEntry"][];
+                entries_total: components["schemas"]["DecimalString"];
+            } | null;
+            candidates: components["schemas"]["ReviewCandidate"][];
+        };
+        ManualMatchResult: {
+            reconciliation_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            method: "manual" | "sem_comprovante";
+            entries_total: components["schemas"]["DecimalString"];
+            /** @description Valor da linha menos a soma dos lançamentos */
+            difference: components["schemas"]["DecimalString"];
+            /** @description Origem da classificação aplicada (regra, historico, agente) ou vazio */
+            classification: string;
+        };
+        ReviewLineCandidate: {
+            id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            description: string;
+            bank_account: string;
+            days_apart: number;
+        };
+        ReviewEntryDetail: {
+            entry: components["schemas"]["ReconciliationClientEntry"];
+            /** Format: uuid */
+            reconciliation_id: string | null;
+            /** Format: uuid */
+            statement_transaction_id: string | null;
+            candidates: components["schemas"]["ReviewLineCandidate"][];
+        };
+        /** @description Só os campos enviados mudam; texto vazio limpa o opcional. */
+        EntryFieldsPatch: {
+            /** Format: date */
+            date?: string;
+            /** @description Positivo, até 2 casas (ponto ou vírgula) */
+            amount?: string;
+            /** @enum {string} */
+            direction?: "C" | "D";
+            counterparty?: string;
+            /** @description CPF ou CNPJ (11 ou 14 dígitos) */
+            counterparty_doc?: string;
+            document_ref?: string;
+        };
+        EntryCorrection: {
+            entry: components["schemas"]["ReconciliationClientEntry"];
+            round: components["schemas"]["ReconciliationRunSummary"] | null;
+        };
+        RecentReconciliation: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            company_code: string;
+            method: string;
+            /** @enum {string} */
+            origin: "auto" | "manual";
+            pass: number | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            description: string;
+        };
+        RecentReconciliationList: {
+            items: components["schemas"]["RecentReconciliation"][];
+        };
+        DocumentIdentify: {
+            /** @enum {string} */
+            kind: "extrato" | "comprovante";
+            company_id: components["schemas"]["Uuid"];
+            bank?: string | null;
+            branch?: string | null;
+            account?: string | null;
+            /** Format: date */
+            period_start?: string | null;
+            /** Format: date */
+            period_end?: string | null;
         };
         ReconciliationDocumentList: {
             items: components["schemas"]["ReconciliationDocument"][];
@@ -8286,6 +8709,357 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    getReviewQueue: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+                bucket?: components["schemas"]["ReviewBucket"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Itens e contagens por balde (o total em `total`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewQueue"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getReviewLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linha */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewLineDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    manualMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    entry_ids: components["schemas"]["Uuid"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Conciliação criada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualMatchResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmNoReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linha confirmada sem comprovante */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualMatchResult"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lançamento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewEntryDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    correctReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryFieldsPatch"];
+            };
+        };
+        responses: {
+            /** @description Lançamento corrigido */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryCorrection"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listRecentReconciliations: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                origin?: "auto" | "manual";
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conciliações, da mais recente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentReconciliationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    undoReconciliation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Conciliação desfeita */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        reconciliation_id: components["schemas"]["Uuid"];
+                        statement_transaction_id: components["schemas"]["Uuid"];
+                        /** Format: date-time */
+                        undone_at: string;
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    identifyReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentIdentify"];
+            };
+        };
+        responses: {
+            /** @description Documento de volta à extração */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationDocumentPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Páginas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        content_type: string;
+                        pages: number;
+                        dpi: number;
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getReconciliationDocumentPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                /** @description Página, a partir de 1 */
+                page: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página em PNG */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
         };
     };
     getJob: {

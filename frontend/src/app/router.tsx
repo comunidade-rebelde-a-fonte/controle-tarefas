@@ -20,6 +20,10 @@ import { InboxPage } from "@/features/factor-r/inbox/InboxPage";
 import { PgdasDocumentPage } from "@/features/factor-r/inbox/PgdasDocumentPage";
 import { ObservabilityPage } from "@/features/factor-r/runs/ObservabilityPage";
 import { RunDetailPage } from "@/features/factor-r/runs/RunDetailPage";
+import { DocumentPage } from "@/features/reconciliation/documents/DocumentPage";
+import { DocumentsPage } from "@/features/reconciliation/documents/DocumentsPage";
+import { ReconciliationLayout } from "@/features/reconciliation/ReconciliationLayout";
+import { ReviewQueuePage } from "@/features/reconciliation/review/ReviewQueuePage";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -48,6 +52,16 @@ export const routes = [
           { path: "agents", element: <AgentsPage /> },
           { path: "runs", element: <ObservabilityPage /> },
           { path: "runs/:traceId", element: <RunDetailPage /> },
+        ],
+      },
+      {
+        // Área Conciliação com submenu (TASK-021a, D-032): fila de revisão e documentos.
+        path: "reconciliation",
+        element: <ReconciliationLayout />,
+        children: [
+          { index: true, element: <ReviewQueuePage /> },
+          { path: "documents", element: <DocumentsPage /> },
+          { path: "documents/:id", element: <DocumentPage /> },
         ],
       },
       { path: "credentials", element: <CredentialsPage /> },

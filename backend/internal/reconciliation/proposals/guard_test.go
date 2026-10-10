@@ -98,8 +98,10 @@ func recvName(e ast.Expr) string {
 func TestTEST019_OnlyHumanAcceptCallsTheManualInsert(t *testing.T) {
 	got := callers(t, "InsertManualReconciliation", "InsertAutoReconciliation", "InsertReconciliationItem", "DecideResolverProposal")
 	want := map[string][]string{
-		"InsertManualReconciliation": {"internal/reconciliation/proposals/service.go:Service.Accept"},
-		"InsertAutoReconciliation":   {"internal/reconciliation/reconcile/service.go:Service.RunTx"},
+		// Só ações humanas: o aceite da proposta e a fila (conciliar à mão e sem comprovante).
+		"InsertManualReconciliation": {"internal/reconciliation/proposals/service.go:Service.Accept",
+			"internal/reconciliation/review/actions.go:Service.create"},
+		"InsertAutoReconciliation": {"internal/reconciliation/reconcile/service.go:Service.RunTx"},
 		"DecideResolverProposal": {"internal/reconciliation/proposals/service.go:Service.Accept",
 			"internal/reconciliation/proposals/service.go:Service.Reject"},
 	}
@@ -109,7 +111,8 @@ func TestTEST019_OnlyHumanAcceptCallsTheManualInsert(t *testing.T) {
 		}
 	}
 	for _, place := range got["InsertReconciliationItem"] {
-		if place != "internal/reconciliation/proposals/service.go:Service.Accept" && !strings.HasPrefix(place, "internal/reconciliation/reconcile/") {
+		if place != "internal/reconciliation/proposals/service.go:Service.Accept" && place != "internal/reconciliation/review/actions.go:Service.create" &&
+			!strings.HasPrefix(place, "internal/reconciliation/reconcile/") {
 			t.Errorf("InsertReconciliationItem chamado em %s", place)
 		}
 	}

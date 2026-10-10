@@ -419,3 +419,10 @@ func droppedSpaces(prev, c *mchar, spacing float64) int {
 	}
 	return int(n)
 }
+
+// PageCount é o total de páginas do PDF, sem ler o texto (o visualizador da fila, TASK-021a).
+func (e *Extractor) PageCount(ctx context.Context, data []byte) (int, error) {
+	return run(ctx, e, func(inst pdfium.Pdfium) (int, error) {
+		return withDocument(inst, data, func(_ references.FPDF_DOCUMENT, count int) (int, error) { return count, nil })
+	})
+}

@@ -10,12 +10,13 @@ import {
   Layers,
   Percent,
   Receipt,
+  Scale,
   Settings,
   Users,
   type LucideIcon,
 } from "lucide-react";
 
-/** Áreas principais: as 12 do PRD §6 e o Fator R da consolidação (08 §2, TASK-014a). */
+/** Áreas principais: as 12 do PRD §6, o Fator R (TASK-014a) e a Conciliação (TASK-021a) da consolidação (08 §2). */
 export interface Area {
   path: string;
   label: string;
@@ -32,6 +33,7 @@ export const AREAS: readonly Area[] = [
   { path: "/payroll", label: "Folha", icon: Users, group: "operacao" },
   { path: "/dctfweb", label: "DCTFWeb", icon: Layers, group: "operacao" },
   { path: "/factor-r", label: "Fator R", icon: Percent, group: "operacao" },
+  { path: "/reconciliation", label: "Conciliação", icon: Scale, group: "operacao" },
   { path: "/credentials", label: "Procurações e Certificados", icon: KeyRound, group: "operacao" },
   { path: "/backlog", label: "Backlog", icon: History, group: "gestao" },
   { path: "/settings", label: "Cadastros e Configurações", icon: Settings, group: "dados" },

@@ -2843,6 +2843,297 @@ paths:
               schema: { $ref: "#/components/schemas/ReconciliationDetail" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /reconciliation/review-queue:
+    get:
+      tags: [reconciliation]
+      operationId: getReviewQueue
+      summary: Fila de revisão por balde, com as contagens [08 §7, REQ-019, REQ-024]
+      description: |
+        A fila da origem (/fila): documentos e comprovantes parciais em revisão (`revisao`), linhas
+        livres marcadas (`divergencia`: divergência, caso de borda ou conciliação desfeita) e sem
+        marca (`extrato_sem`), comprovantes completos sem extrato (`comprovante_sem`) e, da TASK-020,
+        linhas conciliadas à espera da classificação (`classificacao`). Filtros opcionais por
+        empresa, competência (itens sem data aparecem em qualquer competência) e balde.
+      parameters:
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: competence, in: query, schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: bucket, in: query, schema: { $ref: "#/components/schemas/ReviewBucket" } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        "200":
+          description: Itens e contagens por balde (o total em `total`)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewQueue" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /reconciliation/review/{id}:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    get:
+      tags: [reconciliation]
+      operationId: getReviewLine
+      summary: A linha do extrato na fila — conciliação ou candidatos
+      description: |
+        A linha com a empresa, a conta bancária, o original do extrato e as marcas. Conciliada, a
+        conciliação ativa com os comprovantes; livre, os candidatos da origem
+        (candidatos_para_extrato): lançamentos livres de mesmo valor e sentido em D±3, mais os que o
+        matching anotou, do mais perto ao mais longe.
+      responses:
+        "200":
+          description: Linha
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewLineDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /reconciliation/review/{id}/manual-match:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: manualMatch
+      summary: Concilia a linha à mão com um ou mais lançamentos (N:1) [REQ-024]
+      description: |
+        O conciliar_manual da origem, com N lançamentos: origem `manual`, método `manual` e o autor.
+        Os lançamentos precisam ser da empresa e estar livres (409 `ENTRY_NOT_FREE`); a linha, livre
+        (409 `LINE_RECONCILED`). O valor não é conferido, como na origem: a diferença vai na
+        resposta. A linha passa pela classificação (TASK-020). Contábil fechado: 423.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [entry_ids]
+              additionalProperties: false
+              properties:
+                entry_ids: { type: array, minItems: 1, items: { $ref: "#/components/schemas/Uuid" } }
+      responses:
+        "201":
+          description: Conciliação criada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManualMatchResult" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/review/{id}/confirm-no-receipt:
+    parameters:
+      - { name: id, in: path, required: true, description: "Linha do extrato", schema: { $ref: "#/components/schemas/Uuid" } }
+    post:
+      tags: [reconciliation]
+      operationId: confirmNoReceipt
+      summary: '"Não há comprovante": concilia a linha sem lançamento'
+      description: |
+        O marcar_sem da origem: método `sem_comprovante`, origem `manual` e o autor; a linha passa
+        pela classificação. Linha conciliada: 409 `LINE_RECONCILED`; Contábil fechado: 423.
+      responses:
+        "201":
+          description: Linha confirmada sem comprovante
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ManualMatchResult" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/entries/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationEntry
+      summary: O comprovante na fila — conciliação ou linhas candidatas
+      description: |
+        O lançamento, a conciliação ativa (se houver) e, livre e completo, as linhas candidatas da
+        origem (candidatos_para_comprovante): linhas livres de mesmo valor e sentido em D±3.
+      responses:
+        "200":
+          description: Lançamento
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReviewEntryDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [reconciliation]
+      operationId: correctReconciliationEntry
+      summary: Corrige campos do comprovante — a revisão campo a campo [REQ-023]
+      description: |
+        Só os campos enviados mudam (texto vazio limpa o opcional), com as regras do lançamento
+        manual. O campo corrigido ganha confiança 1 e origem humana. Com os campos essenciais
+        (data, valor, sentido, contraparte), o parcial sai da revisão (`extraido`; o manual continua
+        manual) e a competência roda de novo (`round`). Só o lançamento livre (409
+        `ENTRY_RECONCILED`); Contábil fechado na data antiga ou nova: 423.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EntryFieldsPatch" }
+      responses:
+        "200":
+          description: Lançamento corrigido
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EntryCorrection" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/reconciliations:
+    get:
+      tags: [reconciliation]
+      operationId: listRecentReconciliations
+      summary: As últimas conciliações ativas (para desfazer)
+      parameters:
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: origin, in: query, schema: { type: string, enum: [auto, manual] } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 8 } }
+      responses:
+        "200":
+          description: Conciliações, da mais recente
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecentReconciliationList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /reconciliation/reconciliations/{id}/undo:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: undoReconciliation
+      summary: Desfaz a conciliação, automática ou manual, com motivo [D-032]
+      description: |
+        Nada é apagado: a conciliação guarda quem, quando e por quê, e os lançamentos ficam livres.
+        A linha perde a classificação e ganha a marca `desfeita`: volta para a fila como divergência
+        e não volta sozinha ao automático. Já desfeita: 409 `RECONCILIATION_UNDONE`; Contábil
+        fechado: 423.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              additionalProperties: false
+              properties:
+                reason: { type: string, minLength: 1, maxLength: 500 }
+      responses:
+        "200":
+          description: Conciliação desfeita
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [reconciliation_id, statement_transaction_id, undone_at]
+                properties:
+                  reconciliation_id: { $ref: "#/components/schemas/Uuid" }
+                  statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+                  undone_at: { type: string, format: date-time }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/documents/{id}/identify:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    post:
+      tags: [reconciliation]
+      operationId: identifyReconciliationDocument
+      summary: '"Que documento é esse?": o contador diz o tipo e a empresa [REQ-019]'
+      description: |
+        Para o documento em revisão da triagem ou da extração (o comprovante sem lançamento): o tipo
+        (extrato ou comprovante), a empresa e, no extrato, banco, agência, conta e período (os não
+        informados ficam como a triagem leu). O documento volta para a extração (202, com o job),
+        com os mesmos portões. Outro estado: 409 `DOCUMENT_NOT_IDENTIFIABLE`; já na fila: 409
+        `DOCUMENT_NOT_RETRYABLE`; Contábil fechado: 423.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DocumentIdentify" }
+      responses:
+        "202":
+          description: Documento de volta à extração
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationUpload" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "423":
+          description: Contábil fechado (PERIOD_CLOSED)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+
+  /reconciliation/documents/{id}/pages:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationDocumentPages
+      summary: Como mostrar o original na fila — páginas do PDF como imagem [D-032]
+      description: |
+        PDF: o total de páginas, renderizadas em `GET .../pages/{page}` no DPI do extrator do
+        comprovante (o bbox de cada campo cai no lugar). Sem páginas (`pages` 0: imagem ou texto),
+        a tela abre o próprio arquivo (`GET .../file`).
+      responses:
+        "200":
+          description: Páginas
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [content_type, pages, dpi]
+                properties:
+                  content_type: { type: string }
+                  pages: { type: integer, minimum: 0 }
+                  dpi: { type: integer }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
+  /reconciliation/documents/{id}/pages/{page}:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+      - { name: page, in: path, required: true, description: "Página, a partir de 1", schema: { type: integer, minimum: 1 } }
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationDocumentPage
+      summary: A página do PDF renderizada (PNG)
+      responses:
+        "200":
+          description: Página em PNG
+          content:
+            image/png:
+              schema: { type: string, format: binary }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "422": { $ref: "#/components/responses/Unprocessable" }
+        "503": { $ref: "#/components/responses/ServiceUnavailable" }
+
   /jobs/{id}:
     parameters:
       - $ref: "#/components/parameters/IdPath"
@@ -5292,6 +5583,201 @@ components:
             suggestion_id: { type: [string, "null"], format: uuid }
             classified_by: { type: [string, "null"], format: uuid }
             classified_at: { type: [string, "null"], format: date-time }
+
+    ReviewBucket:
+      type: string
+      enum: [revisao, divergencia, extrato_sem, comprovante_sem, classificacao]
+      description: |
+        revisao: documento em revisão (triagem, extração, período fechado) ou comprovante parcial;
+        divergencia: linha livre com divergência, caso de borda ou conciliação desfeita;
+        extrato_sem: linha livre sem marca; comprovante_sem: comprovante completo sem extrato;
+        classificacao: linha conciliada à espera da classificação.
+
+    ReviewQueueItem:
+      type: object
+      required: [kind, id, bucket, company_id, company_code, company_name, state, date, amount, direction, summary, reason, competence]
+      properties:
+        kind: { type: string, enum: [linha, comprovante, documento] }
+        id: { $ref: "#/components/schemas/Uuid" }
+        bucket: { $ref: "#/components/schemas/ReviewBucket" }
+        company_id: { type: [string, "null"], format: uuid }
+        company_code: { type: [string, "null"] }
+        company_name: { type: [string, "null"] }
+        state: { type: string, description: "Estado do documento, status do lançamento ou tipo da marca da linha" }
+        date: { type: [string, "null"], format: date }
+        amount:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        direction: { type: [string, "null"], enum: [C, D, null] }
+        summary: { type: string, description: "Descritivo, contraparte ou nome do arquivo" }
+        reason: { type: [string, "null"], description: "Código do motivo (a tela mostra o texto)" }
+        competence:
+          oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }]
+
+    ReviewQueue:
+      type: object
+      required: [items, counts]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/ReviewQueueItem" } }
+        counts: { type: object, additionalProperties: { type: integer }, description: "Por balde e o total (total)" }
+
+    ReviewLine:
+      type: object
+      required: [id, company_id, company_code, company_name, date, competence, description, document_ref, amount, direction, balance_after, bank_account, statement_import_id, statement_document_id, marks, account_code, classification_origin, classification_pending]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        company_code: { type: string }
+        company_name: { type: string }
+        date: { type: string, format: date }
+        competence: { $ref: "#/components/schemas/Competence" }
+        description: { type: string }
+        document_ref: { type: [string, "null"] }
+        amount: { $ref: "#/components/schemas/DecimalString" }
+        direction: { type: string, enum: [C, D] }
+        balance_after:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        bank_account: { type: string }
+        statement_import_id: { $ref: "#/components/schemas/Uuid" }
+        statement_document_id: { $ref: "#/components/schemas/Uuid" }
+        marks: { type: array, items: {}, description: "Marcas da linha: divergência, borda, desfeita (objetos com tipo e motivo)" }
+        account_code: { type: [string, "null"] }
+        classification_origin:
+          oneOf: [{ $ref: "#/components/schemas/ClassificationOrigin" }, { type: "null" }]
+        classification_pending: { type: boolean }
+
+    ReviewEntry:
+      type: object
+      required: [id, date, amount, direction, counterparty, counterparty_doc, document_ref, status, document_id]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        date: { type: [string, "null"], format: date }
+        amount:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        direction: { type: [string, "null"], enum: [C, D, null] }
+        counterparty: { type: [string, "null"] }
+        counterparty_doc: { type: [string, "null"] }
+        document_ref: { type: [string, "null"] }
+        status: { $ref: "#/components/schemas/ReconciliationEntryStatus" }
+        document_id: { type: [string, "null"], format: uuid }
+
+    ReviewCandidate:
+      allOf:
+        - { $ref: "#/components/schemas/ReviewEntry" }
+        - type: object
+          required: [operation_type, days_apart, annotated]
+          properties:
+            operation_type: { type: [string, "null"] }
+            days_apart: { type: [integer, "null"], description: "Dias até a linha (nulo sem data)" }
+            annotated: { type: boolean, description: "Anotado pelo matching na divergência" }
+
+    ReviewLineDetail:
+      type: object
+      required: [line, reconciliation, candidates]
+      properties:
+        line: { $ref: "#/components/schemas/ReviewLine" }
+        reconciliation:
+          oneOf:
+            - type: object
+              required: [id, method, origin, pass, created_by, created_at, entries, entries_total]
+              properties:
+                id: { $ref: "#/components/schemas/Uuid" }
+                method: { type: string }
+                origin: { type: string, enum: [auto, manual] }
+                pass: { type: [integer, "null"] }
+                created_by: { type: [string, "null"], format: uuid }
+                created_at: { type: string, format: date-time }
+                entries: { type: array, items: { $ref: "#/components/schemas/ReviewEntry" } }
+                entries_total: { $ref: "#/components/schemas/DecimalString" }
+            - { type: "null" }
+        candidates: { type: array, items: { $ref: "#/components/schemas/ReviewCandidate" } }
+
+    ManualMatchResult:
+      type: object
+      required: [reconciliation_id, method, entries_total, difference, classification]
+      properties:
+        reconciliation_id: { $ref: "#/components/schemas/Uuid" }
+        method: { type: string, enum: [manual, sem_comprovante] }
+        entries_total: { $ref: "#/components/schemas/DecimalString" }
+        difference: { $ref: "#/components/schemas/DecimalString", description: "Valor da linha menos a soma dos lançamentos" }
+        classification: { type: string, description: "Origem da classificação aplicada (regra, historico, agente) ou vazio" }
+
+    ReviewLineCandidate:
+      type: object
+      required: [id, date, amount, direction, description, bank_account, days_apart]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        date: { type: string, format: date }
+        amount: { $ref: "#/components/schemas/DecimalString" }
+        direction: { type: string, enum: [C, D] }
+        description: { type: string }
+        bank_account: { type: string }
+        days_apart: { type: integer }
+
+    ReviewEntryDetail:
+      type: object
+      required: [entry, reconciliation_id, statement_transaction_id, candidates]
+      properties:
+        entry: { $ref: "#/components/schemas/ReconciliationClientEntry" }
+        reconciliation_id: { type: [string, "null"], format: uuid }
+        statement_transaction_id: { type: [string, "null"], format: uuid }
+        candidates: { type: array, items: { $ref: "#/components/schemas/ReviewLineCandidate" } }
+
+    EntryFieldsPatch:
+      type: object
+      additionalProperties: false
+      description: Só os campos enviados mudam; texto vazio limpa o opcional.
+      properties:
+        date: { type: string, format: date }
+        amount: { type: string, description: "Positivo, até 2 casas (ponto ou vírgula)" }
+        direction: { type: string, enum: [C, D] }
+        counterparty: { type: string }
+        counterparty_doc: { type: string, description: "CPF ou CNPJ (11 ou 14 dígitos)" }
+        document_ref: { type: string }
+
+    EntryCorrection:
+      type: object
+      required: [entry, round]
+      properties:
+        entry: { $ref: "#/components/schemas/ReconciliationClientEntry" }
+        round:
+          oneOf: [{ $ref: "#/components/schemas/ReconciliationRunSummary" }, { type: "null" }]
+
+    RecentReconciliation:
+      type: object
+      required: [id, company_id, company_code, method, origin, pass, created_by, created_at, statement_transaction_id, date, amount, direction, description]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        company_code: { type: string }
+        method: { type: string }
+        origin: { type: string, enum: [auto, manual] }
+        pass: { type: [integer, "null"] }
+        created_by: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+        statement_transaction_id: { $ref: "#/components/schemas/Uuid" }
+        date: { type: string, format: date }
+        amount: { $ref: "#/components/schemas/DecimalString" }
+        direction: { type: string, enum: [C, D] }
+        description: { type: string }
+
+    RecentReconciliationList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/RecentReconciliation" } }
+
+    DocumentIdentify:
+      type: object
+      required: [kind, company_id]
+      additionalProperties: false
+      properties:
+        kind: { type: string, enum: [extrato, comprovante] }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        bank: { type: [string, "null"], maxLength: 64 }
+        branch: { type: [string, "null"], maxLength: 64 }
+        account: { type: [string, "null"], maxLength: 64 }
+        period_start: { type: [string, "null"], format: date }
+        period_end: { type: [string, "null"], format: date }
 
     ReconciliationDocumentList:
       type: object

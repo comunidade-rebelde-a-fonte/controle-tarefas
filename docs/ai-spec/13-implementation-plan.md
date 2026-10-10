@@ -212,6 +212,8 @@ Fila de revisão é a prioridade de UX.
 **Aceite:** AC-013 a AC-022, AC-033 a AC-035.  
 **Validação:** TEST-021 — E2E de fila + acessibilidade + QA visual pendente do design system.
 
+> **Em três partes (D-032, decisão do usuário).** 021a: fila de revisão e documentos, com as ações da fila na API. 021b: lançamentos, razão com drill-down, plano de contas e regras. 021c: playbooks, métricas e a aba Conciliação da ficha. Uma validação e um commit por parte (§14).
+
 ## 7. Marco M5 — Integrações reais entre módulos
 
 ### TASK-022 — Sincronizar conclusão/reabertura da Conciliação com obrigação Contábil
@@ -350,3 +352,13 @@ Para mostrar cedo a tela de outro sistema, o Fator R sem IA foi adiantado e vali
 | TASK-014b | Inbox PGDAS-D, simulador (exige simulação persistida com trace), traces e avaliações | depois da TASK-012/013, com os agentes e a observabilidade (D-025) |
 
 "Sujeita ao Fator R" é o `companies.factor_r` do cadastro (D-017), e a carteira só traz empresas do Simples Nacional no PA. O motor do simulador (REQ-013) já foi portado e provado na TASK-010; só a API e a tela ficam para a TASK-013/014b.
+
+## 14. Adendo de 10/10/2026 — TASK-021 em três partes (D-032)
+
+Por decisão do usuário, a UI da Conciliação foi dividida, com uma validação e um commit por parte:
+
+| Parte | Escopo |
+|---|---|
+| TASK-021a | Fila de revisão (baldes, item com o original como imagem, candidatos, conciliar à mão N:1, sem comprovante, desfazer com motivo, correção campo a campo, "que documento é esse?", hipótese e classificação na fila) e documentos (envio, lista, detalhe); a área Conciliação no menu |
+| TASK-021b | Lançamentos do cliente (formulário e CSV), razão com drill-down e exportação, plano de contas e regras |
+| TASK-021c | Playbooks, painel de métricas e a aba Conciliação da ficha da empresa |

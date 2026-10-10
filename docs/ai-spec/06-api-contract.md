@@ -149,6 +149,13 @@ Filtros por bucket, empresa, competência, tipo e estado.
 ### `POST /reconciliation/review/{id}/unmatch`
 ### `POST /reconciliation/review/{id}/confirm-no-receipt`
 ### `PATCH /reconciliation/review/{id}/fields`
+
+> **Como foi implementado (TASK-021a; D-032).**
+> - `GET /reconciliation/review-queue`: os itens por balde e as contagens (filtros `company_id`, `competence`, `bucket`). `GET /reconciliation/review/{id}`: a linha, a conciliação ou os candidatos.
+> - `manual-match` recebe `{entry_ids}` (N:1) e devolve a diferença de valor; `confirm-no-receipt` como na origem. As duas passam a linha pela classificação.
+> - O desfazer é `POST /reconciliation/reconciliations/{id}/undo` com `{reason}` obrigatório (o `{id}` é a conciliação, e vale também para a automática). `GET /reconciliation/reconciliations` lista as recentes.
+> - A correção do campo é do comprovante: `GET` e `PATCH /reconciliation/entries/{id}` (o `{id}` é o lançamento), com a rodada da competência na resposta.
+> - "Que documento é esse?": `POST /reconciliation/documents/{id}/identify`. O original como imagem: `GET /reconciliation/documents/{id}/pages` e `.../pages/{page}` (PNG).
 ### `POST /reconciliation/review/{id}/accept-proposal`
 ### `POST /reconciliation/review/{id}/reject-proposal`
 
