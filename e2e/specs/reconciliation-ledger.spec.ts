@@ -26,8 +26,8 @@ function csv(name: string, text: string) {
   return { name, mimeType: "text/csv", buffer: Buffer.from(text, "utf-8") };
 }
 
-test("TEST-021b: lançamentos, plano, regras e o razão com drill-down e exportação", async ({ page, request }) => {
-  test.setTimeout(150_000);
+test("TEST-021b e TEST-022: lançamentos, plano, regras, razão e a conclusão da competência", async ({ page, request }) => {
+  test.setTimeout(180_000);
   const company = await createHorizonte(request);
   const statement = await uploadAndProcess(request, "extratos/extrato_banco_beta_2026-08.pdf", company.id);
   expect(statement.status).toBe("importado");
@@ -160,4 +160,44 @@ test("TEST-021b: lançamentos, plano, regras e o razão com drill-down e exporta
   await audit(page, "drill-down do razão");
   await dialog.getByRole("link", { name: "Extrato bancário" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "extrato_banco_beta_2026-08.pdf" })).toBeVisible();
+
+  // TEST-022 (F-008, AC-023, AC-024): com o extrato todo resolvido, o contador conclui a competência
+  // na ficha; concluída, ela trava; reaberta com motivo, destrava. A empresa do teste não tem a
+  // obrigação Conciliação gerada em 08/2026 (a API só gera a competência corrente): a sincronização
+  // com a obrigação é provada nos testes de integração (internal/reconciliation/completion).
+  await page.goto(`/companies/${company.id}?tab=reconciliation`);
+  await page.getByLabel("Competência", { exact: true }).fill("2026-08");
+  const completion = page.getByRole("region", { name: "Conclusão da conciliação" });
+  await expect(completion.getByText("Pronta para concluir", { exact: true })).toBeVisible();
+  await expect(completion).toContainText("O extrato está todo resolvido");
+  await audit(page, "ficha — conclusão pronta");
+  await completion.getByRole("button", { name: "Concluir a conciliação" }).click();
+  const confirmCompletion = page.getByRole("alertdialog", { name: "Concluir a conciliação de 08/2026?" });
+  await audit(page, "confirmação da conclusão");
+  await confirmCompletion.getByRole("button", { name: "Concluir" }).click();
+  await expect(page.getByText("Conciliação concluída", { exact: true })).toBeVisible();
+  await expect(completion.getByText("Concluída", { exact: true })).toBeVisible();
+  await expect(completion.getByRole("status")).toContainText("a empresa não tem a obrigação Conciliação gerada nesta competência");
+  await expect(page.getByRole("button", { name: "Rodar a conciliação da competência" })).toHaveCount(0);
+
+  // Concluída, a competência trava: o lançamento de agosto é recusado; o de setembro, não.
+  await page.goto(`/reconciliation/entries?company_id=${company.id}`);
+  const entryForm = page.getByRole("form", { name: "Novo lançamento" });
+  await entryForm.getByLabel(/^Data/).fill("2026-08-30");
+  await entryForm.getByLabel(/^Valor/).fill("10,00");
+  await entryForm.getByRole("button", { name: "Incluir" }).click();
+  await expect(entryForm.getByText(/A conciliação de 08\/2026 está concluída/)).toBeVisible();
+
+  // Reabrir pede motivo; reaberta, a competência volta a pronta e destrava.
+  await page.goto(`/companies/${company.id}?tab=reconciliation`);
+  await page.getByLabel("Competência", { exact: true }).fill("2026-08");
+  await completion.getByRole("button", { name: "Reabrir a conciliação" }).click();
+  const reopenDialog = page.getByRole("dialog", { name: "Reabrir a conciliação de 08/2026" });
+  await expect(reopenDialog.getByRole("button", { name: "Reabrir" })).toBeDisabled();
+  await reopenDialog.getByLabel(/^Motivo/).fill("Teste E2E: chegou um comprovante atrasado.");
+  await audit(page, "reabertura da conciliação");
+  await reopenDialog.getByRole("button", { name: "Reabrir" }).click();
+  await expect(page.getByText("Conciliação reaberta", { exact: true })).toBeVisible();
+  await expect(completion.getByText("Pronta para concluir", { exact: true })).toBeVisible();
+  await expect(completion).toContainText("1 reabertura no histórico");
 });

@@ -201,6 +201,8 @@ Usar endpoints atuais do módulo Contábil para fechar/reabrir. A Conciliação 
 
 Opcionalmente expor:
 
+> **Como foi implementado (TASK-022; D-036).** `POST /companies/{id}/reconciliation/complete?competence=` (409 `RECONCILIATION_NOT_READY` com `details.blocking`; 422 `DEPENDENCY_BLOCKED`; 423 `PERIOD_CLOSED`; idempotente) e `POST .../reopen?competence=` com `{reason}` (409 `RECONCILIATION_NOT_COMPLETED`; 423). Os eventos `ReconciliationCompleted` e `ReconciliationReopened` são chamadas de serviço na mesma transação. O estado da conclusão vem no resumo `GET /companies/{id}/reconciliation`. Concluída, toda mutação da Conciliação na competência responde 423 `RECONCILIATION_COMPLETED`.
+
 ### `GET /companies/{id}/reconciliation/closure?competence=YYYY-MM`
 
 Resposta derivada do `company_module_period` Contábil; não persiste segundo fechamento.

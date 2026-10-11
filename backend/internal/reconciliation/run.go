@@ -59,3 +59,10 @@ func IsPeriodClosed(err error) bool {
 	var e *apperr.Error
 	return errors.As(err, &e) && e.Code == "PERIOD_CLOSED"
 }
+
+// IsLocked informa se o erro é uma trava da competência: o Contábil fechado ou a conciliação
+// concluída (ErrPeriodClosed, ErrCompleted). Os jobs ignoram a competência travada.
+func IsLocked(err error) bool {
+	var e *apperr.Error
+	return errors.As(err, &e) && (e.Code == "PERIOD_CLOSED" || e.Code == "RECONCILIATION_COMPLETED")
+}

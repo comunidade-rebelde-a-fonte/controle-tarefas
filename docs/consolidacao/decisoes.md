@@ -4,6 +4,34 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-036 — Conclusão da Conciliação e a obrigação Conciliação do Contábil (TASK-022; 11/10/2026; quatro regras de negócio decididas pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que existia:** a origem não tinha conclusão. O "fechamento" (`/fechamento`) só travava a competência e reabria com justificativa, sem critério. Aqui o fechamento é o do Contábil (ADR-003, TASK-023), e a TASK-022 acrescenta a conclusão da Conciliação, a máquina de estados da F-008 (em andamento → pronta → concluída → reaberta com motivo).
+  - Domínio em `backend/internal/reconciliation/completion`; a mudança na obrigação em `backend/internal/obligation` (`ApplyIntegrationStatus`); migration `0030_reconciliation_completion.sql`.
+- **Decisões do usuário (as quatro recomendadas):**
+  - **pronta:** o extrato todo resolvido. Ao menos um extrato importado cobre a competência, toda linha está conciliada (ou confirmada sem comprovante) e classificada, e nenhum documento nem comprovante parcial está em revisão. Comprovante sem extrato só avisa (pode ser de outra conta ou de outro mês);
+  - **conclusão:** o contador confirma ("Concluir a conciliação", na aba da ficha). Na mesma transação, a obrigação Conciliação (`ACCOUNTING_RECONCILIATION`) vai para OK;
+  - **depois de concluída:** a competência trava para a Conciliação até a reabertura, como o Contábil fechado. As mutações respondem 423 `RECONCILIATION_COMPLETED`, e o documento novo dela fica como pendência (`pendencia_periodo_fechado`, motivo `conciliacao_concluida`);
+  - **reabertura:** sempre com motivo; a obrigação volta para Pendente.
+- **Dentro da autonomia (regras do Controle preservadas):**
+  - a obrigação muda só pelo serviço de obrigações (05 §9). As regras do `ChangeStatus` valem: período do módulo aberto, aplicabilidade, status do conjunto e as dependências HARD do Contábil. Com "Contábil digitado/processado" aberto, a conclusão é recusada (422 `DEPENDENCY_BLOCKED`) e nada é gravado;
+  - o histórico ganha a origem `SYSTEM_INTEGRATION` (PRD §6.6; mudança aditiva no CHECK), com quem disparou e o evento causador no motivo;
+  - a obrigação já final, não aplicável ou não gerada fica como está, e a conclusão registra o que aconteceu (`ja_final`, `nao_aplicavel`, `sem_obrigacao`);
+  - na reabertura, a obrigação só volta para Pendente se ainda estiver no OK que a conclusão aplicou e ninguém tiver mudado o status depois (pela ordem do histórico). Senão, fica como está (`mantida`): a mudança humana no Controle prevalece;
+  - com o Contábil fechado, não se conclui nem se reabre (423 `PERIOD_CLOSED`): reabre-se o Contábil antes.
+- **Idempotência e concorrência (TEST-022):**
+  - concluir de novo devolve o estado, sem gravar nada;
+  - há uma conclusão em vigor por empresa e competência (índice único parcial), e a conclusão pega a trava exclusiva da empresa;
+  - a checagem da trava (`RequireOpen`) pega a mesma trava em modo compartilhado. Assim, a gravação espera a conclusão em andamento e depois é recusada, e as gravações não se esperam entre si;
+  - o relógio da conclusão é o do Controle, para o histórico da obrigação ficar numa linha do tempo só.
+- **API:** `POST /companies/{id}/reconciliation/complete` e `.../reopen` (com `{reason}`), e a conclusão no resumo da ficha (`GET /companies/{id}/reconciliation`). A conclusão e a reabertura ficam no log de extração.
+- **Tela:** o cartão "Conclusão da conciliação" na aba Conciliação da ficha mostra:
+  - o estado, o que falta (com o caminho para a fila) e o aviso;
+  - a obrigação, concluir com confirmação e reabrir com motivo;
+  - o histórico das reaberturas.
+  Concluída, a rodada some da aba.
+- **E2E:** o TEST-021b passou a concluir a competência, ver a trava num lançamento e reabrir com motivo, com o axe. A empresa do E2E não tem a obrigação gerada em 08/2026 (a API só gera a competência corrente), então a sincronização com a obrigação real fica nos testes de integração.
+
 ### D-034 — Playbooks, métricas, aba Conciliação da ficha e contas bancárias (TASK-021c; 10/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** das rotas `/playbooks` e `/metricas` e da tela "Clientes e contas" do Conciliador (`app/web/rotas.py`, `playbooks.html`, `metricas.html` e `clientes.html`, commit `2bc6e26`).

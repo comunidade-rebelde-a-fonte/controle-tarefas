@@ -2190,11 +2190,73 @@ export interface paths {
          * A Conciliação da empresa na competência, para a aba da ficha [REQ-036, AC-034]
          * @description Se o Contábil está fechado (a trava da Conciliação), os extratos importados que cobrem a
          *     competência, as linhas e o percentual automático contra a meta, os itens da fila por balde,
-         *     os lançamentos do cliente e a classificação das linhas conciliadas.
+         *     os lançamentos do cliente, a classificação das linhas conciliadas e a conclusão da
+         *     conciliação com a obrigação Conciliação do Contábil (TASK-022).
          */
         get: operations["getCompanyReconciliationSummary"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Conclui a conciliação da competência e a obrigação Conciliação do Contábil [REQ-031, AC-023]
+         * @description O evento de conclusão da F-008, confirmado pelo contador (D-035). Pronta quando o extrato está
+         *     todo resolvido: ao menos um extrato importado cobre a competência, toda linha conciliada (ou
+         *     confirmada sem comprovante) e classificada, e nenhum documento nem comprovante parcial em
+         *     revisão; comprovante sem extrato só avisa. Senão, 409 `RECONCILIATION_NOT_READY` com
+         *     `details.blocking`.
+         *
+         *     Na mesma transação, a obrigação Conciliação (`ACCOUNTING_RECONCILIATION`) vai para OK pelo
+         *     serviço de obrigações, com a origem `SYSTEM_INTEGRATION` e o evento no histórico; as
+         *     dependências HARD do Contábil valem (422 `DEPENDENCY_BLOCKED`). Já final, não aplicável ou
+         *     inexistente, a obrigação fica como está (`obligation_sync`). Idempotente: concluída, devolve o
+         *     estado sem gravar de novo. Com o Contábil fechado, 423 `PERIOD_CLOSED`.
+         *
+         *     Concluída, a competência trava as mutações da Conciliação (423 `RECONCILIATION_COMPLETED`) até
+         *     a reabertura, e o documento novo dela fica como pendência (motivo `conciliacao_concluida`).
+         */
+        post: operations["completeReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabre a conciliação concluída, com motivo [REQ-032, AC-024]
+         * @description A obrigação Conciliação volta para Pendente (decisão do usuário, D-035), com a origem
+         *     `SYSTEM_INTEGRATION` e o motivo no histórico, se ainda estiver no OK que a conclusão aplicou e
+         *     ninguém tiver mudado o status depois; senão, fica como está (`mantida`). A competência
+         *     destrava. Sem conclusão em vigor, 409 `RECONCILIATION_NOT_COMPLETED`; com o Contábil fechado,
+         *     423 `PERIOD_CLOSED` (reabra o Contábil antes).
+         */
+        post: operations["reopenReconciliation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3444,8 +3506,11 @@ export interface components {
             new_value: string | null;
             old_label: string | null;
             new_label: string | null;
-            /** @enum {string} */
-            change_source: "INLINE" | "BULK" | "IMPORT" | "SYSTEM";
+            /**
+             * @description SYSTEM_INTEGRATION: mudança automática de outro módulo (a conclusão da Conciliação, TASK-022), com o evento em override_reason
+             * @enum {string}
+             */
+            change_source: "INLINE" | "BULK" | "IMPORT" | "SYSTEM" | "SYSTEM_INTEGRATION";
             override_reason: string | null;
             user: components["schemas"]["UserRef"];
             /** Format: date-time */
@@ -4589,6 +4654,69 @@ export interface components {
         BankPlaybookList: {
             items: components["schemas"]["BankPlaybook"][];
         };
+        /** @description Uma conclusão da conciliação, com a reabertura quando houver */
+        ReconciliationCompletionRecord: {
+            id: components["schemas"]["Uuid"];
+            /** @description Nome de quem concluiu */
+            completed_by: string;
+            /** Format: date-time */
+            completed_at: string;
+            /** @description Status da obrigação antes da conclusão */
+            obligation_status_before: string | null;
+            /**
+             * @description concluida: a obrigação foi para OK; ja_final: já era final; nao_aplicavel; sem_obrigacao
+             * @enum {string}
+             */
+            obligation_sync: "concluida" | "ja_final" | "nao_aplicavel" | "sem_obrigacao";
+            /** @description Nome de quem reabriu */
+            reopened_by: string | null;
+            /** Format: date-time */
+            reopened_at: string | null;
+            reopen_reason: string | null;
+            /**
+             * @description pendente: a obrigação voltou para Pendente; mantida: alguém mudou depois, ou já era final
+             * @enum {string|null}
+             */
+            reopen_obligation_sync: "pendente" | "mantida" | "nao_aplicavel" | "sem_obrigacao" | null;
+        };
+        /**
+         * @description A conclusão da conciliação da empresa na competência (F-008; D-035): em andamento, pronta
+         *     (o extrato todo resolvido) ou concluída, o que ainda impede, o aviso, a obrigação Conciliação
+         *     do Contábil e o histórico das conclusões.
+         */
+        ReconciliationCompletion: {
+            /** @enum {string} */
+            state: "em_andamento" | "pronta" | "concluida";
+            ready: boolean;
+            blocking: {
+                /** @description Nenhum extrato importado cobre a competência */
+                missing_statement: boolean;
+                /** @description Linhas livres marcadas (divergência, borda ou desfeita) */
+                divergent: number;
+                /** @description Linhas livres sem marca (extrato sem comprovante) */
+                without_receipt: number;
+                /** @description Documentos e comprovantes parciais em revisão */
+                review: number;
+                /** @description Linhas conciliadas à espera da conta */
+                classification: number;
+            };
+            warnings: {
+                /** @description Comprovantes sem linha do extrato (não impedem) */
+                without_statement: number;
+            };
+            /** @description A obrigação Conciliação do Contábil na competência (nula se não foi gerada) */
+            obligation: {
+                instance_id: components["schemas"]["Uuid"];
+                status_code: string;
+                status_label: string;
+                is_final: boolean;
+                applicable: boolean;
+            } | null;
+            /** @description A conclusão em vigor (nula se não está concluída) */
+            current: components["schemas"]["ReconciliationCompletionRecord"] | null;
+            /** @description As conclusões, da mais recente para a mais antiga */
+            history: components["schemas"]["ReconciliationCompletionRecord"][];
+        };
         /** @description A Conciliação da empresa na competência (a aba da ficha) */
         CompanyReconciliationSummary: {
             company_id: components["schemas"]["Uuid"];
@@ -4625,6 +4753,7 @@ export interface components {
                 /** @description Linhas conciliadas à espera da conta */
                 pending: number;
             };
+            completion: components["schemas"]["ReconciliationCompletion"];
         };
         /** @description Conta bancária cadastrada da empresa (conta_bancaria da origem; CC-11) */
         BankAccount: {
@@ -9080,6 +9209,69 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    completeReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A conciliação concluída (ou já concluída) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationCompletion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            423: components["responses"]["Locked"];
+        };
+    };
+    reopenReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description A conciliação reaberta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationCompletion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            423: components["responses"]["Locked"];
         };
     };
     listBankAccounts: {

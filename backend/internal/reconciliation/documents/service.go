@@ -168,15 +168,20 @@ func (s *Service) Upload(ctx context.Context, in UploadInput) (UploadResult, err
 		return UploadResult{}, err
 	}
 	status := StatusPending
+	var diagnosis []byte
 	if companyID != nil && comp != nil {
-		// Documento tardio: com o Contábil fechado na competência, o original fica guardado, mas
-		// parado como pendência, sem processamento (ingerir_arquivo da origem; F-009).
-		closed, err := reconciliation.AccountingClosed(ctx, s.pool, *companyID, *comp)
+		// Documento tardio: com o Contábil fechado ou a conciliação concluída na competência
+		// (TASK-022), o original fica guardado, mas parado como pendência, sem processamento
+		// (ingerir_arquivo da origem; F-009), com o motivo no diagnóstico.
+		reason, err := reconciliation.LockReason(ctx, s.pool, *companyID, *comp)
 		if err != nil {
 			return UploadResult{}, err
 		}
-		if closed {
+		if reason != "" {
 			status = StatusClosedPeriod
+			if diagnosis, err = json.Marshal(map[string]any{"motivo": reason, "competencias": []string{comp.String()}}); err != nil {
+				return UploadResult{}, err
+			}
 		}
 	}
 	if s.storage == nil || !s.storage.Configured() {
@@ -210,7 +215,7 @@ func (s *Service) Upload(ctx context.Context, in UploadInput) (UploadResult, err
 		id, err := tq.InsertReconciliationDocument(ctx, store.InsertReconciliationDocumentParams{
 			CompanyID: companyID, Competence: competenceDate, Bucket: s.storage.Bucket(), ObjectKey: key,
 			ObjectVersionID: version, Sha256: sha, FileName: name, ContentType: contentType, SizeBytes: &size,
-			Status: status, UploadedBy: &uid, Now: s.clock.Now(),
+			Status: status, Diagnosis: diagnosis, UploadedBy: &uid, Now: s.clock.Now(),
 		})
 		if errors.Is(err, pgx.ErrNoRows) {
 			duplicate = true // outro envio do mesmo arquivo gravou antes

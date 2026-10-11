@@ -171,6 +171,12 @@ Ao reabrir:
 - reverter para status operacional não final definido pelo catálogo;
 - registrar motivo e evento.
 
+> **Como foi implementado (TASK-022; D-036).**
+> - **Pronta:** ao menos um extrato importado cobre a competência, toda linha conciliada (ou sem comprovante) e classificada, nada em revisão; comprovante sem extrato só avisa.
+> - **Conclusão:** o contador confirma; a obrigação Conciliação vai para OK pelo serviço de obrigações (`SYSTEM_INTEGRATION`, dependências HARD valendo), na mesma transação; idempotente.
+> - **Concluída:** a competência trava para a Conciliação (423 `RECONCILIATION_COMPLETED`), e documento novo vira pendência.
+> - **Reabertura:** com motivo; a obrigação volta para Pendente, se ainda estiver no OK da conclusão (mudança humana no Controle prevalece). Com o Contábil fechado, nem conclui nem reabre.
+
 ## F-009 — Fechamento Contábil canônico
 
 ```mermaid

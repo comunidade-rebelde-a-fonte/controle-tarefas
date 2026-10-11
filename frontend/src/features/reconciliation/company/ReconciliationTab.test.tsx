@@ -39,6 +39,14 @@ function summary(over: Partial<CompanyReconciliationSummary>): CompanyReconcilia
     buckets: { total: 2, revisao: 0, divergencia: 1, extrato_sem: 1, comprovante_sem: 0, classificacao: 0 },
     entries: { total: 4, partial: 1 },
     classification: { classified: 1, pending: 1 },
+    completion: {
+      state: "em_andamento", ready: false,
+      blocking: { missing_statement: false, divergent: 1, without_receipt: 1, review: 0, classification: 1 },
+      warnings: { without_statement: 0 },
+      obligation: { instance_id: "00000000-0000-4000-8000-0000000000f9", status_code: "NOT_STARTED", status_label: "A iniciar", is_final: false, applicable: true },
+      current: null,
+      history: [],
+    },
     ...over,
   };
 }

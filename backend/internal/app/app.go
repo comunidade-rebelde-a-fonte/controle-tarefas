@@ -40,6 +40,7 @@ import (
 	"controle/internal/reconciliation/bankaccount"
 	"controle/internal/reconciliation/chart"
 	"controle/internal/reconciliation/classify"
+	"controle/internal/reconciliation/completion"
 	"controle/internal/reconciliation/documents"
 	"controle/internal/reconciliation/entries"
 	"controle/internal/reconciliation/ledger"
@@ -175,6 +176,10 @@ func New(d Deps) *App {
 		// empresa (CC-11), que decidem a empresa dos extratos.
 		metrics.NewHandler(metrics.NewService(d.Pool, d.Config.AutoTarget)).Routes(api)
 		bankaccount.NewHandler(bankaccount.NewService(d.Pool, aiClock)).Routes(api)
+		// Conclusão da conciliação (TASK-022): o contador conclui a competência pronta e a obrigação
+		// Conciliação do Contábil vai para OK pelo serviço de obrigações; reaberta, volta a Pendente.
+		// O relógio é o do Controle: o histórico da obrigação fica na mesma linha do tempo.
+		completion.NewHandler(completion.NewService(d.Pool, d.Clock)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

@@ -97,7 +97,8 @@ const (
 	ReasonUnreadableCSV    = "csv_ilegivel"
 	ReasonNoCompany        = "empresa_nao_identificada"
 	ReasonAccountOtherFirm = "conta_de_outra_empresa"
-	ReasonClosedPeriod     = "periodo_fechado"
+	ReasonClosedPeriod     = reconciliation.LockAccountingClosed
+	ReasonCompleted        = reconciliation.LockCompleted
 	ReasonWeakFields       = "campos_abaixo_limiar"
 )
 

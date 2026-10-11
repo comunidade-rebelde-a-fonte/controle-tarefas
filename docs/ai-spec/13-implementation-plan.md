@@ -226,6 +226,8 @@ Usar o serviço existente de obrigação; não escrever status direto no banco.
 **Aceite:** AC-023, AC-024.  
 **Validação:** TEST-022 — idempotência + histórico + concorrência.
 
+> **Como foi implementado (D-036).** Conclusão da Conciliação em `backend/internal/reconciliation/completion`, com a obrigação pelo serviço de obrigações (`ApplyIntegrationStatus`, origem `SYSTEM_INTEGRATION`). Pronta, conclusão, trava e reabertura decididas pelo usuário. TEST-022 nos testes de integração (idempotência, histórico, concorrência, dependência HARD, Contábil fechado, mudança humana preservada) e o fluxo na tela no E2E do TEST-021b.
+
 ### TASK-023 — Unificar fechamento Contábil e trava
 
 **Requisitos:** REQ-033, REQ-034.  

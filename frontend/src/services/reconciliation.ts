@@ -1,6 +1,7 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, apiUpload, buildUrl, type Schemas } from "@/lib/api";
 import { JOB_POLL_MS, jobActive } from "./jobs";
+import { obligationKeys } from "./obligations";
 
 export type ReconciliationDocument = Schemas["ReconciliationDocument"];
 export type ReconciliationDocumentDetail = Schemas["ReconciliationDocumentDetail"];
@@ -542,4 +543,35 @@ export function useCreateBankAccount(companyId: string) {
     mutationFn: (body: BankAccountCreate) => api.post("/companies/{id}/bank-accounts", { path: { id: companyId }, body }),
     onSuccess: () => qc.invalidateQueries({ queryKey: reconciliationKeys.all }),
   });
+}
+
+// --- TASK-022: conclusão da conciliação e a obrigação Conciliação do Contábil ---
+
+export type ReconciliationCompletion = Schemas["ReconciliationCompletion"];
+export type ReconciliationCompletionRecord = Schemas["ReconciliationCompletionRecord"];
+
+/** Concluir ou reabrir muda a obrigação Conciliação: recarrega a Conciliação e as grades do Controle. */
+function useCompletionMutation<V>(fn: (v: V) => Promise<ReconciliationCompletion>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: reconciliationKeys.all });
+      void qc.invalidateQueries({ queryKey: obligationKeys.all });
+    },
+  });
+}
+
+/** POST /companies/{id}/reconciliation/complete — conclui a competência pronta (a obrigação vai para OK). */
+export function useCompleteReconciliation(companyId: string) {
+  return useCompletionMutation((competence: string) =>
+    api.post("/companies/{id}/reconciliation/complete", { path: { id: companyId }, query: { competence } }),
+  );
+}
+
+/** POST /companies/{id}/reconciliation/reopen — reabre com motivo (a obrigação volta para Pendente). */
+export function useReopenReconciliation(companyId: string) {
+  return useCompletionMutation(({ competence, reason }: { competence: string; reason: string }) =>
+    api.post("/companies/{id}/reconciliation/reopen", { path: { id: companyId }, query: { competence }, body: { reason } }),
+  );
 }

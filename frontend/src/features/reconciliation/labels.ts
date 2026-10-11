@@ -69,6 +69,7 @@ const REASONS: Record<string, string> = {
   empresa_nao_identificada: "A empresa do documento não foi identificada.",
   conta_de_outra_empresa: "A conta do extrato pertence a outra empresa.",
   periodo_fechado: "O Contábil da competência está fechado.",
+  conciliacao_concluida: "A conciliação da competência está concluída: o documento fica guardado até a reabertura da conciliação.",
   campos_abaixo_limiar: "Campos do comprovante abaixo do limiar de confiança.",
 };
 

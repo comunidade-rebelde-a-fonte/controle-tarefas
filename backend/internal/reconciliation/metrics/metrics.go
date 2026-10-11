@@ -19,6 +19,7 @@ import (
 	"controle/internal/platform/decimal"
 	"controle/internal/platform/httpx"
 	"controle/internal/reconciliation"
+	"controle/internal/reconciliation/completion"
 	"controle/internal/reconciliation/ledger"
 	"controle/internal/reconciliation/review"
 	"controle/internal/reconciliation/statement"
@@ -346,6 +347,8 @@ type Summary struct {
 	Buckets          map[string]int       `json:"buckets"`
 	Entries          EntryCounts          `json:"entries"`
 	Classification   ClassificationCounts `json:"classification"`
+	// A conclusão da conciliação na competência e a obrigação Conciliação do Contábil (TASK-022).
+	Completion completion.State `json:"completion"`
 }
 
 func companyNotFound() error { return apperr.NotFound("COMPANY_NOT_FOUND", "Empresa não encontrada.") }
@@ -395,5 +398,8 @@ func (s *Service) Summary(ctx context.Context, companyID string, c competence.Co
 		return Summary{}, err
 	}
 	out.Classification = ClassificationCounts{Classified: int(cl.Classified), Pending: int(cl.Pending)}
+	if out.Completion, err = completion.Load(ctx, q, companyID, c); err != nil {
+		return Summary{}, err
+	}
 	return out, nil
 }

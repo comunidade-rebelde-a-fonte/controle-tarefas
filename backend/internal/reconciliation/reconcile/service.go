@@ -381,8 +381,9 @@ func (s *Service) HandleRun(ctx context.Context, tx pgx.Tx, job jobs.Claimed) er
 		return jobs.Permanent("INVALID_PAYLOAD", errors.New("reconciliation_run: competência inválida"))
 	}
 	sum, err := s.RunTx(ctx, tx, p.CompanyID, comp)
-	if reconciliation.IsPeriodClosed(err) {
-		s.logger.Info("rodada da conciliação ignorada: Contábil fechado", "company_id", p.CompanyID, "competence", p.Competence)
+	if reconciliation.IsLocked(err) {
+		s.logger.Info("rodada da conciliação ignorada: competência travada (Contábil fechado ou conciliação concluída)",
+			"company_id", p.CompanyID, "competence", p.Competence)
 		return nil
 	}
 	if err == nil {

@@ -93,20 +93,24 @@ func (p *Processor) importStatement(ctx context.Context, tx pgx.Tx, doc store.Re
 	if companyID == "" {
 		return review(StatusExtractReview, ReasonNoCompany, identity, &r)
 	}
-	var closed []string
+	// Competência travada: o Contábil fechado (o motivo que vale primeiro) ou a conciliação
+	// concluída (TASK-022). O extrato fica como pendência, com as competências travadas.
+	locked := map[string][]string{}
 	for _, c := range competences(s) {
-		isClosed, err := reconciliation.AccountingClosed(ctx, tx, companyID, c)
+		reason, err := reconciliation.LockReason(ctx, tx, companyID, c)
 		if err != nil {
 			return importOutcome{}, err
 		}
-		if isClosed {
-			closed = append(closed, c.String())
+		if reason != "" {
+			locked[reason] = append(locked[reason], c.String())
 		}
 	}
-	if len(closed) > 0 {
-		out, err := review(StatusClosedPeriod, ReasonClosedPeriod, map[string]any{"company_id": companyID, "competencias": closed}, &r)
-		out.companyID = companyID
-		return out, err
+	for _, reason := range []string{ReasonClosedPeriod, ReasonCompleted} {
+		if len(locked[reason]) > 0 {
+			out, err := review(StatusClosedPeriod, reason, map[string]any{"company_id": companyID, "competencias": locked[reason]}, &r)
+			out.companyID = companyID
+			return out, err
+		}
 	}
 	now := p.clock.Now()
 	importID, err := q.InsertStatementImport(ctx, store.InsertStatementImportParams{

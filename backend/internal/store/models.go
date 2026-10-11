@@ -612,6 +612,22 @@ type Reconciliation struct {
 	UndoReason             *string
 }
 
+type ReconciliationCompletion struct {
+	ID                     string
+	CompanyID              string
+	Competence             time.Time
+	CompletedBy            string
+	CompletedAt            time.Time
+	ObligationInstanceID   *string
+	ObligationStatusBefore *string
+	ObligationSync         string
+	ReopenedBy             *string
+	ReopenedAt             *time.Time
+	ReopenReason           *string
+	ReopenObligationSync   *string
+	Seq                    *int64
+}
+
 type ReconciliationDocument struct {
 	ID               string
 	CompanyID        *string

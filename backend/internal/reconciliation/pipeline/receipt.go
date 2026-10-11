@@ -176,13 +176,13 @@ func (p *Processor) saveReceipt(ctx context.Context, tx pgx.Tx, doc store.Reconc
 		comp = &c
 	}
 	if comp != nil {
-		closed, err := reconciliation.AccountingClosed(ctx, tx, company.id, *comp)
+		reason, err := reconciliation.LockReason(ctx, tx, company.id, *comp)
 		if err != nil {
 			return out, err
 		}
-		if closed {
-			out.status, out.reason = StatusClosedPeriod, ReasonClosedPeriod
-			return out, p.setState(ctx, q, doc.ID, StatusClosedPeriod, diagnosis(ReasonClosedPeriod, nil,
+		if reason != "" {
+			out.status, out.reason = StatusClosedPeriod, reason
+			return out, p.setState(ctx, q, doc.ID, StatusClosedPeriod, diagnosis(reason, nil,
 				map[string]any{"company_id": company.id, "competencias": []string{comp.String()}}), nil)
 		}
 	}

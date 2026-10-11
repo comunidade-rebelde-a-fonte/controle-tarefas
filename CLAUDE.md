@@ -175,6 +175,12 @@ Métricas, playbooks, aba da ficha e contas bancárias (TASK-021c, D-034):
 - contas bancárias (CC-11) em `backend/internal/reconciliation/bankaccount`: a conta cadastrada decide a empresa do extrato (D-027); banco, agência e conta precisam ser os que a leitura grava, então a aba oferece as contas lidas nos extratos;
 - telas em `frontend/src/features/reconciliation` (`metrics/`, `playbooks/`, `company/`); a aba Conciliação da ficha é `company/ReconciliationTab.tsx`.
 
+Conclusão da Conciliação e a obrigação Conciliação (TASK-022, D-036):
+- `backend/internal/reconciliation/completion`: pronta (o extrato todo resolvido), concluir (o contador confirma; a obrigação `ACCOUNTING_RECONCILIATION` vai para OK) e reabrir com motivo (volta para Pendente, se ninguém a mudou depois);
+- a obrigação muda só por `obligation.ApplyIntegrationStatus` (as regras do `ChangeStatus`, origem `SYSTEM_INTEGRATION`, evento no histórico); nunca escreva status de obrigação direto no banco;
+- concluída, a competência trava: `reconciliation.RequireOpen` devolve 423 `RECONCILIATION_COMPLETED`, `LockReason` manda o documento novo para pendência e os jobs ignoram a competência travada com `IsLocked`;
+- a conclusão pega a trava exclusiva da empresa e `RequireOpen` a compartilhada: toda mutação nova da Conciliação passa por `RequireOpen` dentro da sua transação.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

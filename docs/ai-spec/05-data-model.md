@@ -334,6 +334,11 @@ A instância já existente em `obligation_instances` continua canônica. Criar v
 
 Serviço de integração deve localizar empresa + competência + tipo e aplicar transição via o serviço existente de obrigações, para preservar histórico/dependências/locks.
 
+> **Como foi implementado (TASK-022; D-036).** Migration `0030_reconciliation_completion.sql`:
+> - `reconciliation_completions`: uma linha por conclusão (quem, quando, a instância da obrigação, o status de antes e o que a sincronização fez), com a reabertura na mesma linha (quem, quando, motivo e o que aconteceu com a obrigação); no máximo uma em vigor por empresa e competência (índice único parcial).
+> - `obligation_status_history.change_source` aceita também `SYSTEM_INTEGRATION` (mudança aditiva no CHECK); o evento causador vai em `override_reason`.
+> - A instância continua a de `obligation_instances` (tipo `ACCOUNTING_RECONCILIATION`), localizada por empresa, competência e tipo, sem FK nas tabelas da Conciliação.
+
 ## 10. Constraints
 
 - Dinheiro: `NUMERIC`, nunca float.

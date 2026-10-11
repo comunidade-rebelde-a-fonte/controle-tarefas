@@ -16,6 +16,7 @@ import { useCompanyReconciliationSummary } from "@/services/reconciliation";
 import { AutoRate, RunReconciliation } from "../common";
 import { BUCKETS } from "../labels";
 import { BankAccounts } from "./BankAccounts";
+import { Completion } from "./Completion";
 
 /** A leitura do extrato: o leitor determinístico ou a tentativa em que o agente fechou o saldo. */
 function readText(attempts: number): string {
@@ -64,12 +65,13 @@ export function ReconciliationTab({ company }: { company: Company }) {
       {summary.isPending && competence ? <Skeleton className="h-64" /> : null}
       {s ? (
         <>
+          <Completion companyId={company.id} competence={competence} completion={s.completion} accountingClosed={s.accounting_closed} />
           {s.accounting_closed ? (
             <p role="status" className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />O Contábil da competência está fechado: a Conciliação fica travada. Para
               mudar algo, reabra o Contábil (com motivo).
             </p>
-          ) : (
+          ) : s.completion.state === "concluida" ? null : (
             <RunReconciliation companyId={company.id} competence={competence} showQueueLink />
           )}
           <div className="grid gap-4 lg:grid-cols-3">

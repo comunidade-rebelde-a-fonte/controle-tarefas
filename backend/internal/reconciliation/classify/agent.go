@@ -96,8 +96,8 @@ func (a *Agent) HandleSuggest(ctx context.Context, tx pgx.Tx, job jobs.Claimed) 
 	}
 	comp := competence.FromDate(line.TxnDate)
 	if err := reconciliation.RequireOpen(ctx, tx, line.CompanyID, comp); err != nil {
-		if reconciliation.IsPeriodClosed(err) {
-			a.logger.Info("classificador: Contábil fechado na competência da linha", "linha", line.ID)
+		if reconciliation.IsLocked(err) {
+			a.logger.Info("classificador: competência travada (Contábil fechado ou conciliação concluída)", "linha", line.ID)
 			return nil
 		}
 		return err

@@ -168,11 +168,11 @@ func (q *Queries) GetReconciliationDocumentIDBySha(ctx context.Context, sha256 s
 const insertReconciliationDocument = `-- name: InsertReconciliationDocument :one
 INSERT INTO reconciliation_documents (
     company_id, competence, bucket, object_key, object_version_id, sha256, file_name, content_type,
-    size_bytes, status, uploaded_by, created_at, updated_at
+    size_bytes, status, diagnosis, uploaded_by, created_at, updated_at
 ) VALUES (
     $1, $2, $3, $4,
     $5, $6, $7, $8,
-    $9, $10, $11, $12, $12
+    $9, $10, $11, $12, $13, $13
 )
 ON CONFLICT DO NOTHING
 RETURNING id
@@ -189,6 +189,7 @@ type InsertReconciliationDocumentParams struct {
 	ContentType     string
 	SizeBytes       *int64
 	Status          string
+	Diagnosis       []byte
 	UploadedBy      *string
 	Now             time.Time
 }
@@ -206,6 +207,7 @@ func (q *Queries) InsertReconciliationDocument(ctx context.Context, arg InsertRe
 		arg.ContentType,
 		arg.SizeBytes,
 		arg.Status,
+		arg.Diagnosis,
 		arg.UploadedBy,
 		arg.Now,
 	)

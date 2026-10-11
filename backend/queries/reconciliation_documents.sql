@@ -7,11 +7,11 @@ SELECT id FROM reconciliation_documents WHERE sha256 = $1;
 -- Sem linha (ON CONFLICT): outro envio do mesmo arquivo gravou antes (dedupe por sha256).
 INSERT INTO reconciliation_documents (
     company_id, competence, bucket, object_key, object_version_id, sha256, file_name, content_type,
-    size_bytes, status, uploaded_by, created_at, updated_at
+    size_bytes, status, diagnosis, uploaded_by, created_at, updated_at
 ) VALUES (
     sqlc.narg('company_id'), sqlc.narg('competence'), sqlc.arg('bucket'), sqlc.arg('object_key'),
     sqlc.narg('object_version_id'), sqlc.arg('sha256'), sqlc.arg('file_name'), sqlc.arg('content_type'),
-    sqlc.arg('size_bytes'), sqlc.arg('status'), sqlc.narg('uploaded_by'), sqlc.arg('now'), sqlc.arg('now')
+    sqlc.arg('size_bytes'), sqlc.arg('status'), sqlc.narg('diagnosis'), sqlc.narg('uploaded_by'), sqlc.arg('now'), sqlc.arg('now')
 )
 ON CONFLICT DO NOTHING
 RETURNING id;
