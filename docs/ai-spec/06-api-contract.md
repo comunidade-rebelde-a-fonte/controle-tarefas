@@ -141,6 +141,11 @@ Somente para estados retry/review compatíveis; não ignora portões.
 
 Resumo da competência: contas, imports, buckets, progresso, fechamento contábil.
 
+> **Como foi implementado (TASK-021c; D-034).**
+> - O resumo traz `accounting_closed`, os extratos que cobrem a competência (com a conta, o período, os saldos, as tentativas e as linhas), a conciliação (`matching`, com o percentual automático e a meta), os baldes, os lançamentos e a classificação.
+> - As contas bancárias ficam em `GET` e `POST /companies/{id}/bank-accounts`: as cadastradas e as lidas nos extratos sem cadastro (`read`); a identidade é única no sistema (409 `BANK_ACCOUNT_EXISTS`).
+> - O painel de métricas é `GET /reconciliation/metrics` (filtros `company_id` e `competence`) e os playbooks, `GET /reconciliation/playbooks`.
+
 ### `GET /reconciliation/review-queue`
 
 Filtros por bucket, empresa, competência, tipo e estado.

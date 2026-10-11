@@ -482,3 +482,64 @@ export function useRuleActions(companyId: string) {
     }),
   };
 }
+
+// --- TASK-021c: métricas, playbooks, resumo da ficha e contas bancárias ---
+
+export type ReconciliationMetrics = Schemas["ReconciliationMetrics"];
+export type ReconciliationMatching = Schemas["ReconciliationMatching"];
+export type ReconciliationExtraction = Schemas["ReconciliationExtraction"];
+export type ReconciliationAgentCost = Schemas["ReconciliationAgentCost"];
+export type BankPlaybook = Schemas["BankPlaybook"];
+export type CompanyReconciliationSummary = Schemas["CompanyReconciliationSummary"];
+export type BankAccount = Schemas["BankAccount"];
+export type BankAccountList = Schemas["BankAccountList"];
+export type BankAccountCreate = Schemas["BankAccountCreate"];
+
+export const reconciliationPanelKeys = {
+  metrics: (filters: object) => ["reconciliation", "metrics", filters] as const,
+  playbooks: ["reconciliation", "playbooks"] as const,
+  summary: (companyId: string, competence: string) => ["reconciliation", "summary", companyId, competence] as const,
+  bankAccounts: (companyId: string) => ["reconciliation", "bank-accounts", companyId] as const,
+};
+
+/** GET /reconciliation/metrics — o painel do 11-observability §7, por empresa e competência. */
+export function useReconciliationMetrics(f: { companyId?: string | undefined; competence?: string | undefined }) {
+  return useQuery({
+    queryKey: reconciliationPanelKeys.metrics(f),
+    queryFn: ({ signal }) => api.get("/reconciliation/metrics", { query: { company_id: f.companyId, competence: f.competence }, signal }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** GET /reconciliation/playbooks — as versões dos playbooks por banco (somente leitura). */
+export function usePlaybooks() {
+  return useQuery({ queryKey: reconciliationPanelKeys.playbooks, queryFn: ({ signal }) => api.get("/reconciliation/playbooks", { signal }) });
+}
+
+/** GET /companies/{id}/reconciliation — a Conciliação da empresa na competência (a aba da ficha). */
+export function useCompanyReconciliationSummary(companyId: string, competence: string | null) {
+  return useQuery({
+    queryKey: reconciliationPanelKeys.summary(companyId, competence ?? ""),
+    queryFn: ({ signal }) =>
+      api.get("/companies/{id}/reconciliation", { path: { id: companyId }, query: { competence: competence ?? "" }, signal }),
+    enabled: !!competence,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** GET /companies/{id}/bank-accounts — as contas cadastradas e as lidas nos extratos sem cadastro. */
+export function useBankAccounts(companyId: string) {
+  return useQuery({
+    queryKey: reconciliationPanelKeys.bankAccounts(companyId),
+    queryFn: ({ signal }) => api.get("/companies/{id}/bank-accounts", { path: { id: companyId }, signal }),
+  });
+}
+
+/** POST /companies/{id}/bank-accounts — cadastra a conta (CC-11). */
+export function useCreateBankAccount(companyId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: BankAccountCreate) => api.post("/companies/{id}/bank-accounts", { path: { id: companyId }, body }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: reconciliationKeys.all }),
+  });
+}

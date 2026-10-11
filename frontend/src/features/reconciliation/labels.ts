@@ -1,3 +1,4 @@
+import { formatDecimal } from "@/lib/decimal";
 import type {
   ClassificationRuleType,
   ClassificationRunSummary,
@@ -149,4 +150,16 @@ export function runSummaryText(s: RunSummary): string {
   ];
   if (s.awaiting_review > 0) parts.push(plural(s.awaiting_review, "comprovante a revisar", "comprovantes a revisar"));
   return `${parts.join(" · ")}. Classificação: ${classificationRunText(s.classification)}.`;
+}
+
+/** Custo de modelo em dólares, como o LiteLLM informa (sem conversão). */
+export function usdText(value: string | null | undefined, places = 4): string {
+  if (value === null || value === undefined) return "—";
+  return `US$ ${formatDecimal(value, places)}`;
+}
+
+/** Percentual da API ("40.0") em texto ("40,0%"); sem base, "—". */
+export function percentText(value: string | null | undefined): string {
+  if (value === null || value === undefined) return "—";
+  return `${formatDecimal(value, 1)}%`;
 }

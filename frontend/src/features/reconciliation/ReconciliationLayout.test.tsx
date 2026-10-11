@@ -16,6 +16,8 @@ describe("ReconciliationNav", () => {
       "Razão",
       "Plano de contas",
       "Regras",
+      "Métricas",
+      "Playbooks",
     ]);
     expect(within(nav).getByRole("link", { name: "Razão" })).toHaveAttribute("aria-current", "page");
     expect(within(nav).getByRole("link", { name: "Fila de revisão" })).not.toHaveAttribute("aria-current");

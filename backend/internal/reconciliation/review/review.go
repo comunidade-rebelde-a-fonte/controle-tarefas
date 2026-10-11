@@ -105,6 +105,24 @@ func nonEmpty(s string) *string {
 	return &s
 }
 
+// Counts conta os itens da fila por balde, e o total, com os filtros de empresa e competência:
+// a mesma contagem da fila no painel de métricas e na ficha da empresa (TASK-021c).
+func Counts(ctx context.Context, q *store.Queries, companyID *string, comp *time.Time) (map[string]int, error) {
+	rows, err := q.CountReviewQueue(ctx, store.CountReviewQueueParams{CompanyID: companyID, Competence: comp})
+	if err != nil {
+		return nil, err
+	}
+	out := map[string]int{"total": 0}
+	for _, b := range Buckets {
+		out[b] = 0
+	}
+	for _, c := range rows {
+		out[c.Bucket] = int(c.Total)
+		out["total"] += int(c.Total)
+	}
+	return out, nil
+}
+
 // List lê a fila.
 func (s *Service) List(ctx context.Context, in QueueQuery) (Queue, error) {
 	q := store.New(s.pool)
@@ -118,18 +136,11 @@ func (s *Service) List(ctx context.Context, in QueueQuery) (Queue, error) {
 	if err != nil {
 		return Queue{}, err
 	}
-	counts, err := q.CountReviewQueue(ctx, store.CountReviewQueueParams{CompanyID: in.CompanyID, Competence: comp})
+	counts, err := Counts(ctx, q, in.CompanyID, comp)
 	if err != nil {
 		return Queue{}, err
 	}
-	out := Queue{Items: make([]Item, 0, len(rows)), Counts: map[string]int{"total": 0}}
-	for _, b := range Buckets {
-		out.Counts[b] = 0
-	}
-	for _, c := range counts {
-		out.Counts[c.Bucket] = int(c.Total)
-		out.Counts["total"] += int(c.Total)
-	}
+	out := Queue{Items: make([]Item, 0, len(rows)), Counts: counts}
 	for _, r := range rows {
 		it := Item{Kind: r.Kind, ID: r.ID, Bucket: r.Bucket, CompanyID: r.CompanyID, CompanyCode: r.CompanyCode, CompanyName: r.CompanyName,
 			State: r.State, Date: dateText(r.ItemDate), Amount: r.Amount, Direction: r.Direction, Summary: r.Summary,

@@ -73,6 +73,7 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     "Obrigações/aplicabilidade",
     "Folha",
     "Fator R",
+    "Conciliação",
     "Responsáveis",
     "Procurações/Certificados",
     "Histórico de competências",

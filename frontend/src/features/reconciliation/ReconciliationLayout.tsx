@@ -1,4 +1,4 @@
-import { BookOpen, ClipboardList, FolderOpen, ListTree, type LucideIcon, ReceiptText, Wand2 } from "lucide-react";
+import { BookMarked, BookOpen, ChartColumn, ClipboardList, FolderOpen, ListTree, type LucideIcon, ReceiptText, Wand2 } from "lucide-react";
 import { NavLink, Outlet, useSearchParams } from "react-router";
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,7 @@ interface Section {
   end?: boolean;
 }
 
-/** Seções da área Conciliação (TASK-021a e 021b; playbooks e métricas chegam na 021c). */
+/** Seções da área Conciliação (TASK-021a, 021b e 021c). */
 const SECTIONS: readonly Section[] = [
   { to: "/reconciliation", label: "Fila de revisão", icon: ClipboardList, end: true },
   { to: "/reconciliation/documents", label: "Documentos", icon: FolderOpen },
@@ -17,6 +17,8 @@ const SECTIONS: readonly Section[] = [
   { to: "/reconciliation/ledger", label: "Razão", icon: BookOpen },
   { to: "/reconciliation/chart", label: "Plano de contas", icon: ListTree },
   { to: "/reconciliation/rules", label: "Regras", icon: Wand2 },
+  { to: "/reconciliation/metrics", label: "Métricas", icon: ChartColumn },
+  { to: "/reconciliation/playbooks", label: "Playbooks", icon: BookMarked },
 ];
 
 /** Submenu da área Conciliação [08 §7]; a empresa escolhida acompanha a troca de seção. */

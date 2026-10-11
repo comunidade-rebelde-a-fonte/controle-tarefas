@@ -168,7 +168,12 @@ Lançamentos, razão, plano de contas e regras (TASK-021b, D-033), só no fronte
 - telas em `frontend/src/features/reconciliation` (`entries/`, `ledger/`, `chart/`, `rules/`), no submenu da Conciliação; a empresa escolhida (`company_id`) acompanha a troca de seção;
 - "rodar a conciliação da competência" (`RunReconciliation` em `common.tsx`) fica nos lançamentos e na fila;
 - o drill-down do razão (AC-021) é o diálogo `Trail` em `ledger/LedgerPage.tsx`, sobre `GET /reconciliation/reconciliations/{id}`;
-- no E2E, o extrato do Banco A Fonte é do TEST-021a: o mesmo arquivo (sha256) e a mesma conta bancária só entram uma vez por execução; o TEST-021b usa o do Banco Beta.
+- no E2E, o extrato do Banco A Fonte é do TEST-021a e o do Banco Beta é do TEST-021b: o mesmo arquivo (sha256) é recusado e as transações repetidas são ignoradas (a chave de dedupe é única no sistema). Teste novo não reusa extrato do cenário.
+
+Métricas, playbooks, aba da ficha e contas bancárias (TASK-021c, D-034):
+- painel do 11 §7, playbooks e o resumo da ficha (`GET /companies/{id}/reconciliation?competence=`) em `backend/internal/reconciliation/metrics`: consultas sobre as tabelas da Conciliação, sem tabela de métrica; a meta da automática vem de `META_CONCILIACAO_AUTO` (80, da origem); os itens por balde usam `review.Counts`, a mesma contagem da fila;
+- contas bancárias (CC-11) em `backend/internal/reconciliation/bankaccount`: a conta cadastrada decide a empresa do extrato (D-027); banco, agência e conta precisam ser os que a leitura grava, então a aba oferece as contas lidas nos extratos;
+- telas em `frontend/src/features/reconciliation` (`metrics/`, `playbooks/`, `company/`); a aba Conciliação da ficha é `company/ReconciliationTab.tsx`.
 
 ## Fator R
 

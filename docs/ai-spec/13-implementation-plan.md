@@ -214,7 +214,7 @@ Fila de revisão é a prioridade de UX.
 
 > **Em três partes (D-032, decisão do usuário).** 021a: fila de revisão e documentos, com as ações da fila na API. 021b: lançamentos, razão com drill-down, plano de contas e regras. 021c: playbooks, métricas e a aba Conciliação da ficha. Uma validação e um commit por parte (§14).
 >
-> **Como foi implementado.** 021a (D-032): a fila e os documentos, com o TEST-021a de ponta a ponta. 021b (D-033): as telas de lançamentos, razão (drill-down e CSV), plano de contas e regras, só no frontend, com o TEST-021b de ponta a ponta sobre o extrato do Banco Beta.
+> **Como foi implementado.** 021a (D-032): a fila e os documentos, com o TEST-021a de ponta a ponta. 021b (D-033): as telas de lançamentos, razão (drill-down e CSV), plano de contas e regras, só no frontend, com o TEST-021b de ponta a ponta sobre o extrato do Banco Beta. 021c (D-034): o painel de métricas do 11 §7, os playbooks, a aba Conciliação da ficha e o cadastro das contas bancárias (CC-11), com os números conferidos em integração e o TEST-021c de ponta a ponta.
 
 ## 7. Marco M5 — Integrações reais entre módulos
 

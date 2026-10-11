@@ -117,6 +117,12 @@ Preservar/adicionar:
 >
 > **Desde a TASK-019 (D-030):** cada hipótese tem a corrida `resolvedor` (gatilho `pedido` ou `rodada`, status `needs_review`) com a decisão `proposta_resolvedor`, que aponta a proposta e os ids citados fora do contexto; a proposta guarda o `trace_id`. O pedido, o aceite e a rejeição ficam no log de extração.
 
+> **Desde a TASK-021c (D-034):** o painel está em Conciliação → Métricas (`GET /reconciliation/metrics`, filtros de empresa e competência), sempre por consulta sobre as tabelas da Conciliação.
+> - Extração como o `make eval-extrator`: aprovação na 1ª tentativa e tentativas médias do agente, com o leitor determinístico à parte; custo por documento da triagem e da extração, em dólares.
+> - Conciliação: o percentual automático contra `META_CONCILIACAO_AUTO` (80) e as conciliações ativas por método; itens por balde com a contagem da fila; correções humanas depois da leitura.
+> - Erro depois do fechamento (decisão do usuário): as reaberturas do Contábil e, à parte, os documentos que chegaram com a competência fechada; meta zero.
+> - Custo do resolvedor e do classificador por item e sucesso dos playbooks por banco (a tela Playbooks mostra cada versão).
+
 ## 8. Healthchecks
 
 No mínimo:

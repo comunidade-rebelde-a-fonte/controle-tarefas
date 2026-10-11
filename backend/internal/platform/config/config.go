@@ -107,6 +107,9 @@ type Config struct {
 	// linhas conciliadas sem regra nem histórico, uma vez por linha (CLASSIFICADOR_AUTOMATICO,
 	// padrão false; TASK-020). Cada pedido é uma chamada de modelo.
 	ClassifierAuto bool
+	// AutoTarget é a meta da conciliação automática, em percentual das linhas do extrato
+	// (META_CONCILIACAO_AUTO, padrão 80 como na origem; TASK-021c): a régua do painel de métricas.
+	AutoTarget decimal.Decimal
 }
 
 // Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
@@ -294,6 +297,11 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 		*l.dst = threshold
 	}
+	target, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv("META_CONCILIACAO_AUTO")), "80"))
+	if terr != nil || target.Sign() < 0 || target.Cmp(decimal.FromInt(100)) > 0 {
+		errs = append(errs, fmt.Errorf("META_CONCILIACAO_AUTO inválido: %q (percentual de 0 a 100, ex.: 80)", getenv("META_CONCILIACAO_AUTO")))
+	}
+	cfg.AutoTarget = target
 	for _, f := range []struct {
 		name string
 		dst  *bool

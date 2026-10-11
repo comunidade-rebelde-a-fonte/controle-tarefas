@@ -4,6 +4,28 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-034 — Playbooks, métricas, aba Conciliação da ficha e contas bancárias (TASK-021c; 10/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Porte** das rotas `/playbooks` e `/metricas` e da tela "Clientes e contas" do Conciliador (`app/web/rotas.py`, `playbooks.html`, `metricas.html` e `clientes.html`, commit `2bc6e26`).
+  - Métricas, playbooks e o resumo da ficha em `backend/internal/reconciliation/metrics`; contas em `backend/internal/reconciliation/bankaccount`. São consultas sobre as tabelas da Conciliação: não há tabela de métrica nem migration.
+  - Telas em `frontend/src/features/reconciliation` (`metrics/`, `playbooks/` e `company/`).
+- **Métricas (11-observability §7, CC-22).** Filtros opcionais de empresa e competência; a origem não filtrava.
+  - O percentual automático da origem (automáticas ÷ linhas do extrato, uma casa) contra a meta `META_CONCILIACAO_AUTO` (80, o padrão da origem; é só a régua do painel). As conciliações ativas por método (o "por passe" da origem) e as automáticas desfeitas pelo contador.
+  - Itens por balde: a mesma contagem da fila. A origem mandava o dicionário vazio.
+  - Leitura dos extratos e dos comprovantes, como o `make eval-extrator`: as tentativas são as do agente, e o leitor determinístico fica à parte. Aprovado é o extrato importado ou o comprovante completo sem campo corrigido à mão.
+  - Custo por documento: todas as chamadas de modelo do documento (triagem e extração), em dólares, como o LiteLLM informa, sem conversão.
+  - Correções humanas depois da leitura: campo do comprovante corrigido e "que documento é esse?", sobre os documentos lidos.
+  - **Depois do fechamento (decisão do usuário):** as reaberturas do Contábil (sempre com motivo) e, à parte, os documentos que chegaram com a competência fechada; a meta é zero. Só contam as reaberturas de competências em que a empresa tem extrato ou documento na Conciliação.
+  - O custo do resolvedor e do classificador por item (M4.7 da origem) e o sucesso dos playbooks por banco.
+- **Playbooks (REQ-022, CC-09).** A tela da origem: todas as versões por banco, com o estado, os sucessos, as falhas e a taxa, e a receita de cada versão. Somente leitura.
+- **Aba Conciliação da ficha (REQ-036, AC-034).** `GET /companies/{id}/reconciliation?competence=` (o resumo previsto no 06 §4): o Contábil aberto ou fechado (a trava), os extratos que cobrem a competência, o percentual automático, a fila por balde, a classificação e os lançamentos.
+  - Na aba: rodar a conciliação (não aparece com o Contábil fechado) e os atalhos para as telas da Conciliação já filtradas pela empresa.
+- **Contas bancárias (CC-11; decisão do usuário).** O cadastro da origem passa para a aba da ficha. A conta cadastrada decide a empresa dos próximos extratos dela, e o extrato dela enviado para outra empresa vai para a revisão: é a regra da D-027, que até aqui não tinha como ser usada, porque nada cadastrava conta.
+  - Banco, agência e conta precisam ser exatamente os que a leitura grava. Por isso a aba lista as contas que os extratos da empresa leram e que ninguém cadastrou, para cadastrar com um clique; o formulário da origem continua.
+  - A identidade é única no sistema (409 `BANK_ACCOUNT_EXISTS`, dizendo de qual empresa é). Sem espaços nas pontas, até 64, 16 e 32 caracteres (os da origem). O cadastro fica no log de extração. Não há desativação; a origem também não tinha.
+- **E2E.** O TEST-021c abre a aba da ficha (com a competência e a trava), roda a conciliação, cadastra a conta (e vê a recusa da repetida), segue o atalho para as métricas e abre os playbooks, com o axe. Não usa extrato do cenário; os números das métricas são conferidos nos testes de integração, sobre dados montados no banco. A aba entrou na varredura de acessibilidade da ficha.
+- **Correção da D-033:** o TEST-021b usa o extrato do Banco Beta porque o arquivo repetido é recusado e a chave de dedupe das transações é única no sistema, e não por causa da conta bancária.
+
 ### D-033 — Lançamentos, razão, plano de contas e regras da Conciliação (TASK-021b; 10/10/2026; dentro da autonomia da spec, sem regra de negócio nova; validada pelo usuário com a TASK)
 
 - **Porte** das telas `lancamentos.html` e `razao.html` e do "Rodar matching" (`POST /matching/rodar`, `app/web/rotas.py`) do Conciliador (commit `2bc6e26`).
@@ -25,7 +47,7 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
   - A lista vai da mais nova para a mais antiga (a ordem em que valem), com a conta, a situação e o link para a linha cuja correção originou a regra; há o filtro "só as ativas".
   - A regra nova escolhe a conta só do plano ativo, com a explicação do que cada tipo compara. Ao confirmar, a tela avisa a regra antiga substituída. Desativar pede confirmação.
   - "Aplicar às linhas pendentes" roda a classificação da competência (regra, depois histórico) e mostra o resultado.
-- **E2E.** O TEST-021b usa o extrato do Banco Beta do cenário Horizonte. O do Banco A Fonte é do TEST-021a, e o mesmo arquivo (sha256) e a mesma conta bancária não entram duas vezes na mesma execução.
+- **E2E.** O TEST-021b usa o extrato do Banco Beta do cenário Horizonte. O do Banco A Fonte é do TEST-021a: o mesmo arquivo (sha256) é recusado, e as transações do mesmo extrato importado de novo são ignoradas, porque a chave de dedupe é única no sistema (texto corrigido na TASK-021c, D-034).
   - Lançamentos pela tela (formulário e CSV, com a recusa), a rodada, a tarifa sem comprovante (pela API), o plano (formulário, CSV, desativar e reativar), as três regras e "aplicar".
   - O razão com as contas, os totais e o filtro, a exportação (o arquivo é conferido) e o drill-down até o extrato original.
   - O axe roda em cinco telas e diálogos.

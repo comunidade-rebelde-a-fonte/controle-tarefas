@@ -57,6 +57,8 @@ func TestConfig(t testing.TB) config.Config {
 		TriageThreshold: decimal.MustParse("0.70"),
 		FieldThreshold:  decimal.MustParse("0.70"),
 		FuzzyThreshold:  decimal.MustParse("0.86"),
+		// A meta da conciliação automática do painel (META_CONCILIACAO_AUTO), 80% da origem.
+		AutoTarget: decimal.MustParse("80"),
 	}
 }
 

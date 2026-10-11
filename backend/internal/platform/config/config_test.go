@@ -267,6 +267,19 @@ func TestLoad_ReconciliationThresholds(t *testing.T) {
 		!strings.Contains(err.Error(), "CLASSIFICADOR_AUTOMATICO") {
 		t.Errorf("CLASSIFICADOR_AUTOMATICO inválido aceito: %v", err)
 	}
+	// A meta da conciliação automática (TASK-021c): 80% da origem, percentual de 0 a 100.
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x"})); err != nil || cfg.AutoTarget.String() != "80" {
+		t.Errorf("META_CONCILIACAO_AUTO padrão = %s, %v", cfg.AutoTarget, err)
+	}
+	if cfg, err := Load(env(map[string]string{"DATABASE_URL": "x", "META_CONCILIACAO_AUTO": " 92.5 "})); err != nil || cfg.AutoTarget.String() != "92.5" {
+		t.Errorf("META_CONCILIACAO_AUTO=92.5 = %s, %v", cfg.AutoTarget, err)
+	}
+	for _, bad := range []string{"101", "-1", "oitenta", "80%"} {
+		if _, err := Load(env(map[string]string{"DATABASE_URL": "x", "META_CONCILIACAO_AUTO": bad})); err == nil ||
+			!strings.Contains(err.Error(), "META_CONCILIACAO_AUTO") {
+			t.Errorf("META_CONCILIACAO_AUTO=%q aceito: %v", bad, err)
+		}
+	}
 	for _, name := range []string{"LIMIAR_TRIAGEM", "LIMIAR_CAMPO", "LIMIAR_FUZZY"} {
 		for _, bad := range []string{"1.5", "-0.1", "abc", "0,7"} {
 			if _, err := Load(env(map[string]string{"DATABASE_URL": "x", name: bad})); err == nil || !strings.Contains(err.Error(), name) {

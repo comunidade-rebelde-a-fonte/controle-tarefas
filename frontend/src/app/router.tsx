@@ -25,6 +25,8 @@ import { DocumentPage } from "@/features/reconciliation/documents/DocumentPage";
 import { DocumentsPage } from "@/features/reconciliation/documents/DocumentsPage";
 import { EntriesPage } from "@/features/reconciliation/entries/EntriesPage";
 import { LedgerPage } from "@/features/reconciliation/ledger/LedgerPage";
+import { MetricsPage } from "@/features/reconciliation/metrics/MetricsPage";
+import { PlaybooksPage } from "@/features/reconciliation/playbooks/PlaybooksPage";
 import { ReconciliationLayout } from "@/features/reconciliation/ReconciliationLayout";
 import { ReviewQueuePage } from "@/features/reconciliation/review/ReviewQueuePage";
 import { RulesPage } from "@/features/reconciliation/rules/RulesPage";
@@ -59,7 +61,7 @@ export const routes = [
         ],
       },
       {
-        // Área Conciliação com submenu (TASK-021a e 021b, D-032 e D-033).
+        // Área Conciliação com submenu (TASK-021a, 021b e 021c; D-032 a D-034).
         path: "reconciliation",
         element: <ReconciliationLayout />,
         children: [
@@ -70,6 +72,8 @@ export const routes = [
           { path: "ledger", element: <LedgerPage /> },
           { path: "chart", element: <ChartPage /> },
           { path: "rules", element: <RulesPage /> },
+          { path: "metrics", element: <MetricsPage /> },
+          { path: "playbooks", element: <PlaybooksPage /> },
         ],
       },
       { path: "credentials", element: <CredentialsPage /> },

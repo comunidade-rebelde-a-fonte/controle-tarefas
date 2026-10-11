@@ -37,11 +37,13 @@ import (
 	"controle/internal/platform/objectstore"
 	"controle/internal/platform/pdftext"
 	"controle/internal/platform/settings"
+	"controle/internal/reconciliation/bankaccount"
 	"controle/internal/reconciliation/chart"
 	"controle/internal/reconciliation/classify"
 	"controle/internal/reconciliation/documents"
 	"controle/internal/reconciliation/entries"
 	"controle/internal/reconciliation/ledger"
+	"controle/internal/reconciliation/metrics"
 	"controle/internal/reconciliation/proposals"
 	"controle/internal/reconciliation/reconcile"
 	"controle/internal/reconciliation/review"
@@ -168,6 +170,11 @@ func New(d Deps) *App {
 		review.NewHandler(review.NewService(d.Pool, aiClock, rounds)).Routes(api)
 		classify.NewHandler(classify.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
 		ledger.NewHandler(ledger.NewService(d.Pool)).Routes(api)
+		// Métricas, playbooks e o resumo da ficha (TASK-021c): consultas sobre as tabelas da
+		// Conciliação, com a meta da automática de META_CONCILIACAO_AUTO; e as contas bancárias da
+		// empresa (CC-11), que decidem a empresa dos extratos.
+		metrics.NewHandler(metrics.NewService(d.Pool, d.Config.AutoTarget)).Routes(api)
+		bankaccount.NewHandler(bankaccount.NewService(d.Pool, aiClock)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

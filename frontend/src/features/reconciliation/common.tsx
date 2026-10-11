@@ -23,14 +23,16 @@ import { isCompetenceKey } from "@/lib/competence";
 import { formatMoney } from "@/lib/decimal";
 import { useCompanies } from "@/services/companies";
 import { jobActive, useJob, useRetryJob } from "@/services/jobs";
+import { cn } from "@/lib/utils";
 import {
   type ReconciliationDocument,
   type ReconciliationDocumentStatus,
+  type ReconciliationMatching,
   type RunSummary,
   reconciliationKeys,
   useRunReconciliation,
 } from "@/services/reconciliation";
-import { DOC_STATUS, jobErrorText, runSummaryText } from "./labels";
+import { DOC_STATUS, jobErrorText, percentText, runSummaryText } from "./labels";
 import { csvLinesOf } from "./model";
 
 /** Valor com o sentido em texto e ícone (nunca só cor): C entra, D sai. */
@@ -216,5 +218,49 @@ export function RunReconciliation({ companyId, competence, showQueueLink = false
       ) : null}
       <ErrorAlert error={run.error} fallback="Não foi possível rodar a conciliação." />
     </div>
+  );
+}
+
+/** Largura de barra (0 a 100) a partir do percentual da API; só para desenhar. */
+function barWidth(value: string | null | undefined): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? Math.min(Math.max(n, 0), 100) : 0;
+}
+
+/**
+ * O percentual automático contra a meta (a régua do /metricas da origem): o número, as linhas e
+ * a barra com a marca da meta. A barra é só desenho; o texto diz tudo.
+ */
+export function AutoRate({ matching }: { matching: ReconciliationMatching }) {
+  const below = matching.auto_percent !== null && barWidth(matching.auto_percent) < barWidth(matching.target_percent);
+  return (
+    <div className="grid gap-2">
+      <p className="text-3xl font-semibold tabular-nums" data-testid="percentual-automatico">
+        {percentText(matching.auto_percent)}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        {matching.auto} de {matching.lines} linhas do extrato conciliadas pelo automático · meta {percentText(matching.target_percent)}
+      </p>
+      <div className="relative h-2 rounded bg-muted" aria-hidden>
+        <div
+          className={cn("h-2 rounded", below ? "bg-amber-500" : "bg-emerald-600")}
+          style={{ width: `${String(barWidth(matching.auto_percent))}%` }}
+        />
+        <div className="absolute -top-1 h-4 w-0.5 bg-foreground" style={{ left: `${String(barWidth(matching.target_percent))}%` }} />
+      </div>
+    </div>
+  );
+}
+
+/** Barra da taxa de sucesso (playbooks), com o percentual em texto ao lado. */
+export function RateBar({ value }: { value: string | null | undefined }) {
+  if (value === null || value === undefined) return <span className="text-muted-foreground">—</span>;
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="inline-block h-1.5 w-20 rounded bg-muted" aria-hidden>
+        <span className="block h-1.5 rounded bg-emerald-600" style={{ width: `${String(barWidth(value))}%` }} />
+      </span>
+      <span className="tabular-nums">{percentText(value)}</span>
+    </span>
   );
 }

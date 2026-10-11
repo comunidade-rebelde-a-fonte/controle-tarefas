@@ -2128,6 +2128,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reconciliation/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel de métricas da Conciliação [11-observability §7, CC-22]
+         * @description O /metricas da origem (o percentual automático contra a meta e as conciliações por passe) e
+         *     os demais números do §7: os itens por balde (a mesma contagem da fila), a leitura dos
+         *     extratos e dos comprovantes (aprovação na 1ª tentativa, tentativas médias e custo por
+         *     documento, como o `make eval-extrator`), as correções humanas depois da leitura, o que se
+         *     achou depois do fechamento (reaberturas do Contábil e documentos tardios; D-034), o custo do
+         *     resolvedor e do classificador por item e o sucesso dos playbooks por banco. Tudo é consulta
+         *     sobre as tabelas da Conciliação. Empresa e competência são opcionais; sem base, o percentual
+         *     é nulo. O custo é o que o LiteLLM informa, em dólares, sem conversão.
+         */
+        get: operations["getReconciliationMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/playbooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Playbooks por banco, todas as versões [REQ-022, CC-09]
+         * @description O /playbooks da origem: a receita de extração de cada banco, que só persiste depois que o
+         *     portão aprova, com a versão, o estado (no máximo uma válida por banco), os sucessos, as
+         *     falhas e a taxa. Por banco e da versão mais nova para a mais antiga. Somente leitura.
+         */
+        get: operations["listBankPlaybooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A Conciliação da empresa na competência, para a aba da ficha [REQ-036, AC-034]
+         * @description Se o Contábil está fechado (a trava da Conciliação), os extratos importados que cobrem a
+         *     competência, as linhas e o percentual automático contra a meta, os itens da fila por balde,
+         *     os lançamentos do cliente e a classificação das linhas conciliadas.
+         */
+        get: operations["getCompanyReconciliationSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/bank-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Contas bancárias da empresa e as lidas nos extratos sem cadastro [CC-11]
+         * @description As contas cadastradas, com os extratos já importados de cada uma, e as contas que os
+         *     extratos importados da empresa leram e que ninguém cadastrou (`read`), com o banco, a
+         *     agência e a conta exatamente como a leitura gravou.
+         */
+        get: operations["listBankAccounts"];
+        put?: never;
+        /**
+         * Cadastra a conta bancária na empresa (conta_bancaria da origem) [CC-11]
+         * @description A conta cadastrada decide a empresa dos próximos extratos dela, e o extrato dela enviado
+         *     para outra empresa vai para a revisão (`conta_de_outra_empresa`; D-027). Banco, agência e
+         *     conta precisam ser os que a leitura grava (o leitor do cenário grava `a_fonte` ou `beta`):
+         *     prefira cadastrar a partir de `read`. Sem espaços nas pontas; até 64, 16 e 32 caracteres. A
+         *     identidade é única no sistema: já cadastrada, 409 `BANK_ACCOUNT_EXISTS`, com a empresa dona
+         *     em `details.company_id` quando é outra. A ação fica no log de extração.
+         */
+        post: operations["createBankAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reconciliation/review-queue": {
         parameters: {
             query?: never;
@@ -4361,6 +4467,201 @@ export interface components {
             counts: {
                 [key: string]: number;
             };
+        };
+        /**
+         * @description Conciliação das linhas do extrato: o percentual automático da origem (automáticas ÷ linhas,
+         *     uma casa) contra a meta (`META_CONCILIACAO_AUTO`) e as conciliações ativas por método.
+         */
+        ReconciliationMatching: {
+            /** @description Linhas do extrato */
+            lines: number;
+            /** @description Linhas com conciliação ativa */
+            reconciled: number;
+            auto: number;
+            /** @description À mão, sem comprovante e aceite do resolvedor */
+            manual: number;
+            free: number;
+            auto_percent: components["schemas"]["DecimalString"] | null;
+            target_percent: components["schemas"]["DecimalString"];
+            /** @description Conciliações ativas por método: passe_1 a passe_4, manual, sem_comprovante e resolvedor */
+            by_method: {
+                [key: string]: number;
+            };
+            /** @description Conciliações automáticas desfeitas */
+            undone_auto: number;
+        };
+        /**
+         * @description Leitura dos documentos de um tipo, como o `make eval-extrator` (D-027): as tentativas são as
+         *     do agente; aprovado é o extrato importado ou o comprovante completo sem campo corrigido à
+         *     mão; o leitor determinístico fica à parte; o custo soma todas as chamadas de modelo do
+         *     documento (triagem e extração), em dólares.
+         */
+        ReconciliationExtraction: {
+            /** @description Documentos lidos, pelo leitor ou pelo agente */
+            documents: number;
+            /** @description Lidos pelo leitor determinístico, sem agente */
+            local_reader: number;
+            /** @description Lidos pelo agente */
+            agent: number;
+            /** @description Aprovados na 1ª tentativa do agente */
+            first_attempt: number;
+            first_attempt_percent: components["schemas"]["DecimalString"] | null;
+            average_attempts: components["schemas"]["DecimalString"] | null;
+            /** @description Lidos pelo agente e não aprovados */
+            not_approved: number;
+            cost_usd: components["schemas"]["DecimalString"];
+            cost_per_document_usd: components["schemas"]["DecimalString"] | null;
+        };
+        /** @description Corridas de um agente que só sugere e o custo por item (M4.7 da origem) */
+        ReconciliationAgentCost: {
+            runs: number;
+            cost_usd: components["schemas"]["DecimalString"];
+            cost_per_run_usd: components["schemas"]["DecimalString"] | null;
+        };
+        /** @description Painel de métricas da Conciliação (11-observability §7) */
+        ReconciliationMetrics: {
+            /** Format: uuid */
+            company_id: string | null;
+            competence: components["schemas"]["Competence"] | null;
+            matching: components["schemas"]["ReconciliationMatching"];
+            /** @description Itens da fila por balde e o total (total), a mesma contagem da fila */
+            buckets: {
+                [key: string]: number;
+            };
+            extraction: {
+                statements: components["schemas"]["ReconciliationExtraction"];
+                receipts: components["schemas"]["ReconciliationExtraction"];
+            };
+            /** @description Correções humanas depois da leitura (campo do comprovante e "que documento é esse?") */
+            corrections: {
+                actions: number;
+                /** @description Documentos corrigidos */
+                documents: number;
+                /** @description Documentos corrigidos ÷ documentos lidos */
+                rate_percent: components["schemas"]["DecimalString"] | null;
+            };
+            /**
+             * @description Erro achado depois do fechamento (meta zero; D-034): as reaberturas do Contábil (sempre
+             *     com motivo) nas competências com a Conciliação e, à parte, os documentos que chegaram
+             *     com a competência fechada.
+             */
+            after_close: {
+                reopenings: number;
+                late_documents: number;
+            };
+            agents: {
+                resolver: components["schemas"]["ReconciliationAgentCost"];
+                classifier: components["schemas"]["ReconciliationAgentCost"];
+            };
+            /** @description Sucesso dos playbooks de cada banco, somando as versões (não depende dos filtros) */
+            playbooks: {
+                bank: string;
+                versions: number;
+                valid_version: number | null;
+                successes: number;
+                failures: number;
+                success_percent: components["schemas"]["DecimalString"] | null;
+            }[];
+        };
+        /** @description Versão do playbook de um banco (playbook_banco da origem; schema congelado, D-020) */
+        BankPlaybook: {
+            id: components["schemas"]["Uuid"];
+            bank: string;
+            version: number;
+            valid: boolean;
+            successes: number;
+            failures: number;
+            success_percent: components["schemas"]["DecimalString"] | null;
+            table_start_page: number;
+            ignored_pages: number[];
+            date_format: string;
+            decimal_separator: string;
+            sign_representation: string;
+            balance_location: string;
+            winning_strategy: string;
+            /** Format: date-time */
+            validated_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        BankPlaybookList: {
+            items: components["schemas"]["BankPlaybook"][];
+        };
+        /** @description A Conciliação da empresa na competência (a aba da ficha) */
+        CompanyReconciliationSummary: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description Contábil fechado: a Conciliação da competência está travada */
+            accounting_closed: boolean;
+            statements: {
+                import_id: components["schemas"]["Uuid"];
+                document_id: components["schemas"]["Uuid"];
+                file_name: string;
+                /** @description Banco agência/conta */
+                bank_account: string;
+                /** Format: date */
+                period_start: string;
+                /** Format: date */
+                period_end: string;
+                opening_balance: components["schemas"]["DecimalString"];
+                closing_balance: components["schemas"]["DecimalString"];
+                /** @description Tentativas do extrator (0: leitor determinístico) */
+                attempts: number;
+                transactions: number;
+            }[];
+            matching: components["schemas"]["ReconciliationMatching"];
+            buckets: {
+                [key: string]: number;
+            };
+            entries: {
+                total: number;
+                partial: number;
+            };
+            classification: {
+                /** @description Linhas conciliadas com a conta confirmada */
+                classified: number;
+                /** @description Linhas conciliadas à espera da conta */
+                pending: number;
+            };
+        };
+        /** @description Conta bancária cadastrada da empresa (conta_bancaria da origem; CC-11) */
+        BankAccount: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            bank: string;
+            branch: string;
+            account: string;
+            /** @description Banco agência/conta, como no razão */
+            label: string;
+            active: boolean;
+            /** @description Extratos já importados da conta pela empresa */
+            statements: number;
+            /** Format: date */
+            last_period_end: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        BankAccountList: {
+            items: components["schemas"]["BankAccount"][];
+            /** @description Contas lidas nos extratos importados da empresa que ninguém cadastrou */
+            read: {
+                bank: string;
+                branch: string;
+                account: string;
+                label: string;
+                statements: number;
+                /** Format: date */
+                last_period_end: string;
+            }[];
+        };
+        BankAccountCreate: {
+            bank: string;
+            branch: string;
+            account: string;
         };
         ReviewLine: {
             id: components["schemas"]["Uuid"];
@@ -8709,6 +9010,128 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    getReconciliationMetrics: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Métricas do filtro */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationMetrics"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    listBankPlaybooks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Playbooks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankPlaybookList"];
+                };
+            };
+        };
+    };
+    getCompanyReconciliationSummary: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resumo da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyReconciliationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listBankAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankAccountList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createBankAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Conta cadastrada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
     getReviewQueue: {

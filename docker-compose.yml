@@ -73,6 +73,8 @@ services:
       RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
       # Classificador (TASK-020): desligado, a sugestão de conta só sai a pedido do contador.
       CLASSIFICADOR_AUTOMATICO: ${CLASSIFICADOR_AUTOMATICO:-false}
+      # Métricas da Conciliação (TASK-021c): a meta da conciliação automática, 80% da origem.
+      META_CONCILIACAO_AUTO: ${META_CONCILIACAO_AUTO:-80}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:

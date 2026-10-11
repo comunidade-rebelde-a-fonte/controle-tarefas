@@ -9,6 +9,7 @@ import { formatCnpj } from "@/lib/cnpj";
 import { TAX_REGIME_LABELS } from "@/lib/labels";
 import { useCompany } from "@/services/companies";
 import { FactorRTab } from "@/features/factor-r/FactorRTab";
+import { ReconciliationTab } from "@/features/reconciliation/company/ReconciliationTab";
 import { CredentialsTab } from "./CredentialsTab";
 import { GeneralTab } from "./GeneralTab";
 import { HistoryTab } from "./HistoryTab";
@@ -25,6 +26,7 @@ const TABS = [
   ["obligations", "Obrigações/aplicabilidade"],
   ["payroll", "Folha"],
   ["factor-r", "Fator R"],
+  ["reconciliation", "Conciliação"],
   ["responsibles", "Responsáveis"],
   ["credentials", "Procurações/Certificados"],
   ["history", "Histórico de competências"],
@@ -32,7 +34,10 @@ const TABS = [
 
 type TabId = (typeof TABS)[number][0];
 
-/** Ficha da empresa com as 8 abas do PRD §27.3 e a do Fator R (TASK-014a). A aba ativa fica na URL. */
+/**
+ * Ficha da empresa com as 8 abas do PRD §27.3, a do Fator R (TASK-014a) e a da Conciliação
+ * (TASK-021c). A aba ativa fica na URL.
+ */
 export function CompanyDetailPage() {
   const { id = "" } = useParams();
   const [params, setParams] = useSearchParams();
@@ -116,6 +121,9 @@ export function CompanyDetailPage() {
         </TabsContent>
         <TabsContent value="factor-r">
           <FactorRTab company={company} />
+        </TabsContent>
+        <TabsContent value="reconciliation">
+          <ReconciliationTab company={company} />
         </TabsContent>
         <TabsContent value="responsibles">
           <ResponsiblesTab key={company.version} company={company} />

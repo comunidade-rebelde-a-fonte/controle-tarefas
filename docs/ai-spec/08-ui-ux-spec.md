@@ -78,6 +78,8 @@ Subáreas:
 - Procurações/Certificados.
 - Histórico.
 
+> **Como foi implementado (TASK-021c; D-034).** A ficha ganhou a aba **Conciliação** (`?tab=reconciliation`): a competência com o Contábil aberto ou fechado (a trava), o percentual automático contra a meta, a fila por balde, a classificação, os lançamentos e os extratos que cobrem a competência; rodar a conciliação e os atalhos para as telas da Conciliação já filtradas pela empresa; e as contas bancárias (CC-11), com as lidas nos extratos para cadastrar com um clique.
+
 ### Visão geral
 
 Cards operacionais:
@@ -163,6 +165,10 @@ Tabela com filtros e drill-down em cadeia:
 > - **Razão:** filtros por empresa, competência inicial e final e conta (bancária ou contábil), os totais do período e a exportação CSV do filtro. A linha abre o drill-down em diálogo, na cadeia acima, com os caminhos para a linha na fila e para os originais.
 > - **Lançamentos:** lista com a origem e o status, formulário e CSV do cliente (tudo ou nada, com o erro de cada linha) e "rodar a conciliação da competência", também na fila.
 > - **Plano de contas e regras:** incluir, renomear, desativar e reativar contas, importar e copiar o plano; regras da mais nova para a mais antiga, confirmar, desativar e aplicar às linhas pendentes.
+
+> **Como foi implementado (TASK-021c; D-034).** Submenu Métricas (`/reconciliation/metrics`) e Playbooks (`/reconciliation/playbooks`).
+> - **Métricas:** filtros por empresa e competência; o percentual automático contra a meta, os métodos, os baldes (com o caminho para a fila), a leitura dos documentos, as correções, o depois do fechamento (meta zero), o custo dos agentes e os playbooks por banco.
+> - **Playbooks:** as versões de cada banco com o estado, os sucessos, as falhas, a taxa e a receita. Somente leitura.
 
 ## 8. Documentos consolidados
 

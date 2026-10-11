@@ -71,6 +71,10 @@ func TestCompose_MinIOCredentials(t *testing.T) {
 			t.Errorf("o serviço %s deveria receber CLASSIFICADOR_AUTOMATICO desligado por padrão", name)
 		}
 	}
+	// TASK-021c: a meta da conciliação automática do painel, 80% da origem, só na API.
+	if !strings.Contains(svc["api"], "META_CONCILIACAO_AUTO: ${META_CONCILIACAO_AUTO:-80}") {
+		t.Error("a API deveria receber a meta da conciliação automática (80% da origem)")
+	}
 	if strings.Contains(svc["api"], "depends_on:\n      minio") {
 		t.Error("a API não depende do MinIO para subir [D-013]")
 	}

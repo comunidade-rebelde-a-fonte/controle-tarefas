@@ -2843,6 +2843,113 @@ paths:
               schema: { $ref: "#/components/schemas/ReconciliationDetail" }
         "404": { $ref: "#/components/responses/NotFound" }
 
+  /reconciliation/metrics:
+    get:
+      tags: [reconciliation]
+      operationId: getReconciliationMetrics
+      summary: Painel de métricas da Conciliação [11-observability §7, CC-22]
+      description: |
+        O /metricas da origem (o percentual automático contra a meta e as conciliações por passe) e
+        os demais números do §7: os itens por balde (a mesma contagem da fila), a leitura dos
+        extratos e dos comprovantes (aprovação na 1ª tentativa, tentativas médias e custo por
+        documento, como o `make eval-extrator`), as correções humanas depois da leitura, o que se
+        achou depois do fechamento (reaberturas do Contábil e documentos tardios; D-034), o custo do
+        resolvedor e do classificador por item e o sucesso dos playbooks por banco. Tudo é consulta
+        sobre as tabelas da Conciliação. Empresa e competência são opcionais; sem base, o percentual
+        é nulo. O custo é o que o LiteLLM informa, em dólares, sem conversão.
+      parameters:
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: competence, in: query, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Métricas do filtro
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ReconciliationMetrics" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+
+  /reconciliation/playbooks:
+    get:
+      tags: [reconciliation]
+      operationId: listBankPlaybooks
+      summary: Playbooks por banco, todas as versões [REQ-022, CC-09]
+      description: |
+        O /playbooks da origem: a receita de extração de cada banco, que só persiste depois que o
+        portão aprova, com a versão, o estado (no máximo uma válida por banco), os sucessos, as
+        falhas e a taxa. Por banco e da versão mais nova para a mais antiga. Somente leitura.
+      responses:
+        "200":
+          description: Playbooks
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankPlaybookList" }
+
+  /companies/{id}/reconciliation:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: getCompanyReconciliationSummary
+      summary: A Conciliação da empresa na competência, para a aba da ficha [REQ-036, AC-034]
+      description: |
+        Se o Contábil está fechado (a trava da Conciliação), os extratos importados que cobrem a
+        competência, as linhas e o percentual automático contra a meta, os itens da fila por balde,
+        os lançamentos do cliente e a classificação das linhas conciliadas.
+      parameters:
+        - { name: competence, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Resumo da competência
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyReconciliationSummary" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /companies/{id}/bank-accounts:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [reconciliation]
+      operationId: listBankAccounts
+      summary: Contas bancárias da empresa e as lidas nos extratos sem cadastro [CC-11]
+      description: |
+        As contas cadastradas, com os extratos já importados de cada uma, e as contas que os
+        extratos importados da empresa leram e que ninguém cadastrou (`read`), com o banco, a
+        agência e a conta exatamente como a leitura gravou.
+      responses:
+        "200":
+          description: Contas
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankAccountList" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    post:
+      tags: [reconciliation]
+      operationId: createBankAccount
+      summary: Cadastra a conta bancária na empresa (conta_bancaria da origem) [CC-11]
+      description: |
+        A conta cadastrada decide a empresa dos próximos extratos dela, e o extrato dela enviado
+        para outra empresa vai para a revisão (`conta_de_outra_empresa`; D-027). Banco, agência e
+        conta precisam ser os que a leitura grava (o leitor do cenário grava `a_fonte` ou `beta`):
+        prefira cadastrar a partir de `read`. Sem espaços nas pontas; até 64, 16 e 32 caracteres. A
+        identidade é única no sistema: já cadastrada, 409 `BANK_ACCOUNT_EXISTS`, com a empresa dona
+        em `details.company_id` quando é outra. A ação fica no log de extração.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BankAccountCreate" }
+      responses:
+        "201":
+          description: Conta cadastrada
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BankAccount" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
   /reconciliation/review-queue:
     get:
       tags: [reconciliation]
@@ -5619,6 +5726,235 @@ components:
       properties:
         items: { type: array, items: { $ref: "#/components/schemas/ReviewQueueItem" } }
         counts: { type: object, additionalProperties: { type: integer }, description: "Por balde e o total (total)" }
+
+    ReconciliationMatching:
+      type: object
+      description: |
+        Conciliação das linhas do extrato: o percentual automático da origem (automáticas ÷ linhas,
+        uma casa) contra a meta (`META_CONCILIACAO_AUTO`) e as conciliações ativas por método.
+      required: [lines, reconciled, auto, manual, free, auto_percent, target_percent, by_method, undone_auto]
+      properties:
+        lines: { type: integer, description: "Linhas do extrato" }
+        reconciled: { type: integer, description: "Linhas com conciliação ativa" }
+        auto: { type: integer }
+        manual: { type: integer, description: "À mão, sem comprovante e aceite do resolvedor" }
+        free: { type: integer }
+        auto_percent:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        target_percent: { $ref: "#/components/schemas/DecimalString" }
+        by_method:
+          type: object
+          description: "Conciliações ativas por método: passe_1 a passe_4, manual, sem_comprovante e resolvedor"
+          additionalProperties: { type: integer }
+        undone_auto: { type: integer, description: "Conciliações automáticas desfeitas" }
+
+    ReconciliationExtraction:
+      type: object
+      description: |
+        Leitura dos documentos de um tipo, como o `make eval-extrator` (D-027): as tentativas são as
+        do agente; aprovado é o extrato importado ou o comprovante completo sem campo corrigido à
+        mão; o leitor determinístico fica à parte; o custo soma todas as chamadas de modelo do
+        documento (triagem e extração), em dólares.
+      required: [documents, local_reader, agent, first_attempt, first_attempt_percent, average_attempts, not_approved, cost_usd, cost_per_document_usd]
+      properties:
+        documents: { type: integer, description: "Documentos lidos, pelo leitor ou pelo agente" }
+        local_reader: { type: integer, description: "Lidos pelo leitor determinístico, sem agente" }
+        agent: { type: integer, description: "Lidos pelo agente" }
+        first_attempt: { type: integer, description: "Aprovados na 1ª tentativa do agente" }
+        first_attempt_percent:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        average_attempts:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        not_approved: { type: integer, description: "Lidos pelo agente e não aprovados" }
+        cost_usd: { $ref: "#/components/schemas/DecimalString" }
+        cost_per_document_usd:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+
+    ReconciliationAgentCost:
+      type: object
+      description: Corridas de um agente que só sugere e o custo por item (M4.7 da origem)
+      required: [runs, cost_usd, cost_per_run_usd]
+      properties:
+        runs: { type: integer }
+        cost_usd: { $ref: "#/components/schemas/DecimalString" }
+        cost_per_run_usd:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+
+    ReconciliationMetrics:
+      type: object
+      description: Painel de métricas da Conciliação (11-observability §7)
+      required: [company_id, competence, matching, buckets, extraction, corrections, after_close, agents, playbooks]
+      properties:
+        company_id: { type: [string, "null"], format: uuid }
+        competence:
+          oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }]
+        matching: { $ref: "#/components/schemas/ReconciliationMatching" }
+        buckets:
+          type: object
+          description: "Itens da fila por balde e o total (total), a mesma contagem da fila"
+          additionalProperties: { type: integer }
+        extraction:
+          type: object
+          required: [statements, receipts]
+          properties:
+            statements: { $ref: "#/components/schemas/ReconciliationExtraction" }
+            receipts: { $ref: "#/components/schemas/ReconciliationExtraction" }
+        corrections:
+          type: object
+          description: Correções humanas depois da leitura (campo do comprovante e "que documento é esse?")
+          required: [actions, documents, rate_percent]
+          properties:
+            actions: { type: integer }
+            documents: { type: integer, description: "Documentos corrigidos" }
+            rate_percent:
+              description: "Documentos corrigidos ÷ documentos lidos"
+              oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        after_close:
+          type: object
+          description: |
+            Erro achado depois do fechamento (meta zero; D-034): as reaberturas do Contábil (sempre
+            com motivo) nas competências com a Conciliação e, à parte, os documentos que chegaram
+            com a competência fechada.
+          required: [reopenings, late_documents]
+          properties:
+            reopenings: { type: integer }
+            late_documents: { type: integer }
+        agents:
+          type: object
+          required: [resolver, classifier]
+          properties:
+            resolver: { $ref: "#/components/schemas/ReconciliationAgentCost" }
+            classifier: { $ref: "#/components/schemas/ReconciliationAgentCost" }
+        playbooks:
+          type: array
+          description: Sucesso dos playbooks de cada banco, somando as versões (não depende dos filtros)
+          items:
+            type: object
+            required: [bank, versions, valid_version, successes, failures, success_percent]
+            properties:
+              bank: { type: string }
+              versions: { type: integer }
+              valid_version: { type: [integer, "null"] }
+              successes: { type: integer }
+              failures: { type: integer }
+              success_percent:
+                oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+
+    BankPlaybook:
+      type: object
+      description: Versão do playbook de um banco (playbook_banco da origem; schema congelado, D-020)
+      required: [id, bank, version, valid, successes, failures, success_percent, table_start_page, ignored_pages, date_format, decimal_separator, sign_representation, balance_location, winning_strategy, validated_at, created_at, updated_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        bank: { type: string }
+        version: { type: integer }
+        valid: { type: boolean }
+        successes: { type: integer }
+        failures: { type: integer }
+        success_percent:
+          oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }]
+        table_start_page: { type: integer }
+        ignored_pages: { type: array, items: { type: integer } }
+        date_format: { type: string }
+        decimal_separator: { type: string }
+        sign_representation: { type: string }
+        balance_location: { type: string }
+        winning_strategy: { type: string }
+        validated_at: { type: [string, "null"], format: date-time }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    BankPlaybookList:
+      type: object
+      required: [items]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BankPlaybook" } }
+
+    CompanyReconciliationSummary:
+      type: object
+      description: A Conciliação da empresa na competência (a aba da ficha)
+      required: [company_id, competence, accounting_closed, statements, matching, buckets, entries, classification]
+      properties:
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        competence: { $ref: "#/components/schemas/Competence" }
+        accounting_closed: { type: boolean, description: "Contábil fechado: a Conciliação da competência está travada" }
+        statements:
+          type: array
+          items:
+            type: object
+            required: [import_id, document_id, file_name, bank_account, period_start, period_end, opening_balance, closing_balance, attempts, transactions]
+            properties:
+              import_id: { $ref: "#/components/schemas/Uuid" }
+              document_id: { $ref: "#/components/schemas/Uuid" }
+              file_name: { type: string }
+              bank_account: { type: string, description: "Banco agência/conta" }
+              period_start: { type: string, format: date }
+              period_end: { type: string, format: date }
+              opening_balance: { $ref: "#/components/schemas/DecimalString" }
+              closing_balance: { $ref: "#/components/schemas/DecimalString" }
+              attempts: { type: integer, description: "Tentativas do extrator (0: leitor determinístico)" }
+              transactions: { type: integer }
+        matching: { $ref: "#/components/schemas/ReconciliationMatching" }
+        buckets:
+          type: object
+          additionalProperties: { type: integer }
+        entries:
+          type: object
+          required: [total, partial]
+          properties:
+            total: { type: integer }
+            partial: { type: integer }
+        classification:
+          type: object
+          required: [classified, pending]
+          properties:
+            classified: { type: integer, description: "Linhas conciliadas com a conta confirmada" }
+            pending: { type: integer, description: "Linhas conciliadas à espera da conta" }
+
+    BankAccount:
+      type: object
+      description: Conta bancária cadastrada da empresa (conta_bancaria da origem; CC-11)
+      required: [id, company_id, bank, branch, account, label, active, statements, last_period_end, created_by, created_at]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        company_id: { $ref: "#/components/schemas/Uuid" }
+        bank: { type: string }
+        branch: { type: string }
+        account: { type: string }
+        label: { type: string, description: "Banco agência/conta, como no razão" }
+        active: { type: boolean }
+        statements: { type: integer, description: "Extratos já importados da conta pela empresa" }
+        last_period_end: { type: [string, "null"], format: date }
+        created_by: { type: [string, "null"], format: uuid }
+        created_at: { type: string, format: date-time }
+
+    BankAccountList:
+      type: object
+      required: [items, read]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BankAccount" } }
+        read:
+          type: array
+          description: Contas lidas nos extratos importados da empresa que ninguém cadastrou
+          items:
+            type: object
+            required: [bank, branch, account, label, statements, last_period_end]
+            properties:
+              bank: { type: string }
+              branch: { type: string }
+              account: { type: string }
+              label: { type: string }
+              statements: { type: integer }
+              last_period_end: { type: string, format: date }
+
+    BankAccountCreate:
+      type: object
+      required: [bank, branch, account]
+      additionalProperties: false
+      properties:
+        bank: { type: string, maxLength: 64 }
+        branch: { type: string, maxLength: 16 }
+        account: { type: string, maxLength: 32 }
 
     ReviewLine:
       type: object
