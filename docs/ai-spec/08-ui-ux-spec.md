@@ -159,6 +159,11 @@ Preservar o objetivo original da UI:
 Tabela com filtros e drill-down em cadeia:
 `razão → classificação → conciliação → transação → documento`.
 
+> **Como foi implementado (TASK-021b; D-033).** Submenu Lançamentos (`/reconciliation/entries`), Razão (`/reconciliation/ledger`), Plano de contas (`/reconciliation/chart`) e Regras (`/reconciliation/rules`); a empresa escolhida acompanha a troca de seção.
+> - **Razão:** filtros por empresa, competência inicial e final e conta (bancária ou contábil), os totais do período e a exportação CSV do filtro. A linha abre o drill-down em diálogo, na cadeia acima, com os caminhos para a linha na fila e para os originais.
+> - **Lançamentos:** lista com a origem e o status, formulário e CSV do cliente (tudo ou nada, com o erro de cada linha) e "rodar a conciliação da competência", também na fila.
+> - **Plano de contas e regras:** incluir, renomear, desativar e reativar contas, importar e copiar o plano; regras da mais nova para a mais antiga, confirmar, desativar e aplicar às linhas pendentes.
+
 ## 8. Documentos consolidados
 
 A área Documentos é um agregador de navegação, não uma promessa de backend de storage único.

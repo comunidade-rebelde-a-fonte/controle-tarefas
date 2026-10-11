@@ -8,18 +8,30 @@ import {
   FileSearch,
   Lock,
   LoaderCircle,
+  Play,
   RotateCw,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/input";
+import { isApiError } from "@/lib/api";
+import { isCompetenceKey } from "@/lib/competence";
 import { formatMoney } from "@/lib/decimal";
 import { useCompanies } from "@/services/companies";
 import { jobActive, useJob, useRetryJob } from "@/services/jobs";
-import { type ReconciliationDocument, type ReconciliationDocumentStatus, reconciliationKeys } from "@/services/reconciliation";
-import { DOC_STATUS, jobErrorText } from "./labels";
+import {
+  type ReconciliationDocument,
+  type ReconciliationDocumentStatus,
+  type RunSummary,
+  reconciliationKeys,
+  useRunReconciliation,
+} from "@/services/reconciliation";
+import { DOC_STATUS, jobErrorText, runSummaryText } from "./labels";
+import { csvLinesOf } from "./model";
 
 /** Valor com o sentido em texto e ícone (nunca só cor): C entra, D sai. */
 export function Amount({ value, direction }: { value: string | null | undefined; direction: string | null | undefined }) {
@@ -138,5 +150,71 @@ export function DocumentJob({ document }: { document: ReconciliationDocument }) 
         </>
       )}
     </p>
+  );
+}
+
+/**
+ * A recusa do CSV (tudo ou nada): a mensagem e o erro de cada linha; nada foi gravado. Outras
+ * falhas aparecem como erro comum.
+ */
+export function CsvImportError({ error, fallback }: { error: unknown; fallback: string }) {
+  const lines = csvLinesOf(error);
+  if (lines.length === 0) return <ErrorAlert error={error} fallback={fallback} />;
+  const shown = lines.slice(0, 50);
+  return (
+    <div role="alert" className="grid gap-1.5 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+      <p className="flex items-start gap-2 font-medium">
+        <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
+        {isApiError(error) ? error.message : fallback} Corrija as linhas e envie o arquivo de novo.
+      </p>
+      <ul className="grid gap-0.5 pl-6 text-xs" aria-label="Linhas com erro">
+        {shown.map((l) => (
+          <li key={`${String(l.line)}-${l.message}`}>
+            Linha {l.line}: {l.message}
+          </li>
+        ))}
+      </ul>
+      {lines.length > shown.length ? <p className="pl-6 text-xs">E mais {lines.length - shown.length} linhas com erro.</p> : null}
+    </div>
+  );
+}
+
+/**
+ * Roda o matching da competência da empresa e a classificação por regra e histórico (AC-018,
+ * AC-020); o que sobra vai para a fila. Idempotente: rodar de novo não duplica nada.
+ */
+export function RunReconciliation({ companyId, competence, showQueueLink = false }: { companyId: string; competence: string; showQueueLink?: boolean }) {
+  const run = useRunReconciliation();
+  const [result, setResult] = useState<RunSummary | null>(null);
+  const ready = !!companyId && isCompetenceKey(competence);
+  const current = result && result.company_id === companyId && result.competence === competence ? result : null;
+  return (
+    <div className="grid gap-2">
+      <Button
+        size="sm"
+        className="w-fit"
+        disabled={!ready || run.isPending}
+        onClick={() => run.mutate({ companyId, competence }, { onSuccess: setResult })}
+      >
+        <Play aria-hidden /> {run.isPending ? "Rodando a conciliação…" : "Rodar a conciliação da competência"}
+      </Button>
+      {current ? (
+        <p role="status" className="max-w-3xl text-xs text-muted-foreground">
+          Rodada concluída: {runSummaryText(current)}
+          {showQueueLink ? (
+            <>
+              {" "}
+              <Link
+                to={`/reconciliation?company_id=${companyId}&competence=${competence}`}
+                className="font-medium text-foreground underline underline-offset-4"
+              >
+                Abrir a fila de revisão
+              </Link>
+            </>
+          ) : null}
+        </p>
+      ) : null}
+      <ErrorAlert error={run.error} fallback="Não foi possível rodar a conciliação." />
+    </div>
   );
 }

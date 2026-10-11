@@ -164,6 +164,12 @@ Fila de revisão e documentos (TASK-021a, D-032; a TASK-021 vai em três partes:
 - telas em `frontend/src/features/reconciliation` (`review/`, `documents/`), área Conciliação no menu com submenu;
 - `make e2e` sobe um MinIO só do E2E (projeto compose `controle-e2e`, porta 9102): nunca use o MinIO de dev em teste.
 
+Lançamentos, razão, plano de contas e regras (TASK-021b, D-033), só no frontend:
+- telas em `frontend/src/features/reconciliation` (`entries/`, `ledger/`, `chart/`, `rules/`), no submenu da Conciliação; a empresa escolhida (`company_id`) acompanha a troca de seção;
+- "rodar a conciliação da competência" (`RunReconciliation` em `common.tsx`) fica nos lançamentos e na fila;
+- o drill-down do razão (AC-021) é o diálogo `Trail` em `ledger/LedgerPage.tsx`, sobre `GET /reconciliation/reconciliations/{id}`;
+- no E2E, o extrato do Banco A Fonte é do TEST-021a: o mesmo arquivo (sha256) e a mesma conta bancária só entram uma vez por execução; o TEST-021b usa o do Banco Beta.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):

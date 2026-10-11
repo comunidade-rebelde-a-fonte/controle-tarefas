@@ -227,7 +227,7 @@ export function EntryFields({ entry, editable }: { entry: ClientEntry; editable:
       }}
     >
       <p className="flex flex-wrap items-center gap-2 text-sm">
-        <Badge variant={entry.status === "parcial" ? "warning" : "muted"}>{ENTRY_STATUS[entry.status] ?? entry.status}</Badge>
+        <Badge variant={entry.status === "parcial" ? "warning" : "muted"}>{ENTRY_STATUS[entry.status]}</Badge>
         {entry.duplicate_flagged ? <Badge variant="warning">possível duplicata</Badge> : null}
       </p>
       <div className="grid gap-3 sm:grid-cols-2">

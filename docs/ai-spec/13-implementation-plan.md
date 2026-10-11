@@ -213,6 +213,8 @@ Fila de revisão é a prioridade de UX.
 **Validação:** TEST-021 — E2E de fila + acessibilidade + QA visual pendente do design system.
 
 > **Em três partes (D-032, decisão do usuário).** 021a: fila de revisão e documentos, com as ações da fila na API. 021b: lançamentos, razão com drill-down, plano de contas e regras. 021c: playbooks, métricas e a aba Conciliação da ficha. Uma validação e um commit por parte (§14).
+>
+> **Como foi implementado.** 021a (D-032): a fila e os documentos, com o TEST-021a de ponta a ponta. 021b (D-033): as telas de lançamentos, razão (drill-down e CSV), plano de contas e regras, só no frontend, com o TEST-021b de ponta a ponta sobre o extrato do Banco Beta.
 
 ## 7. Marco M5 — Integrações reais entre módulos
 

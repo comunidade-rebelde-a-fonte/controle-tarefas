@@ -20,10 +20,14 @@ import { InboxPage } from "@/features/factor-r/inbox/InboxPage";
 import { PgdasDocumentPage } from "@/features/factor-r/inbox/PgdasDocumentPage";
 import { ObservabilityPage } from "@/features/factor-r/runs/ObservabilityPage";
 import { RunDetailPage } from "@/features/factor-r/runs/RunDetailPage";
+import { ChartPage } from "@/features/reconciliation/chart/ChartPage";
 import { DocumentPage } from "@/features/reconciliation/documents/DocumentPage";
 import { DocumentsPage } from "@/features/reconciliation/documents/DocumentsPage";
+import { EntriesPage } from "@/features/reconciliation/entries/EntriesPage";
+import { LedgerPage } from "@/features/reconciliation/ledger/LedgerPage";
 import { ReconciliationLayout } from "@/features/reconciliation/ReconciliationLayout";
 import { ReviewQueuePage } from "@/features/reconciliation/review/ReviewQueuePage";
+import { RulesPage } from "@/features/reconciliation/rules/RulesPage";
 import { Layout } from "./Layout";
 import { NotFoundPage } from "./NotFoundPage";
 
@@ -55,13 +59,17 @@ export const routes = [
         ],
       },
       {
-        // Área Conciliação com submenu (TASK-021a, D-032): fila de revisão e documentos.
+        // Área Conciliação com submenu (TASK-021a e 021b, D-032 e D-033).
         path: "reconciliation",
         element: <ReconciliationLayout />,
         children: [
           { index: true, element: <ReviewQueuePage /> },
           { path: "documents", element: <DocumentsPage /> },
           { path: "documents/:id", element: <DocumentPage /> },
+          { path: "entries", element: <EntriesPage /> },
+          { path: "ledger", element: <LedgerPage /> },
+          { path: "chart", element: <ChartPage /> },
+          { path: "rules", element: <RulesPage /> },
         ],
       },
       { path: "credentials", element: <CredentialsPage /> },

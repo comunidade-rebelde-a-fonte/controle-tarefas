@@ -13,7 +13,7 @@ import { FilterToggle } from "@/features/factor-r/common";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
 import { type ReviewBucket, type ReviewQueueItem, useRecentReconciliations, useReviewEntry, useReviewLine, useReviewQueue } from "@/services/reconciliation";
-import { Amount, CompanySelect } from "../common";
+import { Amount, CompanySelect, RunReconciliation } from "../common";
 import { BUCKETS, bucketText, methodText, reasonText } from "../labels";
 import { OriginalViewer } from "../OriginalViewer";
 import { entryHighlights } from "./model";
@@ -163,6 +163,7 @@ export function ReviewQueuePage() {
             <Keyboard className="size-3.5" aria-hidden /> J e K passam de item; Esc fecha.
           </p>
         </div>
+        {companyId && competence ? <RunReconciliation companyId={companyId} competence={competence} /> : null}
         <div role="group" aria-label="Filtrar por balde" className="flex flex-wrap gap-2">
           <FilterToggle active={!bucket} onClick={() => update({ bucket: null })}>
             Todos ({counts.total ?? 0})

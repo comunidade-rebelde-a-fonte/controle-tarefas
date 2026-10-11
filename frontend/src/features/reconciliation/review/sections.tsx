@@ -18,7 +18,7 @@ import {
   useSuggestions,
   useUndoReconciliation,
 } from "@/services/reconciliation";
-import { classificationText } from "../labels";
+import { classificationText, RULE_TYPES } from "../labels";
 
 /** Desfazer a conciliação (automática ou manual) com o motivo obrigatório (D-032). */
 export function UndoButton({ reconciliationId, label = "Desfazer" }: { reconciliationId: string; label?: string }) {
@@ -145,11 +145,10 @@ export function ResolverSection({ lineId }: { lineId: string }) {
 
 /** A regra proposta depois da correção ou do aceite (M5.5): só vale confirmada. */
 function ProposedRule({ rule, onConfirm, pending }: { rule: RuleProposal; onConfirm: () => void; pending: boolean }) {
-  const type = { cnpj: "CNPJ", contraparte: "Contraparte", regex_descritivo: "Descritivo (regex)" }[rule.rule_type];
   return (
     <div className="grid gap-2 rounded-md border border-dashed p-3 text-sm" data-testid="regra-proposta">
       <p>
-        <span className="font-medium">Regra proposta:</span> {type} <code className="rounded bg-muted px-1">{rule.pattern}</code> → conta{" "}
+        <span className="font-medium">Regra proposta:</span> {RULE_TYPES[rule.rule_type]} <code className="rounded bg-muted px-1">{rule.pattern}</code> → conta{" "}
         {rule.account_code}
       </p>
       <p className="text-xs text-muted-foreground">Confirmada, ela classifica sozinha as próximas linhas iguais; nada já classificado muda.</p>

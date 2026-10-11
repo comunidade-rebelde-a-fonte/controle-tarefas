@@ -1,4 +1,11 @@
-import type { ReconciliationDocumentStatus, ReviewBucket } from "@/services/reconciliation";
+import type {
+  ClassificationRuleType,
+  ClassificationRunSummary,
+  ReconciliationDocumentStatus,
+  ReconciliationEntryStatus,
+  ReviewBucket,
+  RunSummary,
+} from "@/services/reconciliation";
 
 /** Estados do documento (contrato congelado da origem, D-020), em texto. */
 export const DOC_STATUS: Record<ReconciliationDocumentStatus, string> = {
@@ -98,7 +105,7 @@ export const FIELD_LABELS: Record<string, string> = {
 };
 
 /** Status do lançamento do cliente. */
-export const ENTRY_STATUS: Record<string, string> = {
+export const ENTRY_STATUS: Record<ReconciliationEntryStatus, string> = {
   pendente: "Pendente",
   parcial: "Parcial (a revisar)",
   extraido: "Extraído",
@@ -114,4 +121,32 @@ export function jobErrorText(code: string | null | undefined): string {
       RECONCILIATION_FILE_MISSING: "o original não foi encontrado no armazenamento",
     } as Record<string, string>)[code ?? ""] ?? "erro no processamento"
   );
+}
+
+/** Tipos da regra de classificação (regra_classificacao da origem). */
+export const RULE_TYPES: Record<ClassificationRuleType, string> = {
+  cnpj: "CNPJ",
+  contraparte: "Contraparte",
+  regex_descritivo: "Descritivo (regex)",
+};
+
+function plural(n: number, one: string, many: string): string {
+  return `${String(n)} ${n === 1 ? one : many}`;
+}
+
+/** A classificação por regra e histórico das linhas conciliadas, em texto. */
+export function classificationRunText(c: ClassificationRunSummary): string {
+  return `${String(c.by_rule)} por regra, ${String(c.by_history)} por histórico e ${String(c.pending)} à espera do agente ou do contador`;
+}
+
+/** O resultado da rodada da competência, em texto (os baldes do PRD §8 da origem). */
+export function runSummaryText(s: RunSummary): string {
+  const parts = [
+    plural(s.new_matches, "conciliação nova", "conciliações novas"),
+    `${String(s.divergent)} na fila por divergência ou caso de borda`,
+    `${String(s.without_receipt)} sem comprovante`,
+    plural(s.without_statement, "comprovante sem extrato", "comprovantes sem extrato"),
+  ];
+  if (s.awaiting_review > 0) parts.push(plural(s.awaiting_review, "comprovante a revisar", "comprovantes a revisar"));
+  return `${parts.join(" · ")}. Classificação: ${classificationRunText(s.classification)}.`;
 }

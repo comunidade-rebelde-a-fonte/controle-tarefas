@@ -4,6 +4,33 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-033 — Lançamentos, razão, plano de contas e regras da Conciliação (TASK-021b; 10/10/2026; dentro da autonomia da spec, sem regra de negócio nova; validada pelo usuário com a TASK)
+
+- **Porte** das telas `lancamentos.html` e `razao.html` e do "Rodar matching" (`POST /matching/rodar`, `app/web/rotas.py`) do Conciliador (commit `2bc6e26`).
+  - O plano de contas e as regras não tinham tela na origem (o M5 ficou pela metade, D-031): as telas são novas, sobre a API da TASK-020.
+  - Telas em `frontend/src/features/reconciliation` (`entries/`, `ledger/`, `chart/`, `rules/`). Nenhuma mudança de API nem de banco.
+- **Submenu.** Lançamentos, Razão, Plano de contas e Regras entram no submenu da Conciliação, depois da fila e dos documentos. A empresa escolhida acompanha a troca de seção (`company_id` na URL); os outros filtros ficam na seção.
+- **Lançamentos (CC-12).**
+  - A lista traz os lançamentos do cliente, os manuais e os lidos dos comprovantes, com a origem (o comprovante, com o link, ou "formulário ou CSV") e o status; o parcial leva à fila. Filtros por empresa, datas e status, 100 por página. A origem listava tudo, sem filtro.
+  - O formulário tem os campos da origem (data, valor, sentido, contraparte) e os da API (CPF/CNPJ e documento). O erro aparece no campo. Depois de incluir, a data e o sentido ficam para o próximo.
+  - O CSV do cliente (`data;valor;sentido;contraparte`) é tudo ou nada: recusado, a tela lista o erro de cada linha.
+- **Rodar a conciliação.** O "Rodar matching" da origem rodava tudo e ia para a fila. Aqui roda a competência da empresa (D-029), na tela de lançamentos e na fila, quando a empresa e a competência estão escolhidas. O resultado mostra os baldes da rodada e a classificação, com o caminho para a fila.
+- **Razão (REQ-028, AC-021, AC-022).**
+  - Período por competência (de e até; sem escolha, vale a corrente), o filtro de conta da origem (a conta bancária contém o texto ou a conta contábil é igual a ele) e os totais de débito e crédito do período.
+  - As colunas da origem (data, conta bancária, histórico, débito, crédito), mais a conta contábil com a origem da classificação e a contraparte.
+  - Exportação CSV do razão filtrado (o arquivo da TASK-020). O XLSX é da TASK-028.
+  - Drill-down (AC-021) em diálogo, na cadeia da spec: classificação (a conta, a origem, a regra ou a linha do histórico) → conciliação (método, origem, pontuação) → transação do extrato (com o link para a linha na fila, onde se desfaz ou reclassifica) → originais (o extrato e cada comprovante; o lançamento manual não tem original). A origem tinha só o link para o documento.
+- **Plano de contas (CC-20).** Incluir, renomear, desativar e reativar; importar do CSV (`codigo;nome`, tudo ou nada, com o erro de cada linha) e copiar de outra empresa. Desativar pede confirmação: a conta sai das classificações novas, das regras e do histórico, e o que já foi classificado fica. Nada é apagado.
+- **Regras (CC-20, CC-21).**
+  - A lista vai da mais nova para a mais antiga (a ordem em que valem), com a conta, a situação e o link para a linha cuja correção originou a regra; há o filtro "só as ativas".
+  - A regra nova escolhe a conta só do plano ativo, com a explicação do que cada tipo compara. Ao confirmar, a tela avisa a regra antiga substituída. Desativar pede confirmação.
+  - "Aplicar às linhas pendentes" roda a classificação da competência (regra, depois histórico) e mostra o resultado.
+- **E2E.** O TEST-021b usa o extrato do Banco Beta do cenário Horizonte. O do Banco A Fonte é do TEST-021a, e o mesmo arquivo (sha256) e a mesma conta bancária não entram duas vezes na mesma execução.
+  - Lançamentos pela tela (formulário e CSV, com a recusa), a rodada, a tarifa sem comprovante (pela API), o plano (formulário, CSV, desativar e reativar), as três regras e "aplicar".
+  - O razão com as contas, os totais e o filtro, a exportação (o arquivo é conferido) e o drill-down até o extrato original.
+  - O axe roda em cinco telas e diálogos.
+- **Fica para depois:** 021c (playbooks, métricas e a aba Conciliação da ficha).
+
 ### D-032 — Fila de revisão e documentos da Conciliação (TASK-021a; 10/10/2026; recorte, desfazer e visualizador decididos pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Recorte (decisão do usuário).** A TASK-021 foi dividida em três partes, cada uma com validação e commit:

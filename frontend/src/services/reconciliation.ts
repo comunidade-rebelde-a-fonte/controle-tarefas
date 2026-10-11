@@ -304,3 +304,181 @@ export function useClassificationActions(lineId: string, companyId: string) {
     }),
   };
 }
+
+// --- TASK-021b: lançamentos, rodada, razão, plano de contas e regras ---
+
+export type EntryCreate = Schemas["ReconciliationClientEntryCreate"];
+export type EntriesImport = Schemas["ReconciliationEntriesImport"];
+export type RunSummary = Schemas["ReconciliationRunSummary"];
+export type Ledger = Schemas["Ledger"];
+export type LedgerLine = Schemas["LedgerLine"];
+export type ReconciliationDetail = Schemas["ReconciliationDetail"];
+export type ChartAccountsImport = Schemas["ChartAccountsImport"];
+export type ChartAccountsCopy = Schemas["ChartAccountsCopy"];
+export type ClassificationRule = Schemas["ClassificationRule"];
+export type ClassificationRuleCreate = Schemas["ClassificationRuleCreate"];
+export type ClassificationRunSummary = Schemas["ClassificationRunSummary"];
+export type ClassificationRuleType = Schemas["ClassificationRuleType"];
+export type ReconciliationEntryStatus = Schemas["ReconciliationEntryStatus"];
+
+export const reconciliationExtraKeys = {
+  entries: (filters: object) => ["reconciliation", "entries", filters] as const,
+  ledger: (filters: object) => ["reconciliation", "ledger", filters] as const,
+  detail: (id: string) => ["reconciliation", "detail", id] as const,
+  chartAll: (companyId: string) => ["reconciliation", "chart-all", companyId] as const,
+  rules: (companyId: string) => ["reconciliation", "rules", companyId] as const,
+};
+
+export interface EntryFilters {
+  companyId?: string | undefined;
+  status?: ReconciliationEntryStatus | undefined;
+  dateFrom?: string | undefined;
+  dateTo?: string | undefined;
+  offset?: number;
+}
+
+/** GET /reconciliation/entries — os lançamentos do cliente (lidos e manuais). */
+export function useEntries(f: EntryFilters) {
+  return useQuery({
+    queryKey: reconciliationExtraKeys.entries(f),
+    queryFn: ({ signal }) =>
+      api.get("/reconciliation/entries", {
+        query: { company_id: f.companyId, status: f.status, date_from: f.dateFrom, date_to: f.dateTo, limit: 100, offset: f.offset ?? 0 },
+        signal,
+      }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** POST /reconciliation/entries — lançamento manual (CC-12). */
+export function useCreateEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: EntryCreate) => api.post("/reconciliation/entries", { body }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: reconciliationKeys.all }),
+  });
+}
+
+/** POST /reconciliation/entries/import — CSV data;valor;sentido;contraparte, tudo ou nada. */
+export function useImportEntries() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ file, companyId }: { file: File; companyId: string }) => {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("company_id", companyId);
+      return apiUpload<EntriesImport>("post", "/reconciliation/entries/import", form);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: reconciliationKeys.all }),
+  });
+}
+
+/** POST /companies/{id}/reconciliation/run — a rodada do matching da competência (e a classificação). */
+export function useRunReconciliation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ companyId, competence }: { companyId: string; competence: string }) =>
+      api.post("/companies/{id}/reconciliation/run", { path: { id: companyId }, query: { competence } }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: reconciliationKeys.all }),
+  });
+}
+
+export interface LedgerFilters {
+  companyId: string;
+  from: string;
+  to: string;
+  account?: string | undefined;
+}
+
+/** GET /companies/{id}/ledger — o razão como consulta (M5.6). */
+export function useLedger(f: LedgerFilters, enabled: boolean) {
+  return useQuery({
+    queryKey: reconciliationExtraKeys.ledger(f),
+    queryFn: ({ signal }) =>
+      api.get("/companies/{id}/ledger", { path: { id: f.companyId }, query: { from: f.from, to: f.to, account: f.account || undefined }, signal }),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Link da exportação CSV do razão filtrado (AC-022). */
+export function ledgerExportUrl(f: LedgerFilters): string {
+  return buildUrl("/companies/{id}/ledger/export", { id: f.companyId }, { format: "csv", from: f.from, to: f.to, account: f.account || undefined });
+}
+
+/** GET /reconciliation/reconciliations/{id} — o drill-down da linha do razão (AC-021). */
+export function useReconciliationDetail(id: string | null) {
+  return useQuery({
+    queryKey: reconciliationExtraKeys.detail(id ?? ""),
+    queryFn: ({ signal }) => api.get("/reconciliation/reconciliations/{id}", { path: { id: id ?? "" }, signal }),
+    enabled: !!id,
+  });
+}
+
+/** O plano de contas inteiro da empresa (ativas e desativadas). */
+export function useChart(companyId: string | undefined) {
+  return useQuery({
+    queryKey: reconciliationExtraKeys.chartAll(companyId ?? ""),
+    queryFn: ({ signal }) => api.get("/companies/{id}/chart-accounts", { path: { id: companyId ?? "" }, signal }),
+    enabled: !!companyId,
+  });
+}
+
+/** Incluir, alterar, importar e copiar o plano de contas. */
+export function useChartActions(companyId: string) {
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: reconciliationKeys.all });
+  return {
+    create: useMutation({
+      mutationFn: (body: { code: string; name: string }) => api.post("/companies/{id}/chart-accounts", { path: { id: companyId }, body }),
+      onSuccess: done,
+    }),
+    update: useMutation({
+      mutationFn: ({ accountId, ...body }: { accountId: string; name?: string; active?: boolean }) =>
+        api.patch("/companies/{id}/chart-accounts/{accountId}", { path: { id: companyId, accountId }, body }),
+      onSuccess: done,
+    }),
+    importCsv: useMutation({
+      mutationFn: (file: File) => {
+        const form = new FormData();
+        form.append("file", file);
+        return apiUpload<ChartAccountsImport>("post", "/companies/{id}/chart-accounts/import", form, { id: companyId });
+      },
+      onSuccess: done,
+    }),
+    copy: useMutation({
+      mutationFn: (sourceId: string) =>
+        api.post("/companies/{id}/chart-accounts/copy", { path: { id: companyId }, body: { source_company_id: sourceId } }),
+      onSuccess: done,
+    }),
+  };
+}
+
+/** GET /companies/{id}/classification-rules — da mais nova para a mais antiga. */
+export function useRules(companyId: string | undefined) {
+  return useQuery({
+    queryKey: reconciliationExtraKeys.rules(companyId ?? ""),
+    queryFn: ({ signal }) => api.get("/companies/{id}/classification-rules", { path: { id: companyId ?? "" }, signal }),
+    enabled: !!companyId,
+  });
+}
+
+/** Confirmar e desativar regras, e aplicar as regras às linhas que esperam classificação. */
+export function useRuleActions(companyId: string) {
+  const qc = useQueryClient();
+  const done = () => qc.invalidateQueries({ queryKey: reconciliationKeys.all });
+  return {
+    create: useMutation({
+      mutationFn: (body: ClassificationRuleCreate) => api.post("/companies/{id}/classification-rules", { path: { id: companyId }, body }),
+      onSuccess: done,
+    }),
+    deactivate: useMutation({
+      mutationFn: (ruleId: string) => api.post("/companies/{id}/classification-rules/{ruleId}/deactivate", { path: { id: companyId, ruleId } }),
+      onSuccess: done,
+    }),
+    classify: useMutation({
+      mutationFn: (competence: string) => api.post("/companies/{id}/classification/run", { path: { id: companyId }, query: { competence } }),
+      onSuccess: done,
+    }),
+  };
+}
