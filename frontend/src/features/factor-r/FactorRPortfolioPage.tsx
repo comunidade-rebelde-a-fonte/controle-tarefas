@@ -97,7 +97,7 @@ function PortfolioTable({ data, lines }: { data: FactorRPortfolio; lines: Factor
               <Td className="font-medium whitespace-nowrap">{l.acao_texto}</Td>
               <Td>
                 <Link
-                  to={`/companies/${l.company.id}?tab=factor-r&pa=${data.pa}`}
+                  to={`/companies/${l.company.id}?tab=factor-r&competence=${data.pa}`}
                   className="inline-flex min-h-6 items-center font-medium hover:underline"
                 >
                   {l.company.legal_name}

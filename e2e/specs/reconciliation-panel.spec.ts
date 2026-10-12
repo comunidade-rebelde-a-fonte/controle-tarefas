@@ -30,7 +30,8 @@ test("TEST-021c: aba Conciliação da ficha, contas bancárias, métricas e play
   // A ficha abre na aba pela URL; a competência começa na corrente (setembro, pelo relógio fixo).
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
   await expect(page.getByRole("tab", { name: "Conciliação", selected: true })).toBeVisible();
-  const competence = page.getByLabel("Competência", { exact: true });
+  // A competência é a da ficha, escolhida no cabeçalho (TASK-025).
+  const competence = page.getByLabel("Selecionar competência");
   await expect(competence).toHaveValue("2026-09");
   await competence.fill("2026-08");
   await expect(page.getByText("Contábil aberto")).toBeVisible();

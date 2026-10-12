@@ -12,28 +12,13 @@ import { FilterToggle } from "@/features/factor-r/common";
 import { companyFilterFrom } from "@/lib/companyFilter";
 import { isCompetenceKey } from "@/lib/competence";
 import { useLatestCompetence } from "@/services/competencies";
-import { type ReconciliationOverviewCompany, type ReconciliationOverviewState, useReconciliationOverview } from "@/services/reconciliation";
+import { type ReconciliationOverviewState, useReconciliationOverview } from "@/services/reconciliation";
+import { blockingText, COMPLETION_STATES } from "../labels";
 
-const STATES: [ReconciliationOverviewState, string, "muted" | "warning" | "success"][] = [
-  ["em_andamento", "Em andamento", "muted"],
-  ["pronta", "Pronta para concluir", "warning"],
-  ["concluida", "Concluída", "success"],
-];
+const STATES = COMPLETION_STATES;
 
 function isState(v: string | null): v is ReconciliationOverviewState {
   return STATES.some(([s]) => s === v);
-}
-
-/** O que ainda impede a conclusão, como no cartão da ficha (D-036). */
-function pendingText(it: ReconciliationOverviewCompany): string {
-  const b = it.blocking;
-  const parts: string[] = [];
-  if (b.missing_statement) parts.push("falta importar o extrato");
-  if (b.divergent > 0) parts.push(`${String(b.divergent)} com divergência`);
-  if (b.without_receipt > 0) parts.push(`${String(b.without_receipt)} sem comprovante`);
-  if (b.review > 0) parts.push(`${String(b.review)} em revisão`);
-  if (b.classification > 0) parts.push(`${String(b.classification)} à espera da conta`);
-  return parts.length > 0 ? parts.join(" · ") : "—";
 }
 
 /**
@@ -126,7 +111,7 @@ export function CompaniesPage() {
                         <div className="text-xs text-muted-foreground">{it.company.internal_code}</div>
                       </Td>
                       <Td>{st ? <Badge variant={st[2]}>{st[1]}</Badge> : it.state}</Td>
-                      <Td className="text-xs">{pendingText(it)}</Td>
+                      <Td className="text-xs">{blockingText(it.blocking)}</Td>
                       <Td className="text-xs whitespace-nowrap">
                         {it.accounting_state === "CLOSED" ? "Fechado" : it.accounting_state === "OPEN" ? "Aberto" : "—"}
                         {it.blocks_accounting ? (

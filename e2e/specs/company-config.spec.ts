@@ -23,6 +23,7 @@ test("§53.3-2 configurar regime e módulos: nova vigência de regime e ativaç�
   await expect(page.getByRole("heading", { level: 1, name: company.legal_name })).toBeVisible();
 
   // Regime: Simples desde o início; Lucro Presumido a partir da próxima competência.
+  await page.getByRole("tab", { name: "Dados gerais" }).click();
   await page.getByRole("tab", { name: "Regime tributário" }).click();
   const timeline = page.getByRole("table", { name: "Linha do tempo de regimes" });
   await expect(timeline.getByRole("row")).toHaveCount(2);

@@ -3,7 +3,7 @@ import { useEffect, useEffectEvent, useState, type ReactNode } from "react";
 import { Link, useSearchParams } from "react-router";
 import { CopyButton, CopyCnpjButton } from "@/components/CopyButton";
 import { PageHeader } from "@/components/PageHeader";
-import { Badge } from "@/components/ui/badge";
+import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,7 +22,8 @@ import { formatCnpj } from "@/lib/cnpj";
 import { formatDate } from "@/lib/format";
 import { MODULE_LABELS, MODULE_SHORT, MODULES, TAX_REGIME_LABELS, TAX_REGIMES, type ModuleCode, type TaxRegime } from "@/lib/labels";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
-import { type Company, type CompanyFilters, useCompanies } from "@/services/companies";
+import { type Company, type CompanyFilters, type CompanyIndicators, useCompanies, useCompanyIndicators } from "@/services/companies";
+import { useLatestCompetence } from "@/services/competencies";
 import { CompaniesEmptyState } from "./CompaniesEmptyState";
 import { DeactivateCompanyDialog, EditCompanyDialog } from "./CompanyActions";
 import { CompanyFormDialog } from "./CompanyForm";
@@ -175,7 +176,49 @@ function FilterSelect({ label, value, onChange, children }: { label: string; val
   );
 }
 
+type BadgeVariant = NonNullable<BadgeProps["variant"]>;
+
+const LIGHT_BADGE: Record<string, [string, BadgeVariant]> = {
+  vermelho: ["Fator R vermelho", "danger"],
+  amarelo: ["Fator R amarelo", "warning"],
+  verde: ["Fator R verde", "success"],
+};
+
+const RECONCILIATION_BADGE: Record<string, [string, BadgeVariant]> = {
+  em_andamento: ["Conciliação em andamento", "muted"],
+  pronta: ["Conciliação pronta", "warning"],
+  concluida: ["Conciliação concluída", "success"],
+};
+
+/**
+ * Os indicadores compactos da empresa na competência atual (08 §4; TASK-025, D-039): o Fator R,
+ * a conciliação e os alertas críticos. Os detalhes ficam na ficha.
+ */
+function Indicators({ it }: { it: CompanyIndicators | undefined }) {
+  const badges: [string, BadgeVariant][] = [];
+  if (it?.factor_r) badges.push(it.factor_r.semaforo ? (LIGHT_BADGE[it.factor_r.semaforo] ?? ["Fator R", "muted"]) : ["Fator R sem dados", "muted"]);
+  if (it?.reconciliation) {
+    const [label, variant] = RECONCILIATION_BADGE[it.reconciliation.state] ?? ["Conciliação", "muted"];
+    badges.push([it.reconciliation.blocks_accounting ? `${label} · trava o Contábil` : label, variant]);
+  }
+  if (it && it.overdue > 0) badges.push([it.overdue === 1 ? "1 obrigação atrasada" : `${String(it.overdue)} obrigações atrasadas`, "danger"]);
+  if (it && it.credentials_expired > 0) badges.push([it.credentials_expired === 1 ? "Credencial vencida" : "Credenciais vencidas", "danger"]);
+  if (badges.length === 0) return <span className="text-muted-foreground">—</span>;
+  return (
+    <ul className="flex flex-wrap gap-1" aria-label="Indicadores">
+      {badges.map(([label, variant]) => (
+        <li key={label}>
+          <Badge variant={variant}>{label}</Badge>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function CompaniesTable({ items }: { items: Company[] }) {
+  const latest = useLatestCompetence();
+  const indicators = useCompanyIndicators(latest.data?.competence ?? null);
+  const byId = new Map((indicators.data?.items ?? []).map((i) => [i.company_id, i]));
   return (
     <div className="max-h-[calc(100vh-13rem)] overflow-auto rounded-lg border bg-card">
       <Table aria-label="Empresas" className="min-w-[1120px] [&_td]:whitespace-nowrap [&_th]:whitespace-nowrap">
@@ -189,6 +232,7 @@ function CompaniesTable({ items }: { items: Company[] }) {
             <Th>Módulos</Th>
             <Th>Responsável</Th>
             <Th>Situação</Th>
+            <Th>Indicadores</Th>
             <Th>Atendimento</Th>
             <Th className="right-0 z-20 shadow-[-1px_0_0_var(--color-border)]">
               <span className="sr-only">Ações</span>
@@ -197,7 +241,7 @@ function CompaniesTable({ items }: { items: Company[] }) {
         </thead>
         <tbody>
           {items.map((c) => (
-            <CompanyRow key={c.id} company={c} />
+            <CompanyRow key={c.id} company={c} indicators={byId.get(c.id)} />
           ))}
         </tbody>
       </Table>
@@ -205,7 +249,7 @@ function CompaniesTable({ items }: { items: Company[] }) {
   );
 }
 
-function CompanyRow({ company: c }: { company: Company }) {
+function CompanyRow({ company: c, indicators }: { company: Company; indicators: CompanyIndicators | undefined }) {
   const toast = useToast();
   const [dialog, setDialog] = useState<"edit" | "deactivate" | null>(null);
   const responsible = c.responsibles.fiscal ?? c.responsibles.accounting ?? c.responsibles.payroll ?? c.responsibles.declarations;
@@ -253,6 +297,9 @@ function CompanyRow({ company: c }: { company: Company }) {
       </Td>
       <Td className="text-sm">{responsible?.name ?? <span className="text-muted-foreground">—</span>}</Td>
       <Td>{c.active ? <Badge variant="success">Ativa</Badge> : <Badge variant="muted">Inativa</Badge>}</Td>
+      <Td>
+        <Indicators it={indicators} />
+      </Td>
       <Td className="text-xs tabular-nums">
         <span aria-label="Início do atendimento">{formatDate(c.service_start_date)}</span>
         {" – "}

@@ -142,3 +142,28 @@ export function useCompanyHistory(id: string) {
     queryFn: ({ signal }) => api.get("/companies/{id}/history", { path: { id }, signal }),
   });
 }
+
+// --- TASK-025: a ficha como hub ---
+
+export type CompanyOverview = Schemas["CompanyOverview"];
+export type CompanyIndicatorList = Schemas["CompanyIndicatorList"];
+export type CompanyIndicators = CompanyIndicatorList["items"][number];
+
+/** GET /companies/{id}/overview — a Visão geral da empresa na competência. */
+export function useCompanyOverview(id: string, competence: string | null) {
+  return useQuery({
+    queryKey: ["companies", "overview", id, competence ?? ""] as const,
+    queryFn: ({ signal }) => api.get("/companies/{id}/overview", { path: { id }, query: { competence: competence ?? "" }, signal }),
+    enabled: !!competence,
+  });
+}
+
+/** GET /company-indicators — os indicadores compactos da listagem. */
+export function useCompanyIndicators(competence: string | null) {
+  return useQuery({
+    queryKey: ["companies", "indicators", competence ?? ""] as const,
+    queryFn: ({ signal }) => api.get("/company-indicators", { query: { competence: competence ?? "" }, signal }),
+    enabled: !!competence,
+    staleTime: 30_000,
+  });
+}

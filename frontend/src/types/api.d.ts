@@ -1148,6 +1148,55 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Visão geral da empresa na competência [08 §5; TASK-025, D-039]
+         * @description A ficha como hub: o progresso por módulo, as próximas obrigações a vencer (as atrasadas
+         *     primeiro), o Fator R no PA igual à competência com a ação sugerida e a tendência dos
+         *     últimos seis PAs (só se a empresa está na carteira), a Conciliação da competência (só se a
+         *     empresa a usa ou tem item na fila) e as pendências do "Exige atenção" só da empresa. Tudo
+         *     da mesma empresa (`companies.id`). Numa competência ainda não gerada (um PA futuro),
+         *     `competence_generated` é falso e só o Fator R e a Conciliação vêm.
+         */
+        get: operations["getCompanyOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company-indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Indicadores compactos da listagem de empresas [08 §4; TASK-025, D-039]
+         * @description Por empresa com algum indicador na competência: o semáforo do Fator R (as monitoradas no
+         *     PA), o estado da conciliação (quem usa a Conciliação) e os alertas críticos (obrigações
+         *     atrasadas na competência e credenciais vencidas). Uma consulta por fonte, sem N+1.
+         */
+        get: operations["getCompanyIndicators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies/{id}/history": {
         parameters: {
             query?: never;
@@ -3911,6 +3960,76 @@ export interface components {
             count: number;
             sample: components["schemas"]["AttentionItem"][];
             drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @description A Visão geral da empresa na competência (TASK-025, D-039) */
+        CompanyOverview: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            };
+            competence: components["schemas"]["Competence"];
+            competence_generated: boolean;
+            modules: {
+                module: string;
+                label: string;
+                /** @enum {string} */
+                period_state: "OPEN" | "CLOSED";
+                applicable: number;
+                done: number;
+                pending: number;
+                overdue: number;
+                operational_progress: number;
+                final_completion: number;
+                drilldown: components["schemas"]["Drilldown"] | null;
+            }[];
+            next_due: {
+                instance_id: components["schemas"]["Uuid"];
+                module: string;
+                module_label: string;
+                obligation: string;
+                status_label: string;
+                due_date: components["schemas"]["Date"] | null;
+                overdue: boolean;
+                drilldown: components["schemas"]["Drilldown"] | null;
+            }[];
+            factor_r: {
+                pa: components["schemas"]["Competence"];
+                status: components["schemas"]["FactorRStatus"];
+                motivo: components["schemas"]["FactorRReason"] | null;
+                semaforo: components["schemas"]["FactorRLight"] | null;
+                fator_r: components["schemas"]["DecimalString"] | null;
+                anexo: components["schemas"]["FactorRAnnex"] | null;
+                economia_12m: components["schemas"]["DecimalString"] | null;
+                acao: components["schemas"]["FactorRAction"];
+                acao_texto: string;
+                /** @description Os últimos seis PAs até o da competência (sem os PAs sem tabela do Simples vigente) */
+                trend: {
+                    pa: components["schemas"]["Competence"];
+                    semaforo: components["schemas"]["FactorRLight"] | null;
+                    fator_r: components["schemas"]["DecimalString"] | null;
+                }[];
+            } | null;
+            reconciliation: components["schemas"]["ReconciliationOverviewCompany"] | null;
+            /** @description As categorias do "Exige atenção" com itens, só da empresa */
+            attention: components["schemas"]["AttentionCategory"][];
+        };
+        CompanyIndicatorList: {
+            competence: components["schemas"]["Competence"];
+            items: {
+                company_id: components["schemas"]["Uuid"];
+                factor_r: {
+                    semaforo: components["schemas"]["FactorRLight"] | null;
+                    acao: components["schemas"]["FactorRAction"];
+                } | null;
+                reconciliation: {
+                    /** @enum {string} */
+                    state: "em_andamento" | "pronta" | "concluida";
+                    blocks_accounting: boolean;
+                } | null;
+                overdue: number;
+                credentials_expired: number;
+            }[];
         };
         Attention: {
             competence: components["schemas"]["Competence"];
@@ -7719,6 +7838,8 @@ export interface operations {
                 tax_regime?: components["parameters"]["DashboardTaxRegime"];
                 /** @description Empresa, código ou CNPJ (com ou sem máscara) */
                 q?: string;
+                /** @description Só a empresa (a aba Obrigações da ficha; TASK-025, D-039) */
+                company_id?: components["schemas"]["Uuid"];
                 overdue_min?: number;
                 overdue_max?: number;
                 sort?: "days_overdue" | "due_date" | "competence" | "company";
@@ -7741,6 +7862,56 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+        };
+    };
+    getCompanyOverview: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Visão geral */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOverview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getCompanyIndicators: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Indicadores */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyIndicatorList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
         };
     };
     getCompanyHistory: {

@@ -67,6 +67,8 @@ Listagem atual preservada. Acrescentar indicadores compactos:
 
 Não sobrecarregar a listagem com todos os dados; detalhes ficam na ficha.
 
+> **Como foi implementado (TASK-025; D-039).** A coluna "Indicadores" da listagem mostra, na competência atual, o semáforo do Fator R (as monitoradas), o estado da conciliação (quem a usa, com o aviso quando trava o Contábil) e os alertas críticos (obrigações atrasadas e credencial vencida), por `GET /company-indicators`.
+
 ## 5. Ficha da empresa
 
 Cabeçalho único com nome, código, CNPJ, regime e ações rápidas existentes.
@@ -85,6 +87,8 @@ Subáreas:
 > **Desde a TASK-022 (D-036):** o cartão "Conclusão da conciliação" na mesma aba mostra o estado (em andamento, pronta, concluída), o que falta (com o caminho para a fila), o aviso, a obrigação Conciliação do Contábil, concluir com confirmação e reabrir com motivo.
 >
 > **Desde a TASK-023 (D-037):** o cartão "Fechamento do Contábil", ao lado, mostra o estado, quem fechou e o histórico (com o motivo das reaberturas), e fecha e reabre com os diálogos da grade do Contábil. Usando a Conciliação, avisa que o Contábil só fecha com a obrigação Conciliação concluída.
+>
+> **Desde a TASK-025 (D-039):** a ficha tem 8 seções: Visão geral, Dados gerais (Cadastro, Regime tributário, Módulos, Responsáveis e Folha), Obrigações (Da competência e Aplicabilidade), Fator R, Conciliação, Documentos, Procurações/Certificados e Histórico de competências. O cabeçalho único tem as ações rápidas (Editar e Inativar), a competência da ficha, que vale para todas as seções (no Fator R, é o PA), e a troca de empresa, que mantém a aba e a competência. A Visão geral tem os cartões do 08 §5, e as "pendências recentes" são o "Exige atenção" só da empresa. Documentos, por ora, traz os atalhos de cada módulo.
 
 ### Visão geral
 

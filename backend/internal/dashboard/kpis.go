@@ -146,6 +146,14 @@ func NewService(pool *pgxpool.Pool, clk clock.Clock, credentials *credential.Ser
 	return &Service{pool: pool, clock: clk, credentials: credentials}
 }
 
+// CompetenceID resolve a competência gerada (404 se ainda não gerada).
+func CompetenceID(ctx context.Context, q *store.Queries, c comp.Competence) (string, error) {
+	return competenceID(ctx, q, c)
+}
+
+// ModuleLabel é o nome do módulo na interface.
+func ModuleLabel(module string) string { return moduleLabels[module] }
+
 // competenceID resolve a competência gerada (404 se ainda não gerada).
 func competenceID(ctx context.Context, q *store.Queries, c comp.Competence) (string, error) {
 	k, err := q.GetCompetenceByKey(ctx, c.String())

@@ -1,5 +1,6 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Company } from "@/services/companies";
 import type { BankAccountList, CompanyReconciliationSummary } from "@/services/reconciliation";
@@ -83,10 +84,24 @@ function mock(closed = false) {
   });
 }
 
+/** A ficha simplificada: a competência vem de fora da aba. */
+function Harness() {
+  const [competence, setCompetence] = useState("2026-10");
+  return (
+    <>
+      <button type="button" onClick={() => setCompetence("2026-08")}>
+        Trocar para 08/2026
+      </button>
+      <ReconciliationTab company={company} competence={competence} />
+    </>
+  );
+}
+
 describe("ReconciliationTab", () => {
-  it("AC-034: a competência corrente, o percentual, a fila, os extratos e os atalhos filtrados pela empresa", async () => {
+  it("AC-034: a competência da ficha, o percentual, a fila, os extratos e os atalhos filtrados pela empresa", async () => {
     const fetchFn = mock();
-    renderWithProviders(<ReconciliationTab company={company} />, { route: `/companies/${ID}?tab=reconciliation` });
+    renderWithProviders(<Harness />, { route: `/companies/${ID}?tab=reconciliation` });
+    expect(screen.getByRole("heading", { name: "Conciliação — 10/2026" })).toBeInTheDocument();
     expect(await screen.findByText("Contábil aberto")).toBeInTheDocument();
     expect(fetchFn.mock.calls.some(([u]) => urlOf(u).includes(`/companies/${ID}/reconciliation?competence=2026-10`))).toBe(true);
     expect(screen.getByRole("region", { name: "Conciliação da competência" })).toHaveTextContent("33,3%");
@@ -109,13 +124,14 @@ describe("ReconciliationTab", () => {
     );
     expect(within(nav).getByRole("link", { name: "Plano de contas" })).toHaveAttribute("href", `/reconciliation/chart?company_id=${ID}`);
 
-    fireEvent.change(screen.getByLabelText("Competência"), { target: { value: "2026-08" } });
+    // A competência vem da ficha (o seletor do cabeçalho): trocada lá, a aba acompanha.
+    await userEvent.click(screen.getByRole("button", { name: "Trocar para 08/2026" }));
     await waitFor(() => expect(fetchFn.mock.calls.some(([u]) => urlOf(u).includes(`/companies/${ID}/reconciliation?competence=2026-08`))).toBe(true));
   });
 
   it("com o Contábil fechado, a trava aparece e não há como rodar a conciliação", async () => {
     mock(true);
-    renderWithProviders(<ReconciliationTab company={company} />, { route: `/companies/${ID}?tab=reconciliation` });
+    renderWithProviders(<ReconciliationTab company={company} competence="2026-10" />, { route: `/companies/${ID}?tab=reconciliation` });
     expect(await screen.findByText("Contábil fechado")).toBeInTheDocument();
     expect(screen.getByRole("status")).toHaveTextContent("O Contábil da competência está fechado: a Conciliação fica travada.");
     expect(screen.queryByRole("button", { name: "Rodar a conciliação da competência" })).toBeNull();
@@ -123,7 +139,7 @@ describe("ReconciliationTab", () => {
 
   it("CC-11: cadastra a conta lida no extrato com um clique e mostra a recusa da conta de outra empresa", async () => {
     const fetchFn = mock();
-    renderWithProviders(<ReconciliationTab company={company} />, { route: `/companies/${ID}?tab=reconciliation` });
+    renderWithProviders(<ReconciliationTab company={company} competence="2026-10" />, { route: `/companies/${ID}?tab=reconciliation` });
     const card = await screen.findByRole("region", { name: "Contas bancárias" });
     expect(await within(card).findByRole("table", { name: "Contas cadastradas" })).toHaveTextContent("a_fonte 0001/12345-6");
     const read = within(card).getByRole("region", { name: "Contas lidas nos extratos" });

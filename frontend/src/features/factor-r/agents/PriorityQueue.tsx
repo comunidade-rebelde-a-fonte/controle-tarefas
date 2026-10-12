@@ -43,7 +43,7 @@ export function PriorityQueue({ response }: { response: FactorRAgentResponse }) 
             <tr key={item.company_id}>
               <Td className="tabular-nums">{item.posicao}</Td>
               <Td>
-                <Link to={`/companies/${item.company_id}?tab=factor-r${pa ? `&pa=${pa}` : ""}`} className="font-medium hover:underline">
+                <Link to={`/companies/${item.company_id}?tab=factor-r${pa ? `&competence=${pa}` : ""}`} className="font-medium hover:underline">
                   {item.empresa}
                 </Link>
               </Td>

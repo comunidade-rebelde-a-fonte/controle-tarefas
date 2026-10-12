@@ -123,7 +123,7 @@ func factorRSection(ctx context.Context, q *store.Queries, c comp.Competence, f 
 		s.ActionRequired.Value++
 		if len(s.Priorities) < maxPriorities {
 			pr := FactorRPriority{Company: l.Company, Light: l.Semaforo, Action: l.Acao, ActionText: l.AcaoTexto,
-				Drilldown: &Drilldown{Path: "/companies/" + l.Company.ID, Query: map[string]string{"tab": "factor-r", "pa": c.String()}}}
+				Drilldown: &Drilldown{Path: "/companies/" + l.Company.ID, Query: map[string]string{"tab": "factor-r", "competence": c.String()}}}
 			if l.FatorR != nil {
 				v := l.FatorR.Text()
 				pr.FactorR = &v

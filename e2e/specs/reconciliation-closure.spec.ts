@@ -55,7 +55,7 @@ test("TEST-023: fechar o Contábil trava a Conciliação; reaberto com motivo, d
 
   // Sem Conciliação na competência, o Contábil fecha como sempre, pela aba da ficha.
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
-  await page.getByLabel("Competência", { exact: true }).fill(competence);
+  await page.getByLabel("Selecionar competência").fill(competence);
   const closure = page.getByRole("region", { name: "Fechamento do Contábil" });
   // O selo "Contábil fechado" da aba tem o mesmo texto do aviso: o aviso é conferido nas notificações.
   const toasts = page.getByRole("region", { name: /^Notifications/ });
@@ -83,7 +83,7 @@ test("TEST-023: fechar o Contábil trava a Conciliação; reaberto com motivo, d
   // Reabrir pede motivo; a reabertura fica no histórico do fechamento, com o motivo.
   const reason = "Teste E2E: chegou o recibo da papelaria depois do fechamento.";
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
-  await page.getByLabel("Competência", { exact: true }).fill(competence);
+  await page.getByLabel("Selecionar competência").fill(competence);
   await closure.getByRole("button", { name: "Reabrir o Contábil" }).click();
   const reopenDialog = page.getByRole("dialog", { name: "Reabrir Contábil" });
   await reopenDialog.getByRole("button", { name: "Reabrir" }).click();
@@ -115,7 +115,7 @@ test("TEST-023: fechar o Contábil trava a Conciliação; reaberto com motivo, d
 
   // Usando a Conciliação, o Contábil só fecha com a obrigação Conciliação final.
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
-  await page.getByLabel("Competência", { exact: true }).fill(competence);
+  await page.getByLabel("Selecionar competência").fill(competence);
   await closure.getByRole("button", { name: "Fechar o Contábil" }).click();
   await closeDialog.getByRole("button", { name: "Fechar competência" }).click();
   await expect(closeDialog.getByText(`A Conciliação de ${shown} não está concluída (a obrigação Conciliação está como A iniciar). Conclua a conciliação antes de fechar o Contábil.`)).toBeVisible();

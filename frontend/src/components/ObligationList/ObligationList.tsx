@@ -19,6 +19,8 @@ export interface ObligationListProps {
   error: unknown;
   onPage: (page: number) => void;
   emptyMessage?: string;
+  /** Sem as colunas da empresa (a aba Obrigações da ficha, que já é de uma empresa). */
+  showCompany?: boolean;
 }
 
 const moduleLabel = (m: string) => (m in MODULE_LABELS ? MODULE_LABELS[m as ModuleCode] : m);
@@ -28,7 +30,7 @@ const moduleLabel = (m: string) => (m in MODULE_LABELS ? MODULE_LABELS[m as Modu
  * status, vencimento, dias em atraso e responsável. Cada item abre a grade do módulo na
  * competência dele, filtrada na empresa. Usada no Backlog e no drill-down do dashboard.
  */
-export function ObligationList({ "aria-label": ariaLabel, data, isLoading, error, onPage, emptyMessage }: ObligationListProps) {
+export function ObligationList({ "aria-label": ariaLabel, data, isLoading, error, onPage, emptyMessage, showCompany = true }: ObligationListProps) {
   if (error) return <ErrorAlert error={error} />;
   if (isLoading && !data) return <Skeleton className="h-64" />;
   if (!data || data.items.length === 0) {
@@ -43,9 +45,13 @@ export function ObligationList({ "aria-label": ariaLabel, data, isLoading, error
         <Table aria-label={ariaLabel}>
           <thead>
             <tr>
-              <Th>Empresa</Th>
-              <Th>Código</Th>
-              <Th>CNPJ</Th>
+              {showCompany ? (
+                <>
+                  <Th>Empresa</Th>
+                  <Th>Código</Th>
+                  <Th>CNPJ</Th>
+                </>
+              ) : null}
               <Th>Competência</Th>
               <Th>Módulo</Th>
               <Th>Obrigação</Th>
@@ -58,16 +64,28 @@ export function ObligationList({ "aria-label": ariaLabel, data, isLoading, error
           <tbody>
             {data.items.map((it) => (
               <tr key={`${it.kind}:${it.instance_id ?? `${it.company.id}:${it.competence}:${it.module}`}`}>
-                <Td className="max-w-72 truncate font-medium">
-                  <Link className="hover:underline" to={drilldownHref(it.drilldown)}>
-                    {it.company.legal_name}
-                  </Link>
-                </Td>
-                <Td className="tabular-nums">{it.company.internal_code}</Td>
-                <Td className="text-xs tabular-nums">{formatCnpj(it.company.cnpj)}</Td>
+                {showCompany ? (
+                  <>
+                    <Td className="max-w-72 truncate font-medium">
+                      <Link className="hover:underline" to={drilldownHref(it.drilldown)}>
+                        {it.company.legal_name}
+                      </Link>
+                    </Td>
+                    <Td className="tabular-nums">{it.company.internal_code}</Td>
+                    <Td className="text-xs tabular-nums">{formatCnpj(it.company.cnpj)}</Td>
+                  </>
+                ) : null}
                 <Td className="tabular-nums">{displayCompetence(it.competence)}</Td>
                 <Td>{moduleLabel(it.module)}</Td>
-                <Td>{it.obligation_type?.name ?? <span className="text-muted-foreground">—</span>}</Td>
+                <Td>
+                  {showCompany || !it.obligation_type ? (
+                    (it.obligation_type?.name ?? <span className="text-muted-foreground">—</span>)
+                  ) : (
+                    <Link className="inline-flex min-h-6 items-center font-medium hover:underline" to={drilldownHref(it.drilldown)}>
+                      {it.obligation_type.name}
+                    </Link>
+                  )}
+                </Td>
                 <Td>{it.kind === "MODULE" ? <Badge variant="warning">Módulo aberto</Badge> : it.status_label}</Td>
                 <Td className="tabular-nums">{formatDate(it.due_date) || "—"}</Td>
                 <Td className="text-right tabular-nums">

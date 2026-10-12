@@ -125,7 +125,7 @@ function PriorSeries({ d }: { d: PgdasDocument }) {
 
 function LinkedCompany({ companyId, pa }: { companyId: string; pa: string | null }) {
   const company = useCompany(companyId);
-  const query = pa ? `?tab=factor-r&pa=${pa}` : "?tab=factor-r";
+  const query = pa ? `?tab=factor-r&competence=${pa}` : "?tab=factor-r";
   return (
     <p className="text-sm" data-testid="empresa-vinculada">
       Vinculado a{" "}

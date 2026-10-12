@@ -42,7 +42,7 @@ describe("RunDetailPage", () => {
     expect(screen.getByText("240 → 48 tokens · US$ 0,000084")).toBeInTheDocument();
     expect(screen.getByText("fatorr/plan@2026.10.1#eddce0a92af0")).toBeInTheDocument();
     expect(screen.getByText("fatorr/render@2026.10.1#6df09143757a")).toBeInTheDocument();
-    expect(await screen.findByRole("link", { name: "Clínica Exemplo Ltda" })).toHaveAttribute("href", `/companies/${COMPANY_ID}?tab=factor-r&pa=2026-09`);
+    expect(await screen.findByRole("link", { name: "Clínica Exemplo Ltda" })).toHaveAttribute("href", `/companies/${COMPANY_ID}?tab=factor-r&competence=2026-09`);
     expect(screen.getByRole("link", { name: "Abrir no Langfuse" })).toHaveAttribute("target", "_blank");
 
     const spans = screen.getByRole("table", { name: "Passos da corrida" });

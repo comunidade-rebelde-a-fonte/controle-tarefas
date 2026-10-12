@@ -139,7 +139,7 @@ function mock(overrides: { calc?: FactorRCalc; movements?: FactorRMovement[] } =
 describe("FactorRTab", () => {
   it("AC-005/AC-006: mostra o resultado do PA, a janela e o cálculo explicado", async () => {
     const { fetchFn } = mock();
-    renderWithProviders(<FactorRTab company={company} />, { route: "/companies/x?tab=factor-r&pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/companies/x?tab=factor-r&pa=2026-09" });
 
     const panel = await screen.findByTestId("painel-fator-r");
     expect(within(panel).getByText("Vermelho · abaixo de 28% (Anexo V)")).toBeInTheDocument();
@@ -173,7 +173,7 @@ describe("FactorRTab", () => {
         economia_12m: null,
       },
     });
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     expect(await screen.findByTestId("dados-insuficientes")).toHaveTextContent("menos de 12 meses na janela");
     expect(screen.getByTestId("fator-r")).toHaveTextContent("—");
     expect(screen.getByTestId("economia")).toHaveTextContent("—");
@@ -181,7 +181,7 @@ describe("FactorRTab", () => {
 
   it("explica por que a empresa não está na carteira", async () => {
     mock({ calc: { ...calc, monitorada: false, regime_no_pa: "LUCRO_PRESUMIDO" } });
-    renderWithProviders(<FactorRTab company={{ ...company, factor_r: null }} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={{ ...company, factor_r: null }} pa="2026-09" />, { route: "/?pa=2026-09" });
     const notice = await screen.findByTestId("fora-da-carteira");
     expect(notice).toHaveTextContent("não está marcada como sujeita ao Fator R");
     expect(notice).toHaveTextContent("o regime é Lucro Presumido");
@@ -190,7 +190,7 @@ describe("FactorRTab", () => {
 
   it("grade mensal: lança um mês com valores pt-BR e a versão atual", async () => {
     const { puts } = mock();
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     const revenue = await screen.findByLabelText("Receita bruta 10/2025");
     expect(revenue).toHaveValue("50.000,00");
     fireEvent.change(revenue, { target: { value: "51.234,5" } });
@@ -214,7 +214,7 @@ describe("FactorRTab", () => {
 
   it("grade mensal: mês vazio cria com versão 0 e valor inválido não é enviado", async () => {
     const { puts } = mock();
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     fireEvent.change(await screen.findByLabelText("Receita bruta 08/2026"), { target: { value: "12,345" } });
     fireEvent.click(screen.getByRole("button", { name: "Salvar 08/2026" }));
     expect(await screen.findByText("Receita bruta: valor inválido (use 1.234,56)")).toBeInTheDocument();
@@ -227,7 +227,7 @@ describe("FactorRTab", () => {
 
   it("FR-03: mês do PGDAS-D mostra a folha declarada e permite detalhar", async () => {
     const { puts } = mock();
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     const cell = await screen.findByTestId("folha-pgdas-2025-09");
     expect(cell).toHaveTextContent("Folha declarada no PGDAS-D: R$ 14.000,00");
     expect(cell).toHaveTextContent("O extrato não separa pró-labore, salários, CPP e FGTS.");
@@ -254,7 +254,7 @@ describe("FactorRTab", () => {
         }),
       ],
     });
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     expect(await screen.findByRole("heading", { name: "Simulador de correção" })).toBeInTheDocument();
     expect(screen.getByLabelText("PA")).toHaveValue("2026-09");
     expect(screen.getByTestId("chat-consultor-ficha")).toHaveTextContent("Consultor · Brisa Serviços Digitais Ltda");
@@ -268,7 +268,7 @@ describe("FactorRTab", () => {
 
   it("empresa não sujeita ao Fator R: sem simulador nem consultor, como na origem", async () => {
     mock();
-    renderWithProviders(<FactorRTab company={{ ...company, factor_r: false }} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={{ ...company, factor_r: false }} pa="2026-09" />, { route: "/?pa=2026-09" });
     expect(await screen.findByTestId("painel-fator-r")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Simulador de correção" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("chat-consultor-ficha")).not.toBeInTheDocument();
@@ -277,7 +277,7 @@ describe("FactorRTab", () => {
 
   it("configuração: grava pacote, honorário e início de atividade com a versão", async () => {
     const { patches } = mock();
-    renderWithProviders(<FactorRTab company={company} />, { route: "/?pa=2026-09" });
+    renderWithProviders(<FactorRTab company={company} pa="2026-09" />, { route: "/?pa=2026-09" });
     const fee = await screen.findByLabelText("Honorário mensal do pacote (R$)");
     expect(fee).toHaveValue("900,00");
     expect(screen.getByText("sim")).toBeInTheDocument();

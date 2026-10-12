@@ -127,9 +127,17 @@ export function useUploadDocument() {
 }
 
 /** Toda ação da Conciliação muda a fila, os documentos e a linha: recarrega tudo sob a chave. */
+/**
+ * Invalida as consultas da Conciliação sem esperar o recarregamento: o retorno de cada ação (o
+ * aviso, fechar o diálogo) roda logo após a resposta, com o componente que a disparou ainda na
+ * tela. Esperando, a linha recarregada podia tirar da tela o botão da ação (o "Desfazer" some
+ * quando a conciliação é desfeita), e o aviso se perdia de vez em quando.
+ */
 function useInvalidateAll() {
   const qc = useQueryClient();
-  return () => qc.invalidateQueries({ queryKey: reconciliationKeys.all });
+  return () => {
+    void qc.invalidateQueries({ queryKey: reconciliationKeys.all });
+  };
 }
 
 /** POST /reconciliation/documents/{id}/retry — o documento volta para a fila. */

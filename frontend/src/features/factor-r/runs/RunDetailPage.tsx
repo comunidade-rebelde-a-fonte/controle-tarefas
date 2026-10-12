@@ -40,7 +40,7 @@ function Meta({ label, children }: { label: string; children: ReactNode }) {
 function CompanyName({ id, pa }: { id: string; pa: string | null }) {
   const company = useCompany(id);
   return (
-    <Link to={`/companies/${id}?tab=factor-r${pa ? `&pa=${pa}` : ""}`} className="underline underline-offset-4">
+    <Link to={`/companies/${id}?tab=factor-r${pa ? `&competence=${pa}` : ""}`} className="underline underline-offset-4">
       {company.data?.legal_name ?? "empresa"}
     </Link>
   );

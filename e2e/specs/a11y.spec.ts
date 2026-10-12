@@ -66,21 +66,26 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
   await page.getByRole("searchbox", { name: "Buscar empresa" }).fill("Alfa Comércio");
   await page.getByRole("link", { name: "Empresa Fictícia Alfa Comércio Ltda" }).click();
   await ready(page, "Empresa Fictícia Alfa Comércio Ltda");
-  for (const tab of [
-    "Dados gerais",
-    "Regime tributário",
-    "Módulos",
-    "Obrigações/aplicabilidade",
-    "Folha",
-    "Fator R",
-    "Conciliação",
-    "Responsáveis",
-    "Procurações/Certificados",
-    "Histórico de competências",
-  ]) {
-    await page.getByRole("tab", { name: tab }).click();
+  // As seções da ficha e as subabas de Dados gerais e de Obrigações (TASK-025).
+  for (const [section, tab] of [
+    ["Visão geral", null],
+    ["Dados gerais", "Cadastro"],
+    ["Dados gerais", "Regime tributário"],
+    ["Dados gerais", "Módulos"],
+    ["Dados gerais", "Responsáveis"],
+    ["Dados gerais", "Folha"],
+    ["Obrigações", "Da competência"],
+    ["Obrigações", "Aplicabilidade"],
+    ["Fator R", null],
+    ["Conciliação", null],
+    ["Documentos", null],
+    ["Procurações/Certificados", null],
+    ["Histórico de competências", null],
+  ] as const) {
+    await page.getByRole("tablist", { name: "Seções da ficha" }).getByRole("tab", { name: section, exact: true }).click();
+    if (tab) await page.getByRole("tablist", { name: section }).getByRole("tab", { name: tab, exact: true }).click();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
-    await audit(page, `ficha da empresa — ${tab}`);
+    await audit(page, `ficha da empresa — ${tab ? `${section} › ${tab}` : section}`);
   }
 
   // Fator R de uma empresa da carteira: painel, simulador, consultor, grade mensal editável,

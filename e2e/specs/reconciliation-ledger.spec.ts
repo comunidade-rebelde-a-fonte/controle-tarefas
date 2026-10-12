@@ -166,7 +166,7 @@ test("TEST-021b e TEST-022: lançamentos, plano, regras, razão e a conclusão d
   // obrigação Conciliação gerada em 08/2026 (a API só gera a competência corrente): a sincronização
   // com a obrigação é provada nos testes de integração (internal/reconciliation/completion).
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
-  await page.getByLabel("Competência", { exact: true }).fill("2026-08");
+  await page.getByLabel("Selecionar competência").fill("2026-08");
   const completion = page.getByRole("region", { name: "Conclusão da conciliação" });
   await expect(completion.getByText("Pronta para concluir", { exact: true })).toBeVisible();
   await expect(completion).toContainText("O extrato está todo resolvido");
@@ -190,7 +190,7 @@ test("TEST-021b e TEST-022: lançamentos, plano, regras, razão e a conclusão d
 
   // Reabrir pede motivo; reaberta, a competência volta a pronta e destrava.
   await page.goto(`/companies/${company.id}?tab=reconciliation`);
-  await page.getByLabel("Competência", { exact: true }).fill("2026-08");
+  await page.getByLabel("Selecionar competência").fill("2026-08");
   await completion.getByRole("button", { name: "Reabrir a conciliação" }).click();
   const reopenDialog = page.getByRole("dialog", { name: "Reabrir a conciliação de 08/2026" });
   await expect(reopenDialog.getByRole("button", { name: "Reabrir" })).toBeDisabled();

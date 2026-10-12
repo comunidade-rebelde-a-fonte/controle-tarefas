@@ -13,6 +13,7 @@ import (
 	"controle/internal/platform/clock"
 	"controle/internal/platform/cnpj"
 	comp "controle/internal/platform/competence"
+	"controle/internal/platform/httpx"
 	"controle/internal/platform/validate"
 )
 
@@ -46,6 +47,7 @@ type BacklogParams struct {
 	RegimeGroup   *string
 	TaxRegime     *string
 	Q             *string // empresa, código ou CNPJ (com ou sem máscara)
+	CompanyID     *string // só a empresa: a aba Obrigações da ficha (TASK-025, D-039)
 	OverdueMin    *int32
 	OverdueMax    *int32
 	Sort          string
@@ -140,6 +142,7 @@ WITH items AS (
            OR i.legal_name ILIKE '%' || $9::text || '%'
            OR coalesce(i.trade_name, '') ILIKE '%' || $9::text || '%'
            OR ($10::text IS NOT NULL AND i.cnpj LIKE '%' || $10::text || '%'))
+      AND ($17::uuid IS NULL OR i.company_id = $17::uuid)
       AND ($11::int IS NULL OR i.days_overdue >= $11::int)
       AND ($12::int IS NULL OR i.days_overdue <= $12::int)
       AND CASE coalesce($13::text, 'open')
@@ -188,7 +191,7 @@ func (s *Service) Backlog(ctx context.Context, p BacklogParams) (Backlog, error)
 		}
 	}
 	rows, err := s.pool.Query(ctx, backlogSQL, today, before, competence, p.Module, p.Status, p.ResponsibleID,
-		p.RegimeGroup, p.TaxRegime, p.Q, qDigits, p.OverdueMin, p.OverdueMax, p.State, p.Sort, p.PageSize, (p.Page-1)*p.PageSize)
+		p.RegimeGroup, p.TaxRegime, p.Q, qDigits, p.OverdueMin, p.OverdueMax, p.State, p.Sort, p.PageSize, (p.Page-1)*p.PageSize, p.CompanyID)
 	if err != nil {
 		return Backlog{}, err
 	}
@@ -218,7 +221,7 @@ func (s *Service) Backlog(ctx context.Context, p BacklogParams) (Backlog, error)
 			Kind: x.kind, InstanceID: x.instanceID, Competence: c,
 			Company: BacklogCompany{ID: x.companyID, InternalCode: x.code, LegalName: x.legal, TradeName: x.trade, Cnpj: x.cnpjDigits},
 			Module:  x.module, StatusCode: x.status, StatusLabel: x.label, DueDate: civil.Ptr(x.due), DaysOverdue: int(x.days),
-			Drilldown: companyGrid(x.module, x.code, x.group, c),
+			Drilldown: CompanyGrid(x.module, x.code, x.group, c),
 		}
 		if x.typeCode != nil && x.typeName != nil {
 			it.ObligationType = &BacklogType{Code: *x.typeCode, Name: *x.typeName}
@@ -291,6 +294,12 @@ func ParseBacklog(q url.Values) (BacklogParams, error) {
 	p.RegimeGroup, p.TaxRegime, p.ResponsibleID = f.RegimeGroup, f.TaxRegime, f.ResponsibleID
 	if v := opt("q"); v != nil {
 		p.Q = v
+	}
+	if v := opt("company_id"); v != nil {
+		if !httpx.IsUUID(*v) {
+			return p, validate.Field("company_id", "Identificador inválido.")
+		}
+		p.CompanyID = v
 	}
 	for name, dst := range map[string]**int32{"overdue_min": &p.OverdueMin, "overdue_max": &p.OverdueMax} {
 		if v := opt(name); v != nil {

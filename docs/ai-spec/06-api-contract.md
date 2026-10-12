@@ -24,6 +24,8 @@ Retorna agregação para ficha:
 - documentos recentes;
 - fechamentos.
 
+> **Como foi implementado (TASK-025; D-039).** `GET /companies/{id}/overview?competence=` devolve a identidade da empresa, o progresso por módulo com o estado do período (os fechamentos), os próximos vencimentos, o Fator R do PA com a tendência (só na carteira), a Conciliação da competência e as pendências do "Exige atenção" só da empresa. Numa competência ainda não gerada, vêm só o Fator R e a Conciliação (`competence_generated`). Os dados gerais vêm do `GET /companies/{id}`, e os documentos recentes ficam para a TASK-026. Também novos: `GET /company-indicators?competence=` (os indicadores da listagem) e o filtro `company_id` em `GET /backlog` (a aba Obrigações da ficha).
+
 ## 3. Fator R
 
 ### `GET /factor-r/portfolio?pa=YYYY-MM`

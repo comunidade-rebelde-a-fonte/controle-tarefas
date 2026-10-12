@@ -1,17 +1,14 @@
 import { Lock } from "lucide-react";
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { CompetenceInput } from "@/components/CompetenceInput";
+import { Link } from "react-router";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, Td, Th } from "@/components/ui/table";
-import { isCompetenceKey } from "@/lib/competence";
+import { displayCompetence } from "@/lib/competence";
 import { formatMoney } from "@/lib/decimal";
 import { formatDate } from "@/lib/format";
 import type { Company } from "@/services/companies";
-import { useLatestCompetence } from "@/services/competencies";
 import { useCompanyReconciliationSummary } from "@/services/reconciliation";
 import { AutoRate, RunReconciliation } from "../common";
 import { BUCKETS } from "../labels";
@@ -27,14 +24,11 @@ function readText(attempts: number): string {
 /**
  * A aba Conciliação da ficha da empresa [REQ-036, AC-034]: a competência com a trava do Contábil,
  * o percentual automático, a fila, a classificação, os extratos e os atalhos para as telas da
- * Conciliação já filtradas pela empresa; e as contas bancárias (CC-11).
+ * Conciliação já filtradas pela empresa; e as contas bancárias (CC-11). A competência é a da
+ * ficha, escolhida no cabeçalho (TASK-025, D-039).
  */
-export function ReconciliationTab({ company }: { company: Company }) {
-  const latest = useLatestCompetence();
-  // A competência pode vir na URL (o link da Conciliação por empresa, TASK-024).
-  const [params] = useSearchParams();
-  const [chosen, setChosen] = useState(params.get("competence") ?? "");
-  const competence = isCompetenceKey(chosen) ? chosen : (latest.data?.current ?? "");
+export function ReconciliationTab({ company, competence: chosen }: { company: Company; competence: string | null }) {
+  const competence = chosen ?? "";
   const summary = useCompanyReconciliationSummary(company.id, competence || null);
   const s = summary.data;
   const query = (extra: Record<string, string> = {}) => new URLSearchParams({ company_id: company.id, ...extra }).toString();
@@ -49,11 +43,8 @@ export function ReconciliationTab({ company }: { company: Company }) {
   ];
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="grid gap-1 text-xs font-medium text-muted-foreground">
-          Competência
-          <CompetenceInput value={competence} onChange={setChosen} />
-        </label>
+      <div className="flex flex-wrap items-center gap-3">
+        <h2 className="text-sm font-semibold">Conciliação{competence ? ` — ${displayCompetence(competence)}` : ""}</h2>
         {s ? (
           s.accounting_closed ? (
             <Badge variant="danger">
@@ -64,7 +55,7 @@ export function ReconciliationTab({ company }: { company: Company }) {
           )
         ) : null}
       </div>
-      <ErrorAlert error={summary.error ?? latest.error} fallback="Não foi possível carregar a Conciliação da empresa." />
+      <ErrorAlert error={summary.error} fallback="Não foi possível carregar a Conciliação da empresa." />
       {summary.isPending && competence ? <Skeleton className="h-64" /> : null}
       {s ? (
         <>

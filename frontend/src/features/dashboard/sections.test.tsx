@@ -28,7 +28,7 @@ const factorR: Dashboard["factor_r"] = {
       economia_12m: "43740.00000000",
       acao: "reuniao_correcao",
       acao_texto: "reunião de correção",
-      drilldown: link("/companies/c1", { tab: "factor-r", pa: "2026-09" }),
+      drilldown: link("/companies/c1", { tab: "factor-r", competence: "2026-09" }),
     },
     {
       company: { id: "c2", internal_code: "210", legal_name: "Estúdio Sem Dados ME", trade_name: null, cnpj: "00100008000109" },
@@ -37,7 +37,7 @@ const factorR: Dashboard["factor_r"] = {
       economia_12m: null,
       acao: "completar_lancamentos",
       acao_texto: "completar lançamentos",
-      drilldown: link("/companies/c2", { tab: "factor-r", pa: "2026-09" }),
+      drilldown: link("/companies/c2", { tab: "factor-r", competence: "2026-09" }),
     },
   ],
 };
@@ -79,7 +79,7 @@ describe("FactorRSection", () => {
     expect(first).toHaveTextContent("reunião de correção · Fator R 20,00% · economia de R$ 43.740,00 em 12 meses");
     expect(within(first as HTMLElement).getByRole("link", { name: "Clínica Horizonte Ltda" })).toHaveAttribute(
       "href",
-      "/companies/c1?tab=factor-r&pa=2026-09",
+      "/companies/c1?tab=factor-r&competence=2026-09",
     );
     expect(second).toHaveTextContent("Dados insuficientes");
     expect(second).toHaveTextContent("completar lançamentos");

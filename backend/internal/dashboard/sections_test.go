@@ -142,7 +142,7 @@ func assertFactorR(t *testing.T, srv *testutil.Server, pa, filter string) sectio
 	}
 	for i, pr := range f.Priorities {
 		if pr.Company.ID != priorities[i] || pr.Acao == "manter" ||
-			pr.Drilldown.Path != "/companies/"+pr.Company.ID || pr.Drilldown.Query["tab"] != "factor-r" || pr.Drilldown.Query["pa"] != pa {
+			pr.Drilldown.Path != "/companies/"+pr.Company.ID || pr.Drilldown.Query["tab"] != "factor-r" || pr.Drilldown.Query["competence"] != pa {
 			t.Errorf("%s%s prioridade %d = %+v (esperada %s)", pa, filter, i, pr, priorities[i])
 		}
 	}

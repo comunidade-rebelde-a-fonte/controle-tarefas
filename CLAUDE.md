@@ -216,6 +216,14 @@ Seções Fator R e Conciliação (TASK-024, D-038):
 - número novo no Dashboard leva os filtros para a lista do drill-down e entra no teste de consistência (TEST-024);
 - no frontend, `CompanyFilterChips` mostra e limpa os filtros que vieram do Dashboard.
 
+## Ficha da empresa
+
+A ficha como hub (TASK-025, D-039):
+- seções e subabas em `frontend/src/features/companies/detail/CompanyDetailPage.tsx`. A URL guarda a subaba (`?tab=`), e a competência da ficha (`?competence=`) vale para todas as seções (no Fator R, é o PA; o seletor vai além da competência gerada). Link novo para a ficha usa `competence`, nunca `pa`;
+- trocar de empresa refaz as abas (o `key` é a empresa): aba nova não guarda estado de outra empresa;
+- Visão geral em `backend/internal/companyhub` (`GET /companies/{id}/overview`), sempre a partir dos serviços de cada módulo; os indicadores da listagem em `GET /company-indicators`;
+- tabela nova com `company_id` referencia `companies(id)`, direto ou pela chave composta `(id, company_id)` da tabela-mãe (o teste do AC-002 confere).
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).

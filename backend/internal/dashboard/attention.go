@@ -87,9 +87,9 @@ var attentionOrder = []string{
 	AttentionPreviousOpen, AttentionDctfwebBlocked, AttentionAccountingBlocked,
 }
 
-// companyGrid leva à grade do módulo na competência, com a busca na empresa; no Fiscal, no
+// CompanyGrid leva à grade do módulo na competência, com a busca na empresa; no Fiscal, no
 // agrupamento (Normais ou Simples) do regime da empresa naquela competência.
-func companyGrid(module, code, regimeGroup string, c comp.Competence) *Drilldown {
+func CompanyGrid(module, code, regimeGroup string, c comp.Competence) *Drilldown {
 	q := map[string]string{"competence": c.String(), "q": code}
 	if module == "FISCAL" {
 		q["group"] = "normal"
@@ -102,6 +102,47 @@ func companyGrid(module, code, regimeGroup string, c comp.Competence) *Drilldown
 
 // Attention monta as 11 categorias do §24.6 com contagem, amostra e drill-down.
 func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (Attention, error) {
+	return s.attention(ctx, c, f, nil)
+}
+
+// CompanyAttention são as pendências de uma empresa na competência, para a Visão geral da ficha
+// (TASK-025, D-039): as mesmas categorias, só as que têm item, com o "ver todos" dentro da ficha
+// (a aba Obrigações filtrada ou a de Procurações/Certificados) quando ele existe lá.
+func (s *Service) CompanyAttention(ctx context.Context, c comp.Competence, companyID string) (Attention, error) {
+	all, err := s.attention(ctx, c, Filters{}, &companyID)
+	if err != nil {
+		return all, err
+	}
+	ficha := func(kv ...string) *Drilldown {
+		return &Drilldown{Path: "/companies/" + companyID, Query: with(map[string]string{"competence": c.String()}, kv...)}
+	}
+	inFicha := map[string]*Drilldown{
+		AttentionOverdue:                ficha("tab", "obligations", "state", StateOverdue),
+		AttentionPending:                ficha("tab", "obligations", "state", StatePending),
+		AttentionMissingDocuments:       ficha("tab", "obligations", "status", statusMissingDocuments),
+		AttentionErrors:                 ficha("tab", "obligations", "status", statusError),
+		AttentionCertificateExpired:     ficha("tab", "credentials"),
+		AttentionCertificateDueSoon:     ficha("tab", "credentials"),
+		AttentionPowerOfAttorneyExpired: ficha("tab", "credentials"),
+		AttentionPowerOfAttorneyDueSoon: ficha("tab", "credentials"),
+	}
+	out := Attention{Competence: c, Categories: []AttentionCategory{}}
+	for _, cat := range all.Categories {
+		if cat.Count == 0 {
+			continue
+		}
+		if d, ok := inFicha[cat.Key]; ok {
+			cat.Drilldown = d
+		} else if len(cat.Sample) > 0 {
+			cat.Drilldown = cat.Sample[0].Drilldown
+		}
+		out.Categories = append(out.Categories, cat)
+	}
+	return out, nil
+}
+
+// attention monta as categorias com os filtros do Dashboard ou só de uma empresa.
+func (s *Service) attention(ctx context.Context, c comp.Competence, f Filters, companyID *string) (Attention, error) {
 	today := clock.Today(s.clock)
 	out := Attention{Competence: c, Categories: []AttentionCategory{}}
 	q := store.New(s.pool)
@@ -116,7 +157,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 	}
 
 	obligations, err := q.AttentionObligations(ctx, store.AttentionObligationsParams{
-		Today: today, CompetenceID: kid, RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
+		Today: today, CompetenceID: kid, CompanyID: companyID, RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
 	})
 	if err != nil {
 		return out, err
@@ -132,7 +173,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 		cat.Sample = append(cat.Sample, AttentionItem{
 			Company: AttentionCompany{ID: r.CompanyID, InternalCode: r.InternalCode, LegalName: r.LegalName},
 			Title:   fmt.Sprintf("%s — %s", moduleLabels[r.Module], r.TypeName), Detail: detail,
-			Date: civil.Ptr(r.DueDateEffective), Drilldown: companyGrid(r.Module, r.InternalCode, r.RegimeGroup, c),
+			Date: civil.Ptr(r.DueDateEffective), Drilldown: CompanyGrid(r.Module, r.InternalCode, r.RegimeGroup, c),
 		})
 	}
 	cats[AttentionOverdue].Drilldown = obligationsLink(base, StateOverdue, "")
@@ -140,12 +181,12 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 	cats[AttentionMissingDocuments].Drilldown = &Drilldown{Path: "/obligations", Query: with(base, "status", statusMissingDocuments)}
 	cats[AttentionErrors].Drilldown = &Drilldown{Path: "/obligations", Query: with(base, "status", statusError)}
 
-	if err := s.attentionCredentials(ctx, f, cats); err != nil {
+	if err := s.attentionCredentials(ctx, f, companyID, cats); err != nil {
 		return out, err
 	}
 
 	prev, err := q.AttentionPreviousOpen(ctx, store.AttentionPreviousOpenParams{
-		CompetenceKey: c.String(), RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
+		CompetenceKey: c.String(), CompanyID: companyID, RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
 	})
 	if err != nil {
 		return out, err
@@ -169,7 +210,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 	}
 
 	blocked, err := q.AttentionBlockedDependencies(ctx, store.AttentionBlockedDependenciesParams{
-		CompetenceID: kid, RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
+		CompetenceID: kid, CompanyID: companyID, RegimeGroup: f.RegimeGroup, TaxRegime: f.TaxRegime, ResponsibleID: f.ResponsibleID,
 	})
 	if err != nil {
 		return out, err
@@ -183,7 +224,7 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 		}
 		cat := cats[key]
 		cat.Count = int(r.Total)
-		dd := companyGrid(module, r.InternalCode, "", c)
+		dd := CompanyGrid(module, r.InternalCode, "", c)
 		if key == AttentionDctfwebBlocked {
 			dd = &Drilldown{Path: "/dctfweb", Query: map[string]string{"competence": c.String(), "q": r.InternalCode}}
 		}
@@ -199,8 +240,9 @@ func (s *Service) Attention(ctx context.Context, c comp.Competence, f Filters) (
 	return out, nil
 }
 
-// attentionCredentials preenche vencidos e próximos do vencimento (maior faixa configurada).
-func (s *Service) attentionCredentials(ctx context.Context, f Filters, cats map[string]*AttentionCategory) error {
+// attentionCredentials preenche vencidos e próximos do vencimento (maior faixa configurada); com
+// companyID, só os da empresa.
+func (s *Service) attentionCredentials(ctx context.Context, f Filters, companyID *string, cats map[string]*AttentionCategory) error {
 	list, err := s.credentials.List(ctx, credential.ListParams{})
 	if err != nil {
 		return err
@@ -218,7 +260,7 @@ func (s *Service) attentionCredentials(ctx context.Context, f Filters, cats map[
 		cats[k[1]].Drilldown = &Drilldown{Path: "/credentials", Query: map[string]string{"type": typ, "filter": fmt.Sprintf("due_%d", maxDays)}}
 	}
 	for _, row := range list.Items {
-		if !regimeMatches(row.Company.TaxRegime, f) {
+		if !regimeMatches(row.Company.TaxRegime, f) || (companyID != nil && row.Company.ID != *companyID) {
 			continue
 		}
 		for typ, ctl := range map[string]credential.Control{credential.TypeCertificate: row.DigitalCertificate, credential.TypePowerOfAttorney: row.RFBPowerOfAttorney} {

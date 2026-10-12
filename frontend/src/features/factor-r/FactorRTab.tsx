@@ -8,9 +8,8 @@ import type { Company } from "@/services/companies";
 import { type FactorRCalc, useFactorRCalc } from "@/services/factorR";
 import { CompanyConsultant } from "./agents/CompanyConsultant";
 import { CalcPanel } from "./CalcPanel";
-import { FactorRDisclaimer, PANav } from "./common";
+import { FactorRDisclaimer } from "./common";
 import { CompanyStatementsCard } from "./inbox/CompanyStatementsCard";
-import { usePA } from "./usePA";
 import { MonthlyGrid } from "./MonthlyGrid";
 import { CompanyRunsCard } from "./runs/CompanyRunsCard";
 import { SettingsCard } from "./SettingsCard";
@@ -34,7 +33,7 @@ function NotMonitored({ company, calc }: { company: Company; calc: FactorRCalc }
       <p>
         Esta empresa não entra na carteira do Fator R neste PA: {reasons.join("; ")}.{" "}
         {company.factor_r !== true ? (
-          <Link to={`/companies/${company.id}?tab=payroll`} className="underline">
+          <Link to={`/companies/${company.id}?tab=payroll&competence=${calc.pa}`} className="underline">
             Marcar na aba Folha
           </Link>
         ) : null}
@@ -46,19 +45,16 @@ function NotMonitored({ company, calc }: { company: Company; calc: FactorRCalc }
 /**
  * Aba Fator R da ficha [TASK-014a/b]: resultado do PA com o cálculo explicado, a janela usada,
  * o simulador e o consultor (empresas sujeitas ao Fator R, como na origem), a grade mensal
- * editável, os extratos e as corridas da empresa e a configuração. O PA fica na URL (`?pa=`).
+ * editável, os extratos e as corridas da empresa e a configuração. O PA é a competência da
+ * ficha, escolhida no cabeçalho (TASK-025, D-039).
  */
-export function FactorRTab({ company }: { company: Company }) {
-  const { pa, error: paError } = usePA();
+export function FactorRTab({ company, pa }: { company: Company; pa: string | null }) {
   const calc = useFactorRCalc(company.id, pa);
   const subject = company.factor_r === true;
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold">Fator R{pa ? ` — PA ${displayCompetence(pa)}` : ""}</h2>
-        <PANav />
-      </div>
-      <ErrorAlert error={paError ?? calc.error} fallback="Não foi possível calcular o Fator R." />
+      <h2 className="text-sm font-semibold">Fator R{pa ? ` — PA ${displayCompetence(pa)}` : ""}</h2>
+      <ErrorAlert error={calc.error} fallback="Não foi possível calcular o Fator R." />
       {calc.data && !calc.data.monitorada ? <NotMonitored company={company} calc={calc.data} /> : null}
       {calc.isPending && pa !== null ? <Skeleton className="h-64" /> : null}
       {calc.data ? <CalcPanel calc={calc.data} /> : null}

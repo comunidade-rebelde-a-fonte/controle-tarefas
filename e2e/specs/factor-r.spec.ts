@@ -50,8 +50,9 @@ test("AC-006 janela móvel: o PA seguinte tira o mês mais antigo e põe o novo,
   const months = page.getByRole("list", { name: "Meses da janela" });
   await expect(months.getByText("09/2025", { exact: true })).toBeVisible();
 
-  await page.getByRole("button", { name: "PA seguinte: 10/2026" }).click();
-  await expect(page).toHaveURL(/pa=2026-10/);
+  // O PA é a competência da ficha, escolhida no cabeçalho (TASK-025), que vai além da gerada.
+  await page.getByRole("button", { name: "Próxima competência: 10/2026" }).click();
+  await expect(page).toHaveURL(/competence=2026-10/);
   await expect(page.getByTestId("janela")).toHaveText("Janela: 10/2025 a 09/2026");
   await expect(months.getByText("09/2026 · faltante")).toBeVisible();
   await expect(months.getByText(/09\/2025/)).toHaveCount(0);

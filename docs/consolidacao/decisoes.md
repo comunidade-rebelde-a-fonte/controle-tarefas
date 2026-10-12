@@ -4,6 +4,35 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-039 — A ficha da empresa como hub (TASK-025; 12/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Decisões do usuário (as quatro recomendadas):**
+  - **seções:** a ficha tem 8 seções: Visão geral, Dados gerais, Obrigações, Fator R, Conciliação, Documentos, Procurações/Certificados e Histórico de competências.
+    - Dados gerais tem as subabas Cadastro, Regime tributário, Módulos, Responsáveis e Folha. Obrigações tem Da competência (nova) e Aplicabilidade. Nenhuma tela some.
+    - A URL guarda a subaba (`?tab=`), e os links antigos (`?tab=regime`, `?tab=payroll` etc.) abrem a subaba certa;
+  - **competência:** uma só para a ficha, no cabeçalho (`?competence=`), vale para a Visão geral, as Obrigações, o Fator R (o PA) e a Conciliação.
+    - O cabeçalho também troca de empresa: a aba e a competência ficam, e a ficha refaz todas as abas, sem estado da empresa anterior;
+  - **Documentos:** por ora, atalhos para os documentos da empresa em cada módulo (os extratos do PGDAS-D na aba Fator R, os documentos da Conciliação filtrados pela empresa e as procurações e os certificados). A lista consolidada vem com a TASK-026;
+  - **listagem de Empresas (08 §4):** indicadores compactos da competência atual: o semáforo do Fator R (as monitoradas), o estado da conciliação (quem a usa) e os alertas críticos (obrigações atrasadas e credencial vencida). Saem de `GET /company-indicators`, com uma consulta por fonte.
+- **Dentro da autonomia:**
+  - **Visão geral** (`GET /companies/{id}/overview?competence=`, 06 §2):
+    - o progresso por módulo, com o estado do período;
+    - os próximos vencimentos (cinco, os atrasados primeiro);
+    - o Fator R com o cálculo da aba, a ação sugerida e a tendência dos últimos seis PAs, só se a empresa está na carteira;
+    - a Conciliação, que é a linha da lista "Empresas" da TASK-024;
+    - as pendências. As "pendências recentes" do 08 §5 são as categorias do "Exige atenção" com itens, só da empresa, com o "ver todas" na aba Obrigações (filtrada) ou na de Procurações/Certificados;
+  - os "documentos recentes" do 06 §2 ficam para a TASK-026. Os dados gerais e os fechamentos estão no cabeçalho e no estado do período de cada módulo;
+  - **PA futuro:** o seletor de competência da ficha vai além da última competência gerada, porque o PA seguinte do Fator R tem cálculo (AC-006). Numa competência não gerada, a Visão geral mostra só o Fator R e a Conciliação e avisa;
+  - **aba Obrigações:** a lista do Backlog e do drill-down do Dashboard, só da empresa, pelo filtro novo `company_id` em `GET /backlog`;
+  - **cabeçalho:** ganhou as ações rápidas da listagem (Editar e Inativar);
+  - **links:** os links do Fator R para a ficha (carteira, prioridades do Dashboard e dos agentes, documento do PGDAS-D e corridas) passaram de `pa` para `competence`. O `?pa=` dos links antigos vira a competência;
+  - **E2E antigos:** as abas Regime e Módulos ficam em Dados gerais, e a competência da aba Conciliação e o "PA seguinte" do Fator R passaram para o cabeçalho.
+- **Correção (TASK-021a):** os avisos das ações da fila de revisão ("Conciliação desfeita", "Linha confirmada sem comprovante" e outros) às vezes não apareciam. O hook esperava a fila recarregar antes do retorno do componente, e a linha recarregada tirava da tela o botão da ação. Agora as ações da Conciliação invalidam as consultas sem esperar o recarregamento. O TEST-021a falhou uma vez na primeira validação desta TASK por isso.
+- **AC-002 (empresa canônica):** um teste confere que toda coluna `company_id` chega a `companies(id)`, direto ou por chave composta `(id, company_id)` para a tabela-mãe. Na Conciliação, a chave composta obriga o filho a ter a empresa da mãe. O teste também confere que não há cadastro paralelo de empresa (CNPJ com razão social fora de `companies`).
+- **TEST-025:**
+  - nos testes de integração (`internal/companyhub`), a identidade única, a Visão geral contra as fontes de cada módulo (a lista de obrigações da empresa, o cálculo do Fator R e o "Exige atenção") e os indicadores contra a carteira e as obrigações atrasadas;
+  - no E2E, a listagem com os indicadores, a Visão geral, a competência do cabeçalho no Fator R e na Conciliação, a troca de empresa (aba e competência mantidas, tudo da empresa nova), as Obrigações só da empresa, os Documentos e o link antigo, com o axe.
+
 ### D-038 — Dashboard consolidado: seções Fator R e Conciliação (TASK-024; 12/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede:** o Dashboard mantém os blocos do Controle e ganha as seções Fator R e Conciliação, todo número com drill-down (PRD §8, 08 §3). O `GET /dashboard` ganha `factor_r` e `reconciliation` sem quebrar os campos (06 §6).

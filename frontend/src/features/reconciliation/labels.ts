@@ -4,6 +4,8 @@ import type {
   ClassificationRunSummary,
   ReconciliationDocumentStatus,
   ReconciliationEntryStatus,
+  ReconciliationOverviewCompany,
+  ReconciliationOverviewState,
   ReviewBucket,
   RunSummary,
 } from "@/services/reconciliation";
@@ -163,4 +165,22 @@ export function usdText(value: string | null | undefined, places = 4): string {
 export function percentText(value: string | null | undefined): string {
   if (value === null || value === undefined) return "—";
   return `${formatDecimal(value, 1)}%`;
+}
+
+/** Os estados da conclusão da conciliação (D-036), com a variante do selo. */
+export const COMPLETION_STATES: [ReconciliationOverviewState, string, "muted" | "warning" | "success"][] = [
+  ["em_andamento", "Em andamento", "muted"],
+  ["pronta", "Pronta para concluir", "warning"],
+  ["concluida", "Concluída", "success"],
+];
+
+/** O que ainda impede a conclusão, em texto curto (a lista Empresas e a Visão geral da ficha). */
+export function blockingText(b: ReconciliationOverviewCompany["blocking"]): string {
+  const parts: string[] = [];
+  if (b.missing_statement) parts.push("falta importar o extrato");
+  if (b.divergent > 0) parts.push(`${String(b.divergent)} com divergência`);
+  if (b.without_receipt > 0) parts.push(`${String(b.without_receipt)} sem comprovante`);
+  if (b.review > 0) parts.push(`${String(b.review)} em revisão`);
+  if (b.classification > 0) parts.push(`${String(b.classification)} à espera da conta`);
+  return parts.length > 0 ? parts.join(" · ") : "—";
 }

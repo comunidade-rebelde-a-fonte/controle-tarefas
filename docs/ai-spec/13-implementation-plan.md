@@ -250,6 +250,8 @@ Usar o serviço existente de obrigação; não escrever status direto no banco.
 **Aceite:** AC-002, AC-034.  
 **Validação:** TEST-025 — E2E troca de abas/empresa/competência sem identidade divergente.
 
+> **Como foi implementado (D-039).** As oito seções da ficha com subabas, a competência e a troca de empresa no cabeçalho, a Visão geral (`GET /companies/{id}/overview`, em `backend/internal/companyhub`), a aba Obrigações da competência, os atalhos de Documentos e os indicadores da listagem (`GET /company-indicators`), decisões do usuário. TEST-025 nos testes de integração (`internal/companyhub/companyhub_test.go`: a empresa canônica do AC-002, a Visão geral e os indicadores contra as fontes) e no E2E (`e2e/specs/company-hub.spec.ts`).
+
 ### TASK-026 — Documentos consolidados
 
 **Requisitos:** REQ-037, REQ-043, REQ-044.  

@@ -1,7 +1,8 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { requestedUrls } from "@/test/fetch";
+import { jsonResponse, requestedUrls } from "@/test/fetch";
+import { mockFetchRoutes } from "@/test/fetchRouter";
 import { renderWithProviders } from "@/test/render";
 import { CompaniesPage } from "./CompaniesPage";
 
@@ -41,6 +42,36 @@ afterEach(() => {
 });
 
 describe("CompaniesPage", () => {
+  it("TASK-025: os indicadores compactos da competência atual (Fator R, Conciliação e alertas críticos)", async () => {
+    mockFetchRoutes(({ method, url }) => {
+      if (method !== "GET") return undefined;
+      if (url.pathname === "/api/v1/companies") return jsonResponse({ items: [alfa, { ...alfa, id: "c2", internal_code: "102", legal_name: "Beta Ltda" }], total: 2 });
+      if (url.pathname === "/api/v1/competencies/latest") return jsonResponse({ competence: "2026-09", current: "2026-09" });
+      if (url.pathname === "/api/v1/company-indicators") {
+        expect(url.searchParams.get("competence")).toBe("2026-09");
+        return jsonResponse({
+          competence: "2026-09",
+          items: [
+            { company_id: "c1", factor_r: { semaforo: "vermelho", acao: "reuniao_correcao" }, reconciliation: { state: "pronta", blocks_accounting: true }, overdue: 2, credentials_expired: 1 },
+          ],
+        });
+      }
+      return undefined;
+    });
+    renderWithProviders(<CompaniesPage />, { route: "/companies", path: "/companies" });
+    const row = (await screen.findByText("Empresa Fictícia Alfa Comércio Ltda")).closest("tr");
+    if (!row) throw new Error("linha não encontrada");
+    const indicators = await within(row).findByRole("list", { name: "Indicadores" });
+    expect(within(indicators).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+      "Fator R vermelho",
+      "Conciliação pronta · trava o Contábil",
+      "2 obrigações atrasadas",
+      "Credencial vencida",
+    ]);
+    const other = screen.getByText("Beta Ltda").closest("tr");
+    expect(other && within(other).queryByRole("list", { name: "Indicadores" })).toBeNull();
+  });
+
   it("lista as colunas principais e copia o CNPJ sem máscara", async () => {
     mockCompanies();
     const user = userEvent.setup();

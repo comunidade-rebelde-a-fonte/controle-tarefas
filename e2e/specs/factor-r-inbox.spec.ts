@@ -51,10 +51,11 @@ test("AC-008: extrato de CNPJ cadastrado é lido, vinculado e lança a receita d
 
   // Ficha → aba Fator R: o extrato, a corrida do parser e o mês lançado com o link do extrato.
   await page.getByTestId("empresa-vinculada").getByRole("link").click();
-  await expect(page).toHaveURL(/tab=factor-r&pa=2026-09/);
+  await expect(page).toHaveURL(/tab=factor-r&competence=2026-09/);
   await expect(page.getByRole("list", { name: "Extratos vinculados" })).toContainText("PA 09/2026");
   await expect(page.getByRole("list", { name: "Corridas da empresa" })).toContainText("Parser PGDAS-D");
-  await page.getByRole("button", { name: "PA seguinte: 10/2026" }).click();
+  // O PA é a competência da ficha, escolhida no cabeçalho (TASK-025).
+  await page.getByRole("button", { name: "Próxima competência: 10/2026" }).click();
   await expect(page.getByRole("link", { name: "Abrir o extrato PGDAS-D de 09/2026" })).toBeVisible();
   await expect(page.getByLabel("Receita bruta 09/2026")).toHaveValue("50.000,00");
 });

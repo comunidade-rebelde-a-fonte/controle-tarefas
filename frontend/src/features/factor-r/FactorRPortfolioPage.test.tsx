@@ -112,7 +112,7 @@ describe("FactorRPortfolioPage", () => {
     expect(within(red).getByText("20,00%")).toBeInTheDocument();
     expect(within(red).getByText("R$ 43.740,00")).toBeInTheDocument();
     expect(within(red).getByText("Correção")).toBeInTheDocument();
-    expect(within(red).getByRole("link", { name: "Empresa 208" })).toHaveAttribute("href", "/companies/id-208?tab=factor-r&pa=2026-09");
+    expect(within(red).getByRole("link", { name: "Empresa 208" })).toHaveAttribute("href", "/companies/id-208?tab=factor-r&competence=2026-09");
 
     expect(screen.getByTestId("kpi-monitoradas")).toHaveTextContent("3");
     expect(screen.getByTestId("kpi-economia")).toHaveTextContent("R$ 104.580,00");

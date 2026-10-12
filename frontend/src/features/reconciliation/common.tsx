@@ -17,11 +17,9 @@ import { Link } from "react-router";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { NativeSelect } from "@/components/ui/input";
 import { isApiError } from "@/lib/api";
 import { isCompetenceKey } from "@/lib/competence";
 import { formatMoney } from "@/lib/decimal";
-import { useCompanies } from "@/services/companies";
 import { jobActive, useJob, useRetryJob } from "@/services/jobs";
 import { cn } from "@/lib/utils";
 import {
@@ -71,33 +69,7 @@ export function DocStatusBadge({ status }: { status: ReconciliationDocumentStatu
   );
 }
 
-/** Empresa ativa do cadastro canônico (todas, ou a escolhida). */
-export function CompanySelect({
-  value,
-  onChange,
-  allLabel,
-  ...props
-}: {
-  value: string;
-  onChange: (id: string) => void;
-  allLabel?: string;
-  id?: string;
-  "aria-invalid"?: boolean | undefined;
-  "aria-describedby"?: string | undefined;
-  "aria-label"?: string;
-}) {
-  const companies = useCompanies({ active: true });
-  return (
-    <NativeSelect value={value} onChange={(e) => onChange(e.target.value)} {...props}>
-      <option value="">{allLabel ?? "Escolha a empresa"}</option>
-      {(companies.data?.items ?? []).map((c) => (
-        <option key={c.id} value={c.id}>
-          {c.internal_code} · {c.legal_name}
-        </option>
-      ))}
-    </NativeSelect>
-  );
-}
+export { CompanySelect } from "@/components/CompanySelect";
 
 /**
  * Andamento do job que processa o documento [AC-014; 11 §9]: na fila, em execução, nova

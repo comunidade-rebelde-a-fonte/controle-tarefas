@@ -1571,6 +1571,7 @@ paths:
         - $ref: "#/components/parameters/DashboardRegimeGroup"
         - $ref: "#/components/parameters/DashboardTaxRegime"
         - { name: q, in: query, description: "Empresa, código ou CNPJ (com ou sem máscara)", schema: { type: string } }
+        - { name: company_id, in: query, description: "Só a empresa (a aba Obrigações da ficha; TASK-025, D-039)", schema: { $ref: "#/components/schemas/Uuid" } }
         - { name: overdue_min, in: query, schema: { type: integer, minimum: 0 } }
         - { name: overdue_max, in: query, schema: { type: integer, minimum: 0 } }
         - { name: sort, in: query, schema: { type: string, enum: [days_overdue, due_date, competence, company], default: days_overdue } }
@@ -1583,6 +1584,51 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Backlog" }
         "400": { $ref: "#/components/responses/BadRequest" }
+
+  /companies/{id}/overview:
+    parameters:
+      - $ref: "#/components/parameters/IdPath"
+    get:
+      tags: [companies]
+      operationId: getCompanyOverview
+      summary: Visão geral da empresa na competência [08 §5; TASK-025, D-039]
+      description: |
+        A ficha como hub: o progresso por módulo, as próximas obrigações a vencer (as atrasadas
+        primeiro), o Fator R no PA igual à competência com a ação sugerida e a tendência dos
+        últimos seis PAs (só se a empresa está na carteira), a Conciliação da competência (só se a
+        empresa a usa ou tem item na fila) e as pendências do "Exige atenção" só da empresa. Tudo
+        da mesma empresa (`companies.id`). Numa competência ainda não gerada (um PA futuro),
+        `competence_generated` é falso e só o Fator R e a Conciliação vêm.
+      parameters:
+        - { name: competence, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Visão geral
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyOverview" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /company-indicators:
+    get:
+      tags: [companies]
+      operationId: getCompanyIndicators
+      summary: Indicadores compactos da listagem de empresas [08 §4; TASK-025, D-039]
+      description: |
+        Por empresa com algum indicador na competência: o semáforo do Fator R (as monitoradas no
+        PA), o estado da conciliação (quem usa a Conciliação) e os alertas críticos (obrigações
+        atrasadas na competência e credenciais vencidas). Uma consulta por fonte, sem N+1.
+      parameters:
+        - { name: competence, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
+      responses:
+        "200":
+          description: Indicadores
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CompanyIndicatorList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
 
   /companies/{id}/history:
     parameters:
@@ -5175,6 +5221,115 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Drilldown"
             - type: "null"
+
+    CompanyOverview:
+      type: object
+      description: A Visão geral da empresa na competência (TASK-025, D-039)
+      required: [company, competence, competence_generated, modules, next_due, factor_r, reconciliation, attention]
+      properties:
+        company:
+          type: object
+          required: [id, internal_code, legal_name]
+          properties:
+            id: { $ref: "#/components/schemas/Uuid" }
+            internal_code: { type: string }
+            legal_name: { type: string }
+        competence: { $ref: "#/components/schemas/Competence" }
+        competence_generated: { type: boolean }
+        modules:
+          type: array
+          items:
+            type: object
+            required: [module, label, period_state, applicable, done, pending, overdue, operational_progress, final_completion, drilldown]
+            properties:
+              module: { type: string }
+              label: { type: string }
+              period_state: { type: string, enum: [OPEN, CLOSED] }
+              applicable: { type: integer }
+              done: { type: integer }
+              pending: { type: integer }
+              overdue: { type: integer }
+              operational_progress: { type: number }
+              final_completion: { type: number }
+              drilldown: { oneOf: [{ $ref: "#/components/schemas/Drilldown" }, { type: "null" }] }
+        next_due:
+          type: array
+          items:
+            type: object
+            required: [instance_id, module, module_label, obligation, status_label, due_date, overdue, drilldown]
+            properties:
+              instance_id: { $ref: "#/components/schemas/Uuid" }
+              module: { type: string }
+              module_label: { type: string }
+              obligation: { type: string }
+              status_label: { type: string }
+              due_date: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+              overdue: { type: boolean }
+              drilldown: { oneOf: [{ $ref: "#/components/schemas/Drilldown" }, { type: "null" }] }
+        factor_r:
+          oneOf:
+            - type: object
+              required: [pa, status, motivo, semaforo, fator_r, anexo, economia_12m, acao, acao_texto, trend]
+              properties:
+                pa: { $ref: "#/components/schemas/Competence" }
+                status: { $ref: "#/components/schemas/FactorRStatus" }
+                motivo: { oneOf: [{ $ref: "#/components/schemas/FactorRReason" }, { type: "null" }] }
+                semaforo: { oneOf: [{ $ref: "#/components/schemas/FactorRLight" }, { type: "null" }] }
+                fator_r: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+                anexo: { oneOf: [{ $ref: "#/components/schemas/FactorRAnnex" }, { type: "null" }] }
+                economia_12m: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+                acao: { $ref: "#/components/schemas/FactorRAction" }
+                acao_texto: { type: string }
+                trend:
+                  type: array
+                  description: Os últimos seis PAs até o da competência (sem os PAs sem tabela do Simples vigente)
+                  items:
+                    type: object
+                    required: [pa, semaforo, fator_r]
+                    properties:
+                      pa: { $ref: "#/components/schemas/Competence" }
+                      semaforo: { oneOf: [{ $ref: "#/components/schemas/FactorRLight" }, { type: "null" }] }
+                      fator_r: { oneOf: [{ $ref: "#/components/schemas/DecimalString" }, { type: "null" }] }
+            - type: "null"
+        reconciliation:
+          oneOf:
+            - $ref: "#/components/schemas/ReconciliationOverviewCompany"
+            - type: "null"
+        attention:
+          type: array
+          description: As categorias do "Exige atenção" com itens, só da empresa
+          items: { $ref: "#/components/schemas/AttentionCategory" }
+
+    CompanyIndicatorList:
+      type: object
+      required: [competence, items]
+      properties:
+        competence: { $ref: "#/components/schemas/Competence" }
+        items:
+          type: array
+          items:
+            type: object
+            required: [company_id, factor_r, reconciliation, overdue, credentials_expired]
+            properties:
+              company_id: { $ref: "#/components/schemas/Uuid" }
+              factor_r:
+                oneOf:
+                  - type: object
+                    required: [semaforo, acao]
+                    properties:
+                      semaforo: { oneOf: [{ $ref: "#/components/schemas/FactorRLight" }, { type: "null" }] }
+                      acao: { $ref: "#/components/schemas/FactorRAction" }
+                  - type: "null"
+              reconciliation:
+                oneOf:
+                  - type: object
+                    required: [state, blocks_accounting]
+                    properties:
+                      state: { type: string, enum: [em_andamento, pronta, concluida] }
+                      blocks_accounting: { type: boolean }
+                  - type: "null"
+              overdue: { type: integer }
+              credentials_expired: { type: integer }
 
     Attention:
       type: object

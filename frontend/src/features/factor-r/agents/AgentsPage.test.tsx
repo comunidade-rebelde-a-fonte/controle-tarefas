@@ -59,7 +59,7 @@ describe("AgentsPage", () => {
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows[0]).toHaveTextContent("1Fênix Manutenção Predial Ltda Amarelo · no limite28,85%R$ 56.686,50vigiar / simular");
     expect(rows[1]).toHaveTextContent("Vermelho · abaixo de 28% (Anexo V)");
-    expect(within(rows[1] as HTMLElement).getByRole("link")).toHaveAttribute("href", "/companies/c-iris?tab=factor-r&pa=2026-09");
+    expect(within(rows[1] as HTMLElement).getByRole("link")).toHaveAttribute("href", "/companies/c-iris?tab=factor-r&competence=2026-09");
     expect(within(chat).getByText(/PA 2026-09: 2 empresa\(s\) na fila\./)).toBeInTheDocument();
     expect(within(chat).getByRole("link", { name: "ver trace" })).toHaveAttribute("href", `/factor-r/runs/${TRACE_ID}`);
     expect(within(chat).getByLabelText("Pergunta ao Priorizador")).toHaveValue("");
