@@ -121,7 +121,12 @@ func BuildPortfolio(pa competence.Competence, companies []PortfolioCompany, move
 		lines = append(lines, PortfolioLine{Company: c, Result: r, Action: SuggestedAction(r)})
 	}
 	slices.SortStableFunc(lines, comparePortfolioLines)
+	return Portfolio{PA: pa, Lines: lines, KPIs: Summarize(lines)}
+}
 
+// Summarize totaliza as linhas da carteira (a parte de montar_carteira que soma os KPIs): o
+// Dashboard e a carteira filtrada pelos filtros de empresa (TASK-024) usam a mesma conta.
+func Summarize(lines []PortfolioLine) KPIs {
 	k := KPIs{Monitored: len(lines), SavingsAtPlay: decimal.Zero, PackageFees: decimal.Zero}
 	for _, l := range lines {
 		r := l.Result
@@ -141,9 +146,7 @@ func BuildPortfolio(pa competence.Competence, companies []PortfolioCompany, move
 			r.Savings12m != nil && r.Savings12m.Sign() > 0 {
 			k.SavingsAtPlay = k.SavingsAtPlay.Add(*r.Savings12m)
 		}
+		k.PackageFees = k.PackageFees.Add(l.Company.MonthlyFee)
 	}
-	for _, c := range companies {
-		k.PackageFees = k.PackageFees.Add(c.MonthlyFee)
-	}
-	return Portfolio{PA: pa, Lines: lines, KPIs: k}
+	return k
 }

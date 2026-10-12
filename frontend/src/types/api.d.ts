@@ -1081,7 +1081,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5) */
+        /**
+         * KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5)
+         * @description Desde a TASK-024 (D-038), também as seções `factor_r` e `reconciliation` (PRD §8, 08 §3),
+         *     com os mesmos filtros: no Fator R, o responsável é o do Fiscal; na Conciliação, o do
+         *     Contábil (decisões do usuário). Cada número traz o drill-down da lista que o explica, com
+         *     os filtros na query.
+         */
         get: operations["getDashboard"];
         put?: never;
         post?: never;
@@ -1172,7 +1178,9 @@ export interface paths {
          * Carteira do Fator R no PA, ordenada por semáforo e economia [REQ-011, AC-007]
          * @description Empresas ativas, sujeitas ao Fator R (`companies.factor_r`) e no Simples Nacional no PA
          *     (D-017). Ordem: vermelho, amarelo, verde e dados insuficientes; dentro de cada grupo, a
-         *     maior economia primeiro e depois o nome.
+         *     maior economia primeiro e depois o nome. Os filtros de empresa do Dashboard valem pelo
+         *     snapshot da competência do PA, com o responsável do Fiscal; com eles, os KPIs são os das
+         *     empresas filtradas (TASK-024, D-038).
          */
         get: operations["getFactorRPortfolio"];
         put?: never;
@@ -1497,8 +1505,11 @@ export interface paths {
         /**
          * Documentos da Conciliação, mais recentes primeiro, com a contagem por status
          * @description A competência casa com a informada no envio ou com o período do extrato lido na triagem
-         *     que encosta no mês. A contagem por status é a de todos os documentos, independente dos
-         *     filtros.
+         *     que encosta no mês. Desde a TASK-024 (D-038), `status` aceita mais de um, separados por
+         *     vírgula (os grupos do Dashboard), e os filtros de empresa do Dashboard valem pelo snapshot
+         *     de `filter_competence` (a competência do Dashboard), com o responsável do Contábil. A
+         *     contagem por status é a dos documentos das empresas filtradas (a empresa e os filtros do
+         *     Dashboard), independente dos demais filtros.
          */
         get: operations["listReconciliationDocuments"];
         put?: never;
@@ -1515,6 +1526,30 @@ export interface paths {
          *     (503 `STORAGE_UNAVAILABLE`). É também o endpoint do workflow de ingestão do n8n.
          */
         post: operations["uploadReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A Conciliação por empresa na competência [TASK-024, D-038]
+         * @description As empresas que usam a Conciliação na competência (extrato que a cobre ou documento dela)
+         *     ou têm item na fila dela, com o estado da conclusão (em andamento, pronta, concluída), o
+         *     que falta, o Contábil, a obrigação Conciliação e se a Conciliação bloqueia o fechamento do
+         *     Contábil. É a lista do drill-down das prontas para concluir e do Contábil bloqueado do
+         *     Dashboard. Uma consulta só para a competência inteira.
+         */
+        get: operations["getReconciliationOverview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2344,7 +2379,9 @@ export interface paths {
          *     livres marcadas (`divergencia`: divergência, caso de borda ou conciliação desfeita) e sem
          *     marca (`extrato_sem`), comprovantes completos sem extrato (`comprovante_sem`) e, da TASK-020,
          *     linhas conciliadas à espera da classificação (`classificacao`). Filtros opcionais por
-         *     empresa, competência (itens sem data aparecem em qualquer competência) e balde.
+         *     empresa, competência (itens sem data aparecem em qualquer competência) e balde. Os filtros
+         *     de empresa do Dashboard (agrupamento, regime e responsável do Contábil, pelo snapshot da
+         *     competência) exigem a competência (TASK-024, D-038).
          */
         get: operations["getReviewQueue"];
         put?: never;
@@ -3746,6 +3783,115 @@ export interface components {
             modules: components["schemas"]["DashboardModuleCard"][];
             credentials: components["schemas"]["DashboardCredentialCard"][];
             responsibles: components["schemas"]["DashboardResponsible"][];
+            factor_r: components["schemas"]["DashboardFactorR"];
+            reconciliation: components["schemas"]["DashboardReconciliation"];
+        };
+        /** @description Valor em reais clicável (D-038) */
+        MoneyMetric: {
+            value: components["schemas"]["DecimalString"];
+            drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @description Empresa que exige ação, na ordem da carteira (semáforo e economia) */
+        DashboardFactorRPriority: {
+            company: components["schemas"]["FactorRPortfolioCompany"];
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            fator_r: components["schemas"]["DecimalString"] | null;
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            acao: components["schemas"]["FactorRAction"];
+            acao_texto: string;
+            drilldown: components["schemas"]["Drilldown"];
+        };
+        /**
+         * @description A carteira do Fator R no PA igual à competência do Dashboard (PRD §8; TASK-024, D-038),
+         *     calculada pelo motor da carteira (`GET /factor-r/portfolio`), com o responsável do Fiscal
+         *     no filtro. O drill-down leva à carteira com o filtro de semáforo (`semaforo`, separado por
+         *     vírgula; `insuficiente` são os dados insuficientes). Sem tabela do Simples vigente no PA,
+         *     `unavailable` traz o motivo e os números ficam zerados.
+         */
+        DashboardFactorR: {
+            pa: components["schemas"]["Competence"];
+            unavailable: string | null;
+            /** @description A meta operacional da política (vazia se indisponível) */
+            meta_operacional: string;
+            monitored: components["schemas"]["Metric"];
+            red: components["schemas"]["Metric"];
+            yellow: components["schemas"]["Metric"];
+            green: components["schemas"]["Metric"];
+            insufficient: components["schemas"]["Metric"];
+            /** @description A economia positiva em 12 meses de quem está no vermelho ou no amarelo */
+            savings_at_play: components["schemas"]["MoneyMetric"];
+            /** @description Empresas com ação sugerida diferente de manter (vermelho, amarelo e dados insuficientes) */
+            action_required: components["schemas"]["Metric"];
+            /** @description As cinco primeiras que exigem ação, na ordem da carteira */
+            priorities: components["schemas"]["DashboardFactorRPriority"][];
+        };
+        /**
+         * @description A Conciliação (PRD §8, 08 §3; TASK-024, D-038), com o responsável do Contábil no filtro.
+         *     Os documentos contam todas as competências (decisão do usuário): processando (pendente e
+         *     triado), em revisão de triagem ou extração e parados por período fechado. A fila e as
+         *     empresas são as da competência: as prontas para concluir (o extrato todo resolvido, ainda
+         *     não concluídas) e as com o Contábil bloqueado (aberto, a empresa usa a Conciliação e a
+         *     obrigação Conciliação aplicável não está final; decisão do usuário).
+         */
+        DashboardReconciliation: {
+            processing: components["schemas"]["Metric"];
+            extraction_review: components["schemas"]["Metric"];
+            closed_period: components["schemas"]["Metric"];
+            queue: components["schemas"]["Metric"];
+            divergent: components["schemas"]["Metric"];
+            without_receipt: components["schemas"]["Metric"];
+            without_statement: components["schemas"]["Metric"];
+            ready: components["schemas"]["Metric"];
+            blocks_accounting: components["schemas"]["Metric"];
+        };
+        /** @description A Conciliação de uma empresa na competência (TASK-024, D-038) */
+        ReconciliationOverviewCompany: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            };
+            /**
+             * @description A regra da conclusão (D-036)
+             * @enum {string}
+             */
+            state: "em_andamento" | "pronta" | "concluida";
+            /** @description Extratos importados que cobrem a competência */
+            statements: number;
+            blocking: {
+                missing_statement: boolean;
+                divergent: number;
+                without_receipt: number;
+                review: number;
+                classification: number;
+            };
+            /** @description Comprovantes sem extrato (só avisam) */
+            without_statement: number;
+            /** @description Extrato que cobre a competência ou documento dela (a guarda do fechamento do Contábil, D-037) */
+            uses_reconciliation: boolean;
+            /** @enum {string|null} */
+            accounting_state: "OPEN" | "CLOSED" | null;
+            obligation: {
+                instance_id: components["schemas"]["Uuid"];
+                status_code: string;
+                status_label: string;
+                is_final: boolean;
+                applicable: boolean;
+            } | null;
+            /** @description O Contábil está aberto e não fecha pela Conciliação (a obrigação aplicável não está final) */
+            blocks_accounting: boolean;
+        };
+        ReconciliationOverview: {
+            competence: components["schemas"]["Competence"];
+            /** @description Totais antes dos filtros de estado e de bloqueio */
+            counts: {
+                total: number;
+                em_andamento: number;
+                pronta: number;
+                concluida: number;
+                blocks_accounting: number;
+            };
+            items: components["schemas"]["ReconciliationOverviewCompany"][];
         };
         AttentionItem: {
             company: {
@@ -5522,6 +5668,10 @@ export interface components {
         FactorRPA: components["schemas"]["Competence"];
         IdPath: components["schemas"]["Uuid"];
         DashboardRegimeGroup: components["schemas"]["RegimeGroup"];
+        /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+        CompanyFilterRegimeGroup: components["schemas"]["RegimeGroup"];
+        /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+        CompanyFilterTaxRegime: components["schemas"]["TaxRegime"];
         DashboardTaxRegime: components["schemas"]["TaxRegime"];
         /** @description Responsável do módulo da obrigação (snapshot da competência) */
         DashboardResponsible: components["schemas"]["Uuid"];
@@ -7621,6 +7771,12 @@ export interface operations {
             query?: {
                 /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
                 pa?: components["parameters"]["FactorRPA"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Fiscal da empresa (snapshot da competência do PA) */
+                responsible_id?: components["schemas"]["Uuid"];
             };
             header?: never;
             path?: never;
@@ -8149,8 +8305,17 @@ export interface operations {
     listReconciliationDocuments: {
         parameters: {
             query?: {
-                status?: components["schemas"]["ReconciliationDocumentStatus"];
+                /** @description Um ou mais status, separados por vírgula */
+                status?: string;
                 company_id?: components["schemas"]["Uuid"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot de filter_competence) */
+                responsible_id?: components["schemas"]["Uuid"];
+                /** @description Competência do snapshot dos filtros de empresa (obrigatória com eles) */
+                filter_competence?: components["schemas"]["Competence"];
                 kind?: components["schemas"]["ReconciliationDocumentKind"];
                 /** @description Banco lido na triagem (sem diferenciar maiúsculas) */
                 bank?: string;
@@ -8232,6 +8397,38 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
+        };
+    };
+    getReconciliationOverview: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+                state?: "em_andamento" | "pronta" | "concluida";
+                /** @description true: só as que bloqueiam o Contábil */
+                blocked?: boolean;
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot da competência) */
+                responsible_id?: components["schemas"]["Uuid"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A Conciliação por empresa */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOverview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
         };
     };
     getReconciliationDocument: {
@@ -9404,6 +9601,12 @@ export interface operations {
                 company_id?: components["schemas"]["Uuid"];
                 competence?: components["schemas"]["Competence"];
                 bucket?: components["schemas"]["ReviewBucket"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot da competência) */
+                responsible_id?: components["schemas"]["Uuid"];
                 limit?: number;
                 offset?: number;
             };

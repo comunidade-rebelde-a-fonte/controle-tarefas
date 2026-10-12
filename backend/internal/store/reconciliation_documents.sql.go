@@ -14,18 +14,20 @@ import (
 
 const countReconciliationDocuments = `-- name: CountReconciliationDocuments :one
 SELECT count(*) FROM reconciliation_documents d
-WHERE ($1::text IS NULL OR d.status = $1::text)
+WHERE ($1::text[] IS NULL OR d.status = ANY($1::text[]))
   AND ($2::uuid IS NULL OR d.company_id = $2::uuid)
-  AND ($3::text IS NULL OR d.kind = $3::text)
-  AND ($4::text IS NULL OR lower(d.bank) = lower($4::text))
-  AND ($5::date IS NULL OR d.competence = $5::date
-       OR (d.period_start < ($5::date + interval '1 month')
-           AND COALESCE(d.period_end, d.period_start) >= $5::date))
+  AND ($3::uuid[] IS NULL OR d.company_id = ANY($3::uuid[]))
+  AND ($4::text IS NULL OR d.kind = $4::text)
+  AND ($5::text IS NULL OR lower(d.bank) = lower($5::text))
+  AND ($6::date IS NULL OR d.competence = $6::date
+       OR (d.period_start < ($6::date + interval '1 month')
+           AND COALESCE(d.period_end, d.period_start) >= $6::date))
 `
 
 type CountReconciliationDocumentsParams struct {
-	Status     *string
+	Statuses   []string
 	CompanyID  *string
+	CompanyIds []string
 	Kind       *string
 	Bank       *string
 	Competence *time.Time
@@ -33,8 +35,9 @@ type CountReconciliationDocumentsParams struct {
 
 func (q *Queries) CountReconciliationDocuments(ctx context.Context, arg CountReconciliationDocumentsParams) (int64, error) {
 	row := q.db.QueryRow(ctx, countReconciliationDocuments,
-		arg.Status,
+		arg.Statuses,
 		arg.CompanyID,
+		arg.CompanyIds,
 		arg.Kind,
 		arg.Bank,
 		arg.Competence,
@@ -45,16 +48,26 @@ func (q *Queries) CountReconciliationDocuments(ctx context.Context, arg CountRec
 }
 
 const countReconciliationDocumentsByStatus = `-- name: CountReconciliationDocumentsByStatus :many
-SELECT status, count(*) AS total FROM reconciliation_documents GROUP BY status ORDER BY status
+SELECT d.status, count(*) AS total FROM reconciliation_documents d
+WHERE ($1::uuid IS NULL OR d.company_id = $1::uuid)
+  AND ($2::uuid[] IS NULL OR d.company_id = ANY($2::uuid[]))
+GROUP BY d.status ORDER BY d.status
 `
+
+type CountReconciliationDocumentsByStatusParams struct {
+	CompanyID  *string
+	CompanyIds []string
+}
 
 type CountReconciliationDocumentsByStatusRow struct {
 	Status string
 	Total  int64
 }
 
-func (q *Queries) CountReconciliationDocumentsByStatus(ctx context.Context) ([]CountReconciliationDocumentsByStatusRow, error) {
-	rows, err := q.db.Query(ctx, countReconciliationDocumentsByStatus)
+// A contagem por status com os filtros de empresa da lista: a empresa escolhida e as dos filtros do
+// Dashboard (TASK-024, D-038). Os demais filtros não entram: é a contagem dos botões de status.
+func (q *Queries) CountReconciliationDocumentsByStatus(ctx context.Context, arg CountReconciliationDocumentsByStatusParams) ([]CountReconciliationDocumentsByStatusRow, error) {
+	rows, err := q.db.Query(ctx, countReconciliationDocumentsByStatus, arg.CompanyID, arg.CompanyIds)
 	if err != nil {
 		return nil, err
 	}
@@ -222,20 +235,22 @@ SELECT d.id, d.company_id, d.competence, d.storage_backend, d.bucket, d.object_k
        j.last_error_code AS job_last_error_code
 FROM reconciliation_documents d
 LEFT JOIN jobs j ON j.id = d.job_id
-WHERE ($1::text IS NULL OR d.status = $1::text)
+WHERE ($1::text[] IS NULL OR d.status = ANY($1::text[]))
   AND ($2::uuid IS NULL OR d.company_id = $2::uuid)
-  AND ($3::text IS NULL OR d.kind = $3::text)
-  AND ($4::text IS NULL OR lower(d.bank) = lower($4::text))
-  AND ($5::date IS NULL OR d.competence = $5::date
-       OR (d.period_start < ($5::date + interval '1 month')
-           AND COALESCE(d.period_end, d.period_start) >= $5::date))
+  AND ($3::uuid[] IS NULL OR d.company_id = ANY($3::uuid[]))
+  AND ($4::text IS NULL OR d.kind = $4::text)
+  AND ($5::text IS NULL OR lower(d.bank) = lower($5::text))
+  AND ($6::date IS NULL OR d.competence = $6::date
+       OR (d.period_start < ($6::date + interval '1 month')
+           AND COALESCE(d.period_end, d.period_start) >= $6::date))
 ORDER BY d.created_at DESC, d.id DESC
-LIMIT $7 OFFSET $6
+LIMIT $8 OFFSET $7
 `
 
 type ListReconciliationDocumentsParams struct {
-	Status     *string
+	Statuses   []string
 	CompanyID  *string
+	CompanyIds []string
 	Kind       *string
 	Bank       *string
 	Competence *time.Time
@@ -276,11 +291,13 @@ type ListReconciliationDocumentsRow struct {
 }
 
 // Mais recentes primeiro. A competência casa com a informada no envio ou com o período do
-// extrato (lido na triagem) que encosta no mês.
+// extrato (lido na triagem) que encosta no mês. statuses aceita mais de um status (os grupos do
+// Dashboard) e company_ids são as empresas dos filtros do Dashboard (nulo: todas; D-038).
 func (q *Queries) ListReconciliationDocuments(ctx context.Context, arg ListReconciliationDocumentsParams) ([]ListReconciliationDocumentsRow, error) {
 	rows, err := q.db.Query(ctx, listReconciliationDocuments,
-		arg.Status,
+		arg.Statuses,
 		arg.CompanyID,
+		arg.CompanyIds,
 		arg.Kind,
 		arg.Bank,
 		arg.Competence,

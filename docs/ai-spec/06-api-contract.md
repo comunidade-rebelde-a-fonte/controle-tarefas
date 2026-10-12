@@ -223,6 +223,8 @@ Podem ser chamadas de serviço transacionais no monólito; não exigem message b
 
 Expandir resposta atual com seções `factor_r` e `reconciliation`, sem quebrar campos existentes.
 
+> **Como foi implementado (TASK-024; D-038).** `factor_r` é a carteira no PA igual à competência, com os números por semáforo, a economia em jogo, as que exigem ação e as cinco prioridades. `reconciliation` traz os documentos de todas as competências (processando, em revisão, parados por período fechado), a fila da competência e as empresas prontas para concluir e com o Contábil bloqueado. Os filtros do Dashboard valem nas duas: o responsável é o do Fiscal no Fator R e o do Contábil na Conciliação. Cada número traz o drill-down com os filtros. As listas aceitam os mesmos filtros: `GET /factor-r/portfolio` (e o semáforo na tela), `GET /reconciliation/review-queue`, `GET /reconciliation/documents` (vários status e `filter_competence`) e a nova `GET /reconciliation/companies`.
+
 ### `GET /documents`
 
 Agregador de documentos de múltiplos backends. Retorna `module`, `storage_backend`, `status`, company, period, timestamps e link de detalhe. Não precisa unificar tabela física.

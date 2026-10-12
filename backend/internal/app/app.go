@@ -45,6 +45,7 @@ import (
 	"controle/internal/reconciliation/entries"
 	"controle/internal/reconciliation/ledger"
 	"controle/internal/reconciliation/metrics"
+	"controle/internal/reconciliation/overview"
 	"controle/internal/reconciliation/proposals"
 	"controle/internal/reconciliation/reconcile"
 	"controle/internal/reconciliation/review"
@@ -180,6 +181,9 @@ func New(d Deps) *App {
 		// Conciliação do Contábil vai para OK pelo serviço de obrigações; reaberta, volta a Pendente.
 		// O relógio é o do Controle: o histórico da obrigação fica na mesma linha do tempo.
 		completion.NewHandler(completion.NewService(d.Pool, d.Clock)).Routes(api)
+		// A Conciliação por empresa na competência (TASK-024): a lista que explica as prontas para
+		// concluir e o Contábil bloqueado da seção Conciliação do Dashboard.
+		overview.NewHandler(overview.NewService(d.Pool)).Routes(api)
 		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
 		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)

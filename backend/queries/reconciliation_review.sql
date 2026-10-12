@@ -50,12 +50,14 @@ LEFT JOIN companies c ON c.id = i.company_id
 WHERE (sqlc.narg('company_id')::uuid IS NULL OR i.company_id = sqlc.narg('company_id')::uuid)
   AND (sqlc.narg('competence')::date IS NULL OR i.competence = sqlc.narg('competence')::date OR i.competence IS NULL)
   AND (sqlc.narg('bucket')::text IS NULL OR i.bucket = sqlc.narg('bucket')::text)
+  AND (sqlc.narg('company_ids')::uuid[] IS NULL OR i.company_id = ANY(sqlc.narg('company_ids')::uuid[]))
 ORDER BY CASE i.bucket WHEN 'revisao' THEN 1 WHEN 'divergencia' THEN 2 WHEN 'extrato_sem' THEN 3 WHEN 'comprovante_sem' THEN 4 ELSE 5 END,
          i.item_date NULLS FIRST, i.created_at, i.id
 LIMIT sqlc.arg('row_limit') OFFSET sqlc.arg('row_offset');
 
 -- name: CountReviewQueue :many
--- As contagens por balde, com os mesmos filtros de empresa e competência.
+-- As contagens por balde, com os mesmos filtros de empresa e competência. company_ids são as
+-- empresas dos filtros do Dashboard (nulo: todas; TASK-024, D-038).
 WITH items AS (
     SELECT 'revisao'::text AS bucket, d.company_id, COALESCE(d.competence, date_trunc('month', d.period_start)::date) AS competence
     FROM reconciliation_documents d
@@ -84,6 +86,7 @@ SELECT i.bucket, count(*) AS total
 FROM items i
 WHERE (sqlc.narg('company_id')::uuid IS NULL OR i.company_id = sqlc.narg('company_id')::uuid)
   AND (sqlc.narg('competence')::date IS NULL OR i.competence = sqlc.narg('competence')::date OR i.competence IS NULL)
+  AND (sqlc.narg('company_ids')::uuid[] IS NULL OR i.company_id = ANY(sqlc.narg('company_ids')::uuid[]))
 GROUP BY i.bucket;
 
 -- name: GetReviewLine :one

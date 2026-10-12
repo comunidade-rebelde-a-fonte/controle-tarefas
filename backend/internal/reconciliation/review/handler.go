@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	co "controle/internal/company"
 	"controle/internal/platform/competence"
 	"controle/internal/platform/httpx"
 	"controle/internal/reconciliation/entries"
@@ -66,7 +67,15 @@ func (h *Handler) queue(w http.ResponseWriter, r *http.Request) {
 		}
 		in.Bucket = &v
 	}
-	var err error
+	f, err := co.ParseFilter(r.URL.Query())
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	if f.Active() && in.Competence == nil {
+		fields["competence"] = "Os filtros de agrupamento, regime e responsável valem com a competência."
+	}
+	in.Filter = f
 	if in.Limit, err = intParam(r, "limit", 100, 1, 500); err != nil {
 		httpx.WriteError(w, r, err)
 		return

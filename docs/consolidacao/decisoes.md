@@ -4,6 +4,36 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-038 — Dashboard consolidado: seções Fator R e Conciliação (TASK-024; 12/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede:** o Dashboard mantém os blocos do Controle e ganha as seções Fator R e Conciliação, todo número com drill-down (PRD §8, 08 §3). O `GET /dashboard` ganha `factor_r` e `reconciliation` sem quebrar os campos (06 §6).
+- **Decisões do usuário (as quatro recomendadas):**
+  - **filtro de responsável:** no Fator R, vale o responsável do Fiscal, porque o Fator R decide o anexo da apuração do Simples, item da grade Fiscal. Na Conciliação, vale o do Contábil, porque a obrigação Conciliação é do Contábil. Agrupamento e regime valem nas duas;
+  - **documentos:** processando, em revisão e parados por período fechado contam todas as competências, com o rótulo "todas as competências". A fila e as empresas são as da competência;
+  - **prontas e bloqueadas:**
+    - "prontas para fechamento" são as conciliações prontas para concluir: o extrato todo resolvido, ainda não concluídas;
+    - "Contábil bloqueado" são as empresas com o Contábil aberto que usam a Conciliação e têm a obrigação Conciliação aplicável não final (a guarda do fechamento, D-037);
+    - o drill-down das duas é a lista nova "Empresas" da Conciliação;
+  - **alertas do Fator R (REQ-017):** ficam na seção Fator R, com os números por semáforo e as cinco primeiras empresas que exigem ação, na ordem da carteira (vermelho, amarelo e dados insuficientes). Cada uma traz a ação sugerida e o link para a aba Fator R. O "Exige atenção" segue só com obrigações e credenciais.
+- **Dentro da autonomia:**
+  - **Fator R:**
+    - o PA é a competência do Dashboard, e os números saem da carteira (`factorr.PortfolioWith`, o motor da tela);
+    - "No Anexo V" conta o vermelho, o mesmo número do KPI "no V", e "Exigem ação" são as empresas com ação diferente de manter;
+    - sem tabela do Simples vigente no PA, a seção mostra o motivo e o resto do Dashboard segue;
+  - **Conciliação:** processando (pendente e triado), em revisão (triagem e extração), parados por período fechado, a fila da competência (o total, as divergências, os extratos sem comprovante e os comprovantes sem extrato), as prontas para concluir e o Contábil bloqueado;
+  - **números e listas batem:** cada número sai da mesma função da lista do drill-down, e o link leva os filtros. Para isso:
+    - a carteira ganhou o filtro de semáforo (`semaforo`, separado por vírgula) e os filtros de empresa;
+    - a fila ganhou os filtros de empresa, que exigem a competência;
+    - os documentos aceitam mais de um status, e os grupos "Processando" e "Em revisão" viraram botões. Os filtros de empresa valem pelo snapshot de `filter_competence`;
+    - a lista nova `GET /reconciliation/companies` virou a tela "Empresas" no submenu da Conciliação, com uma consulta só para a competência inteira;
+  - **filtros de empresa:** `company.Filter`, pelo snapshot da competência, como os números das obrigações. Os documentos, de todas as competências, usam o snapshot da competência do Dashboard. As telas mostram os filtros que vieram do Dashboard e um botão para limpá-los;
+  - **contagem por status dos documentos:** passou a respeitar a empresa escolhida e os filtros do Dashboard; antes, contava todos os documentos;
+  - a aba Conciliação da ficha abre na competência da URL (o link da lista "Empresas").
+- **AC-033 (navegação):** o menu tem 13 das 14 áreas do REQ-050. "Documentos" chega com a TASK-026, e a ordem e o agrupamento finais do menu ficam para a TASK-029 (Design System). O E2E abre cada área do menu a partir do Dashboard.
+- **TEST-024:**
+  - nos testes de integração (`internal/dashboard/sections_test.go`), a seção Fator R bate com a carteira e a Conciliação, com as listas do drill-down e com SQL direto, sem e com os filtros (o responsável de cada módulo, o agrupamento). O bloqueio da lista bate com a guarda do fechamento do Contábil;
+  - no E2E, com um responsável próprio, os números são exatos e cada clique leva à lista com o mesmo total; as empresas do Fator R do teste são inativadas no fim, para a carteira da demonstração não mudar.
+
 ### D-037 — O fechamento do Contábil é a trava da Conciliação (TASK-023; 11/10/2026; três decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Conflito com a F-009, decidido pelo usuário.** A F-009 manda recusar o fechamento do Contábil com obrigação aplicável não final; o Controle fecha sem conferir obrigação nenhuma. Decisão: **só a Conciliação, e só se usada.**

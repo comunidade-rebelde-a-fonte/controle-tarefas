@@ -73,6 +73,29 @@ function mock() {
 }
 
 describe("ReviewQueuePage", () => {
+  it("TEST-024: com a competência, leva os filtros do Dashboard à API; sem ela, os filtros saem", async () => {
+    const R = "00000000-0000-4000-8000-00000000a001";
+    const fetchFn = mockFetchRoutes(({ method, url }) => {
+      if (method === "GET" && url.pathname === "/api/v1/reconciliation/review-queue") return jsonResponse(queue);
+      if (method === "GET" && url.pathname === "/api/v1/companies") return jsonResponse({ items: [], total: 0 });
+      if (method === "GET" && url.pathname === "/api/v1/users") return jsonResponse({ items: [] });
+      return undefined;
+    });
+    const { router } = renderWithProviders(<ReviewQueuePage />, {
+      route: `/reconciliation?competence=2026-08&bucket=divergencia&responsible_id=${R}`,
+    });
+    await screen.findByRole("table", { name: "Itens da fila" });
+    expect(screen.getByRole("group", { name: "Filtros do Dashboard" })).toHaveTextContent("Responsável do Contábil");
+    const queueUrl = fetchFn.mock.calls.map(([u]) => urlOf(u)).find((u) => u.includes("/review-queue"));
+    expect(queueUrl).toContain(`responsible_id=${R}`);
+    expect(queueUrl).toContain("competence=2026-08");
+    await userEvent.clear(screen.getByLabelText("Competência"));
+    await waitFor(() => {
+      expect(router.state.location.search).not.toContain("responsible_id");
+    });
+    expect(screen.queryByRole("group", { name: "Filtros do Dashboard" })).toBeNull();
+  });
+
   it("08 §7: os baldes com a contagem e os itens com o motivo em texto", async () => {
     mock();
     renderWithProviders(<ReviewQueuePage />, { route: "/reconciliation" });

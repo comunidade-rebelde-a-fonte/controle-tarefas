@@ -208,6 +208,14 @@ Simulador e agentes consultor/priorizador (TASK-013, D-024), em `backend/interna
 - "corrigir" só com simulação gravada em `factor_r_simulations` (guarda no decide);
 - prompts versionados em `backend/internal/ai/prompts/`: mudar o texto exige versão nova (o teste fixa o hash).
 
+## Dashboard
+
+Seções Fator R e Conciliação (TASK-024, D-038):
+- `GET /dashboard` ganhou `factor_r` e `reconciliation` (`backend/internal/dashboard/sections.go`). Cada número sai da mesma função da lista do drill-down: a carteira (`factorr.PortfolioWith`), os documentos, a fila (`review.CountsFor`) e a Conciliação por empresa (`backend/internal/reconciliation/overview`, `GET /reconciliation/companies`);
+- os filtros de empresa (agrupamento, regime e responsável) ficam em `company.Filter`, pelo snapshot da competência, com o responsável do Fiscal no Fator R e o do Contábil na Conciliação. A carteira, a fila, os documentos (com `filter_competence`) e a Conciliação por empresa aceitam os mesmos filtros;
+- número novo no Dashboard leva os filtros para a lista do drill-down e entra no teste de consistência (TEST-024);
+- no frontend, `CompanyFilterChips` mostra e limpa os filtros que vieram do Dashboard.
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).

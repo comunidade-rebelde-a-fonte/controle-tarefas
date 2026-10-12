@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { FactorRPortfolio, FactorRPortfolioLine } from "@/services/factorR";
 import { jsonResponse, requestedUrls } from "@/test/fetch";
@@ -138,6 +139,35 @@ describe("FactorRPortfolioPage", () => {
     renderWithProviders(<FactorRPortfolioPage />, { route: "/factor-r?pa=2025-11" });
     expect(await screen.findByText("Nenhuma empresa na carteira deste PA")).toBeInTheDocument();
     expect(requestedUrls(fetchFn).some((u) => u.includes("pa=2025-11"))).toBe(true);
+  });
+
+  it("TEST-024: o drill-down do Dashboard filtra pelo semáforo e leva os filtros de empresa à API", async () => {
+    const R = "00000000-0000-4000-8000-00000000a001";
+    const fetchFn = mockFetchRoutes(({ method, url }) => {
+      if (method === "GET" && url.pathname === "/api/v1/competencies/latest") return jsonResponse(latest);
+      if (method === "GET" && url.pathname === "/api/v1/factor-r/portfolio") return jsonResponse(portfolio);
+      if (method === "GET" && url.pathname === "/api/v1/users") {
+        return jsonResponse({ items: [{ id: R, name: "Bruno Lima", email: null, role: "OPERATOR", active: true, created_at: "", updated_at: "" }] });
+      }
+      return undefined;
+    });
+    renderWithProviders(<FactorRPortfolioPage />, { route: `/factor-r?pa=2026-09&semaforo=vermelho,amarelo&responsible_id=${R}` });
+    const table = await screen.findByRole("table", { name: "Carteira do Fator R — PA 09/2026" });
+    expect(within(table).getAllByRole("row").slice(1).map((r) => r.getAttribute("data-semaforo"))).toEqual(["vermelho", "amarelo"]);
+    expect(screen.getByText("2 empresas")).toBeInTheDocument();
+    const lights = screen.getByRole("group", { name: "Filtrar por semáforo" });
+    expect(within(lights).getByRole("button", { name: "Vermelho (1)" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(lights).getByRole("button", { name: "Amarelo (1)" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(lights).getByRole("button", { name: "Todas (3)" })).toHaveAttribute("aria-pressed", "false");
+    expect(await screen.findByText("Responsável do Fiscal: Bruno Lima")).toBeInTheDocument();
+    expect(requestedUrls(fetchFn).some((u) => u.includes("/factor-r/portfolio?") && u.includes(`responsible_id=${R}`))).toBe(true);
+
+    await userEvent.click(within(lights).getByRole("button", { name: "Dados insuficientes (1)" }));
+    expect(within(table).getAllByRole("row").slice(1).map((r) => r.getAttribute("data-semaforo"))).toEqual(["insuficiente"]);
+    await userEvent.click(within(lights).getByRole("button", { name: "Todas (3)" }));
+    expect(within(table).getAllByRole("row")).toHaveLength(4);
+    await userEvent.click(screen.getByRole("button", { name: "Limpar filtros do Dashboard" }));
+    expect(screen.queryByRole("group", { name: "Filtros do Dashboard" })).toBeNull();
   });
 
   it("explica a falta de tabela do Simples vigente", async () => {

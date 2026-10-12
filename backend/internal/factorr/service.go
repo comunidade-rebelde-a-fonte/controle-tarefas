@@ -19,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	co "controle/internal/company"
 	"controle/internal/factorr/engine"
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/clock"
@@ -518,25 +519,42 @@ func CalcWith(ctx context.Context, q *store.Queries, companyID string, pa compet
 
 // Portfolio monta a carteira do PA: empresas ativas, sujeitas ao Fator R e no Simples Nacional
 // no PA, ordenadas por semáforo e economia [REQ-011, AC-007]. Quatro consultas fixas,
-// independentemente do número de empresas.
-func (s *Service) Portfolio(ctx context.Context, pa competence.Competence) (Portfolio, error) {
+// independentemente do número de empresas. Os filtros de empresa do Dashboard valem pelo snapshot
+// da competência do PA, com o responsável do Fiscal (TASK-024, D-038; decisão do usuário).
+func (s *Service) Portfolio(ctx context.Context, pa competence.Competence, f co.Filter) (Portfolio, error) {
 	var out Portfolio
 	err := s.read(ctx, func(q *store.Queries) error {
-		var err error
-		out, err = PortfolioWith(ctx, q, pa)
+		ids, err := f.CompanyIDs(ctx, q, pa, co.ModuleFiscal)
+		if err != nil {
+			return err
+		}
+		out, err = PortfolioWith(ctx, q, pa, ids)
 		return err
 	})
 	return out, err
 }
 
 // PortfolioWith monta a carteira do PA com as consultas dadas (o priorizador, na transação da
-// corrida).
-func PortfolioWith(ctx context.Context, q *store.Queries, pa competence.Competence) (Portfolio, error) {
+// corrida), só com as empresas dadas (nil: todas).
+func PortfolioWith(ctx context.Context, q *store.Queries, pa competence.Competence, companyIDs []string) (Portfolio, error) {
 	var out Portfolio
 	err := func() error {
-		rows, err := q.ListFactorRPortfolioCompanies(ctx, pa.FirstDay())
+		all, err := q.ListFactorRPortfolioCompanies(ctx, pa.FirstDay())
 		if err != nil {
 			return err
+		}
+		rows := all
+		if companyIDs != nil {
+			keep := make(map[string]bool, len(companyIDs))
+			for _, id := range companyIDs {
+				keep[id] = true
+			}
+			rows = rows[:0:0]
+			for _, r := range all {
+				if keep[r.ID] {
+					rows = append(rows, r)
+				}
+			}
 		}
 		ids := make([]string, len(rows))
 		companies := make([]engine.PortfolioCompany, len(rows))

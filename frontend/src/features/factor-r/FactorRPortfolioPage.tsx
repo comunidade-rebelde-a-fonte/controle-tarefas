@@ -1,6 +1,7 @@
 import { Percent } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
+import { CompanyFilterChips } from "@/components/CompanyFilterChips";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { PageHeader } from "@/components/PageHeader";
@@ -8,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, Td, Th } from "@/components/ui/table";
 import { formatCnpj } from "@/lib/cnpj";
+import { companyFilterFrom } from "@/lib/companyFilter";
 import { displayCompetence } from "@/lib/competence";
 import { formatMoney, formatRate, isPositive } from "@/lib/decimal";
 import { type FactorRPortfolio, type FactorRPortfolioLine, useFactorRPortfolio } from "@/services/factorR";
-import { FactorRDisclaimer, LightBadge, PANav } from "./common";
+import { FactorRDisclaimer, FilterToggle, LightBadge, PANav } from "./common";
 import { usePA } from "./usePA";
 import { PACKAGE_LABELS } from "./labels";
 
@@ -64,7 +66,7 @@ export function PayrollIncrease({ line }: { line: Pick<FactorRPortfolioLine, "re
   );
 }
 
-function PortfolioTable({ data }: { data: FactorRPortfolio }) {
+function PortfolioTable({ data, lines }: { data: FactorRPortfolio; lines: FactorRPortfolioLine[] }) {
   return (
     <div className="overflow-x-auto rounded-lg border bg-card">
       <Table aria-label={`Carteira do Fator R — PA ${displayCompetence(data.pa)}`}>
@@ -90,8 +92,8 @@ function PortfolioTable({ data }: { data: FactorRPortfolio }) {
           </tr>
         </thead>
         <tbody>
-          {data.linhas.map((l) => (
-            <tr key={l.company.id} data-semaforo={l.semaforo ?? "insuficiente"}>
+          {lines.map((l) => (
+            <tr key={l.company.id} data-semaforo={lightOf(l)}>
               <Td className="font-medium whitespace-nowrap">{l.acao_texto}</Td>
               <Td>
                 <Link
@@ -128,15 +130,48 @@ function PortfolioTable({ data }: { data: FactorRPortfolio }) {
   );
 }
 
+// O filtro de semáforo da carteira (`semaforo` na URL, separado por vírgula): o drill-down do
+// Dashboard (TASK-024, D-038). "insuficiente" são os dados insuficientes (sem semáforo).
+const LIGHT_FILTERS = [
+  ["vermelho", "Vermelho"],
+  ["amarelo", "Amarelo"],
+  ["verde", "Verde"],
+  ["insuficiente", "Dados insuficientes"],
+] as const;
+type LightFilter = (typeof LIGHT_FILTERS)[number][0];
+
+function lightOf(l: Pick<FactorRPortfolioLine, "semaforo">): LightFilter {
+  return l.semaforo ?? "insuficiente";
+}
+
+function lightsFrom(params: URLSearchParams): LightFilter[] {
+  const raw = (params.get("semaforo") ?? "").split(",");
+  return LIGHT_FILTERS.map(([v]) => v).filter((v) => raw.includes(v));
+}
+
 /**
  * Carteira do Fator R [REQ-011, AC-007]: empresas ativas do Simples sujeitas ao Fator R, por
  * semáforo e economia, com a ação sugerida e os indicadores do escritório. Os valores vêm do
- * motor (backend); aqui só são formatados.
+ * motor (backend); aqui só são formatados. Desde a TASK-024, com o filtro de semáforo e os filtros
+ * de empresa que vêm do Dashboard (D-038).
  */
 export function FactorRPortfolioPage() {
   const { pa, error: paError } = usePA();
-  const portfolio = useFactorRPortfolio(pa);
+  const [params, setParams] = useSearchParams();
+  const lights = lightsFrom(params);
+  const portfolio = useFactorRPortfolio(pa, companyFilterFrom(params));
   const data = portfolio.data;
+  const lines = data ? data.linhas.filter((l) => lights.length === 0 || lights.includes(lightOf(l))) : [];
+  const setLight = (v: LightFilter | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (v) next.set("semaforo", v);
+        else next.delete("semaforo");
+        return next;
+      },
+      { replace: true },
+    );
   return (
     <>
       <PageHeader
@@ -145,11 +180,29 @@ export function FactorRPortfolioPage() {
         actions={<PANav />}
       />
       <div className="grid gap-4 p-4">
+        <CompanyFilterChips module="Fiscal" snapshotKey="pa" />
         <ErrorAlert error={paError ?? portfolio.error} fallback="Não foi possível carregar a carteira." />
         {portfolio.isPending && pa !== null ? <Skeleton className="h-96" /> : null}
         {data ? (
           <>
             <Kpis data={data} />
+            {data.linhas.length > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <div role="group" aria-label="Filtrar por semáforo" className="flex flex-wrap gap-2">
+                  <FilterToggle active={lights.length === 0} onClick={() => setLight(null)}>
+                    Todas ({data.linhas.length})
+                  </FilterToggle>
+                  {LIGHT_FILTERS.map(([v, label]) => (
+                    <FilterToggle key={v} active={lights.includes(v)} onClick={() => setLight(v)}>
+                      {label} ({data.linhas.filter((l) => lightOf(l) === v).length})
+                    </FilterToggle>
+                  ))}
+                </div>
+                <p role="status" className="text-sm text-muted-foreground">
+                  {lines.length === 1 ? "1 empresa" : `${lines.length} empresas`}
+                </p>
+              </div>
+            ) : null}
             {data.linhas.length === 0 ? (
               <EmptyState
                 icon={Percent}
@@ -157,7 +210,7 @@ export function FactorRPortfolioPage() {
                 description="A carteira mostra as empresas ativas, no Simples Nacional no PA e marcadas como sujeitas ao Fator R (ficha da empresa, aba Folha)."
               />
             ) : (
-              <PortfolioTable data={data} />
+              <PortfolioTable data={data} lines={lines} />
             )}
           </>
         ) : null}

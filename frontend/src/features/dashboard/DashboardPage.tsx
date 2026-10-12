@@ -11,15 +11,18 @@ import { dashboardReportUrl } from "@/services/reports";
 import { AttentionPanel } from "./AttentionPanel";
 import { CredentialCards } from "./CredentialCards";
 import { DashboardFilters } from "./DashboardFilters";
+import { FactorRSection } from "./FactorRSection";
 import { HistoryComparison } from "./HistoryComparison";
 import { ModuleCards } from "./ModuleCards";
 import { dashboardQuery } from "./query";
+import { ReconciliationSection } from "./ReconciliationSection";
 import { ResponsibleTable } from "./ResponsibleTable";
 import { StatTile } from "./StatTile";
 
 /**
  * Dashboard [PRD §24, UC-01, UC-03]: abre na competência mais recente; KPIs clicáveis que levam
- * à lista filtrada, cards por módulo, vencimentos, responsáveis e comparação histórica.
+ * à lista filtrada, cards por módulo, vencimentos, responsáveis e comparação histórica. Desde a
+ * TASK-024 (PRD §8, D-038), também as seções Fator R e Conciliação, com os mesmos filtros.
  */
 export function DashboardPage() {
   const { competence, error: competenceError } = useCompetence();
@@ -69,6 +72,14 @@ export function DashboardPage() {
           </section>
         )}
         {d ? <ModuleCards modules={d.modules} /> : null}
+        {d ? (
+          <div className="grid grid-cols-2 items-start gap-4">
+            <FactorRSection section={d.factor_r} />
+            <ReconciliationSection section={d.reconciliation} competence={d.competence} />
+          </div>
+        ) : (
+          <Skeleton className="h-64" />
+        )}
         <div className="grid grid-cols-[3fr_2fr] items-start gap-4">
           <div className="grid gap-4">
             {history.data ? <HistoryComparison history={history.data} /> : <Skeleton className="h-64" />}

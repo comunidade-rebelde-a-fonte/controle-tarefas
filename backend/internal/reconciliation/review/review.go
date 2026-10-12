@@ -18,6 +18,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	co "controle/internal/company"
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/competence"
@@ -86,8 +87,11 @@ type QueueQuery struct {
 	CompanyID  *string
 	Competence *competence.Competence
 	Bucket     *string
-	Limit      int32
-	Offset     int32
+	// Filter são os filtros de empresa do Dashboard, pelo snapshot da competência e com o
+	// responsável do Contábil (D-038); exigem a competência.
+	Filter co.Filter
+	Limit  int32
+	Offset int32
 }
 
 func dateText(t *time.Time) *string {
@@ -108,7 +112,13 @@ func nonEmpty(s string) *string {
 // Counts conta os itens da fila por balde, e o total, com os filtros de empresa e competência:
 // a mesma contagem da fila no painel de métricas e na ficha da empresa (TASK-021c).
 func Counts(ctx context.Context, q *store.Queries, companyID *string, comp *time.Time) (map[string]int, error) {
-	rows, err := q.CountReviewQueue(ctx, store.CountReviewQueueParams{CompanyID: companyID, Competence: comp})
+	return CountsFor(ctx, q, companyID, comp, nil)
+}
+
+// CountsFor é Counts só com as empresas dadas (nil: todas): as dos filtros do Dashboard, que
+// mostra a mesma contagem da fila (TASK-024, D-038).
+func CountsFor(ctx context.Context, q *store.Queries, companyID *string, comp *time.Time, companyIDs []string) (map[string]int, error) {
+	rows, err := q.CountReviewQueue(ctx, store.CountReviewQueueParams{CompanyID: companyID, Competence: comp, CompanyIds: companyIDs})
 	if err != nil {
 		return nil, err
 	}
@@ -127,16 +137,21 @@ func Counts(ctx context.Context, q *store.Queries, companyID *string, comp *time
 func (s *Service) List(ctx context.Context, in QueueQuery) (Queue, error) {
 	q := store.New(s.pool)
 	var comp *time.Time
+	var ids []string
 	if in.Competence != nil {
 		d := in.Competence.FirstDay()
 		comp = &d
+		var err error
+		if ids, err = in.Filter.CompanyIDs(ctx, q, *in.Competence, co.ModuleAccounting); err != nil {
+			return Queue{}, err
+		}
 	}
 	rows, err := q.ListReviewQueue(ctx, store.ListReviewQueueParams{CompanyID: in.CompanyID, Competence: comp, Bucket: in.Bucket,
-		RowLimit: in.Limit, RowOffset: in.Offset})
+		CompanyIds: ids, RowLimit: in.Limit, RowOffset: in.Offset})
 	if err != nil {
 		return Queue{}, err
 	}
-	counts, err := Counts(ctx, q, in.CompanyID, comp)
+	counts, err := CountsFor(ctx, q, in.CompanyID, comp, ids)
 	if err != nil {
 		return Queue{}, err
 	}

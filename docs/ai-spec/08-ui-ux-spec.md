@@ -56,6 +56,8 @@ Preservar cards/indicadores do sistema-base e adicionar seções:
 
 Todos com drill-down.
 
+> **Como foi implementado (TASK-024; D-038).** As duas seções ficam abaixo dos cards dos módulos, com os filtros do Dashboard. O Fator R mostra monitoradas, Anexo V, no limite, seguras, dados insuficientes, economia em jogo, as que exigem ação e as cinco prioridades, com a ação sugerida e o link para a aba Fator R. A Conciliação mostra processando, em revisão e parados por período fechado (de todas as competências), a fila da competência por balde, as prontas para concluir e o Contábil bloqueado. Cada número abre a lista com o mesmo total: a carteira com o filtro de semáforo, os documentos, a fila e a tela nova "Empresas" da Conciliação. As telas mostram os filtros que vieram do Dashboard e permitem limpá-los.
+
 ## 4. Empresas
 
 Listagem atual preservada. Acrescentar indicadores compactos:

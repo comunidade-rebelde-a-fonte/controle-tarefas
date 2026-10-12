@@ -21,6 +21,7 @@ import { PgdasDocumentPage } from "@/features/factor-r/inbox/PgdasDocumentPage";
 import { ObservabilityPage } from "@/features/factor-r/runs/ObservabilityPage";
 import { RunDetailPage } from "@/features/factor-r/runs/RunDetailPage";
 import { ChartPage } from "@/features/reconciliation/chart/ChartPage";
+import { CompaniesPage as ReconciliationCompaniesPage } from "@/features/reconciliation/companies/CompaniesPage";
 import { DocumentPage } from "@/features/reconciliation/documents/DocumentPage";
 import { DocumentsPage } from "@/features/reconciliation/documents/DocumentsPage";
 import { EntriesPage } from "@/features/reconciliation/entries/EntriesPage";
@@ -61,11 +62,12 @@ export const routes = [
         ],
       },
       {
-        // Área Conciliação com submenu (TASK-021a, 021b e 021c; D-032 a D-034).
+        // Área Conciliação com submenu (TASK-021a, 021b e 021c; D-032 a D-034; Empresas na TASK-024, D-038).
         path: "reconciliation",
         element: <ReconciliationLayout />,
         children: [
           { index: true, element: <ReviewQueuePage /> },
+          { path: "companies", element: <ReconciliationCompaniesPage /> },
           { path: "documents", element: <DocumentsPage /> },
           { path: "documents/:id", element: <DocumentPage /> },
           { path: "entries", element: <EntriesPage /> },

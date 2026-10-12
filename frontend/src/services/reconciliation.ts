@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, apiUpload, buildUrl, type Schemas } from "@/lib/api";
+import type { CompanyFilter } from "@/lib/companyFilter";
 import { JOB_POLL_MS, jobActive } from "./jobs";
 import { obligationKeys } from "./obligations";
 
@@ -44,9 +45,13 @@ export function documentProcessing(d: Pick<ReconciliationDocument, "status" | "j
 }
 
 export interface DocumentFilters {
-  status?: ReconciliationDocumentStatus | undefined;
+  /** Um ou mais status, separados por vírgula (os grupos do Dashboard). */
+  status?: string | undefined;
   companyId?: string | undefined;
   competence?: string | undefined;
+  /** Os filtros de empresa do Dashboard, pelo snapshot de filterCompetence (D-038). */
+  filter?: CompanyFilter | undefined;
+  filterCompetence?: string | undefined;
 }
 
 /** GET /reconciliation/documents — acompanha a lista enquanto há documento em processamento. */
@@ -55,7 +60,14 @@ export function useReconciliationDocuments(f: DocumentFilters) {
     queryKey: reconciliationKeys.documents(f),
     queryFn: ({ signal }) =>
       api.get("/reconciliation/documents", {
-        query: { status: f.status, company_id: f.companyId, competence: f.competence, limit: 200 },
+        query: {
+          status: f.status,
+          company_id: f.companyId,
+          competence: f.competence,
+          ...f.filter,
+          filter_competence: f.filterCompetence,
+          limit: 200,
+        },
         signal,
       }),
     placeholderData: keepPreviousData,
@@ -142,6 +154,8 @@ export interface QueueFilters {
   companyId?: string | undefined;
   competence?: string | undefined;
   bucket?: ReviewBucket | undefined;
+  /** Os filtros de empresa do Dashboard, pelo snapshot da competência (D-038). */
+  filter?: CompanyFilter | undefined;
 }
 
 /** GET /reconciliation/review-queue — os itens e as contagens por balde. */
@@ -150,7 +164,7 @@ export function useReviewQueue(f: QueueFilters) {
     queryKey: reconciliationKeys.queue(f),
     queryFn: ({ signal }) =>
       api.get("/reconciliation/review-queue", {
-        query: { company_id: f.companyId, competence: f.competence, bucket: f.bucket, limit: 300 },
+        query: { company_id: f.companyId, competence: f.competence, bucket: f.bucket, ...f.filter, limit: 300 },
         signal,
       }),
     placeholderData: keepPreviousData,
@@ -587,5 +601,31 @@ export function useReconciliationClosure(companyId: string, competence: string |
     queryFn: ({ signal }) =>
       api.get("/companies/{id}/reconciliation/closure", { path: { id: companyId }, query: { competence: competence ?? "" }, signal }),
     enabled: !!competence,
+  });
+}
+
+// --- TASK-024: a Conciliação por empresa na competência ---
+
+export type ReconciliationOverview = Schemas["ReconciliationOverview"];
+export type ReconciliationOverviewCompany = Schemas["ReconciliationOverviewCompany"];
+export type ReconciliationOverviewState = ReconciliationOverviewCompany["state"];
+
+export interface OverviewFilters {
+  state?: ReconciliationOverviewState | undefined;
+  blocked?: boolean | undefined;
+  filter?: CompanyFilter | undefined;
+}
+
+/** GET /reconciliation/companies — a lista das prontas para concluir e do Contábil bloqueado. */
+export function useReconciliationOverview(competence: string | null, f: OverviewFilters = {}) {
+  return useQuery({
+    queryKey: ["reconciliation", "overview", competence ?? "", f] as const,
+    queryFn: ({ signal }) =>
+      api.get("/reconciliation/companies", {
+        query: { competence: competence ?? "", state: f.state, blocked: f.blocked ? true : undefined, ...f.filter },
+        signal,
+      }),
+    enabled: !!competence,
+    placeholderData: keepPreviousData,
   });
 }

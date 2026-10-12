@@ -554,7 +554,7 @@ func (s *Service) queue(ctx context.Context, run *tracer.Run, q *store.Queries, 
 	pa := s.paOrCurrent(paText)
 	var items []map[string]any
 	err := run.Span(tracer.SpanTool, map[string]any{"pa": pa.String()}, func(sp tracer.SpanHandle) error {
-		port, err := factorr.PortfolioWith(ctx, q, pa)
+		port, err := factorr.PortfolioWith(ctx, q, pa, nil)
 		if err != nil {
 			return err
 		}

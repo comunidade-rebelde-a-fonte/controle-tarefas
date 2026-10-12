@@ -1,6 +1,7 @@
 import { ClipboardCheck, Keyboard, X } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router";
+import { CompanyFilterChips } from "@/components/CompanyFilterChips";
 import { CompetenceInput } from "@/components/CompetenceInput";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorAlert } from "@/components/ErrorAlert";
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, Td, Th } from "@/components/ui/table";
 import { FilterToggle } from "@/features/factor-r/common";
+import { companyFilterFrom } from "@/lib/companyFilter";
 import { cn } from "@/lib/utils";
 import { formatDate } from "@/lib/format";
 import { type ReviewBucket, type ReviewQueueItem, useRecentReconciliations, useReviewEntry, useReviewLine, useReviewQueue } from "@/services/reconciliation";
@@ -107,7 +109,13 @@ export function ReviewQueuePage() {
   const item = params.get("item");
   const rawKind = params.get("kind");
   const kind = isKind(rawKind) ? rawKind : null;
-  const queue = useReviewQueue({ companyId: companyId || undefined, competence: competence || undefined, bucket });
+  // Os filtros de empresa do Dashboard valem com a competência (D-038).
+  const queue = useReviewQueue({
+    companyId: companyId || undefined,
+    competence: competence || undefined,
+    bucket,
+    filter: competence ? companyFilterFrom(params) : undefined,
+  });
   const items = useMemo(() => queue.data?.items ?? [], [queue.data]);
   const counts = queue.data?.counts ?? {};
 
@@ -157,12 +165,18 @@ export function ReviewQueuePage() {
           </label>
           <label className="grid gap-1 text-xs font-medium text-muted-foreground">
             Competência
-            <CompetenceInput value={competence} onChange={(v) => update({ competence: v || null, item: null, kind: null })} />
+            <CompetenceInput
+              value={competence}
+              onChange={(v) =>
+                update({ competence: v || null, item: null, kind: null, ...(v ? {} : { regime_group: null, tax_regime: null, responsible_id: null }) })
+              }
+            />
           </label>
           <p className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
             <Keyboard className="size-3.5" aria-hidden /> J e K passam de item; Esc fecha.
           </p>
         </div>
+        <CompanyFilterChips module="Contábil" />
         {companyId && competence ? <RunReconciliation companyId={companyId} competence={competence} /> : null}
         <div role="group" aria-label="Filtrar por balde" className="flex flex-wrap gap-2">
           <FilterToggle active={!bucket} onClick={() => update({ bucket: null })}>

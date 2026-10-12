@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -21,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	co "controle/internal/company"
 	"controle/internal/jobs"
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/clock"
@@ -326,7 +328,8 @@ type Document struct {
 	UpdatedAt        time.Time       `json:"updated_at"`
 }
 
-// DocumentList é uma página de documentos com a contagem por status de todos os documentos.
+// DocumentList é uma página de documentos com a contagem por status dos documentos das empresas
+// filtradas (a empresa e os filtros do Dashboard; os demais filtros não entram).
 type DocumentList struct {
 	Items         []Document       `json:"items"`
 	Total         int64            `json:"total"`
@@ -372,13 +375,18 @@ func toDocument(r store.GetReconciliationDocumentRow) Document {
 
 // ListInput são os filtros da lista [06 §4].
 type ListInput struct {
+	// Status aceita mais de um, separados por vírgula (os grupos do Dashboard, D-038).
 	Status     string
 	CompanyID  string
 	Kind       string
 	Bank       string
 	Competence string
-	Limit      int32
-	Offset     int32
+	// Filter são os filtros de empresa do Dashboard, pelo snapshot de FilterCompetence (a
+	// competência do Dashboard) e com o responsável do Contábil (TASK-024, D-038).
+	Filter           co.Filter
+	FilterCompetence string
+	Limit            int32
+	Offset           int32
 }
 
 // Statuses são os estados do documento (D-020).
@@ -406,9 +414,16 @@ func optional(v string) *string {
 
 // List lista os documentos, mais recentes primeiro.
 func (s *Service) List(ctx context.Context, in ListInput) (DocumentList, error) {
-	p := store.ListReconciliationDocumentsParams{Status: optional(in.Status), CompanyID: optional(in.CompanyID), Kind: optional(in.Kind), Bank: optional(in.Bank)}
-	if p.Status != nil && !oneOf(*p.Status, Statuses) {
-		return DocumentList{}, validate.Field("status", "Status inválido.")
+	p := store.ListReconciliationDocumentsParams{CompanyID: optional(in.CompanyID), Kind: optional(in.Kind), Bank: optional(in.Bank)}
+	if v := optional(in.Status); v != nil {
+		for _, st := range strings.Split(*v, ",") {
+			if st = strings.TrimSpace(st); !oneOf(st, Statuses) {
+				return DocumentList{}, validate.Field("status", "Status inválido.")
+			}
+			if !slices.Contains(p.Statuses, st) {
+				p.Statuses = append(p.Statuses, st)
+			}
+		}
 	}
 	if p.CompanyID != nil && !httpx.IsUUID(*p.CompanyID) {
 		return DocumentList{}, validate.Field("company_id", "Empresa inválida.")
@@ -436,17 +451,29 @@ func (s *Service) List(ctx context.Context, in ListInput) (DocumentList, error) 
 	}
 	p.RowOffset = in.Offset
 	q := store.New(s.pool)
+	if in.Filter.Active() {
+		c, err := competence.Parse(strings.TrimSpace(in.FilterCompetence))
+		if err != nil {
+			return DocumentList{}, validate.Field("filter_competence",
+				"Os filtros de agrupamento, regime e responsável valem com a competência do Dashboard (AAAA-MM).")
+		}
+		if p.CompanyIds, err = in.Filter.CompanyIDs(ctx, q, c, co.ModuleAccounting); err != nil {
+			return DocumentList{}, err
+		}
+	}
 	rows, err := q.ListReconciliationDocuments(ctx, p)
 	if err != nil {
 		return DocumentList{}, err
 	}
 	total, err := q.CountReconciliationDocuments(ctx, store.CountReconciliationDocumentsParams{
-		Status: p.Status, CompanyID: p.CompanyID, Kind: p.Kind, Bank: p.Bank, Competence: p.Competence,
+		Statuses: p.Statuses, CompanyID: p.CompanyID, CompanyIds: p.CompanyIds, Kind: p.Kind, Bank: p.Bank, Competence: p.Competence,
 	})
 	if err != nil {
 		return DocumentList{}, err
 	}
-	counts, err := q.CountReconciliationDocumentsByStatus(ctx)
+	counts, err := q.CountReconciliationDocumentsByStatus(ctx, store.CountReconciliationDocumentsByStatusParams{
+		CompanyID: p.CompanyID, CompanyIds: p.CompanyIds,
+	})
 	if err != nil {
 		return DocumentList{}, err
 	}

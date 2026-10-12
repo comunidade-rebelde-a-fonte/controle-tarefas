@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	co "controle/internal/company"
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/httpx"
 	"controle/internal/platform/pdftext"
@@ -154,9 +155,14 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	q := r.URL.Query()
+	f, err := co.ParseFilter(q)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
 	out, err := h.svc.List(r.Context(), ListInput{
 		Status: q.Get("status"), CompanyID: q.Get("company_id"), Kind: q.Get("kind"), Bank: q.Get("bank"),
-		Competence: q.Get("competence"), Limit: limit, Offset: offset,
+		Competence: q.Get("competence"), Filter: f, FilterCompetence: q.Get("filter_competence"), Limit: limit, Offset: offset,
 	})
 	if err != nil {
 		httpx.WriteError(w, r, err)

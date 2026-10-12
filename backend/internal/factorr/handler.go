@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
+	co "controle/internal/company"
 	"controle/internal/platform/competence"
 	"controle/internal/platform/httpx"
 	"controle/internal/platform/validate"
@@ -60,7 +61,12 @@ func (h *Handler) portfolio(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	out, err := h.svc.Portfolio(r.Context(), pa)
+	f, err := co.ParseFilter(r.URL.Query())
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	out, err := h.svc.Portfolio(r.Context(), pa, f)
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return

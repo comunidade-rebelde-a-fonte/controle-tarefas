@@ -1,4 +1,4 @@
-import { BookMarked, BookOpen, ChartColumn, ClipboardList, FolderOpen, ListTree, type LucideIcon, ReceiptText, Wand2 } from "lucide-react";
+import { BookMarked, BookOpen, Building2, ChartColumn, ClipboardList, FolderOpen, ListTree, type LucideIcon, ReceiptText, Wand2 } from "lucide-react";
 import { NavLink, Outlet, useSearchParams } from "react-router";
 import { cn } from "@/lib/utils";
 
@@ -9,9 +9,10 @@ interface Section {
   end?: boolean;
 }
 
-/** Seções da área Conciliação (TASK-021a, 021b e 021c). */
+/** Seções da área Conciliação (TASK-021a, 021b e 021c; Empresas na TASK-024). */
 const SECTIONS: readonly Section[] = [
   { to: "/reconciliation", label: "Fila de revisão", icon: ClipboardList, end: true },
+  { to: "/reconciliation/companies", label: "Empresas", icon: Building2 },
   { to: "/reconciliation/documents", label: "Documentos", icon: FolderOpen },
   { to: "/reconciliation/entries", label: "Lançamentos", icon: ReceiptText },
   { to: "/reconciliation/ledger", label: "Razão", icon: BookOpen },

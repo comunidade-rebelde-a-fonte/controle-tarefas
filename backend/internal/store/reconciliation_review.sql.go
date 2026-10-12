@@ -55,12 +55,14 @@ SELECT i.bucket, count(*) AS total
 FROM items i
 WHERE ($1::uuid IS NULL OR i.company_id = $1::uuid)
   AND ($2::date IS NULL OR i.competence = $2::date OR i.competence IS NULL)
+  AND ($3::uuid[] IS NULL OR i.company_id = ANY($3::uuid[]))
 GROUP BY i.bucket
 `
 
 type CountReviewQueueParams struct {
 	CompanyID  *string
 	Competence *time.Time
+	CompanyIds []string
 }
 
 type CountReviewQueueRow struct {
@@ -68,9 +70,10 @@ type CountReviewQueueRow struct {
 	Total  int64
 }
 
-// As contagens por balde, com os mesmos filtros de empresa e competência.
+// As contagens por balde, com os mesmos filtros de empresa e competência. company_ids são as
+// empresas dos filtros do Dashboard (nulo: todas; TASK-024, D-038).
 func (q *Queries) CountReviewQueue(ctx context.Context, arg CountReviewQueueParams) ([]CountReviewQueueRow, error) {
-	rows, err := q.db.Query(ctx, countReviewQueue, arg.CompanyID, arg.Competence)
+	rows, err := q.db.Query(ctx, countReviewQueue, arg.CompanyID, arg.Competence, arg.CompanyIds)
 	if err != nil {
 		return nil, err
 	}
@@ -595,15 +598,17 @@ LEFT JOIN companies c ON c.id = i.company_id
 WHERE ($1::uuid IS NULL OR i.company_id = $1::uuid)
   AND ($2::date IS NULL OR i.competence = $2::date OR i.competence IS NULL)
   AND ($3::text IS NULL OR i.bucket = $3::text)
+  AND ($4::uuid[] IS NULL OR i.company_id = ANY($4::uuid[]))
 ORDER BY CASE i.bucket WHEN 'revisao' THEN 1 WHEN 'divergencia' THEN 2 WHEN 'extrato_sem' THEN 3 WHEN 'comprovante_sem' THEN 4 ELSE 5 END,
          i.item_date NULLS FIRST, i.created_at, i.id
-LIMIT $5 OFFSET $4
+LIMIT $6 OFFSET $5
 `
 
 type ListReviewQueueParams struct {
 	CompanyID  *string
 	Competence *time.Time
 	Bucket     *string
+	CompanyIds []string
 	RowOffset  int32
 	RowLimit   int32
 }
@@ -635,6 +640,7 @@ func (q *Queries) ListReviewQueue(ctx context.Context, arg ListReviewQueueParams
 		arg.CompanyID,
 		arg.Competence,
 		arg.Bucket,
+		arg.CompanyIds,
 		arg.RowOffset,
 		arg.RowLimit,
 	)

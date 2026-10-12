@@ -242,6 +242,8 @@ Usar o serviço existente de obrigação; não escrever status direto no banco.
 **Aceite:** AC-012, AC-033.  
 **Validação:** TEST-024 — KPIs e drill-down batem com consultas fonte.
 
+> **Como foi implementado (D-038).** Seções `factor_r` e `reconciliation` no `GET /dashboard` (`backend/internal/dashboard/sections.go`), com os filtros de empresa em `company.Filter` (responsável do Fiscal no Fator R e do Contábil na Conciliação) e a lista nova da Conciliação por empresa (`backend/internal/reconciliation/overview`), decisões do usuário. TEST-024 nos testes de integração (`internal/dashboard/sections_test.go`: números × carteira, documentos, fila e empresas × SQL direto, com e sem filtros) e no E2E (`e2e/specs/dashboard-consolidated.spec.ts`, com a navegação do AC-033).
+
 ### TASK-025 — Ficha da empresa como hub
 
 **Requisitos:** REQ-002, REQ-036.  

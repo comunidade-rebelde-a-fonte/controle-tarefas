@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { CompetenceInput } from "@/components/CompetenceInput";
 import { ErrorAlert } from "@/components/ErrorAlert";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +31,9 @@ function readText(attempts: number): string {
  */
 export function ReconciliationTab({ company }: { company: Company }) {
   const latest = useLatestCompetence();
-  const [chosen, setChosen] = useState("");
+  // A competência pode vir na URL (o link da Conciliação por empresa, TASK-024).
+  const [params] = useSearchParams();
+  const [chosen, setChosen] = useState(params.get("competence") ?? "");
   const competence = isCompetenceKey(chosen) ? chosen : (latest.data?.current ?? "");
   const summary = useCompanyReconciliationSummary(company.id, competence || null);
   const s = summary.data;

@@ -1,0 +1,93 @@
+-- A Conciliação por empresa na competência (TASK-024, D-038): a lista que explica os números da
+-- seção Conciliação do Dashboard (prontas para concluir e Contábil bloqueado).
+
+-- name: ListReconciliationOverview :many
+-- As empresas que usam a Conciliação na competência (extrato que a cobre ou documento dela: a
+-- guarda do fechamento do Contábil, D-037) ou têm item na fila dela. Por empresa: os itens da fila
+-- por balde (a mesma conta de CountReviewQueue, com o documento sem competência em toda
+-- competência), os extratos, a conclusão em vigor, o Contábil e a obrigação Conciliação. O estado
+-- sai disso no serviço, com a regra da conclusão (completion.Load). company_ids são as empresas
+-- dos filtros do Dashboard (nulo: todas). Sem Contábil ou sem obrigação, texto vazio.
+WITH items AS (
+    SELECT 'revisao'::text AS bucket, d.company_id, COALESCE(d.competence, date_trunc('month', d.period_start)::date) AS competence
+    FROM reconciliation_documents d
+    WHERE d.status IN ('revisao_triagem', 'revisao_extracao', 'pendencia_periodo_fechado')
+    UNION ALL
+    SELECT CASE WHEN e.status = 'parcial' THEN 'revisao' ELSE 'comprovante_sem' END, e.company_id, date_trunc('month', e.entry_date)::date
+    FROM client_entries e
+    WHERE e.status IN ('parcial', 'extraido', 'manual')
+      AND NOT EXISTS (
+          SELECT 1 FROM reconciliation_items i JOIN reconciliations r ON r.id = i.reconciliation_id
+          WHERE i.client_entry_id = e.id AND i.released_at IS NULL AND r.undone_at IS NULL)
+    UNION ALL
+    SELECT CASE WHEN EXISTS (
+               SELECT 1 FROM jsonb_array_elements(t.flags) x
+               WHERE jsonb_typeof(x) = 'object' AND x->>'tipo' IN ('divergencia', 'borda', 'desfeita'))
+           THEN 'divergencia' ELSE 'extrato_sem' END, t.company_id, t.competence
+    FROM statement_transactions t
+    WHERE NOT EXISTS (SELECT 1 FROM reconciliations r WHERE r.statement_transaction_id = t.id AND r.undone_at IS NULL)
+    UNION ALL
+    SELECT 'classificacao', t.company_id, t.competence
+    FROM statement_transactions t
+    WHERE (t.classification_origin IS NULL OR t.classification_pending)
+      AND EXISTS (SELECT 1 FROM reconciliations r WHERE r.statement_transaction_id = t.id AND r.undone_at IS NULL)
+),
+queue AS (
+    SELECT i.company_id,
+           count(*) FILTER (WHERE i.bucket = 'revisao')         AS review,
+           count(*) FILTER (WHERE i.bucket = 'divergencia')     AS divergent,
+           count(*) FILTER (WHERE i.bucket = 'extrato_sem')     AS without_receipt,
+           count(*) FILTER (WHERE i.bucket = 'comprovante_sem') AS without_statement,
+           count(*) FILTER (WHERE i.bucket = 'classificacao')   AS classification
+    FROM items i
+    WHERE i.company_id IS NOT NULL AND (i.competence = sqlc.arg('competence')::date OR i.competence IS NULL)
+    GROUP BY i.company_id
+),
+statements AS (
+    SELECT s.company_id, count(*) AS total
+    FROM statement_imports s
+    WHERE s.period_start < (sqlc.arg('competence')::date + interval '1 month') AND s.period_end >= sqlc.arg('competence')::date
+    GROUP BY s.company_id
+),
+documents AS (
+    SELECT DISTINCT d.company_id
+    FROM reconciliation_documents d
+    WHERE d.company_id IS NOT NULL
+      AND (d.competence = sqlc.arg('competence')::date
+           OR (d.period_start < (sqlc.arg('competence')::date + interval '1 month')
+               AND COALESCE(d.period_end, d.period_start) >= sqlc.arg('competence')::date))
+),
+listed AS (
+    SELECT company_id FROM queue UNION SELECT company_id FROM statements UNION SELECT company_id FROM documents
+)
+SELECT co.id, co.internal_code, co.legal_name,
+       COALESCE(st.total, 0)::int AS statements,
+       COALESCE(q.review, 0)::int AS review, COALESCE(q.divergent, 0)::int AS divergent,
+       COALESCE(q.without_receipt, 0)::int AS without_receipt, COALESCE(q.without_statement, 0)::int AS without_statement,
+       COALESCE(q.classification, 0)::int AS classification,
+       (st.company_id IS NOT NULL OR dc.company_id IS NOT NULL)::boolean AS uses_reconciliation,
+       EXISTS (SELECT 1 FROM reconciliation_completions rc
+               WHERE rc.company_id = co.id AND rc.competence = sqlc.arg('competence')::date AND rc.reopened_at IS NULL)::boolean AS completed,
+       COALESCE(ap.state, '')::text AS accounting_state,
+       (ob.id IS NOT NULL)::boolean AS has_obligation, COALESCE(ob.id::text, '')::text AS obligation_id,
+       COALESCE(ob.status_code, '')::text AS obligation_status_code, COALESCE(ob.label, '')::text AS obligation_status_label,
+       COALESCE(ob.is_final, false)::boolean AS obligation_is_final, COALESCE(ob.applicable, false)::boolean AS obligation_applicable
+FROM listed l
+JOIN companies co ON co.id = l.company_id
+LEFT JOIN statements st ON st.company_id = co.id
+LEFT JOIN documents dc ON dc.company_id = co.id
+LEFT JOIN queue q ON q.company_id = co.id
+LEFT JOIN LATERAL (
+    SELECT p.state FROM company_module_periods p JOIN competencies k ON k.id = p.competence_id
+    WHERE p.company_id = co.id AND k.first_day = sqlc.arg('competence')::date AND p.module_code = 'ACCOUNTING'
+) ap ON true
+LEFT JOIN LATERAL (
+    SELECT i.id, i.status_code, d.label, d.is_final, i.applicable
+    FROM obligation_instances i
+    JOIN obligation_types t ON t.id = i.obligation_type_id
+    JOIN competencies k ON k.id = i.competence_id
+    JOIN status_definitions d ON d.status_set_id = t.status_set_id AND d.code = i.status_code
+    WHERE i.company_id = co.id AND k.first_day = sqlc.arg('competence')::date AND t.code = 'ACCOUNTING_RECONCILIATION'
+) ob ON true
+WHERE (sqlc.narg('company_ids')::uuid[] IS NULL OR co.id = ANY(sqlc.narg('company_ids')::uuid[]))
+ORDER BY co.legal_name, co.id;

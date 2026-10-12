@@ -1,5 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type Schemas } from "@/lib/api";
+import type { CompanyFilter } from "@/lib/companyFilter";
 
 export type FactorRPortfolio = Schemas["FactorRPortfolio"];
 export type FactorRPortfolioLine = Schemas["FactorRPortfolioLine"];
@@ -15,7 +16,7 @@ export type FactorRMovementOrigin = Schemas["FactorRMovementOrigin"];
 
 export const factorRKeys = {
   all: ["factor-r"] as const,
-  portfolio: (pa: string) => ["factor-r", "portfolio", pa] as const,
+  portfolio: (pa: string, filter: CompanyFilter = {}) => ["factor-r", "portfolio", pa, filter] as const,
   company: (id: string) => ["factor-r", "company", id] as const,
   calc: (id: string, pa: string) => ["factor-r", "company", id, "calc", pa] as const,
   movements: (id: string, from: string, to: string) => ["factor-r", "company", id, "movements", from, to] as const,
@@ -23,10 +24,10 @@ export const factorRKeys = {
 };
 
 /** GET /factor-r/portfolio — carteira do PA. */
-export function useFactorRPortfolio(pa: string | null) {
+export function useFactorRPortfolio(pa: string | null, filter: CompanyFilter = {}) {
   return useQuery({
-    queryKey: factorRKeys.portfolio(pa ?? ""),
-    queryFn: ({ signal }) => api.get("/factor-r/portfolio", { query: { pa: pa ?? "" }, signal }),
+    queryKey: factorRKeys.portfolio(pa ?? "", filter),
+    queryFn: ({ signal }) => api.get("/factor-r/portfolio", { query: { pa: pa ?? "", ...filter }, signal }),
     enabled: !!pa,
     placeholderData: keepPreviousData,
   });

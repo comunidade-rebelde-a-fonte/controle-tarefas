@@ -11,6 +11,7 @@ describe("ReconciliationNav", () => {
     const nav = screen.getByRole("navigation", { name: "Seções da Conciliação" });
     expect(within(nav).getAllByRole("link").map((a) => a.textContent)).toEqual([
       "Fila de revisão",
+      "Empresas",
       "Documentos",
       "Lançamentos",
       "Razão",

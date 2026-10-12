@@ -100,3 +100,17 @@ SELECT id, name FROM users WHERE id = ANY (sqlc.arg('ids')::uuid[]);
 
 -- name: CountActiveUsers :one
 SELECT count(*) FROM users WHERE id = ANY (sqlc.arg('ids')::uuid[]) AND active;
+
+-- name: ListSnapshotCompanies :many
+-- As empresas da competência que passam nos filtros do Dashboard: agrupamento, regime e o
+-- responsável do módulo, pelo snapshot da competência [PRD §24.4-§24.5; TASK-024, D-038].
+SELECT s.company_id
+FROM company_competence_snapshots s
+JOIN competencies k ON k.id = s.competence_id
+WHERE k.first_day = sqlc.arg('competence')::date
+  AND (sqlc.narg('regime_group')::text IS NULL OR s.regime_group = sqlc.narg('regime_group')::text)
+  AND (sqlc.narg('tax_regime')::text IS NULL OR s.tax_regime = sqlc.narg('tax_regime')::text)
+  AND (sqlc.narg('responsible_id')::uuid IS NULL OR sqlc.narg('responsible_id')::uuid = CASE sqlc.arg('module')::text
+        WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
+        WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
+ORDER BY s.company_id;

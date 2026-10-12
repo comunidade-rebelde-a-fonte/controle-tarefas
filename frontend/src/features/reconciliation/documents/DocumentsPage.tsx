@@ -1,6 +1,7 @@
 import { FileUp, FolderOpen } from "lucide-react";
 import { type DragEvent, useId, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { CompanyFilterChips } from "@/components/CompanyFilterChips";
 import { CompetenceInput } from "@/components/CompetenceInput";
 import { EmptyState } from "@/components/EmptyState";
 import { ErrorAlert } from "@/components/ErrorAlert";
@@ -9,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, Td, Th } from "@/components/ui/table";
 import { FilterToggle } from "@/features/factor-r/common";
 import { isApiError } from "@/lib/api";
+import { companyFilterFrom } from "@/lib/companyFilter";
 import { displayCompetence } from "@/lib/competence";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -159,17 +161,34 @@ function UploadPanel() {
   );
 }
 
-function isStatus(v: string | null): v is ReconciliationDocumentStatus {
+function isStatus(v: string): v is ReconciliationDocumentStatus {
   return DOC_STATUS_FILTERS.some(([s]) => s === v);
 }
 
-/** Documentos da Conciliação (08 §7): status, tipo, banco, período, empresa e diagnóstico. */
+// Os grupos de status do Dashboard (TASK-024, D-038): o que está em processamento e o que está em
+// revisão de triagem ou extração.
+const DOC_STATUS_GROUPS: [string, ReconciliationDocumentStatus[]][] = [
+  ["Processando", ["pendente", "triado"]],
+  ["Em revisão", ["revisao_triagem", "revisao_extracao"]],
+];
+
+const sameSet = (a: string[], b: string[]) => a.length === b.length && a.every((v) => b.includes(v));
+
+/**
+ * Documentos da Conciliação (08 §7): status, tipo, banco, período, empresa e diagnóstico. O
+ * status aceita mais de um na URL (os grupos do Dashboard), e os filtros de empresa do Dashboard
+ * valem pelo snapshot de `filter_competence` (D-038).
+ */
 export function DocumentsPage() {
   const [params, setParams] = useSearchParams();
-  const raw = params.get("status");
-  const status = isStatus(raw) ? raw : undefined;
+  const statuses = (params.get("status") ?? "").split(",").filter(isStatus);
   const companyId = params.get("company_id") ?? "";
-  const docs = useReconciliationDocuments({ status, companyId: companyId || undefined });
+  const docs = useReconciliationDocuments({
+    status: statuses.length > 0 ? statuses.join(",") : undefined,
+    companyId: companyId || undefined,
+    filter: companyFilterFrom(params),
+    filterCompetence: params.get("filter_competence") ?? undefined,
+  });
   const data = docs.data;
   const counts = data?.count_by_status ?? {};
   const all = Object.values(counts).reduce((a, b) => a + b, 0);
@@ -196,16 +215,27 @@ export function DocumentsPage() {
             <CompanySelect value={companyId} onChange={(id) => update({ company_id: id || null })} allLabel="Todas as empresas" />
           </label>
         </div>
+        <CompanyFilterChips module="Contábil" snapshotKey="filter_competence" />
         <div role="group" aria-label="Filtrar por status" className="flex flex-wrap gap-2">
-          <FilterToggle active={!status} onClick={() => update({ status: null })}>
+          <FilterToggle active={statuses.length === 0} onClick={() => update({ status: null })}>
             Todos ({all})
           </FilterToggle>
+          {DOC_STATUS_GROUPS.map(([label, group]) => (
+            <FilterToggle key={label} active={sameSet(statuses, group)} onClick={() => update({ status: group.join(",") })}>
+              {label} ({group.reduce((n, st) => n + (counts[st] ?? 0), 0)})
+            </FilterToggle>
+          ))}
           {DOC_STATUS_FILTERS.map(([s, label]) => (
-            <FilterToggle key={s} active={status === s} onClick={() => update({ status: s })}>
+            <FilterToggle key={s} active={sameSet(statuses, [s])} onClick={() => update({ status: s })}>
               {label} ({counts[s] ?? 0})
             </FilterToggle>
           ))}
         </div>
+        {data ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {data.total === 1 ? "1 documento" : `${data.total} documentos`}
+          </p>
+        ) : null}
         <ErrorAlert error={docs.error} fallback="Não foi possível carregar os documentos." />
         {docs.isPending ? <Skeleton className="h-64" /> : null}
         {data && data.items.length === 0 ? (

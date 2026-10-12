@@ -458,6 +458,55 @@ func (q *Queries) ListCompanies(ctx context.Context, arg ListCompaniesParams) ([
 	return items, nil
 }
 
+const listSnapshotCompanies = `-- name: ListSnapshotCompanies :many
+SELECT s.company_id
+FROM company_competence_snapshots s
+JOIN competencies k ON k.id = s.competence_id
+WHERE k.first_day = $1::date
+  AND ($2::text IS NULL OR s.regime_group = $2::text)
+  AND ($3::text IS NULL OR s.tax_regime = $3::text)
+  AND ($4::uuid IS NULL OR $4::uuid = CASE $5::text
+        WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
+        WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
+ORDER BY s.company_id
+`
+
+type ListSnapshotCompaniesParams struct {
+	Competence    time.Time
+	RegimeGroup   *string
+	TaxRegime     *string
+	ResponsibleID *string
+	Module        string
+}
+
+// As empresas da competência que passam nos filtros do Dashboard: agrupamento, regime e o
+// responsável do módulo, pelo snapshot da competência [PRD §24.4-§24.5; TASK-024, D-038].
+func (q *Queries) ListSnapshotCompanies(ctx context.Context, arg ListSnapshotCompaniesParams) ([]string, error) {
+	rows, err := q.db.Query(ctx, listSnapshotCompanies,
+		arg.Competence,
+		arg.RegimeGroup,
+		arg.TaxRegime,
+		arg.ResponsibleID,
+		arg.Module,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []string{}
+	for rows.Next() {
+		var company_id string
+		if err := rows.Scan(&company_id); err != nil {
+			return nil, err
+		}
+		items = append(items, company_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateCompany = `-- name: UpdateCompany :one
 UPDATE companies SET
     internal_code = $3, legal_name = $4, trade_name = $5, cnpj = $6, city = $7, state = $8,

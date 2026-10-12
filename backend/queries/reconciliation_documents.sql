@@ -30,14 +30,16 @@ WHERE d.id = $1;
 
 -- name: ListReconciliationDocuments :many
 -- Mais recentes primeiro. A competência casa com a informada no envio ou com o período do
--- extrato (lido na triagem) que encosta no mês.
+-- extrato (lido na triagem) que encosta no mês. statuses aceita mais de um status (os grupos do
+-- Dashboard) e company_ids são as empresas dos filtros do Dashboard (nulo: todas; D-038).
 SELECT d.*,
        j.status AS job_status, j.attempts AS job_attempts, j.max_attempts AS job_max_attempts,
        j.last_error_code AS job_last_error_code
 FROM reconciliation_documents d
 LEFT JOIN jobs j ON j.id = d.job_id
-WHERE (sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text)
+WHERE (sqlc.narg('statuses')::text[] IS NULL OR d.status = ANY(sqlc.narg('statuses')::text[]))
   AND (sqlc.narg('company_id')::uuid IS NULL OR d.company_id = sqlc.narg('company_id')::uuid)
+  AND (sqlc.narg('company_ids')::uuid[] IS NULL OR d.company_id = ANY(sqlc.narg('company_ids')::uuid[]))
   AND (sqlc.narg('kind')::text IS NULL OR d.kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('bank')::text IS NULL OR lower(d.bank) = lower(sqlc.narg('bank')::text))
   AND (sqlc.narg('competence')::date IS NULL OR d.competence = sqlc.narg('competence')::date
@@ -48,8 +50,9 @@ LIMIT sqlc.arg('row_limit') OFFSET sqlc.arg('row_offset');
 
 -- name: CountReconciliationDocuments :one
 SELECT count(*) FROM reconciliation_documents d
-WHERE (sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text)
+WHERE (sqlc.narg('statuses')::text[] IS NULL OR d.status = ANY(sqlc.narg('statuses')::text[]))
   AND (sqlc.narg('company_id')::uuid IS NULL OR d.company_id = sqlc.narg('company_id')::uuid)
+  AND (sqlc.narg('company_ids')::uuid[] IS NULL OR d.company_id = ANY(sqlc.narg('company_ids')::uuid[]))
   AND (sqlc.narg('kind')::text IS NULL OR d.kind = sqlc.narg('kind')::text)
   AND (sqlc.narg('bank')::text IS NULL OR lower(d.bank) = lower(sqlc.narg('bank')::text))
   AND (sqlc.narg('competence')::date IS NULL OR d.competence = sqlc.narg('competence')::date
@@ -57,4 +60,9 @@ WHERE (sqlc.narg('status')::text IS NULL OR d.status = sqlc.narg('status')::text
            AND COALESCE(d.period_end, d.period_start) >= sqlc.narg('competence')::date));
 
 -- name: CountReconciliationDocumentsByStatus :many
-SELECT status, count(*) AS total FROM reconciliation_documents GROUP BY status ORDER BY status;
+-- A contagem por status com os filtros de empresa da lista: a empresa escolhida e as dos filtros do
+-- Dashboard (TASK-024, D-038). Os demais filtros não entram: é a contagem dos botões de status.
+SELECT d.status, count(*) AS total FROM reconciliation_documents d
+WHERE (sqlc.narg('company_id')::uuid IS NULL OR d.company_id = sqlc.narg('company_id')::uuid)
+  AND (sqlc.narg('company_ids')::uuid[] IS NULL OR d.company_id = ANY(sqlc.narg('company_ids')::uuid[]))
+GROUP BY d.status ORDER BY d.status;
