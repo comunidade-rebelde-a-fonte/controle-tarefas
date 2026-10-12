@@ -193,6 +193,8 @@ flowchart TD
 
 Não criar uma segunda tabela de fechamento com autoridade concorrente.
 
+> **Como foi implementado (TASK-023; D-037).** Por decisão do usuário, o passo "obrigações aplicáveis finais?" confere só a obrigação Conciliação, e só quando a empresa usa a Conciliação na competência (extrato que a cobre ou documento dela): fora disso, o Contábil fecha como sempre. A recusa é 422 `RECONCILIATION_NOT_FINAL`. Fechado, a Conciliação trava (423 `PERIOD_CLOSED`) e o documento tardio vira pendência; reaberto com motivo, as alterações voltam, e o documento tardio segue pendente até alguém reprocessar (decisão do usuário).
+
 ## F-010 — Troca de modelo de IA
 
 ```mermaid

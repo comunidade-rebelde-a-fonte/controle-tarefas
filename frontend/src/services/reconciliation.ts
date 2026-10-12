@@ -575,3 +575,17 @@ export function useReopenReconciliation(companyId: string) {
     api.post("/companies/{id}/reconciliation/reopen", { path: { id: companyId }, query: { competence }, body: { reason } }),
   );
 }
+
+// --- TASK-023: o fechamento do Contábil visto pela Conciliação ---
+
+export type ReconciliationClosure = Schemas["ReconciliationClosure"];
+
+/** GET /companies/{id}/reconciliation/closure — o período do Contábil e os eventos (06 §5). */
+export function useReconciliationClosure(companyId: string, competence: string | null) {
+  return useQuery({
+    queryKey: ["reconciliation", "closure", companyId, competence ?? ""] as const,
+    queryFn: ({ signal }) =>
+      api.get("/companies/{id}/reconciliation/closure", { path: { id: companyId }, query: { competence: competence ?? "" }, signal }),
+    enabled: !!competence,
+  });
+}

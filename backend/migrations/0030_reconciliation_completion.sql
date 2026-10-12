@@ -1,5 +1,5 @@
 -- +goose Up
--- Conclusão da Conciliação por empresa e competência (TASK-022, D-035; F-008). O contador conclui
+-- Conclusão da Conciliação por empresa e competência (TASK-022, D-036; F-008). O contador conclui
 -- quando o extrato está todo resolvido, e a obrigação Conciliação do Contábil vai para OK pelo
 -- serviço de obrigações; reaberta com motivo, volta para Pendente. Não é um segundo fechamento: o
 -- fechamento do Contábil continua a única autoridade (ADR-003). Cada conclusão é uma linha; a

@@ -69,6 +69,9 @@ function mock(closed = false) {
       return jsonResponse(summary({ competence, accounting_closed: closed }));
     }
     if (method === "GET" && url.pathname === `/api/v1/companies/${ID}/bank-accounts`) return jsonResponse(accounts);
+    if (method === "GET" && url.pathname === `/api/v1/companies/${ID}/reconciliation/closure`) {
+      return jsonResponse({ company_id: ID, competence: url.searchParams.get("competence") ?? "", period: null, events: [], requires_reconciliation: false });
+    }
     if (method === "POST" && url.pathname === `/api/v1/companies/${ID}/bank-accounts`) {
       const b = body as { bank: string; branch: string; account: string };
       if (b.bank === "itau") {

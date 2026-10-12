@@ -81,6 +81,8 @@ Subáreas:
 > **Como foi implementado (TASK-021c; D-034).** A ficha ganhou a aba **Conciliação** (`?tab=reconciliation`): a competência com o Contábil aberto ou fechado (a trava), o percentual automático contra a meta, a fila por balde, a classificação, os lançamentos e os extratos que cobrem a competência; rodar a conciliação e os atalhos para as telas da Conciliação já filtradas pela empresa; e as contas bancárias (CC-11), com as lidas nos extratos para cadastrar com um clique.
 >
 > **Desde a TASK-022 (D-036):** o cartão "Conclusão da conciliação" na mesma aba mostra o estado (em andamento, pronta, concluída), o que falta (com o caminho para a fila), o aviso, a obrigação Conciliação do Contábil, concluir com confirmação e reabrir com motivo.
+>
+> **Desde a TASK-023 (D-037):** o cartão "Fechamento do Contábil", ao lado, mostra o estado, quem fechou e o histórico (com o motivo das reaberturas), e fecha e reabre com os diálogos da grade do Contábil. Usando a Conciliação, avisa que o Contábil só fecha com a obrigação Conciliação concluída.
 
 ### Visão geral
 

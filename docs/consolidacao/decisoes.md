@@ -4,6 +4,31 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-037 — O fechamento do Contábil é a trava da Conciliação (TASK-023; 11/10/2026; três decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **Conflito com a F-009, decidido pelo usuário.** A F-009 manda recusar o fechamento do Contábil com obrigação aplicável não final; o Controle fecha sem conferir obrigação nenhuma. Decisão: **só a Conciliação, e só se usada.**
+  - Fechar o Contábil exige a obrigação Conciliação (`ACCOUNTING_RECONCILIATION`) em status final, ou não aplicável, apenas quando a empresa usa a Conciliação na competência: extrato importado que a cobre ou documento da Conciliação dela (a competência do envio ou o período lido).
+  - Sem Conciliação, o Contábil fecha como sempre. As outras obrigações não são conferidas.
+  - A recusa é 422 `RECONCILIATION_NOT_FINAL`, com a obrigação e o status em `details`. A F-009 manda listar as pendências; como só a Conciliação é conferida, a mensagem cita só ela.
+- **Onde:** a guarda fica no fechamento do Controle (`period.Service.Close`, `requireReconciliationFinal`) e vale para todo caminho (grade do Contábil, aba da ficha e API).
+  - Na transação do fechamento, pega a trava exclusiva da Conciliação da empresa (a mesma da conclusão, D-036). Assim, o fechamento espera a conclusão ou a reabertura em andamento, e as gravações da Conciliação (a trava compartilhada do `RequireOpen`) esperam o fechamento.
+- **A trava (AC-025)** continua em `reconciliation.RequireOpen` (TASK-007 e TASK-022). Com o Contábil fechado, toda mutação da Conciliação na competência responde 423 `PERIOD_CLOSED`, e a leitura segue.
+  - O TEST-023 confere a matriz: incluir lançamento, corrigir campo do comprovante, rodada, classificação (rodar e corrigir a conta), conciliar à mão, sem comprovante, desfazer, pedir hipótese ao resolvedor e sugestão de conta, e concluir.
+  - O documento que chega vira `pendencia_periodo_fechado`, sem job.
+- **Fechamentos independentes (AC-026):** fechar o Contábil não fecha os outros módulos da empresa, e o Fiscal segue editável.
+- **Reabertura:** pelo endpoint do Controle, sempre com motivo (sem motivo, 422 `REASON_REQUIRED`). O evento `REOPENED` guarda o motivo e, reaberto, as mutações voltam.
+- **Documentos tardios (decisão do usuário: "Seguem pendentes"):** continuam em `pendencia_periodo_fechado` depois da reabertura, como na origem, até alguém reprocessar. É o botão "Reprocessar" do documento (`POST /reconciliation/documents/{id}/retry`, que já existia e confere a trava): uma decisão explícita do responsável. Na pergunta, o botão foi chamado de "Tentar de novo".
+- **Tela (decisão do usuário: "Mostrar e agir"):** o cartão "Fechamento do Contábil" na aba Conciliação da ficha.
+  - Mostra o estado, quem fechou e quando, e o histórico (aberto, fechado e reaberto, com o motivo).
+  - Fecha e reabre com os mesmos diálogos e endpoints da grade do Contábil.
+  - Usando a Conciliação, avisa que o Contábil só fecha com a obrigação Conciliação concluída.
+- **API (06 §5):** `GET /companies/{id}/reconciliation/closure?competence=`, derivado do período do Contábil (`company_module_periods`), sem segundo fechamento: o período (nulo se não foi gerado), os eventos e `requires_reconciliation`. Os eventos `AccountingPeriodClosed` e `AccountingPeriodReopened` da spec são os eventos do período no Controle (`company_module_period_events`).
+- **Correção:** os comentários do código e da OpenAPI da TASK-022 citavam a D-035, que ficou com o hot reload; passaram a citar a D-036.
+- **E2E (TEST-023):** na competência corrente do E2E, a única em que a API gera a obrigação.
+  - Fecha pela ficha; o lançamento é recusado, a rodada responde 423 e o documento tardio vira pendência.
+  - Reabre com motivo (o histórico mostra o motivo); o lançamento é aceito, e o documento segue pendente, com "Reprocessar".
+  - Com o documento, a empresa passou a usar a Conciliação: o fechamento é recusado até a obrigação Conciliação ir para OK. Com o axe.
+
 ### D-036 — Conclusão da Conciliação e a obrigação Conciliação do Contábil (TASK-022; 11/10/2026; quatro regras de negócio decididas pelo usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que existia:** a origem não tinha conclusão. O "fechamento" (`/fechamento`) só travava a competência e reabria com justificativa, sem critério. Aqui o fechamento é o do Contábil (ADR-003, TASK-023), e a TASK-022 acrescenta a conclusão da Conciliação, a máquina de estados da F-008 (em andamento → pronta → concluída → reaberta com motivo).

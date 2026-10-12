@@ -234,6 +234,8 @@ Usar o serviço existente de obrigação; não escrever status direto no banco.
 **Aceite:** AC-025, AC-026.  
 **Validação:** TEST-023 — mutações bloqueadas/permitidas após reabertura.
 
+> **Como foi implementado (D-037).** A guarda no fechamento do Controle (`period.Service.Close`): usando a Conciliação, o Contábil só fecha com a obrigação Conciliação final (decisão do usuário). A trava continua em `reconciliation.RequireOpen`, e o documento tardio segue pendente depois da reabertura (decisão do usuário). Na ficha, o cartão "Fechamento do Contábil" fecha e reabre (decisão do usuário) sobre `GET /companies/{id}/reconciliation/closure`. TEST-023 nos testes de integração (`internal/reconciliation/completion/closure_test.go`: a guarda, a matriz de mutações, os outros módulos e a concorrência com a conclusão) e no E2E (`e2e/specs/reconciliation-closure.spec.ts`).
+
 ### TASK-024 — Dashboard consolidado
 
 **Requisitos:** REQ-017, REQ-035.  

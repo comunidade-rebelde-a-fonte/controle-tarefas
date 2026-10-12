@@ -125,6 +125,11 @@ func (s *Service) Close(ctx context.Context, id string, in CloseInput) (Period, 
 		if p.State == StateClosed {
 			return apperr.Unprocessable("PERIOD_ALREADY_CLOSED", "O módulo já está fechado nesta competência.")
 		}
+		if p.ModuleCode == ModuleAccounting {
+			if err := requireReconciliationFinal(ctx, q, p); err != nil {
+				return err
+			}
+		}
 		if err := s.completeClosingStage(ctx, q, p, in.ConfirmSetClosing, userID, now); err != nil {
 			return err
 		}
@@ -143,6 +148,59 @@ func (s *Service) Close(ctx context.Context, id string, in CloseInput) (Period, 
 		return Period{}, err
 	}
 	return s.Get(ctx, id)
+}
+
+// ModuleAccounting é o Contábil, a única autoridade do fechamento da Conciliação (ADR-003).
+const ModuleAccounting = "ACCOUNTING"
+
+// reconciliationObligation é a obrigação canônica Conciliação do Contábil (TASK-022).
+const reconciliationObligation = "ACCOUNTING_RECONCILIATION"
+
+// ReconciliationRequirement é a obrigação Conciliação que o fechamento do Contábil exige final.
+type ReconciliationRequirement struct {
+	FirstDay   time.Time
+	Obligation store.FindObligationInstanceRow
+}
+
+// RequiredReconciliation diz se o fechamento do Contábil da empresa na competência exige a
+// obrigação Conciliação final (TASK-023, D-037; decisão do usuário, a F-009 restrita à
+// Conciliação): só quando a empresa usa a Conciliação na competência (extrato importado que a
+// cobre ou documento dela) e a obrigação existe e se aplica. Sem Conciliação, o Contábil fecha
+// como sempre.
+func RequiredReconciliation(ctx context.Context, q *store.Queries, companyID, competenceID string) (ReconciliationRequirement, bool, error) {
+	g, err := q.GetReconciliationClosingGuard(ctx, store.GetReconciliationClosingGuardParams{CompanyID: companyID, CompetenceID: competenceID})
+	if err != nil || !g.UsesReconciliation {
+		return ReconciliationRequirement{}, false, err
+	}
+	o, err := q.FindObligationInstance(ctx, store.FindObligationInstanceParams{
+		CompanyID: companyID, Competence: g.FirstDay, TypeCode: reconciliationObligation,
+	})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return ReconciliationRequirement{}, false, nil
+	}
+	if err != nil || !o.Applicable {
+		return ReconciliationRequirement{}, false, err
+	}
+	return ReconciliationRequirement{FirstDay: g.FirstDay, Obligation: o}, true, nil
+}
+
+// requireReconciliationFinal é a guarda do fechamento do Contábil: exigida a obrigação Conciliação
+// (RequiredReconciliation), ela precisa estar final. Pega antes a trava da Conciliação da empresa:
+// o fechamento espera a conclusão ou a reabertura em andamento, e as gravações da Conciliação
+// (trava compartilhada em RequireOpen) esperam o fechamento.
+func requireReconciliationFinal(ctx context.Context, q *store.Queries, p store.GetPeriodForUpdateRow) error {
+	if err := q.LockReconciliationCompany(ctx, p.CompanyID); err != nil {
+		return err
+	}
+	r, required, err := RequiredReconciliation(ctx, q, p.CompanyID, p.CompetenceID)
+	if err != nil || !required || r.Obligation.IsFinal {
+		return err
+	}
+	o := r.Obligation
+	return apperr.Unprocessable("RECONCILIATION_NOT_FINAL",
+		"A Conciliação de "+comp.FromDate(r.FirstDay).Display()+" não está concluída (a obrigação Conciliação está como "+o.StatusLabel+
+			"). Conclua a conciliação antes de fechar o Contábil.").
+		WithDetails(map[string]any{"obligation_instance_id": o.ID, "status_code": o.StatusCode, "status_label": o.StatusLabel})
 }
 
 // completeClosingStage garante o estágio de fechamento do módulo no status final.

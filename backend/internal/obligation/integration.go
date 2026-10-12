@@ -14,7 +14,7 @@ import (
 )
 
 // SourceIntegration é a origem das mudanças automáticas entre módulos [PRD §6.6]: a Conciliação
-// concluída ou reaberta muda a obrigação Conciliação do Contábil (TASK-022, D-035).
+// concluída ou reaberta muda a obrigação Conciliação do Contábil (TASK-022, D-036).
 const SourceIntegration = "SYSTEM_INTEGRATION"
 
 // IntegrationChange é a mudança de status pedida por outro módulo: a instância, o status, quem

@@ -1,4 +1,4 @@
-// Package completion é a conclusão da Conciliação da empresa na competência (TASK-022, D-035; F-008).
+// Package completion é a conclusão da Conciliação da empresa na competência (TASK-022, D-036; F-008).
 //
 // A conciliação está pronta quando o extrato está todo resolvido (decisão do usuário): ao menos um
 // extrato importado cobre a competência, toda linha está conciliada (ou confirmada sem comprovante)
@@ -22,6 +22,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"controle/internal/obligation"
+	"controle/internal/period"
 	"controle/internal/platform/apperr"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/competence"
@@ -35,7 +36,7 @@ import (
 // TypeReconciliation é a obrigação canônica Conciliação do módulo Contábil (05 §9).
 const TypeReconciliation = "ACCOUNTING_RECONCILIATION"
 
-// Os status da obrigação na conclusão e na reabertura (decisão do usuário, D-035).
+// Os status da obrigação na conclusão e na reabertura (decisão do usuário, D-036).
 const (
 	StatusDone     = "OK"
 	StatusReopened = "PENDING"
@@ -60,15 +61,56 @@ const (
 
 const maxReason = 1000
 
-// Service conclui e reabre a conciliação.
+// Service conclui e reabre a conciliação e mostra o fechamento do Contábil visto por ela.
 type Service struct {
-	pool  *pgxpool.Pool
-	clock clock.Clock
+	pool    *pgxpool.Pool
+	clock   clock.Clock
+	periods *period.Service
 }
 
 // NewService cria o serviço.
 func NewService(pool *pgxpool.Pool, clk clock.Clock) *Service {
-	return &Service{pool: pool, clock: clk}
+	return &Service{pool: pool, clock: clk, periods: period.NewService(pool, clk)}
+}
+
+// Closure é o fechamento do Contábil visto pela Conciliação (06 §5; TASK-023, D-037): derivado
+// do período do módulo, sem fechamento próprio (ADR-003). RequiresReconciliation diz se fechar o
+// Contábil exige a obrigação Conciliação final (period.RequiredReconciliation).
+type Closure struct {
+	CompanyID              string         `json:"company_id"`
+	Competence             string         `json:"competence"`
+	Period                 *period.Period `json:"period"`
+	Events                 []period.Event `json:"events"`
+	RequiresReconciliation bool           `json:"requires_reconciliation"`
+}
+
+// Closure lê o fechamento do Contábil da empresa na competência (sem período gerado, nulo).
+func (s *Service) Closure(ctx context.Context, companyID string, c competence.Competence) (Closure, error) {
+	q := store.New(s.pool)
+	if err := requireCompany(ctx, q, companyID); err != nil {
+		return Closure{}, err
+	}
+	out := Closure{CompanyID: companyID, Competence: c.String(), Events: []period.Event{}}
+	row, err := q.FindModulePeriod(ctx, store.FindModulePeriodParams{CompanyID: companyID, Competence: c.FirstDay(), ModuleCode: period.ModuleAccounting})
+	if errors.Is(err, pgx.ErrNoRows) {
+		return out, nil
+	}
+	if err != nil {
+		return Closure{}, err
+	}
+	p, err := s.periods.Get(ctx, row.ID)
+	if err != nil {
+		return Closure{}, err
+	}
+	if out.Events, err = s.periods.Events(ctx, row.ID); err != nil {
+		return Closure{}, err
+	}
+	_, required, err := period.RequiredReconciliation(ctx, q, companyID, row.CompetenceID)
+	if err != nil {
+		return Closure{}, err
+	}
+	out.Period, out.RequiresReconciliation = &p, required
+	return out, nil
 }
 
 // Blocking é o que ainda impede a conclusão.

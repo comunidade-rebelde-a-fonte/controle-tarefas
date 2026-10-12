@@ -19,6 +19,20 @@ func NewHandler(svc *Service) *Handler { return &Handler{svc: svc} }
 func (h *Handler) Routes(r chi.Router) {
 	r.Post("/companies/{id}/reconciliation/complete", h.complete)
 	r.Post("/companies/{id}/reconciliation/reopen", h.reopen)
+	r.Get("/companies/{id}/reconciliation/closure", h.closure)
+}
+
+func (h *Handler) closure(w http.ResponseWriter, r *http.Request) {
+	c, ok := competenceParam(w, r)
+	if !ok {
+		return
+	}
+	out, err := h.svc.Closure(r.Context(), chi.URLParam(r, "id"), c)
+	if err != nil {
+		httpx.WriteError(w, r, err)
+		return
+	}
+	httpx.WriteJSON(w, http.StatusOK, out)
 }
 
 func competenceParam(w http.ResponseWriter, r *http.Request) (competence.Competence, bool) {

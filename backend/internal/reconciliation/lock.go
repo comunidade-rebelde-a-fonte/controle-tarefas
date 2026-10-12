@@ -37,10 +37,10 @@ func AccountingClosed(ctx context.Context, db store.DBTX, companyID string, c co
 // Motivos da trava da competência na Conciliação (o motivo do diagnóstico do documento tardio).
 const (
 	LockAccountingClosed = "periodo_fechado"       // o Contábil está fechado (AC-025)
-	LockCompleted        = "conciliacao_concluida" // a conciliação foi concluída (TASK-022, D-035)
+	LockCompleted        = "conciliacao_concluida" // a conciliação foi concluída (TASK-022, D-036)
 )
 
-// ErrCompleted é o erro de mutação em competência com a conciliação concluída (TASK-022, D-035):
+// ErrCompleted é o erro de mutação em competência com a conciliação concluída (TASK-022, D-036):
 // 423, como o Contábil fechado, até o contador reabrir a conciliação com motivo.
 func ErrCompleted(c competence.Competence) error {
 	return apperr.Locked("RECONCILIATION_COMPLETED",

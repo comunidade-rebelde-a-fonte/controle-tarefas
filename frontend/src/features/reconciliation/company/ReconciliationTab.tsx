@@ -15,6 +15,7 @@ import { useLatestCompetence } from "@/services/competencies";
 import { useCompanyReconciliationSummary } from "@/services/reconciliation";
 import { AutoRate, RunReconciliation } from "../common";
 import { BUCKETS } from "../labels";
+import { AccountingClosure } from "./AccountingClosure";
 import { BankAccounts } from "./BankAccounts";
 import { Completion } from "./Completion";
 
@@ -65,7 +66,10 @@ export function ReconciliationTab({ company }: { company: Company }) {
       {summary.isPending && competence ? <Skeleton className="h-64" /> : null}
       {s ? (
         <>
-          <Completion companyId={company.id} competence={competence} completion={s.completion} accountingClosed={s.accounting_closed} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Completion companyId={company.id} competence={competence} completion={s.completion} accountingClosed={s.accounting_closed} />
+            <AccountingClosure company={company} competence={competence} />
+          </div>
           {s.accounting_closed ? (
             <p role="status" className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
               <Lock className="mt-0.5 size-4 shrink-0" aria-hidden />O Contábil da competência está fechado: a Conciliação fica travada. Para

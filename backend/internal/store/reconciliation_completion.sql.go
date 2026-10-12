@@ -30,6 +30,32 @@ func (q *Queries) CountCompetenceStatements(ctx context.Context, arg CountCompet
 	return column_1, err
 }
 
+const findModulePeriod = `-- name: FindModulePeriod :one
+SELECT p.id, p.competence_id
+FROM company_module_periods p
+JOIN competencies c ON c.id = p.competence_id
+WHERE p.company_id = $1 AND c.first_day = $2 AND p.module_code = $3
+`
+
+type FindModulePeriodParams struct {
+	CompanyID  string
+	Competence time.Time
+	ModuleCode string
+}
+
+type FindModulePeriodRow struct {
+	ID           string
+	CompetenceID string
+}
+
+// O período do módulo da empresa na competência (o fechamento visto pela Conciliação, 06 §5).
+func (q *Queries) FindModulePeriod(ctx context.Context, arg FindModulePeriodParams) (FindModulePeriodRow, error) {
+	row := q.db.QueryRow(ctx, findModulePeriod, arg.CompanyID, arg.Competence, arg.ModuleCode)
+	var i FindModulePeriodRow
+	err := row.Scan(&i.ID, &i.CompetenceID)
+	return i, err
+}
+
 const findObligationInstance = `-- name: FindObligationInstance :one
 SELECT i.id, i.status_code, d.label AS status_label, d.is_final, i.applicable
 FROM obligation_instances i
@@ -119,6 +145,40 @@ func (q *Queries) GetLastStatusChange(ctx context.Context, obligationInstanceID 
 	row := q.db.QueryRow(ctx, getLastStatusChange, obligationInstanceID)
 	var i GetLastStatusChangeRow
 	err := row.Scan(&i.ChangeSource, &i.NewValue, &i.CreatedAt)
+	return i, err
+}
+
+const getReconciliationClosingGuard = `-- name: GetReconciliationClosingGuard :one
+SELECT c.first_day,
+       (EXISTS (SELECT 1 FROM statement_imports i
+                WHERE i.company_id = $1
+                  AND i.period_start < (c.first_day + interval '1 month') AND i.period_end >= c.first_day)
+        OR EXISTS (SELECT 1 FROM reconciliation_documents d
+                   WHERE d.company_id = $1
+                     AND (d.competence = c.first_day
+                          OR (d.period_start < (c.first_day + interval '1 month')
+                              AND COALESCE(d.period_end, d.period_start) >= c.first_day))))::boolean AS uses_reconciliation
+FROM competencies c
+WHERE c.id = $2
+`
+
+type GetReconciliationClosingGuardParams struct {
+	CompanyID    string
+	CompetenceID string
+}
+
+type GetReconciliationClosingGuardRow struct {
+	FirstDay           time.Time
+	UsesReconciliation bool
+}
+
+// A guarda do fechamento do Contábil (TASK-023, D-037; decisão do usuário): a empresa usa a
+// Conciliação na competência se tem extrato importado que a cobre ou documento dela. Usando, a
+// obrigação Conciliação precisa estar final (ou não se aplicar) para o Contábil fechar.
+func (q *Queries) GetReconciliationClosingGuard(ctx context.Context, arg GetReconciliationClosingGuardParams) (GetReconciliationClosingGuardRow, error) {
+	row := q.db.QueryRow(ctx, getReconciliationClosingGuard, arg.CompanyID, arg.CompetenceID)
+	var i GetReconciliationClosingGuardRow
+	err := row.Scan(&i.FirstDay, &i.UsesReconciliation)
 	return i, err
 }
 
@@ -243,7 +303,7 @@ const lockReconciliationCompanyShared = `-- name: LockReconciliationCompanyShare
 SELECT pg_advisory_xact_lock_shared(hashtextextended('conciliacao:' || $1::text, 0))
 `
 
-// Conclusão da Conciliação por empresa e competência (TASK-022, D-035; F-008) e o que ela precisa
+// Conclusão da Conciliação por empresa e competência (TASK-022, D-036; F-008) e o que ela precisa
 // da obrigação Conciliação do Contábil, sempre lida aqui e alterada pelo serviço de obrigações.
 // A trava da empresa em modo compartilhado, na checagem da trava da competência: as gravações da
 // Conciliação esperam a conclusão (que pega a trava exclusiva) e não se esperam entre si.

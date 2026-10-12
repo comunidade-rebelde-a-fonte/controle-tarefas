@@ -873,7 +873,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013) */
+        /**
+         * Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013)
+         * @description No Contábil, a autoridade única da trava da Conciliação (ADR-003): se a empresa usa a
+         *     Conciliação na competência (extrato importado que a cobre ou documento dela), o fechamento
+         *     exige a obrigação Conciliação em status final ou não aplicável (422
+         *     `RECONCILIATION_NOT_FINAL`; TASK-023, D-037, decisão do usuário). Sem Conciliação, o
+         *     Contábil fecha como antes. Fechado, toda mutação da Conciliação na competência responde 423
+         *     `PERIOD_CLOSED` até a reabertura com motivo.
+         */
         post: operations["closeModulePeriod"];
         delete?: never;
         options?: never;
@@ -2215,7 +2223,7 @@ export interface paths {
         put?: never;
         /**
          * Conclui a conciliação da competência e a obrigação Conciliação do Contábil [REQ-031, AC-023]
-         * @description O evento de conclusão da F-008, confirmado pelo contador (D-035). Pronta quando o extrato está
+         * @description O evento de conclusão da F-008, confirmado pelo contador (D-036). Pronta quando o extrato está
          *     todo resolvido: ao menos um extrato importado cobre a competência, toda linha conciliada (ou
          *     confirmada sem comprovante) e classificada, e nenhum documento nem comprovante parcial em
          *     revisão; comprovante sem extrato só avisa. Senão, 409 `RECONCILIATION_NOT_READY` com
@@ -2250,13 +2258,40 @@ export interface paths {
         put?: never;
         /**
          * Reabre a conciliação concluída, com motivo [REQ-032, AC-024]
-         * @description A obrigação Conciliação volta para Pendente (decisão do usuário, D-035), com a origem
+         * @description A obrigação Conciliação volta para Pendente (decisão do usuário, D-036), com a origem
          *     `SYSTEM_INTEGRATION` e o motivo no histórico, se ainda estiver no OK que a conclusão aplicou e
          *     ninguém tiver mudado o status depois; senão, fica como está (`mantida`). A competência
          *     destrava. Sem conclusão em vigor, 409 `RECONCILIATION_NOT_COMPLETED`; com o Contábil fechado,
          *     423 `PERIOD_CLOSED` (reabra o Contábil antes).
          */
         post: operations["reopenReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/closure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * O fechamento do Contábil visto pela Conciliação [06 §5, REQ-033, REQ-034]
+         * @description Derivado do período do Contábil (`company_module_periods`): a Conciliação não tem
+         *     fechamento próprio (ADR-003). O período (nulo se não foi gerado), os eventos de abertura,
+         *     fechamento e reabertura (com o motivo), e se fechar o Contábil exige a obrigação
+         *     Conciliação final (`requires_reconciliation`: a empresa usa a Conciliação na competência e a
+         *     obrigação existe e se aplica; D-037).
+         *     Para fechar e reabrir, use `POST /company-module-periods/{id}/close` e `.../reopen`.
+         */
+        get: operations["getReconciliationClosure"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4680,7 +4715,7 @@ export interface components {
             reopen_obligation_sync: "pendente" | "mantida" | "nao_aplicavel" | "sem_obrigacao" | null;
         };
         /**
-         * @description A conclusão da conciliação da empresa na competência (F-008; D-035): em andamento, pronta
+         * @description A conclusão da conciliação da empresa na competência (F-008; D-036): em andamento, pronta
          *     (o extrato todo resolvido) ou concluída, o que ainda impede, o aviso, a obrigação Conciliação
          *     do Contábil e o histórico das conclusões.
          */
@@ -4716,6 +4751,17 @@ export interface components {
             current: components["schemas"]["ReconciliationCompletionRecord"] | null;
             /** @description As conclusões, da mais recente para a mais antiga */
             history: components["schemas"]["ReconciliationCompletionRecord"][];
+        };
+        /** @description O fechamento do Contábil visto pela Conciliação (06 §5; D-037) */
+        ReconciliationClosure: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description O período do Contábil da empresa na competência (nulo se não foi gerado) */
+            period: components["schemas"]["CompanyModulePeriod"] | null;
+            /** @description Abertura, fechamento e reabertura, do mais recente para o mais antigo */
+            events: components["schemas"]["CompanyModulePeriodEvent"][];
+            /** @description Fechar o Contábil exige a obrigação Conciliação final: a empresa usa a Conciliação na competência (extrato que a cobre ou documento dela) e a obrigação existe e se aplica */
+            requires_reconciliation: boolean;
         };
         /** @description A Conciliação da empresa na competência (a aba da ficha) */
         CompanyReconciliationSummary: {
@@ -6999,7 +7045,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Período já fechado (PERIOD_ALREADY_CLOSED) ou dependência HARD do estágio de fechamento */
+            /** @description Período já fechado (PERIOD_ALREADY_CLOSED), dependência HARD do estágio de fechamento (DEPENDENCY_BLOCKED) ou, no Contábil, a Conciliação usada e não concluída (RECONCILIATION_NOT_FINAL) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -9272,6 +9318,32 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             423: components["responses"]["Locked"];
+        };
+    };
+    getReconciliationClosure: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O fechamento do Contábil na competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClosure"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
         };
     };
     listBankAccounts: {

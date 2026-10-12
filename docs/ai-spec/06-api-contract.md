@@ -213,6 +213,8 @@ Eventos internos:
 - `AccountingPeriodClosed`
 - `AccountingPeriodReopened`
 
+> **Como foi implementado (TASK-023; D-037).** `GET /companies/{id}/reconciliation/closure?competence=` devolve o período do Contábil (nulo se não foi gerado), os eventos (abertura, fechamento e reabertura com o motivo) e `requires_reconciliation`. Fechar e reabrir são os endpoints do Controle (`POST /company-module-periods/{id}/close` e `.../reopen`). Quando a empresa usa a Conciliação na competência, o fechamento do Contábil exige a obrigação Conciliação final (422 `RECONCILIATION_NOT_FINAL`). `AccountingPeriodClosed` e `AccountingPeriodReopened` são os eventos do período no Controle (`company_module_period_events`).
+
 Podem ser chamadas de serviço transacionais no monólito; não exigem message broker.
 
 ## 6. Dashboard e documentos

@@ -181,6 +181,12 @@ Conclusão da Conciliação e a obrigação Conciliação (TASK-022, D-036):
 - concluída, a competência trava: `reconciliation.RequireOpen` devolve 423 `RECONCILIATION_COMPLETED`, `LockReason` manda o documento novo para pendência e os jobs ignoram a competência travada com `IsLocked`;
 - a conclusão pega a trava exclusiva da empresa e `RequireOpen` a compartilhada: toda mutação nova da Conciliação passa por `RequireOpen` dentro da sua transação.
 
+Fechamento do Contábil e a trava da Conciliação (TASK-023, D-037):
+- o fechamento é o do Controle (`period.Service.Close`); quando a empresa usa a Conciliação na competência (extrato que a cobre ou documento dela), o Contábil só fecha com a obrigação Conciliação final ou não aplicável (422 `RECONCILIATION_NOT_FINAL`); sem Conciliação, fecha como sempre;
+- o fechamento pega a mesma trava exclusiva da conclusão: não crie outro caminho de fechamento do Contábil fora do `period.Service`;
+- reaberto o Contábil, o documento tardio segue em `pendencia_periodo_fechado` até alguém reprocessar;
+- na ficha, o cartão "Fechamento do Contábil" (`company/AccountingClosure.tsx`) usa os diálogos e os endpoints da grade, sobre `GET /companies/{id}/reconciliation/closure`.
+
 ## Fator R
 
 Fatia da TASK-006a/010/011/014a (D-016 a D-018):
