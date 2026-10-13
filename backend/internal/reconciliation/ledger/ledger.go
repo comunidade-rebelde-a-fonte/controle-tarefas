@@ -6,7 +6,7 @@
 // Cada linha leva o que o drill-down precisa (classificação → conciliação → transação →
 // documento): a conta contábil e a origem dela, a conciliação, a linha do extrato, o original do
 // extrato e os comprovantes. A exportação CSV mantém as colunas da origem e acrescenta as do
-// AC-022; o XLSX chega com a TASK-028.
+// AC-022; a planilha XLSX (TASK-028) tem as mesmas colunas e um resumo (xlsx.go).
 package ledger
 
 import (
@@ -199,11 +199,28 @@ func CSV(l Ledger) []byte {
 	return b.Bytes()
 }
 
-// FileName é o nome do arquivo exportado: razao-<cnpj>-<de>-<até>.csv.
-func (s *Service) FileName(ctx context.Context, l Ledger) (string, error) {
-	c, err := store.New(s.pool).GetCompanyIdentity(ctx, l.CompanyID)
+// Formatos da exportação: o CSV da origem e a planilha (TASK-028).
+const (
+	FormatCSV  = "csv"
+	FormatXLSX = "xlsx"
+)
+
+// Export monta o arquivo do razão no formato pedido: o nome razao-<cnpj>-<de>-<até>.<formato>, o
+// tipo e o conteúdo. account é o filtro de conta, que a planilha mostra no resumo.
+func (s *Service) Export(ctx context.Context, l Ledger, account, format string) (name, contentType string, body []byte, err error) {
+	q := store.New(s.pool)
+	c, err := q.GetCompanyIdentity(ctx, l.CompanyID)
 	if err != nil {
-		return "", err
+		return "", "", nil, err
 	}
-	return fmt.Sprintf("razao-%s-%s-%s.csv", c.Cnpj, l.From, l.To), nil
+	name = fmt.Sprintf("razao-%s-%s-%s.%s", c.Cnpj, l.From, l.To, format)
+	if format != FormatXLSX {
+		return name, "text/csv; charset=utf-8", CSV(l), nil
+	}
+	ref, err := q.GetCompanyRef(ctx, l.CompanyID)
+	if err != nil {
+		return "", "", nil, err
+	}
+	body, err = XLSX(l, Info{CompanyCode: ref.InternalCode, CompanyName: ref.LegalName, Cnpj: c.Cnpj, Account: account})
+	return name, MimeXLSX, body, err
 }

@@ -138,7 +138,7 @@ function Trail({ line, onClose }: { line: LedgerLine | null; onClose: () => void
 
 /**
  * Razão [REQ-028, AC-021, AC-022]: projeção sobre as conciliações ativas (nenhuma linha é
- * escrita à mão), com filtros, totais, a exportação CSV e o drill-down de cada linha.
+ * escrita à mão), com filtros, totais, a exportação em CSV e em XLSX e o drill-down de cada linha.
  */
 export function LedgerPage() {
   const [params, update] = useSearchUpdate();
@@ -170,9 +170,14 @@ export function LedgerPage() {
         description="Projeção sobre o que está conciliado: nenhuma linha é escrita à mão. Reclassificar ou desfazer muda o razão porque muda a origem."
         actions={
           ready ? (
-            <a href={ledgerExportUrl(filters)} download className={buttonVariants({ variant: "outline", size: "sm" })}>
-              <Download aria-hidden /> Exportar CSV
-            </a>
+            <div className="flex gap-2">
+              <a href={ledgerExportUrl(filters, "csv")} download className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Download aria-hidden /> Exportar CSV
+              </a>
+              <a href={ledgerExportUrl(filters, "xlsx")} download className={buttonVariants({ variant: "outline", size: "sm" })}>
+                <Download aria-hidden /> Exportar XLSX
+              </a>
+            </div>
           ) : null
         }
       />

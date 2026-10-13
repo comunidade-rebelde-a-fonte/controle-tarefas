@@ -279,6 +279,8 @@ Associar cenários fictícios existentes às empresas do Controle.
 **Aceite:** AC-022.  
 **Validação:** TEST-028 — arquivos comparados a fixture.
 
+> **Como foi implementado (D-042).** `format=xlsx` no `GET /companies/{id}/ledger/export` (`backend/internal/reconciliation/ledger/xlsx.go`): a aba Razão com as colunas do CSV, números e datas de verdade, e a aba Resumo (decisões do usuário). TEST-028 compara o CSV byte a byte e as células do XLSX aos fixtures de `testdata/`.
+
 ### TASK-029 — Navegação final e Design System InovaSala
 
 **Requisitos:** REQ-050, REQ-051, REQ-052.  

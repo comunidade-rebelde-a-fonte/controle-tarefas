@@ -198,7 +198,6 @@ func TestTEST020_LedgerIsAProjectionWithDrillDown(t *testing.T) {
 	if string(again.Body) != want {
 		t.Fatal("exportação não determinística")
 	}
-	e.srv.Get("/api/v1/companies/"+e.company+"/ledger/export?format=xlsx&from=2026-08&to=2026-08").MustStatus(t, http.StatusBadRequest)
 
 	// Drill-down (AC-021): a conciliação leva à classificação (com a regra), à transação com o
 	// original do extrato e aos comprovantes com os originais deles.

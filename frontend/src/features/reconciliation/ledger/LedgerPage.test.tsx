@@ -83,6 +83,10 @@ describe("LedgerPage", () => {
     expect(within(table).getByText("Total do período").closest("tr")).toHaveTextContent("R$ 1.500,00R$ 320,00");
     const exportLink = screen.getByRole("link", { name: "Exportar CSV" });
     expect(exportLink).toHaveAttribute("href", `/api/v1/companies/${COMPANY}/ledger/export?format=csv&from=2026-08&to=2026-08`);
+    expect(screen.getByRole("link", { name: "Exportar XLSX" })).toHaveAttribute(
+      "href",
+      `/api/v1/companies/${COMPANY}/ledger/export?format=xlsx&from=2026-08&to=2026-08`,
+    );
 
     await userEvent.type(screen.getByLabelText("Conta bancária ou contábil"), "4.1.01");
     await userEvent.click(screen.getByRole("button", { name: "Filtrar" }));
@@ -90,6 +94,10 @@ describe("LedgerPage", () => {
     expect(screen.getByRole("link", { name: "Exportar CSV" })).toHaveAttribute(
       "href",
       `/api/v1/companies/${COMPANY}/ledger/export?format=csv&from=2026-08&to=2026-08&account=4.1.01`,
+    );
+    expect(screen.getByRole("link", { name: "Exportar XLSX" })).toHaveAttribute(
+      "href",
+      `/api/v1/companies/${COMPANY}/ledger/export?format=xlsx&from=2026-08&to=2026-08&account=4.1.01`,
     );
   });
 

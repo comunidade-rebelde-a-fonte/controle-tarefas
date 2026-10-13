@@ -155,7 +155,7 @@ Classificação e razão (TASK-020, D-031):
 - a classificação fica na linha do extrato conciliada (uma conta por linha do razão); regra e histórico rodam ao conciliar (`classify.Competence` na rodada, `classify.Lines` no aceite) e só preenchem o que não foi confirmado. Toda conciliação nova feita à mão deve passar por `classify.Lines`;
 - plano de contas e regras em `backend/internal/reconciliation/chart` (a regra mais nova vale; a do mesmo tipo e padrão substitui a antiga; regex só pelo `pytext`); correção, sugestão e agente `classificador` (job `agent_classifier`, só sugere) em `backend/internal/reconciliation/classify`;
 - a correção e o aceite só **propõem** a regra; ela vale quando confirmada em `POST /companies/{id}/classification-rules`;
-- razão em `backend/internal/reconciliation/ledger`: consulta sobre as conciliações ativas (nunca tabela), drill-down em `GET /reconciliation/reconciliations/{id}` e CSV; o XLSX é da TASK-028;
+- razão em `backend/internal/reconciliation/ledger`: consulta sobre as conciliações ativas (nunca tabela), drill-down em `GET /reconciliation/reconciliations/{id}` e a exportação em CSV e XLSX (TASK-028, D-042: `xlsx.go`). Coluna nova do razão entra nos dois formatos e nos fixtures do TEST-028 (`ledger/testdata`);
 - `CLASSIFICADOR_AUTOMATICO` (padrão `false`): a rodada pede sugestão de conta uma só vez por linha.
 
 Fila de revisão e documentos (TASK-021a, D-032; a TASK-021 vai em três partes: 021a, 021b e 021c):

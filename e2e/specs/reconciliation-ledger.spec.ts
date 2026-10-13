@@ -9,7 +9,8 @@ import { createHorizonte, uploadAndProcess } from "../support/reconciliation";
  * REQ-028; AC-020 a AC-022): o extrato do Banco Beta do cenário Horizonte lido no worker (o do
  * Banco A Fonte é do TEST-021a: o mesmo arquivo e a mesma conta não entram duas vezes), os
  * lançamentos pela tela (formulário e CSV), a rodada, o plano e as regras, e o razão com o
- * drill-down até o original e a exportação CSV, com a varredura de acessibilidade (axe).
+ * drill-down até o original e as exportações CSV e XLSX (TASK-028), com a varredura de
+ * acessibilidade (axe).
  */
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22a", "wcag22aa"];
 const ESCOLA_CNPJ = "45.678.901/0001-23";
@@ -149,6 +150,14 @@ test("TEST-021b e TEST-022: lançamentos, plano, regras, razão e a conclusão d
   expect(lines[0]).toBe("data;conta;historico;debito;credito;competencia;conta_contabil;nome_conta;contraparte;origem_classificacao;origem_conciliacao");
   expect(lines).toHaveLength(4);
   expect(lines.find((l) => /madeireira/i.test(l))).toMatch(/^2026-08-10;.*;12640\.00;0\.00;2026-08;4\.1\.01;Fornecedores;Madeireira Pinheiro Ltda;regra;auto$/);
+
+  // E a planilha XLSX (TASK-028), com o mesmo filtro: o nome do arquivo e um pacote de planilha (as
+  // células são conferidas contra o fixture no TEST-028).
+  const downloadingXlsx = page.waitForEvent("download");
+  await page.getByRole("link", { name: "Exportar XLSX" }).click();
+  const xlsx = await downloadingXlsx;
+  expect(xlsx.suggestedFilename()).toMatch(/^razao-\d{14}-2026-08-2026-08\.xlsx$/);
+  expect(readFileSync(await xlsx.path()).subarray(0, 2).toString("latin1")).toBe("PK");
 
   // Drill-down (AC-021): classificação → conciliação → transação → documento original.
   await ledger.getByRole("row").filter({ hasText: /madeireira/i }).getByRole("button", { name: /^Origem da linha de 10\/08\/2026/ }).click();

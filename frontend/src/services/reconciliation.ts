@@ -424,9 +424,9 @@ export function useLedger(f: LedgerFilters, enabled: boolean) {
   });
 }
 
-/** Link da exportação CSV do razão filtrado (AC-022). */
-export function ledgerExportUrl(f: LedgerFilters): string {
-  return buildUrl("/companies/{id}/ledger/export", { id: f.companyId }, { format: "csv", from: f.from, to: f.to, account: f.account || undefined });
+/** Link da exportação do razão filtrado, em CSV ou na planilha XLSX (AC-022; TASK-028). */
+export function ledgerExportUrl(f: LedgerFilters, format: "csv" | "xlsx" = "csv"): string {
+  return buildUrl("/companies/{id}/ledger/export", { id: f.companyId }, { format, from: f.from, to: f.to, account: f.account || undefined });
 }
 
 /** GET /reconciliation/reconciliations/{id} — o drill-down da linha do razão (AC-021). */

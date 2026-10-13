@@ -1,8 +1,10 @@
 package ledger
 
 import (
+	"bytes"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -56,11 +58,16 @@ func (h *Handler) list(w http.ResponseWriter, r *http.Request) {
 	httpx.WriteJSON(w, http.StatusOK, out)
 }
 
-// export devolve o razão filtrado em CSV (o XLSX chega com a TASK-028).
+// export devolve o razão filtrado em CSV (o padrão) ou em planilha XLSX (TASK-028).
 func (h *Handler) export(w http.ResponseWriter, r *http.Request) {
-	if f := r.URL.Query().Get("format"); f != "" && f != "csv" {
+	format := r.URL.Query().Get("format")
+	switch format {
+	case "":
+		format = FormatCSV
+	case FormatCSV, FormatXLSX:
+	default:
 		httpx.WriteError(w, r, apperr.BadRequest("VALIDATION_ERROR", "Dados inválidos. Verifique os campos destacados.").
-			WithDetails(map[string]any{"fields": map[string]any{"format": "Formato não suportado: use csv."}}))
+			WithDetails(map[string]any{"fields": map[string]any{"format": "Formato não suportado: use csv ou xlsx."}}))
 		return
 	}
 	in, err := query(r)
@@ -73,15 +80,19 @@ func (h *Handler) export(w http.ResponseWriter, r *http.Request) {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	name, err := h.svc.FileName(r.Context(), out)
+	name, contentType, body, err := h.svc.Export(r.Context(), out, in.Account, format)
 	if err != nil {
 		httpx.WriteError(w, r, err)
 		return
 	}
-	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
-	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(CSV(out))
+	// Anexo, nunca página: o navegador não adivinha outro tipo (o filtro de conta vai na planilha
+	// como texto de célula), e o razão não fica em cache, como os outros downloads da API.
+	hdr := w.Header()
+	hdr.Set("Content-Type", contentType)
+	hdr.Set("Content-Disposition", `attachment; filename="`+name+`"`)
+	hdr.Set("X-Content-Type-Options", "nosniff")
+	hdr.Set("Cache-Control", "private, no-store")
+	http.ServeContent(w, r, "", time.Time{}, bytes.NewReader(body))
 }
 
 func (h *Handler) detail(w http.ResponseWriter, r *http.Request) {

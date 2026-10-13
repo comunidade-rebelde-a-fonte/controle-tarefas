@@ -4,6 +4,35 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-042 — Exportação do razão em XLSX (TASK-028; 13/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede:** exportação genérica do razão em XLSX e CSV (REQ-029), sem leiaute de ERP (intake). Do razão filtrado, os dois arquivos preservam valores, competência, conta, contraparte e origem de forma determinística (AC-022) e são comparados a fixture (TEST-028).
+- **A origem** só exportava CSV (`exportar_csv`: cinco colunas, sem aspas). O CSV veio na TASK-020, com as colunas da origem e as do AC-022 (D-031); o XLSX é novo.
+- **Decisões do usuário (as duas recomendadas):**
+  - **layout:**
+    - a aba "Razão" tem os mesmos títulos do CSV na 1ª linha e uma linha por conciliação, pronta para filtrar ou importar;
+    - a aba "Resumo" tem a empresa, o CNPJ, o período, o filtro de conta, a quantidade de lançamentos e os totais de débito e crédito;
+    - o arquivo não leva data de geração;
+  - **tipos:**
+    - débito e crédito são números de duas casas (formato `#,##0.00`), gravados a partir do texto exato do decimal, sem float no caminho;
+    - a data é data (`dd/mm/aaaa`);
+    - competência, contas, histórico, contraparte e origens são texto.
+- **Dentro da autonomia:**
+  - **rota:** `GET /companies/{id}/ledger/export?format=csv|xlsx` (o padrão continua CSV), com o nome `razao-<cnpj>-<de>-<até>.<formato>`. O mesmo razão dá sempre os mesmos bytes nos dois formatos: a biblioteca grava as partes do pacote em ordem fixa e com datas fixas;
+  - **biblioteca:** a planilha usa a `excelize`, que o projeto já usava na exportação das grades, então não entrou dependência nova. O cabeçalho fica congelado e com autofiltro;
+  - **segurança:**
+    - texto nunca vira fórmula (um histórico que começa com "=" continua texto), como pede o `docs/seguranca.md`;
+    - o download sai com `X-Content-Type-Options: nosniff` e `Cache-Control: private, no-store`, pelo `http.ServeContent`, como os outros downloads da API. O gosec apontou que o filtro de conta da URL chega à resposta (ele vai no Resumo, como texto de célula), e os dois cabeçalhos impedem que o navegador trate o arquivo como página;
+    - o CSV não mudou e sai com os valores como estão, como na origem. Para abrir no Excel, o XLSX é o formato seguro;
+  - **tela:** o razão ganhou os botões "Exportar CSV" e "Exportar XLSX", com os filtros da tela.
+- **TEST-028** (`backend/internal/reconciliation/ledger/export_test.go`):
+  - o cenário tem duas contas bancárias, uma conciliação automática, uma desfeita, uma linha sem classificação, aspas e ponto e vírgula no texto e dois meses;
+  - o CSV é comparado byte a byte com `testdata/razao_2026-08_2026-09.csv`;
+  - o valor bruto de cada célula das duas abas do XLSX é comparado com `testdata/razao_2026-08_2026-09.xlsx.json`, junto com os tipos, os formatos, o cabeçalho congelado e o autofiltro;
+  - também confere o filtro de conta nos dois formatos, a exportação repetida (os mesmos bytes), a planilha vazia e o formato desconhecido (400);
+  - uma leitura independente com o openpyxl confirmou datas como data, valores como número e texto como texto;
+  - no E2E (`e2e/specs/reconciliation-ledger.spec.ts`), o download do XLSX ao lado do CSV.
+
 ### D-041 — Seed-demo integrado e preparação dos fixtures (TASK-027; 12/10/2026; três decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede:** os seeds partem das empresas fictícias do Controle e associam cenários fictícios de Fator R e Conciliação (REQ-048). Depois do `make seed-demo` e da preparação dos fixtures, a jornada ponta a ponta é demonstrável (REQ-049, F-012, AC-032).

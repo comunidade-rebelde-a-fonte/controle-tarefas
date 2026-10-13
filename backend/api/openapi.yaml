@@ -2949,23 +2949,29 @@ paths:
     get:
       tags: [reconciliation]
       operationId: exportLedger
-      summary: Exporta o razão filtrado em CSV [REQ-029, AC-022]
+      summary: Exporta o razão filtrado em CSV ou XLSX [REQ-029, AC-022]
       description: |
         As colunas da origem (`data;conta;historico;debito;credito`) e as do AC-022 (`competencia`,
         `conta_contabil`, `nome_conta`, `contraparte`, `origem_classificacao`, `origem_conciliacao`),
-        separadas por ponto e vírgula, na ordem do razão: determinístico para o mesmo banco. O XLSX
-        chega com a TASK-028.
+        na ordem do razão: o mesmo razão dá sempre o mesmo arquivo.
+        - `csv` (padrão): separado por ponto e vírgula, com aspas no campo que precisa delas.
+        - `xlsx` (TASK-028, D-042): a aba "Razão", com os mesmos títulos na 1ª linha, débito e crédito
+          como número de duas casas e a data como data (dd/mm/aaaa), e a aba "Resumo", com a empresa,
+          o período, o filtro de conta, a quantidade de lançamentos e os totais. Texto nunca vira
+          fórmula, e o arquivo não leva data de geração.
       parameters:
-        - { name: format, in: query, schema: { type: string, enum: [csv], default: csv } }
+        - { name: format, in: query, schema: { type: string, enum: [csv, xlsx], default: csv } }
         - { name: from, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
         - { name: to, in: query, required: true, schema: { $ref: "#/components/schemas/Competence" } }
         - { name: account, in: query, schema: { type: string } }
       responses:
         "200":
-          description: CSV do razão (razao-<cnpj>-<de>-<até>.csv)
+          description: O razão no formato pedido (razao-<cnpj>-<de>-<até>.csv ou .xlsx)
           content:
             text/csv:
               schema: { type: string }
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema: { type: string, format: binary }
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 

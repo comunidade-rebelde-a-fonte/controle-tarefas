@@ -2216,11 +2216,15 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Exporta o razão filtrado em CSV [REQ-029, AC-022]
+         * Exporta o razão filtrado em CSV ou XLSX [REQ-029, AC-022]
          * @description As colunas da origem (`data;conta;historico;debito;credito`) e as do AC-022 (`competencia`,
          *     `conta_contabil`, `nome_conta`, `contraparte`, `origem_classificacao`, `origem_conciliacao`),
-         *     separadas por ponto e vírgula, na ordem do razão: determinístico para o mesmo banco. O XLSX
-         *     chega com a TASK-028.
+         *     na ordem do razão: o mesmo razão dá sempre o mesmo arquivo.
+         *     - `csv` (padrão): separado por ponto e vírgula, com aspas no campo que precisa delas.
+         *     - `xlsx` (TASK-028, D-042): a aba "Razão", com os mesmos títulos na 1ª linha, débito e crédito
+         *       como número de duas casas e a data como data (dd/mm/aaaa), e a aba "Resumo", com a empresa,
+         *       o período, o filtro de conta, a quantidade de lançamentos e os totais. Texto nunca vira
+         *       fórmula, e o arquivo não leva data de geração.
          */
         get: operations["exportLedger"];
         put?: never;
@@ -9613,7 +9617,7 @@ export interface operations {
     exportLedger: {
         parameters: {
             query: {
-                format?: "csv";
+                format?: "csv" | "xlsx";
                 from: components["schemas"]["Competence"];
                 to: components["schemas"]["Competence"];
                 account?: string;
@@ -9626,13 +9630,14 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description CSV do razão (razao-<cnpj>-<de>-<até>.csv) */
+            /** @description O razão no formato pedido (razao-<cnpj>-<de>-<até>.csv ou .xlsx) */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
                     "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
                 };
             };
             400: components["responses"]["BadRequest"];
