@@ -7,6 +7,9 @@
 # Armazenamento local de arquivos (procurações/certificados)
 storage/
 
+# Extratos do PGDAS-D gerados pela preparação dos fixtures da demonstração (make demo-fixtures)
+/demo/
+
 # Ferramentas instaladas por `make tools`
 .bin/
 

@@ -42,10 +42,21 @@ var (
 	AllModules = allModules
 )
 
+// Cenário da Conciliação da demonstração (TASK-027, D-041): a Construtora Horizonte e a
+// competência do cenário de aula da origem (extratos, comprovantes e contas de agosto de 2026).
+const (
+	HorizonteCode       = "111"
+	HorizonteCompetence = "2026-08"
+)
+
+// AdminID é o administrador do sistema (migration 0002), autor dos dados de demonstração.
+const AdminID = adminID
+
 func open(regime string) []RegimeSpec { return []RegimeSpec{{Regime: regime, From: "2025-01-01"}} }
 
 // demoCompanies são as 20 empresas fictícias do PRD §37 (dados apenas para demonstração),
-// com módulos, overrides, tipos de folha, fator R e responsáveis variados.
+// com módulos, overrides, tipos de folha, fator R e responsáveis variados, e a Construtora
+// Horizonte (111), a empresa do cenário de aula da Conciliação (TASK-027, D-041).
 //
 // Bypass documentado: os CNPJs fictícios do PRD não têm dígitos verificadores válidos, por
 // isso o seed grava diretamente no banco (somente 14 dígitos). A API continua validando os
@@ -76,6 +87,11 @@ var demoCompanies = []CompanySpec{
 		Fiscal: "ana", Accounting: "bruno", Declarations: "diego", NotApplicable: []string{"FISCAL_IPI", "FISCAL_ICMS", "FISCAL_IRPJ", "FISCAL_CSLL"}},
 	{Code: "110", LegalName: "Empresa Fictícia Kappa Distribuidora Ltda", TradeName: "Kappa Distribuidora", Cnpj: "00000010000110", City: "Londrina", State: "PR",
 		Regimes: open("LUCRO_REAL"), Modules: allModules, PayrollType: "PAYROLL", Fiscal: "ana", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
+	// A empresa do cenário da Conciliação (agosto de 2026): o nome e o CNPJ fictício são os que os
+	// extratos e comprovantes da origem imprimem (o leitor determinístico acha a empresa pelo nome).
+	// A preparação dos fixtures carrega o cenário (make demo-fixtures).
+	{Code: HorizonteCode, LegalName: "Construtora Horizonte Ltda", TradeName: "Construtora Horizonte", Cnpj: "12345678000190", City: "Rio Claro", State: "SP",
+		Regimes: open("LUCRO_PRESUMIDO"), Modules: allModules, PayrollType: "PAYROLL", Fiscal: "ana", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
 
 	{Code: "201", LegalName: "Alvorada Comércio Simples Ltda", TradeName: "Alvorada Comércio", Cnpj: "00100001000101", City: "Curitiba", State: "PR",
 		Regimes: open("SIMPLES_NACIONAL"), Modules: allModules, PayrollType: "PRO_LABORE", FactorR: &no, Fiscal: "diego", Accounting: "bruno", Payroll: "carla", Declarations: "diego"},
@@ -113,7 +129,7 @@ const adminID = "00000000-0000-0000-0000-000000000001"
 // companiesStep grava responsáveis e empresas fictícias. Empresas já existentes (mesmo CNPJ)
 // são mantidas como estão: rodar de novo não duplica nem sobrescreve edições.
 func companiesStep() Step {
-	return Step{Name: "demo: 20 empresas fictícias", Run: func(ctx context.Context, tx pgx.Tx, _ clock.Clock) error {
+	return Step{Name: fmt.Sprintf("demo: %d empresas fictícias", len(demoCompanies)), Run: func(ctx context.Context, tx pgx.Tx, _ clock.Clock) error {
 		return InsertCompanies(ctx, tx, demoCompanies)
 	}}
 }

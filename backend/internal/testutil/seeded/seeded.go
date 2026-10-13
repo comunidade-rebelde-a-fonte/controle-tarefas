@@ -37,7 +37,7 @@ func DemoClock() *clock.Fixed {
 	return clock.NewFixed(time.Date(2026, 10, 1, 12, 0, 0, 0, time.UTC), testutil.SaoPaulo)
 }
 
-// NewCompaniesDB devolve um banco com referência + as 20 empresas fictícias, sem nenhuma
+// NewCompaniesDB devolve um banco com referência + as 21 empresas fictícias, sem nenhuma
 // competência gerada (para testes do motor de geração).
 func NewCompaniesDB(t testing.TB) *pgxpool.Pool {
 	t.Helper()
@@ -50,7 +50,7 @@ func NewCompaniesDB(t testing.TB) *pgxpool.Pool {
 	return testutil.NewDBFromTemplate(t, companiesTemplate)
 }
 
-// NewDemoDB devolve um banco com a demonstração completa: 20 empresas e as competências
+// NewDemoDB devolve um banco com a demonstração completa: 21 empresas e as competências
 // 07/2026 a 10/2026 com status, fechamentos, reabertura e histórico (relógio DemoClock).
 func NewDemoDB(t testing.TB) *pgxpool.Pool {
 	t.Helper()

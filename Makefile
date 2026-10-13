@@ -63,7 +63,7 @@ E2E_S3_ACCESS_KEY := conciliacao-e2e-app
 E2E_S3_SECRET_KEY := e2e-only-not-a-secret-app
 E2E_MINIO := MINIO_PORT=$(E2E_MINIO_PORT) MINIO_CONSOLE_PORT=$(E2E_MINIO_CONSOLE_PORT) S3_ROOT_USER=minio-e2e S3_ROOT_PASSWORD=e2e-only-not-a-secret-root 	S3_BUCKET=$(E2E_S3_BUCKET) S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) $(COMPOSE) -p controle-e2e
 
-.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo demo-fixtures gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -146,8 +146,14 @@ migrate-status: ## Mostra o estado das migrations (DB=e2e|perf para os outros ba
 seed: ## Carrega os dados de referência (status, catálogo, feriados) — idempotente
 	@$(API) seed
 
-seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração — idempotente
+seed-demo: ## Carrega as 21 empresas fictícias (as 20 do PRD e a Construtora Horizonte) e o histórico de demonstração — idempotente
 	@$(API) seed --demo
+
+# MinIO de dev visto do host (a preparação dos fixtures roda fora do compose).
+DEMO_S3_ENDPOINT ?= http://localhost:$(or $(MINIO_PORT),9000)
+
+demo-fixtures: ## Prepara os fixtures da demonstração (cenário da Conciliação na 111 e extratos do PGDAS-D em demo/pgdas): depois do seed-demo, com o make dev no ar — idempotente
+	@cd backend && DATABASE_URL='$(DB_URL)' S3_ENDPOINT='$(DEMO_S3_ENDPOINT)' go run ./cmd/api seed --fixtures
 
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	cd backend && $(BIN)/sqlc generate

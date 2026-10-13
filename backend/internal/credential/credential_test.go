@@ -8,6 +8,7 @@ import (
 
 	"controle/internal/testutil"
 	"controle/internal/testutil/seeded"
+	"controle/seed"
 )
 
 type situation struct {
@@ -81,8 +82,9 @@ func put(srv *testutil.Server, company, typ string, body map[string]any) testuti
 func TestCredentialControls_ListDefaults(t *testing.T) {
 	srv := server(t)
 	l := getList(t, srv, "")
-	if l.Total != 20 || len(l.Items) != 20 {
-		t.Fatalf("total = %d/%d, want 20 empresas com o módulo", l.Total, len(l.Items))
+	// Todas as empresas do seed têm o módulo Procurações/Certificados.
+	if l.Total != seed.DemoCompanyCount || len(l.Items) != seed.DemoCompanyCount {
+		t.Fatalf("total = %d/%d, want %d empresas com o módulo", l.Total, len(l.Items), seed.DemoCompanyCount)
 	}
 	if len(l.Thresholds) != 4 || l.Thresholds[0] != 7 || l.Thresholds[3] != 60 {
 		t.Fatalf("faixas = %v", l.Thresholds)
@@ -97,8 +99,8 @@ func TestCredentialControls_ListDefaults(t *testing.T) {
 	if first.Company.TaxRegime == "" {
 		t.Fatal("regime vigente deveria vir na linha")
 	}
-	if n := getList(t, srv, "?filter=no_date").Total; n != 20 {
-		t.Fatalf("sem data = %d, want 20", n)
+	if n := getList(t, srv, "?filter=no_date").Total; n != seed.DemoCompanyCount {
+		t.Fatalf("sem data = %d, want %d", n, seed.DemoCompanyCount)
 	}
 	if n := getList(t, srv, "?filter=expired").Total; n != 0 {
 		t.Fatalf("vencidos = %d, want 0", n)
@@ -169,9 +171,9 @@ func TestUC05_RenewalFlowAndSituation(t *testing.T) {
 	if got := codes(getList(t, srv, "?filter=expired")); len(got) != 1 || got[0] != "102" {
 		t.Fatalf("vencidos = %v", got)
 	}
-	if n := getList(t, srv, "?filter=no_date").Total; n != 20 {
+	if n := getList(t, srv, "?filter=no_date").Total; n != seed.DemoCompanyCount {
 		// Toda empresa ainda tem ao menos um item sem data.
-		t.Fatalf("sem data = %d, want 20", n)
+		t.Fatalf("sem data = %d, want %d", n, seed.DemoCompanyCount)
 	}
 }
 
@@ -198,8 +200,8 @@ func TestCredentialControls_CompanyEndpointAndConfiguredThresholds(t *testing.T)
 	if _, err := srv.Pool.Exec(context.Background(), `UPDATE companies SET active = false WHERE id = $1`, alfa); err != nil {
 		t.Fatal(err)
 	}
-	if n := getList(t, srv, "").Total; n != 19 {
-		t.Fatalf("grade com empresa inativa = %d, want 19", n)
+	if n := getList(t, srv, "").Total; n != seed.DemoCompanyCount-1 {
+		t.Fatalf("grade com empresa inativa = %d, want %d", n, seed.DemoCompanyCount-1)
 	}
 	srv.Get("/api/v1/companies/"+alfa+"/credential-controls").MustStatus(t, http.StatusOK)
 }

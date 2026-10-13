@@ -233,3 +233,5 @@ flowchart TD
    - uma empresa com cenário de conciliação completo;
    - obrigações mensais e backlog do Controle.
 5. Operador percorre Dashboard → Empresa → Fator R → Conciliação → fechamento Contábil → histórico.
+
+> **Como foi implementado (TASK-027; D-041).** O `make seed-demo` carrega as 21 empresas fictícias (as 20 do Controle e a 111 Construtora Horizonte), com as obrigações, o histórico, o backlog e a série do Fator R. Com o `make dev` no ar, o `make demo-fixtures` carrega na 111 o cenário completo da Conciliação de 08/2026 e grava em `demo/pgdas` os extratos do PGDAS-D para o inbox. A jornada passa pelo Dashboard, pela ficha da 111, pelo Fator R (carteira e inbox), pela fila da Conciliação de 08/2026 e pelo fechamento do Contábil, recusado até a conciliação concluída, e termina no histórico.

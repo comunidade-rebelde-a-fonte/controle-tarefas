@@ -3,7 +3,7 @@ import { api } from "@/lib/api";
 import { companyKeys } from "./companies";
 import { userKeys } from "./users";
 
-/** Carrega as 20 empresas fictícias (somente fora de produção). */
+/** Carrega as 21 empresas fictícias de demonstração e o histórico (somente fora de produção). */
 export function useLoadDemoData() {
   const qc = useQueryClient();
   return useMutation({

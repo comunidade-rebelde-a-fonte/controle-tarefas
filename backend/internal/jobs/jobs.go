@@ -244,6 +244,12 @@ func NewService(conn store.DBTX, clk clock.Clock) *Service {
 	return &Service{db: conn, clock: clk, onlineWindow: 3 * HeartbeatInterval}
 }
 
+// WorkerOnline indica se algum worker deu sinal recente (a preparação dos fixtures da
+// demonstração depende dele para processar os documentos, TASK-027).
+func (s *Service) WorkerOnline(ctx context.Context) (bool, error) {
+	return s.workerOnline(ctx, store.New(s.db))
+}
+
 func (s *Service) workerOnline(ctx context.Context, q *store.Queries) (bool, error) {
 	hb, err := q.LatestWorkerHeartbeat(ctx)
 	if errors.Is(err, pgx.ErrNoRows) {

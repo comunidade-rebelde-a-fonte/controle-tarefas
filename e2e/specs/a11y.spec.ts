@@ -26,7 +26,7 @@ async function ready(page: Page, heading?: string | RegExp): Promise<void> {
 const EPSILON = "Empresa Fictícia Épsilon Logística Ltda";
 
 test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ page, request }) => {
-  test.setTimeout(120_000); // ~30 varreduras completas
+  test.setTimeout(240_000); // ~45 varreduras completas (telas, configurações, seções da ficha e Fator R)
   const competence = await latestCompetence(request);
   const screens: [string, string | RegExp][] = [
     [`/dashboard?competence=${competence}`, "Dashboard"],

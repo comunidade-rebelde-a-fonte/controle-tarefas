@@ -691,7 +691,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Carrega as 20 empresas fictícias (idempotente; indisponível em produção) */
+        /** Carrega as 21 empresas fictícias de demonstração e o histórico (idempotente; indisponível em produção) */
         post: operations["loadDemoData"];
         delete?: never;
         options?: never;

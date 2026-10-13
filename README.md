@@ -48,6 +48,7 @@ Execute `make help` para a lista completa.
 | `make db-psql` | Abre o `psql` no banco de desenvolvimento |
 | `make migrate` / `make migrate-down` | Aplica ou reverte migrations |
 | `make seed` / `make seed-demo` | Carrega dados de referência / dados de demonstração |
+| `make demo-fixtures` | Prepara os fixtures da demonstração (cenário da Conciliação na 111 e extratos do PGDAS-D em `demo/pgdas`), com o `make dev` no ar |
 | `make gen` | Gera código a partir do SQL e do OpenAPI |
 | `make lint` | Lint do backend e do frontend |
 | `make test` | Testes do backend e do frontend |
@@ -106,9 +107,13 @@ O produto consolida o Controle de Tarefas com a Plataforma Fator R e a Concilia�
 ## Dados de referência e demonstração
 
 - `make seed` carrega os dados de referência (conjuntos de status, catálogo de obrigações, feriados nacionais e as tabelas dos Anexos III e V do Simples usadas pelo Fator R). É idempotente e reaplica os valores do seed; as tabelas do Simples só ganham linhas novas, nunca têm uma vigência alterada.
-- `make seed-demo` carrega também as **20 empresas fictícias** do PRD §37 e os responsáveis de exemplo. Empresas já existentes (mesmo CNPJ) não são alteradas.
+- `make seed-demo` carrega também as **21 empresas fictícias** e os responsáveis de exemplo: as 20 do PRD §37 e a **111 Construtora Horizonte**, a empresa do cenário de aula da Conciliação (agosto de 2026). Empresas já existentes (mesmo CNPJ) não são alteradas.
 - O mesmo seed grava dados do **Fator R** (24 meses de receita e folha, configuração e pacotes) para as 5 empresas sujeitas ao Fator R. No PA corrente, a carteira mostra um caso de cada: vermelho, amarelo, verde, meses faltantes, meses declarados no PGDAS-D e dados insuficientes.
 - **Bypass de CNPJ, restrito ao seed:** os CNPJs fictícios do PRD não têm dígitos verificadores válidos. Por isso o seed de demonstração grava as empresas direto no banco, sempre com 14 dígitos. Todo cadastro pela API (tela, importação) continua validando os dígitos verificadores.
+- `make demo-fixtures` prepara o resto da demonstração (TASK-027), depois do `make seed-demo` e com o `make dev` no ar (o worker lê os documentos e o MinIO guarda os originais). Rodar de novo não duplica nada.
+  - **Conciliação:** carrega na 111 o cenário completo de 08/2026, como o `carregar_horizonte.py` da origem: as contas bancárias, um plano de contas fictício, os lançamentos de contas a pagar e a receber, os 2 extratos e os 13 comprovantes (lidos sem o modelo) e a rodada da conciliação. A competência abre em andamento: as automáticas feitas e os casos difíceis na fila de revisão.
+  - **Fator R:** grava em `demo/pgdas` três extratos do PGDAS-D para o inbox, com um `LEIA-ME.txt`. Como os CNPJs do seed não têm dígito verificador válido, o extrato da empresa da carteira cai em revisão e se vincula pela ação Vincular. O de CNPJ fora do cadastro oferece o cadastro pelo extrato, e o terceiro, da mesma empresa, se vincula sozinho.
+  - **Jornada (F-012):** Dashboard → ficha da 111 → Fator R (carteira e inbox) → Conciliação (fila de 08/2026) → fechamento do Contábil (recusado até a conciliação concluída) → histórico.
 - Valores provisórios (vencimentos, "Sem folha", matriz de declarações, feriados locais) estão marcados `A VALIDAR (Qn)` e listados em `docs/pendencias.md`.
 
 ## Operação diária

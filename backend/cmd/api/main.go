@@ -4,7 +4,8 @@
 //	api serve                         inicia o servidor
 //	api worker                        inicia o worker dos jobs assíncronos (processo separado)
 //	api migrate up|down|status|reset  gerencia as migrations embutidas
-//	api seed [--demo]                 carrega dados de referência (e de demonstração)
+//	api seed [--demo] [--fixtures]    carrega dados de referência (e de demonstração; com
+//	                                  --fixtures, prepara os fixtures da demonstração, TASK-027)
 package main
 
 import (
@@ -17,10 +18,13 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
 	_ "time/tzdata" // fusos embutidos (imagem final mínima não tem tzdata)
+
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"controle/internal/ai/aliases"
 	"controle/internal/ai/langfuse"
@@ -42,6 +46,7 @@ import (
 	"controle/internal/reconciliation/reconcile"
 	"controle/internal/worker"
 	"controle/seed"
+	"controle/seed/fixtures"
 )
 
 func main() {
@@ -189,16 +194,18 @@ func runMigrate(ctx context.Context, cfg config.Config, args []string, stdout io
 }
 
 func runSeed(ctx context.Context, cfg config.Config, args []string, stdout io.Writer) error {
-	demo := false
+	demo, prepare := false, false
 	for _, a := range args {
 		switch a {
 		case "--demo":
 			demo = true
+		case "--fixtures":
+			prepare = true
 		default:
-			return fmt.Errorf("opção de seed desconhecida %q (use: --demo)", a)
+			return fmt.Errorf("opção de seed desconhecida %q (use: --demo, --fixtures)", a)
 		}
 	}
-	if demo && cfg.IsProduction() {
+	if (demo || prepare) && cfg.IsProduction() {
 		return errors.New("dados de demonstração não são carregados em produção")
 	}
 	pool, err := db.NewPool(ctx, cfg.DatabaseURL, cfg.DBMaxConns)
@@ -211,8 +218,56 @@ func runSeed(ctx context.Context, cfg config.Config, args []string, stdout io.Wr
 		return err
 	}
 	if demo {
-		return seed.Demo(ctx, pool, clk, stdout)
+		if err := seed.Demo(ctx, pool, clk, stdout); err != nil {
+			return err
+		}
 	}
+	if prepare {
+		return runFixtures(ctx, cfg, pool, clk, stdout)
+	}
+	return nil
+}
+
+// Pastas da preparação dos fixtures (TASK-027), relativas a backend/, onde o make roda o comando:
+// o cenário da Conciliação e as fixtures do parser do PGDAS-D são as dos testes; os extratos do
+// PGDAS-D gerados vão para demo/pgdas, na raiz do repositório (fora do git).
+const (
+	fixturesScenarioDir = "internal/reconciliation/testdata/conciliacao"
+	fixturesPgdasDir    = "internal/factorr/pgdas/testdata/fixtures"
+	fixturesOutDir      = "../demo/pgdas"
+)
+
+// runFixtures prepara os fixtures da demonstração (make demo-fixtures): o cenário da Conciliação na
+// Construtora Horizonte, com os documentos lidos pelo worker no ar, e os extratos do PGDAS-D.
+func runFixtures(ctx context.Context, cfg config.Config, pool *pgxpool.Pool, clk clock.Clock, stdout io.Writer) error {
+	sysClock := clock.NewSystem(cfg.Location)
+	originals := objectstore.New(objectstore.Config{
+		Endpoint: cfg.S3Endpoint, Region: cfg.S3Region, AccessKey: cfg.S3AccessKey, SecretKey: cfg.S3SecretKey.Reveal(), Bucket: cfg.S3Bucket,
+	})
+	if !originals.Configured() {
+		return errors.New("fixtures: os originais da Conciliação vão para o MinIO: defina S3_ENDPOINT, S3_BUCKET, S3_ACCESS_KEY e S3_SECRET_KEY " +
+			"(o make demo-fixtures usa o MinIO de dev em localhost)")
+	}
+	online, err := jobs.NewService(pool, sysClock).WorkerOnline(ctx)
+	if err != nil {
+		return err
+	}
+	if !online {
+		return errors.New("fixtures: o worker não está no ar (ele lê os extratos e comprovantes do cenário): suba os serviços com make dev e rode de novo")
+	}
+	// O resumo mostra a pasta dos extratos pelo caminho completo, para quem vai enviá-los pela tela.
+	outDir := fixturesOutDir
+	if abs, err := filepath.Abs(fixturesOutDir); err == nil {
+		outDir = abs
+	}
+	rep, err := fixtures.Load(ctx, fixtures.Deps{
+		Pool: pool, Clock: clk, Ops: sysClock, Originals: originals, Queue: jobs.NewQueue(sysClock, cfg.JobMaxAttempts),
+		Matching: reconcile.OptionsFrom(cfg.FuzzyThreshold), Logger: slog.Default(),
+	}, fixtures.Options{ScenarioDir: fixturesScenarioDir, PgdasTemplates: fixturesPgdasDir, OutDir: outDir}, stdout)
+	if err != nil {
+		return fmt.Errorf("fixtures: %w", err)
+	}
+	rep.Write(stdout, outDir)
 	return nil
 }
 

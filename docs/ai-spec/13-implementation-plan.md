@@ -271,6 +271,8 @@ Associar cenários fictícios existentes às empresas do Controle.
 **Aceite:** AC-032.  
 **Validação:** TEST-027 — banco limpo → seed → jornada reproduzível.
 
+> **Como foi implementado (D-041).** A 111 Construtora Horizonte entrou no seed (decisão do usuário), com o Contábil de 08/2026 aberto no histórico. O `make demo-fixtures` (`backend/seed/fixtures`) carrega o cenário da Conciliação como o `carregar_horizonte.py` da origem, pelos serviços e com o worker no ar, e grava os extratos do PGDAS-D em `demo/pgdas`. TEST-027 em `backend/seed/fixtures/fixtures_test.go`.
+
 ### TASK-028 — Exportações XLSX/CSV do razão
 
 **Requisitos:** REQ-029.  

@@ -4,6 +4,46 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-041 — Seed-demo integrado e preparação dos fixtures (TASK-027; 12/10/2026; três decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede:** os seeds partem das empresas fictícias do Controle e associam cenários fictícios de Fator R e Conciliação (REQ-048). Depois do `make seed-demo` e da preparação dos fixtures, a jornada ponta a ponta é demonstrável (REQ-049, F-012, AC-032).
+- **Decisões do usuário (as três recomendadas):**
+  - **a empresa do cenário da Conciliação** é uma 21ª empresa fictícia no seed: a 111 Construtora Horizonte Ltda, com o nome e o CNPJ fictício que os documentos da origem imprimem, Lucro Presumido, todos os módulos e os mesmos responsáveis. Ela tem obrigações e histórico como as outras. O PRD do Controle fala em 20 empresas, e as 20 continuam iguais;
+  - **a preparação carrega o cenário pronto** (`make demo-fixtures`), como o `carregar_horizonte.py` da origem:
+    - as duas contas bancárias;
+    - os lançamentos de contas a pagar (26, com a data e o valor pagos) e a receber (9, com o vencimento e o valor);
+    - os 2 extratos e os 13 comprovantes, guardados no MinIO e lidos pelo worker com os leitores determinísticos;
+    - a rodada da conciliação.
+
+    A demonstração abre com 08/2026 em andamento: as automáticas feitas e os casos difíceis na fila;
+  - **extratos do PGDAS-D numa pasta** (`demo/pgdas`, fora do git) para o envio pelo inbox, gerados a partir da fixture da origem (`txt_padrao`).
+- **Dentro da autonomia:**
+  - **histórico da 111:** em 08/2026, a sequência do Contábil para antes da Conciliação (a obrigação fica A iniciar ou Pendente). Assim o Contábil do cenário continua aberto e só fecha com a conciliação concluída (TASK-023). As outras 20 empresas não mudam, porque o sorteio do histórico é por empresa;
+  - **plano de contas:** a origem não tem plano no cenário, e a conclusão da Conciliação exige toda linha classificada (TASK-022). A preparação importa um plano fictício da 111, com 16 contas (as do gabarito do cenário e as dos títulos a pagar), para a jornada chegar ao fechamento;
+  - **o worker no ar:** a preparação usa os serviços dos módulos (os mesmos da API), com o administrador como autor, e espera o worker do ambiente processar os documentos. Assim ela não pega jobs de outras empresas nem chama o modelo: o cenário inteiro é lido pelos leitores determinísticos. A linha de comando recusa rodar sem worker com batimento recente, sem MinIO configurado e em produção;
+  - **a ordem da origem:** contas, lançamentos, extratos e comprovantes. O resultado é o do `rodar_matching` da origem, o mesmo do TEST-018;
+  - **idempotente:**
+    - as contas e o plano entram só se faltarem;
+    - os lançamentos, só se a empresa não tem nenhum lançamento manual;
+    - o arquivo repetido é recusado pela dedupe e conta como "já estava".
+
+    Com a Conciliação de 08/2026 travada (Contábil fechado ou conciliação concluída), o cenário fica como está;
+  - **competência do cenário fora da janela:** com o relógio depois de 11/2026, o histórico do seed não chega a 08/2026, e a preparação gera a competência, sem os status de demonstração. Para repetir a demonstração igual, use `APP_FIXED_TIME`;
+  - **PGDAS-D:** os CNPJs fictícios do seed não têm dígito verificador válido (o bypass do seed), e o inbox só procura na carteira um CNPJ válido. Por isso a pasta tem três extratos, com o PA contado da competência corrente, e um `LEIA-ME.txt` com a ordem:
+    1. o da Íris (208), com os números da série dela (RBT12, FS12, fator r e anexo do motor; o DAS pela alíquota efetiva): cai em revisão e se vincula pela ação Vincular, com a nota ouro conferindo tudo;
+    2. o de CNPJ válido fora do cadastro (o da fixture): cai em revisão com a sugestão de cadastro;
+    3. o da mesma empresa no PA seguinte: depois do cadastro, se vincula sozinho.
+- **TEST-027** (`backend/seed/fixtures/fixtures_test.go`), de banco limpo, com o seed de referência e de demonstração e a preparação (MinIO real, o pipeline do worker e um modelo que recusa toda chamada). Confere, pela API e no banco:
+  - as 21 empresas, e a 111 com obrigações nas quatro competências e o Contábil de 08/2026 aberto;
+  - a carteira do Fator R com os quatro casos;
+  - o cenário com as contas, o plano, os 35 lançamentos e os 15 documentos importados, sem chamada ao modelo e com os números do `rodar_matching` da origem;
+  - a ficha com a conciliação em andamento e o fechamento do Contábil recusado (422 `RECONCILIATION_NOT_FINAL`);
+  - os três extratos do PGDAS-D no inbox;
+  - a segunda preparação sem mudar nada.
+- **E2E:**
+  - o `make e2e` roda só o seed: a 111 aparece sem o cenário. Os testes da Conciliação no E2E enviam os mesmos arquivos para empresas próprias, e a dedupe é única no sistema;
+  - o T-M7-04 (o axe em todas as telas) passou de 2 para 4 minutos de limite: são ~45 varreduras desde as seções da ficha e a área Documentos (TASKs 025 e 026), e a 21ª empresa aumenta as grades. Com o limite antigo, ele estourou na seção Documentos da ficha (levava 1,7 minuto na TASK-026 e levou 2,3 agora). Uma medição por tela mostrou a carga estável (1,3 a 2,2 s) e o tempo do axe proporcional ao DOM: as grades, com 2.200 a 3.300 nós, levam de 5,5 a 9 s cada. Nenhuma tela ficou desproporcional, e as verificações do teste não mudaram.
+
 ### D-040 — Documentos consolidados (TASK-026; 12/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede:** a área Documentos é um agregador de navegação, não um armazenamento único (08 §8, REQ-037). O MinIO continua com os originais da Conciliação, e o armazenamento local com os do Controle e do Fator R (REQ-043, REQ-044). "Abrir" leva à tela do módulo, e o `GET /documents` não unifica tabela física (06 §6).

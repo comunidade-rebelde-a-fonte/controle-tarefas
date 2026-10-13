@@ -231,6 +231,13 @@ A área Documentos consolidada (TASK-026, D-040):
 - documento novo de um módulo entra na consulta `ListDocumentIndex` (e na contagem) com o seu status, a situação comum e o `detail` da tela que o abre;
 - telas em `frontend/src/features/documents` (`/documents`) e a aba Documentos da ficha.
 
+## Demonstração
+
+Seed-demo integrado (TASK-027, D-041):
+- o `make seed-demo` carrega 21 empresas: as 20 do PRD e a 111 Construtora Horizonte, a empresa do cenário da Conciliação (08/2026), com o Contábil de 08/2026 aberto no histórico. Conte as empresas do seed com `seed.DemoCompanyCount`;
+- o `make demo-fixtures` (`api seed --fixtures`, em `backend/seed/fixtures`) carrega o cenário pelos serviços dos módulos e espera o worker do ambiente (exige o `make dev` no ar). Ele grava os extratos do PGDAS-D em `demo/pgdas` (fora do git), e rodar de novo não duplica nada;
+- teste nenhum depende do cenário carregado na 111: o E2E roda só o seed, e o cenário usa os arquivos dos testes da Conciliação (a dedupe é única no sistema).
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).

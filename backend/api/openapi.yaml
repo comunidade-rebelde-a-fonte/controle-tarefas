@@ -944,7 +944,7 @@ paths:
     post:
       tags: [demo]
       operationId: loadDemoData
-      summary: Carrega as 20 empresas fictícias (idempotente; indisponível em produção)
+      summary: Carrega as 21 empresas fictícias de demonstração e o histórico (idempotente; indisponível em produção)
       responses:
         "200":
           description: Dados carregados

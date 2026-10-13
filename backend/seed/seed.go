@@ -1,5 +1,5 @@
 // Package seed carrega os dados de referência (status, catálogo, feriados, tabelas do
-// Simples do Fator R) e os dados de demonstração (20 empresas fictícias e histórico). Todos
+// Simples do Fator R) e os dados de demonstração (21 empresas fictícias e histórico). Todos
 // os seeds são idempotentes: podem rodar várias vezes sem duplicar registros.
 package seed
 

@@ -9,6 +9,7 @@ import (
 	"controle/internal/app"
 	"controle/internal/testutil"
 	"controle/internal/testutil/seeded"
+	"controle/seed"
 )
 
 // Critério da T-M2-05: a API iniciada com o relógio em 01/10/2026 cria 10/2026 sem chamada manual.
@@ -34,7 +35,7 @@ func TestBoot_CreatesCurrentCompetenceWithoutManualCall(t *testing.T) {
 		FROM competencies k`).Scan(&key, &companies, &instances); err != nil {
 		t.Fatal(err)
 	}
-	if key != "2026-10" || companies != 20 || instances == 0 {
+	if key != "2026-10" || companies != seed.DemoCompanyCount || instances == 0 {
 		t.Fatalf("competência %s com %d empresas e %d instâncias", key, companies, instances)
 	}
 }
