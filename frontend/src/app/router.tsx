@@ -22,6 +22,7 @@ import { ObservabilityPage } from "@/features/factor-r/runs/ObservabilityPage";
 import { RunDetailPage } from "@/features/factor-r/runs/RunDetailPage";
 import { ChartPage } from "@/features/reconciliation/chart/ChartPage";
 import { CompaniesPage as ReconciliationCompaniesPage } from "@/features/reconciliation/companies/CompaniesPage";
+import { DocumentsAreaPage } from "@/features/documents/DocumentsAreaPage";
 import { DocumentPage } from "@/features/reconciliation/documents/DocumentPage";
 import { DocumentsPage } from "@/features/reconciliation/documents/DocumentsPage";
 import { EntriesPage } from "@/features/reconciliation/entries/EntriesPage";
@@ -79,6 +80,7 @@ export const routes = [
         ],
       },
       { path: "credentials", element: <CredentialsPage /> },
+      { path: "documents", element: <DocumentsAreaPage /> },
       { path: "backlog", element: <BacklogPage /> },
       { path: "obligations", element: <ObligationsListPage /> },
       { path: "settings", element: <SettingsPage /> },

@@ -89,13 +89,11 @@ test("TEST-025: abas, empresa e competência trocam sem identidade divergente", 
   }
   await audit(page, "ficha — Obrigações da competência");
 
-  // Documentos: os atalhos de cada módulo, filtrados pela empresa.
+  // Documentos: a lista consolidada da empresa (TASK-026) e os atalhos de cada módulo.
   await sections.getByRole("tab", { name: "Documentos" }).click();
-  await expect(page.getByRole("link", { name: "Ver os documentos da empresa" })).toHaveAttribute("href", `/reconciliation/documents?company_id=${fenix.id}`);
-  await expect(page.getByRole("link", { name: "Ver os extratos da empresa" })).toHaveAttribute(
-    "href",
-    `/companies/${fenix.id}?tab=factor-r&competence=2026-08`,
-  );
+  await expect(page.getByRole("button", { name: "Da competência 08/2026" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("link", { name: "Documentos da Conciliação" })).toHaveAttribute("href", `/reconciliation/documents?company_id=${fenix.id}`);
+  await expect(page.getByRole("link", { name: "Extratos do PGDAS-D" })).toHaveAttribute("href", `/companies/${fenix.id}?tab=factor-r&competence=2026-08`);
   await audit(page, "ficha — Documentos");
 
   // Link antigo: a subaba e o PA viram a seção e a competência da ficha.

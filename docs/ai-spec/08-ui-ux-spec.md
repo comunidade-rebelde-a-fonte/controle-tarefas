@@ -194,6 +194,8 @@ Filtros:
 
 A ação “abrir” leva à experiência específica do módulo.
 
+> **Como foi implementado (TASK-026; D-040).** A área Documentos (`/documents`, no menu depois do Backlog) lista os documentos do Fator R, da Conciliação e das procurações e certificados. Cada um aparece com a origem e o armazenamento, o tipo, a empresa, o período, o status do módulo e a situação comum. Os filtros são a origem, a situação, o status do módulo (com o módulo escolhido), a empresa, a competência, o tipo e o banco. O nome do arquivo abre a tela do módulo, e o envio continua em cada módulo (atalhos no cabeçalho). Na ficha, a aba Documentos traz a mesma lista só da empresa, na competência da ficha ou em todas, e a Visão geral mostra os documentos recentes.
+
 ## 9. Configurações → IA
 
 Tabela de aliases:

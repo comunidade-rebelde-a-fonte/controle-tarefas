@@ -4,6 +4,32 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-040 — Documentos consolidados (TASK-026; 12/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede:** a área Documentos é um agregador de navegação, não um armazenamento único (08 §8, REQ-037). O MinIO continua com os originais da Conciliação, e o armazenamento local com os do Controle e do Fator R (REQ-043, REQ-044). "Abrir" leva à tela do módulo, e o `GET /documents` não unifica tabela física (06 §6).
+- **Decisões do usuário (as duas recomendadas):**
+  - **as três origens:** Fator R (os extratos do PGDAS-D, armazenamento local), Conciliação (extratos bancários e comprovantes, MinIO) e Controle (os arquivos de procuração RFB e certificado digital, armazenamento local);
+  - **status:** cada documento mostra o status do seu módulo, sem mudar nada nas regras dele. Para filtrar entre módulos, há quatro situações só de leitura:
+    - **em processamento:** `received` e `parsed` do Fator R; `pendente` e `triado` da Conciliação;
+    - **em revisão:** `needs_review` do Fator R; `revisao_triagem`, `revisao_extracao` e `pendencia_periodo_fechado` da Conciliação;
+    - **concluído:** `linked` do Fator R; `extraido` e `importado` da Conciliação; o arquivo do Controle (`arquivado`);
+    - **descartado:** `rejected` do Fator R; `duplicado` da Conciliação.
+
+    Escolhido um módulo, o filtro mostra também os status dele.
+- **Dentro da autonomia:**
+  - **`GET /documents`** (`backend/internal/docindex`):
+    - uma consulta junta as tabelas dos três módulos, sem tabela nova, sem cópia de arquivo e sem ler armazenamento nenhum;
+    - filtros: origem, empresa, competência (o PA do PGDAS-D e a competência ou o período do documento da Conciliação; os arquivos do Controle não têm competência), tipo, status do módulo, situação e banco;
+    - lista do mais recente para o mais antigo, com as contagens por origem, situação e status para os botões de filtro;
+    - cada item traz a tela que o abre: o documento no inbox do Fator R, o documento da Conciliação ou a aba Procurações/Certificados da ficha;
+  - **a área Documentos** (`/documents`) entrou no menu depois do Backlog. O envio continua em cada módulo, com atalhos para o inbox do PGDAS-D e para os documentos da Conciliação;
+  - **a aba Documentos da ficha** passou a mostrar essa lista só da empresa, na competência da ficha por padrão, com "Todas as competências" (onde aparecem as procurações e os certificados) e os atalhos de cada módulo;
+  - **a Visão geral** ganhou os "Documentos recentes" do 06 §2 (os cinco últimos da empresa).
+- **AC-033:** o menu tem as 14 áreas do REQ-050 e mais a Importação/Exportação do PRD do Controle. A ordem e o agrupamento finais ficam para a TASK-029.
+- **TEST-026:**
+  - nos testes de integração (`internal/docindex/docindex_test.go`), as três origens com o armazenamento, a situação de cada status, os filtros, as contagens, a paginação e as recusas, e cada documento abrindo no detalhe do seu módulo pela API;
+  - no E2E (`e2e/specs/documents.spec.ts`), uma empresa com os três documentos na área e na ficha, o filtro de situação e "abrir" levando a cada tela, com o axe.
+
 ### D-039 — A ficha da empresa como hub (TASK-025; 12/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Decisões do usuário (as quatro recomendadas):**

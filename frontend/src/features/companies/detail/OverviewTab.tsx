@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LightBadge } from "@/features/factor-r/common";
+import { KIND_LABELS, statusText } from "@/features/documents/labels";
 import { blockingText, COMPLETION_STATES } from "@/features/reconciliation/labels";
 import { displayCompetence } from "@/lib/competence";
 import { formatMoney, formatRate, isPositive } from "@/lib/decimal";
 import { formatDate, formatPercent } from "@/lib/format";
 import { type CompanyOverview, useCompanyOverview } from "@/services/companies";
 import { drilldownHref } from "@/services/dashboard";
+import { useDocumentIndex } from "@/services/documents";
 import { fichaHref } from "./fichaHref";
 
 const linkClass = "inline-flex min-h-6 items-center text-sm underline underline-offset-4";
@@ -190,6 +192,42 @@ function Reconciliation({ r, href }: { r: CompanyOverview["reconciliation"]; hre
   );
 }
 
+function RecentDocuments({ companyId, href }: { companyId: string; href: string }) {
+  const docs = useDocumentIndex({ company_id: companyId, limit: 5 });
+  const items = docs.data?.items ?? [];
+  return (
+    <Card aria-label="Documentos recentes">
+      <CardHeader
+        title="Documentos recentes"
+        description="Os últimos recebidos em todos os módulos."
+        actions={
+          <Link to={href} className={linkClass}>
+            Ver todos
+          </Link>
+        }
+      />
+      <CardBody>
+        <ErrorAlert error={docs.error} fallback="Não foi possível carregar os documentos." />
+        {docs.data && items.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum documento da empresa.</p> : null}
+        {items.length > 0 ? (
+          <ol aria-label="Documentos recentes da empresa" className="grid gap-1.5 text-sm">
+            {items.map((d) => (
+              <li key={`${d.module}:${d.id}`} className="flex flex-wrap items-center gap-x-2">
+                <Link to={drilldownHref(d.detail)} className="inline-flex min-h-6 items-center font-medium hover:underline">
+                  {d.file_name}
+                </Link>
+                <span className="text-xs text-muted-foreground">
+                  {KIND_LABELS[d.kind]} · {statusText(d.module, d.status)} · {formatDate(d.received_at)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : null}
+      </CardBody>
+    </Card>
+  );
+}
+
 function Attention({ categories }: { categories: CompanyOverview["attention"] }) {
   return (
     <Card aria-label="Pendências da empresa">
@@ -252,7 +290,10 @@ export function OverviewTab({ companyId, competence }: { companyId: string; comp
         <FactorR f={o.factor_r} href={fichaHref(companyId, params, "factor-r")} />
         <Reconciliation r={o.reconciliation} href={fichaHref(companyId, params, "reconciliation")} />
       </div>
-      <Attention categories={o.attention} />
+      <div className="grid items-start gap-4 xl:grid-cols-2">
+        <Attention categories={o.attention} />
+        <RecentDocuments companyId={companyId} href={fichaHref(companyId, params, "documents", { doc_all: "1" })} />
+      </div>
     </div>
   );
 }

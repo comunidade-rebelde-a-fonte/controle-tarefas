@@ -9,7 +9,7 @@ afterEach(() => {
 });
 
 describe("Layout", () => {
-  it("exibe as 14 áreas no menu (12 do PRD + Fator R + Conciliação) e navega entre elas", async () => {
+  it("exibe as 15 áreas no menu (12 do PRD + Fator R + Conciliação + Documentos) e navega entre elas", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ status: "ok", database: "ok" }), { status: 200 })),
@@ -17,8 +17,9 @@ describe("Layout", () => {
     renderWithProviders(<></>, { route: "/dashboard", routes });
 
     const nav = screen.getByRole("navigation");
-    expect(within(nav).getAllByRole("link")).toHaveLength(14);
+    expect(within(nav).getAllByRole("link")).toHaveLength(15);
     expect(within(nav).getByRole("link", { name: "Conciliação" })).toHaveAttribute("href", "/reconciliation");
+    expect(within(nav).getByRole("link", { name: "Documentos" })).toHaveAttribute("href", "/documents");
     expect(await screen.findByRole("status", { name: "API disponível" })).toBeInTheDocument();
 
     await userEvent.click(within(nav).getByRole("link", { name: "Empresas" }));

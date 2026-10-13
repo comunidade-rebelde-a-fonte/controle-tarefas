@@ -42,6 +42,7 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     [`/factor-r/agents?pa=${competence}`, "Agentes do Fator R"],
     ["/factor-r/runs", "Observabilidade dos agentes"],
     ["/credentials", "Procurações e Certificados"],
+    ["/documents", "Documentos"],
     [`/backlog?competence=${competence}`, "Backlog"],
     [`/obligations?competence=${competence}&state=overdue`, /Atrasadas/],
     ["/imports", /Importa/],

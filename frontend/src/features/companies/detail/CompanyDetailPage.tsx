@@ -172,8 +172,7 @@ export function CompanyDetailPage() {
         if (v === "overview") next.delete("tab");
         else next.set("tab", v);
         // Os filtros de uma aba não passam para a outra.
-        next.delete("state");
-        next.delete("status");
+        for (const k of ["state", "status", "module", "situation", "kind", "bank", "offset", "doc_all"]) next.delete(k);
         return next;
       },
       { replace: true },
@@ -255,7 +254,7 @@ export function CompanyDetailPage() {
           <ReconciliationTab company={company} competence={competence} />
         </TabsContent>
         <TabsContent value="documents">
-          <DocumentsTab companyId={company.id} />
+          <DocumentsTab companyId={company.id} competence={competence} />
         </TabsContent>
         <TabsContent value="credentials">
           <CredentialsTab companyId={company.id} />

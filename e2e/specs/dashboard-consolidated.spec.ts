@@ -163,6 +163,7 @@ test("TEST-024: o Dashboard consolida Fator R e Conciliação, e cada número ab
   for (const [label, heading] of [
     ["Empresas", "Empresas"],
     ["Backlog", "Backlog"],
+    ["Documentos", "Documentos"],
     ["Fiscal", "Fiscal"],
     ["Declarações", "Declarações"],
     ["Contábil", "Contábil"],

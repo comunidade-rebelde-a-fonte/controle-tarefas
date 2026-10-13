@@ -53,9 +53,26 @@ const data: CompanyOverview = {
 };
 
 function mock(body: CompanyOverview) {
-  return mockFetchRoutes(({ method, url }) =>
-    method === "GET" && url.pathname === `/api/v1/companies/${ID}/overview` ? jsonResponse(body) : undefined,
-  );
+  return mockFetchRoutes(({ method, url }) => {
+    if (method !== "GET") return undefined;
+    if (url.pathname === `/api/v1/companies/${ID}/overview`) return jsonResponse(body);
+    if (url.pathname === "/api/v1/documents") {
+      return jsonResponse({
+        items: [
+          {
+            id: "00000000-0000-4000-8000-0000000000f1", module: "factor_r", storage_backend: "local", kind: "pgdas", status: "linked",
+            situation: "concluido", company: { id: ID, internal_code: "101", legal_name: "Alfa Comércio Ltda" }, competence: "2026-09",
+            period_start: null, period_end: null, bank: null, file_name: "pgdas-setembro.txt", expires_at: null,
+            received_at: "2026-09-20T12:00:00Z", updated_at: "2026-09-20T12:00:00Z",
+            detail: { path: "/factor-r/inbox/00000000-0000-4000-8000-0000000000f1", query: {} },
+          },
+        ],
+        total: 1,
+        counts: [],
+      });
+    }
+    return undefined;
+  });
 }
 
 describe("OverviewTab", () => {
@@ -83,6 +100,13 @@ describe("OverviewTab", () => {
       "href",
       `/companies/${ID}?competence=2026-09&tab=obligations&state=overdue`,
     );
+    const docs = screen.getByRole("region", { name: "Documentos recentes" });
+    expect(await within(docs).findByRole("link", { name: "pgdas-setembro.txt" })).toHaveAttribute(
+      "href",
+      "/factor-r/inbox/00000000-0000-4000-8000-0000000000f1",
+    );
+    expect(docs).toHaveTextContent("Extrato do PGDAS-D · Vinculado");
+    expect(within(docs).getByRole("link", { name: "Ver todos" })).toHaveAttribute("href", `/companies/${ID}?tab=documents&competence=2026-09&doc_all=1`);
   });
 
   it("sem Fator R, sem Conciliação e numa competência não gerada, explica cada caso", async () => {

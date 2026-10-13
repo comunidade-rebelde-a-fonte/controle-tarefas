@@ -1197,6 +1197,36 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A área Documentos consolidada [06 §6, 08 §8; TASK-026, D-040]
+         * @description Índice de navegação sobre os documentos de cada módulo, sem tabela nova nem cópia de
+         *     arquivo (REQ-037, REQ-043, REQ-044): os extratos do PGDAS-D do Fator R (armazenamento
+         *     local), os documentos da Conciliação (MinIO) e os arquivos de procuração e certificado do
+         *     Controle (armazenamento local). Cada documento traz o status do seu módulo e a situação
+         *     comum de leitura (decisão do usuário): Fator R — `received` e `parsed` em processamento,
+         *     `needs_review` em revisão, `linked` concluído, `rejected` descartado; Conciliação —
+         *     `pendente` e `triado` em processamento, as revisões e `pendencia_periodo_fechado` em
+         *     revisão, `extraido` e `importado` concluídos, `duplicado` descartado; Controle — o arquivo,
+         *     `arquivado`. `detail` é a tela do módulo que abre o documento. O status do módulo só vale
+         *     com o módulo escolhido. A competência casa com o PA do PGDAS-D e com a competência ou o
+         *     período do documento da Conciliação (os arquivos do Controle não têm competência).
+         */
+        get: operations["listDocumentIndex"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies/{id}/history": {
         parameters: {
             query?: never;
@@ -3960,6 +3990,50 @@ export interface components {
             count: number;
             sample: components["schemas"]["AttentionItem"][];
             drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @enum {string} */
+        DocumentModule: "factor_r" | "reconciliation" | "credentials";
+        /** @enum {string} */
+        DocumentKind: "pgdas" | "extrato" | "comprovante" | "desconhecido" | "procuracao" | "certificado";
+        /** @enum {string} */
+        DocumentSituation: "em_processamento" | "em_revisao" | "concluido" | "descartado";
+        DocumentIndexItem: {
+            id: components["schemas"]["Uuid"];
+            module: components["schemas"]["DocumentModule"];
+            /** @enum {string} */
+            storage_backend: "local" | "minio";
+            kind: components["schemas"]["DocumentKind"];
+            /** @description O status do módulo, sem tradução */
+            status: string;
+            situation: components["schemas"]["DocumentSituation"];
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            } | null;
+            competence: components["schemas"]["Competence"] | null;
+            period_start: components["schemas"]["Date"] | null;
+            period_end: components["schemas"]["Date"] | null;
+            bank: string | null;
+            file_name: string;
+            /** @description Validade da procuração ou do certificado */
+            expires_at: components["schemas"]["Date"] | null;
+            /** Format: date-time */
+            received_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            detail: components["schemas"]["Drilldown"];
+        };
+        DocumentIndex: {
+            items: components["schemas"]["DocumentIndexItem"][];
+            total: number;
+            /** @description Quantidades por módulo, situação e status com os filtros de empresa, tipo, banco e competência */
+            counts: {
+                module: components["schemas"]["DocumentModule"];
+                situation: components["schemas"]["DocumentSituation"];
+                status: string;
+                total: number;
+            }[];
         };
         /** @description A Visão geral da empresa na competência (TASK-025, D-039) */
         CompanyOverview: {
@@ -7912,6 +7986,39 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             404: components["responses"]["NotFound"];
+        };
+    };
+    listDocumentIndex: {
+        parameters: {
+            query?: {
+                module?: components["schemas"]["DocumentModule"];
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+                kind?: components["schemas"]["DocumentKind"];
+                /** @description Status do módulo (exige module) */
+                status?: string;
+                situation?: components["schemas"]["DocumentSituation"];
+                /** @description Banco lido no documento da Conciliação (sem diferenciar maiúsculas) */
+                bank?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Uma página do índice, o mais recente primeiro */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentIndex"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
         };
     };
     getCompanyHistory: {

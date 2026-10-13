@@ -259,6 +259,8 @@ Criar agregação sem migrar storages.
 
 **Validação:** TEST-026 — documentos dos módulos aparecem e abrem no detalhe correto.
 
+> **Como foi implementado (D-040).** `GET /documents` em `backend/internal/docindex`, um índice sobre as tabelas de cada módulo, sem mover arquivo. A área Documentos, a aba Documentos da ficha e os documentos recentes da Visão geral. As três origens e a situação comum foram decisões do usuário. TEST-026 nos testes de integração (`internal/docindex/docindex_test.go`) e no E2E (`e2e/specs/documents.spec.ts`).
+
 ## 8. Marco M6 — Demonstração, relatórios e acabamento
 
 ### TASK-027 — Seed-demo integrado

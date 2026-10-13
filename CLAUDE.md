@@ -224,6 +224,13 @@ A ficha como hub (TASK-025, D-039):
 - Visão geral em `backend/internal/companyhub` (`GET /companies/{id}/overview`), sempre a partir dos serviços de cada módulo; os indicadores da listagem em `GET /company-indicators`;
 - tabela nova com `company_id` referencia `companies(id)`, direto ou pela chave composta `(id, company_id)` da tabela-mãe (o teste do AC-002 confere).
 
+## Documentos
+
+A área Documentos consolidada (TASK-026, D-040):
+- `GET /documents` (`backend/internal/docindex`) é só um índice sobre as tabelas do Fator R, da Conciliação e das credenciais: nunca copie arquivo nem crie tabela de documento; cada módulo guarda no seu armazenamento (local ou MinIO);
+- documento novo de um módulo entra na consulta `ListDocumentIndex` (e na contagem) com o seu status, a situação comum e o `detail` da tela que o abre;
+- telas em `frontend/src/features/documents` (`/documents`) e a aba Documentos da ficha.
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).

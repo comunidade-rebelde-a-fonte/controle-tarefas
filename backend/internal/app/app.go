@@ -23,6 +23,7 @@ import (
 	"controle/internal/credential"
 	"controle/internal/dashboard"
 	"controle/internal/demo"
+	"controle/internal/docindex"
 	"controle/internal/exporter"
 	"controle/internal/factorr"
 	"controle/internal/factorr/agents"
@@ -138,6 +139,9 @@ func New(d Deps) *App {
 		// A ficha da empresa como hub (TASK-025): a Visão geral na competência e os indicadores da
 		// listagem, a partir dos serviços de cada módulo, sempre pela mesma empresa.
 		companyhub.NewHandler(companyhub.NewService(d.Pool, d.Clock, dash, factorRSvc, credentials)).Routes(api)
+		// A área Documentos consolidada (TASK-026): um índice sobre os documentos de cada módulo, cada
+		// um no seu armazenamento; abrir leva à tela do módulo.
+		docindex.NewHandler(docindex.NewService(d.Pool)).Routes(api)
 		// Inbox PGDAS-D (TASK-012): a API guarda o original e enfileira; o worker processa.
 		inbox.NewHandler(inbox.NewService(d.Pool, aiClock, tr, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts),
 			inbox.NewStorage(d.Config.FileStorageDir), companies, d.Logger)).Routes(api)

@@ -4,6 +4,7 @@ import {
   Calculator,
   FileBarChart,
   FileText,
+  Files,
   History,
   KeyRound,
   LayoutDashboard,
@@ -16,7 +17,10 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-/** Áreas principais: as 12 do PRD §6, o Fator R (TASK-014a) e a Conciliação (TASK-021a) da consolidação (08 §2). */
+/**
+ * Áreas principais: as 12 do PRD §6, o Fator R (TASK-014a), a Conciliação (TASK-021a) e os
+ * Documentos (TASK-026) da consolidação (08 §2).
+ */
 export interface Area {
   path: string;
   label: string;
@@ -36,6 +40,7 @@ export const AREAS: readonly Area[] = [
   { path: "/reconciliation", label: "Conciliação", icon: Scale, group: "operacao" },
   { path: "/credentials", label: "Procurações e Certificados", icon: KeyRound, group: "operacao" },
   { path: "/backlog", label: "Backlog", icon: History, group: "gestao" },
+  { path: "/documents", label: "Documentos", icon: Files, group: "gestao" },
   { path: "/settings", label: "Cadastros e Configurações", icon: Settings, group: "dados" },
   { path: "/imports", label: "Importação/Exportação", icon: ArrowLeftRight, group: "dados" },
   { path: "/reports", label: "Relatórios", icon: FileBarChart, group: "dados" },

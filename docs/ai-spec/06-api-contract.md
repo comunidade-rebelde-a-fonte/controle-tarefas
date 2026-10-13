@@ -231,6 +231,8 @@ Expandir resposta atual com seções `factor_r` e `reconciliation`, sem quebrar 
 
 Agregador de documentos de múltiplos backends. Retorna `module`, `storage_backend`, `status`, company, period, timestamps e link de detalhe. Não precisa unificar tabela física.
 
+> **Como foi implementado (TASK-026; D-040).** Uma consulta sobre as tabelas do Fator R (`factor_r_pgdas_documents`, armazenamento local), da Conciliação (`reconciliation_documents`, MinIO) e do Controle (`credential_controls` com arquivo, armazenamento local). Cada item traz `module`, `storage_backend`, `kind`, o `status` do módulo e a `situation` comum de leitura (em processamento, em revisão, concluído, descartado; decisão do usuário), a empresa, a competência ou o período, o banco, a validade da credencial, as datas e o `detail` com a tela que abre o documento. Filtros: `module`, `company_id`, `competence`, `kind`, `status` (exige `module`), `situation`, `bank`, `limit` e `offset`. Vêm também as contagens por origem, situação e status.
+
 ## 7. Configuração de IA
 
 ### `GET /settings/ai/models`

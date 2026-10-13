@@ -59,6 +59,10 @@ tags:
       com o original imutável no MinIO versionado, e o processamento no worker (TASK-016): triagem,
       extração do extrato com até 3 tentativas e importação só com o saldo fechando em R$ 0,00.
       Estados e tipos usam o vocabulário do Conciliador de origem (D-020).
+  - name: documents
+    description: |
+      A área Documentos consolidada (TASK-026, D-040): um índice de navegação sobre os documentos de
+      cada módulo, cada um no seu armazenamento e com o seu estado.
   - name: factor-r
     description: |
       Fator R (consolidação, TASK-011 a TASK-013) — configuração por empresa, série mensal de
@@ -1629,6 +1633,41 @@ paths:
               schema: { $ref: "#/components/schemas/CompanyIndicatorList" }
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
+
+  /documents:
+    get:
+      tags: [documents]
+      operationId: listDocumentIndex
+      summary: A área Documentos consolidada [06 §6, 08 §8; TASK-026, D-040]
+      description: |
+        Índice de navegação sobre os documentos de cada módulo, sem tabela nova nem cópia de
+        arquivo (REQ-037, REQ-043, REQ-044): os extratos do PGDAS-D do Fator R (armazenamento
+        local), os documentos da Conciliação (MinIO) e os arquivos de procuração e certificado do
+        Controle (armazenamento local). Cada documento traz o status do seu módulo e a situação
+        comum de leitura (decisão do usuário): Fator R — `received` e `parsed` em processamento,
+        `needs_review` em revisão, `linked` concluído, `rejected` descartado; Conciliação —
+        `pendente` e `triado` em processamento, as revisões e `pendencia_periodo_fechado` em
+        revisão, `extraido` e `importado` concluídos, `duplicado` descartado; Controle — o arquivo,
+        `arquivado`. `detail` é a tela do módulo que abre o documento. O status do módulo só vale
+        com o módulo escolhido. A competência casa com o PA do PGDAS-D e com a competência ou o
+        período do documento da Conciliação (os arquivos do Controle não têm competência).
+      parameters:
+        - { name: module, in: query, schema: { $ref: "#/components/schemas/DocumentModule" } }
+        - { name: company_id, in: query, schema: { $ref: "#/components/schemas/Uuid" } }
+        - { name: competence, in: query, schema: { $ref: "#/components/schemas/Competence" } }
+        - { name: kind, in: query, schema: { $ref: "#/components/schemas/DocumentKind" } }
+        - { name: status, in: query, description: "Status do módulo (exige module)", schema: { type: string } }
+        - { name: situation, in: query, schema: { $ref: "#/components/schemas/DocumentSituation" } }
+        - { name: bank, in: query, description: "Banco lido no documento da Conciliação (sem diferenciar maiúsculas)", schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+        - { name: offset, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+      responses:
+        "200":
+          description: Uma página do índice, o mais recente primeiro
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DocumentIndex" }
+        "400": { $ref: "#/components/responses/BadRequest" }
 
   /companies/{id}/history:
     parameters:
@@ -5221,6 +5260,65 @@ components:
           oneOf:
             - $ref: "#/components/schemas/Drilldown"
             - type: "null"
+
+    DocumentModule:
+      type: string
+      enum: [factor_r, reconciliation, credentials]
+
+    DocumentKind:
+      type: string
+      enum: [pgdas, extrato, comprovante, desconhecido, procuracao, certificado]
+
+    DocumentSituation:
+      type: string
+      enum: [em_processamento, em_revisao, concluido, descartado]
+
+    DocumentIndexItem:
+      type: object
+      required: [id, module, storage_backend, kind, status, situation, company, competence, period_start, period_end, bank, file_name, expires_at, received_at, updated_at, detail]
+      properties:
+        id: { $ref: "#/components/schemas/Uuid" }
+        module: { $ref: "#/components/schemas/DocumentModule" }
+        storage_backend: { type: string, enum: [local, minio] }
+        kind: { $ref: "#/components/schemas/DocumentKind" }
+        status: { type: string, description: "O status do módulo, sem tradução" }
+        situation: { $ref: "#/components/schemas/DocumentSituation" }
+        company:
+          oneOf:
+            - type: object
+              required: [id, internal_code, legal_name]
+              properties:
+                id: { $ref: "#/components/schemas/Uuid" }
+                internal_code: { type: string }
+                legal_name: { type: string }
+            - type: "null"
+        competence: { oneOf: [{ $ref: "#/components/schemas/Competence" }, { type: "null" }] }
+        period_start: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        period_end: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }] }
+        bank: { type: [string, "null"] }
+        file_name: { type: string }
+        expires_at: { oneOf: [{ $ref: "#/components/schemas/Date" }, { type: "null" }], description: "Validade da procuração ou do certificado" }
+        received_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        detail: { $ref: "#/components/schemas/Drilldown" }
+
+    DocumentIndex:
+      type: object
+      required: [items, total, counts]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/DocumentIndexItem" } }
+        total: { type: integer }
+        counts:
+          type: array
+          description: Quantidades por módulo, situação e status com os filtros de empresa, tipo, banco e competência
+          items:
+            type: object
+            required: [module, situation, status, total]
+            properties:
+              module: { $ref: "#/components/schemas/DocumentModule" }
+              situation: { $ref: "#/components/schemas/DocumentSituation" }
+              status: { type: string }
+              total: { type: integer }
 
     CompanyOverview:
       type: object
