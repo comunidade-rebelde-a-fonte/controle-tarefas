@@ -4,6 +4,46 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-044 — Execução local completa e backup de todos os armazenamentos (TASK-031; 13/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede (adendo D-011, FR-21):**
+  - a execução local fora do modo dev com todos os serviços, mantendo o que o compose de produção garantia: Postgres sem porta publicada, imagem única e usuário não-root;
+  - o backup e a restauração do banco da aplicação, dos arquivos locais (procurações e PGDAS-D), do bucket MinIO versionado (com as versões) e do Langfuse (Postgres e ClickHouse), com somas SHA-256 e retenção;
+  - o teste de restauração em ambiente descartável e o `docs/operacao.md` atualizado;
+  - aceite: a instalação sobe com todos os serviços, e um backup completo é restaurado em ambiente limpo com as contagens conferidas (TEST-031).
+- **Decisões do usuário (as quatro recomendadas):**
+  - **um compose só:** o `docker-compose.prod.yml` sobe o produto inteiro, com o Langfuse. No dev, o Langfuse continua em compose próprio. No de execução, os serviços dele ganham o prefixo `langfuse-` e o worker fala com ele pela rede interna, sem a rede externa `controle-obs`;
+  - **MinIO pelo volume, pausado:** o backup copia o volume inteiro do MinIO com ele pausado por alguns segundos. Vão os objetos, todas as versões e as marcas de exclusão, mais os usuários, as políticas e a configuração do bucket. O mesmo vale para o n8n e para o MinIO do Langfuse;
+  - **rotação da origem:** 7 diários, 4 semanais (o de domingo) e 12 mensais (o do dia 1), configuráveis no `.env.prod`. Substitui a retenção por dias (`BACKUP_RETENTION_DAYS`) do T-M7-06;
+  - **teste em ambiente descartável completo:** uma instalação inteira, com dados em todos os armazenamentos; o backup; o `down -v`; uma instalação nova e vazia; a restauração e a conferência. O usuário autorizou baixar a `alpine:3.22.6`, base da imagem do app.
+- **Dentro da autonomia:**
+  - **compose de execução:**
+    - 13 serviços: o app (API e SPA), o worker (a mesma imagem, com `api worker`, depois do app, que aplica as migrations), o banco, o MinIO e o `minio-init`, o LiteLLM, o n8n e os seis do Langfuse;
+    - só três portas no host, em 127.0.0.1 por padrão: a aplicação (`APP_BIND`), o n8n e a interface do Langfuse. O banco, os dois MinIO, o LiteLLM e o resto do Langfuse ficam só na rede interna. O MinIO do Langfuse não é publicado, porque nenhum fluxo envia mídia pelo navegador;
+    - nenhum segredo tem valor padrão: o compose recusa subir sem eles (`${X:?}`). Só as chaves dos provedores podem ficar vazias, e aí os agentes que usam modelo ficam indisponíveis;
+    - o app depende do `minio-init` como opcional (`required: false`). Assim, o bucket fica pronto antes do primeiro envio, e com o MinIO fora o app sobe mesmo assim (spec 11 §9). É também o que faz o `up --wait` esperar o `minio-init` terminar, em vez de recusar o serviço que parou;
+  - **backup** (`scripts/backup.sh`, funções comuns em `scripts/backup-comum.sh`):
+    - um arquivo por armazenamento, o `MANIFEST` com as contagens e o `SHA256SUMS`;
+    - as contagens são as do conteúdo copiado. As dos bancos vêm do próprio dump e as dos volumes, do próprio tar. As do MinIO, do n8n e do ClickHouse são medidas antes e depois da cópia; se mudaram no meio, a cópia se repete, até três vezes;
+    - o ClickHouse conta com `FINAL` nas tabelas que fundem versões de uma linha, para a contagem não mudar quando ele funde as partes;
+    - uma cópia que falha não impede as outras: o diretório sai com `-incompleto` e o script termina com erro;
+    - ficam de fora a fila do Langfuse (Redis), os logs do ClickHouse e a área temporária do `BACKUP` nativo;
+    - a cópia dos volumes usa o serviço `backup` do compose: profile próprio, sem rede, com o tar GNU da imagem do Postgres, que já está na máquina, e donos numéricos;
+    - os scripts ignoram as variáveis de ambiente com nome do `.env.prod.example`: no compose, uma variável do shell passaria na frente do `.env.prod` (o `make` exporta o `.env` de dev, por exemplo);
+  - **restauração** (`scripts/restore.sh`):
+    - confere as somas e pede confirmação;
+    - para os serviços que escrevem e restaura cada armazenamento presente. Os bancos vão numa transação só e o ClickHouse, pelo `RESTORE DATABASE`;
+    - confere cada contagem com o `MANIFEST` e só então sobe tudo. Com divergência, os serviços que escrevem ficam parados;
+    - backups do formato anterior (sem `MANIFEST`) continuam restauráveis, sem a conferência;
+  - **guardas** (`backend/cmd/api/deploy_test.go`): os serviços, as portas publicadas, a imagem única não-root, os segredos sem padrão, o `.env.prod.example` completo e a cobertura do backup. Volume novo quebra o teste até alguém decidir como copiá-lo. O teste dos aliases e o das chaves dos provedores (`internal/ai`) passaram a conferir também o compose de execução e o `.env.prod.example`.
+- **TEST-031 (13/10/2026):**
+  - `make test-restore` (`scripts/testar-restore.sh`): a instalação descartável subiu com os 13 serviços saudáveis em menos de 1 minuto. Recebeu o seed de demonstração e, pela API, uma procuração, um extrato do PGDAS-D (lido pelo worker, com o trace no Langfuse) e um extrato bancário da Conciliação. No bucket, ganhou versões e uma marca de exclusão; no n8n, um workflow;
+  - o backup copiou os 7 armazenamentos em cerca de 30 s (1,3 MB, 149 contagens). A instalação foi destruída com `down -v`, e uma nova, vazia, recebeu a restauração em cerca de 1 minuto, com todas as contagens do `MANIFEST` conferidas antes de os serviços subirem;
+  - a comparação independente com a original bateu: cada tabela dos dois bancos, o SHA-256 de cada arquivo local, a lista de versões dos dois MinIO, os workflows do n8n, o conteúdo de cada tabela do ClickHouse e o SHA-256 dos originais baixados pela API;
+  - ficam fora dessa comparação as tabelas de referência que o Langfuse completa sozinho ao subir (modelos, preços e painéis padrão). O `restore.sh` as confere antes de os serviços subirem;
+  - guardas e lint: `go test ./cmd/api/ ./internal/ai/` e `make lint` verdes.
+- **Validação enxuta (pedido do usuário em 13/10/2026: priorizar a demonstração):** a TASK-031 não mexe em código da aplicação, só em compose, scripts, testes e documentação. Por isso, o `make e2e` e o `make audit` ficaram para a TASK-030.
+
 ### D-043 — Design System InovaSala aplicado e navegação final (TASK-029; 13/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede:** o menu com as 14 áreas na ordem aprovada (08 §2, REQ-050, AC-033) e a interface no Design System InovaSala, sem inventar paleta, tipografia nem tokens (REQ-051, REQ-052, AC-035), com capturas como evidência (08 §13; TEST-029: capturas, E2E e axe).

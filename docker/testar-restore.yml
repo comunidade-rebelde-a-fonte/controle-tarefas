@@ -1,0 +1,14 @@
+# TEST-031 (scripts/testar-restore.sh): sobreposição do docker-compose.prod.yml para as instalações
+# descartáveis do teste de restauração. Nenhuma porta vai para o host e a rede não tem saída para
+# a internet: nenhum dado de teste sai da máquina e nenhum provedor de IA é chamado.
+services:
+  app:
+    ports: !reset []
+  n8n:
+    ports: !reset []
+  langfuse-web:
+    ports: !reset []
+
+networks:
+  default:
+    internal: true

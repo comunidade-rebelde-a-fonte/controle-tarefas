@@ -129,16 +129,18 @@ O ciclo mensal do escritório [PRD §58] acontece todo dentro do sistema: cadast
 | Fator R | Carteira do PA por semáforo e economia, com a ação sugerida. Na ficha, aba Fator R: resultado do PA com o cálculo explicado, grade mensal de receita e folha e configuração (pacote, honorário, início de atividade). "Sujeita ao Fator R" é marcada na aba Folha. Na aba também ficam o simulador de correção, o consultor da empresa, os extratos e as corridas da empresa. Extratos PGDAS-D entram pelo **Inbox PGDAS-D**: o worker lê, vincula pelo CNPJ e lança a receita só em competência vazia; o resto vai para revisão (vincular, rejeitar ou cadastrar a empresa pelo extrato). Em **Agentes**, o priorizador monta a fila do PA e o consultor responde sobre a empresa citada; os números vêm sempre do motor, e aos domingos o worker registra a fila da semana. Em **Observabilidade**, o painel dos agentes, as corridas e a nota humana. O PGDAS-D da Receita Federal prevalece. | Fator R (Carteira, Inbox PGDAS-D, Agentes, Observabilidade); ficha → aba Fator R |
 | Fechar o setor | Quando a linha mostrar "Pronto para fechar", use **Fechar**. Cada módulo fecha por empresa, independente dos outros. Para corrigir depois, **Reabrir** exige motivo e fica registrado no histórico da empresa. | Grades dos setores; ficha → Histórico de competências |
 | Relatar | **Exportar** baixa o XLSX da grade com a competência, os filtros e a busca atuais. Relatórios gera os 6 PDFs (situação geral, pendências, atrasadas, backlog, credenciais e controle do módulo). | Grades, Relatórios |
-| Servidor, todo dia | Backup no cron do host (`scripts/backup.sh`): confira o log e mantenha uma cópia fora do servidor. | `docs/operacao.md` §4 |
+| Servidor, todo dia | Backup de todos os armazenamentos no cron do host (`scripts/backup.sh`): confira o log e mantenha uma cópia fora do servidor. | `docs/operacao.md` §4 |
 
 Prazos, a matriz de declarações por regime e outros valores ainda provisórios (`A VALIDAR`) estão em `docs/pendencias.md`, até a resposta do escritório (T-000).
 
 ## Produção
 
-Imagem única (`Dockerfile`: SPA + API no mesmo binário, usuário não-root) e `docker-compose.prod.yml` (Postgres sem porta publicada no host). Implantação, atualização, backup (`scripts/backup.sh`), restauração (`scripts/restore.sh`) e rotação de senha: `docs/operacao.md`.
+Execução local completa, fora do modo dev (TASK-031): o `docker-compose.prod.yml` sobe o produto inteiro. São o app (SPA + API no mesmo binário, imagem única e usuário não-root), o worker com a mesma imagem, o Postgres, o MinIO, o LiteLLM, o n8n e o Langfuse. Só a aplicação, o n8n e a interface do Langfuse têm porta no host, em `127.0.0.1` por padrão, e o compose recusa subir sem os segredos. Implantação, atualização, backup de todos os armazenamentos (`scripts/backup.sh`, com contagens e rotação 7/4/12), restauração conferida (`scripts/restore.sh`) e rotação de senha: `docs/operacao.md`.
 
 ```bash
-cp .env.prod.example .env.prod   # defina a senha do banco (openssl rand -hex 24)
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+cp .env.prod.example .env.prod   # preencha os segredos vazios (openssl rand -hex 24)
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build --wait
 ```
+
+`make test-restore` (TEST-031) ensaia o ciclo inteiro numa instalação descartável, sem porta no host e sem internet: sobe com dados em todos os armazenamentos, faz o backup, destrói, restaura numa instalação vazia e confere tudo.
 

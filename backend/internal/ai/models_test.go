@@ -155,8 +155,9 @@ func TestCatalog_Requirements(t *testing.T) {
 	}
 }
 
-// A lista de aliases também vive no gateway, no compose e no .env.example. Este teste falha se
-// algum deles divergir do Catalog — e garante que o parser_pgdas não vire alias (ADR-006).
+// A lista de aliases também vive no gateway, nos composes (dev e execução) e nos modelos de .env.
+// Este teste falha se algum deles divergir do Catalog — e garante que o parser_pgdas não vire
+// alias (ADR-006).
 func TestCatalog_MatchesGatewayAndCompose(t *testing.T) {
 	root := filepath.Join("..", "..", "..")
 	read := func(name string) string {
@@ -186,19 +187,26 @@ func TestCatalog_MatchesGatewayAndCompose(t *testing.T) {
 		t.Fatalf("litellm/config.yaml = %v\nCatalog = %v", gateway, want)
 	}
 
-	compose := map[string]string{}
-	for _, m := range regexp.MustCompile(`(?m)^\s*([A-Z_]+_MODEL): \$\{([A-Z_]+_MODEL):-([^}]+)\}`).FindAllStringSubmatch(read("docker-compose.yml"), -1) {
-		if m[1] != m[2] {
-			t.Fatalf("docker-compose.yml: %s usa a variável %s", m[1], m[2])
+	// Os padrões vivem nos dois composes (dev e execução, TASK-031) e nos dois modelos de .env.
+	sources := map[string]map[string]string{}
+	for _, name := range []string{"docker-compose.yml", "docker-compose.prod.yml"} {
+		sources[name] = map[string]string{}
+		for _, m := range regexp.MustCompile(`(?m)^\s*([A-Z_]+_MODEL): \$\{([A-Z_]+_MODEL):-([^}]+)\}`).FindAllStringSubmatch(read(name), -1) {
+			if m[1] != m[2] {
+				t.Fatalf("%s: %s usa a variável %s", name, m[1], m[2])
+			}
+			sources[name][m[1]] = m[3]
 		}
-		compose[m[1]] = m[3]
 	}
-	example := map[string]string{}
-	for _, m := range regexp.MustCompile(`(?m)^([A-Z_]+_MODEL)=(.*)$`).FindAllStringSubmatch(read(".env.example"), -1) {
-		example[m[1]] = strings.TrimSpace(m[2])
+	for _, name := range []string{".env.example", ".env.prod.example"} {
+		sources[name] = map[string]string{}
+		for _, m := range regexp.MustCompile(`(?m)^([A-Z_]+_MODEL)=(.*)$`).FindAllStringSubmatch(read(name), -1) {
+			sources[name][m[1]] = strings.TrimSpace(m[2])
+		}
 	}
+	compose := sources["docker-compose.yml"]
 	for _, info := range Catalog {
-		for source, values := range map[string]map[string]string{"docker-compose.yml": compose, ".env.example": example} {
+		for source, values := range sources {
 			v, ok := values[info.EnvVar]
 			if !ok {
 				t.Errorf("%s sem %s", source, info.EnvVar)
@@ -207,47 +215,55 @@ func TestCatalog_MatchesGatewayAndCompose(t *testing.T) {
 			if _, err := ParseModel(v); err != nil {
 				t.Errorf("%s: %s=%q: %v", source, info.EnvVar, v, err)
 			}
-		}
-		if compose[info.EnvVar] != example[info.EnvVar] {
-			t.Errorf("padrão de %s difere: compose %q, .env.example %q", info.EnvVar, compose[info.EnvVar], example[info.EnvVar])
+			if v != compose[info.EnvVar] {
+				t.Errorf("padrão de %s difere: docker-compose.yml %q, %s %q", info.EnvVar, compose[info.EnvVar], source, v)
+			}
 		}
 	}
-	if len(compose) != len(Catalog) || len(example) != len(Catalog) {
-		t.Errorf("variáveis de modelo: compose %v, .env.example %v; esperado só as do Catalog", keys(compose), keys(example))
+	for source, values := range sources {
+		if len(values) != len(Catalog) {
+			t.Errorf("variáveis de modelo em %s: %v; esperado só as do Catalog", source, keys(values))
+		}
 	}
 }
 
 // As chaves dos provedores só entram no container do LiteLLM; a aplicação usa a chave do
-// gateway [spec 09 §4, ADR-004].
+// gateway [spec 09 §4, ADR-004]. Vale para o compose de dev e para o de execução (TASK-031).
 func TestCompose_ProviderKeysOnlyInGateway(t *testing.T) {
-	b, err := os.ReadFile(filepath.Join("..", "..", "..", "docker-compose.yml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	services := regexp.MustCompile(`(?m)^  ([a-z][a-z0-9-]*):\s*$`)
-	text := string(b)
-	locs := services.FindAllStringSubmatchIndex(text, -1)
-	seen := 0
-	for i, loc := range locs {
-		name := text[loc[2]:loc[3]]
-		end := len(text)
-		if i+1 < len(locs) {
-			end = locs[i+1][0]
+	for _, file := range []string{"docker-compose.yml", "docker-compose.prod.yml"} {
+		b, err := os.ReadFile(filepath.Join("..", "..", "..", file))
+		if err != nil {
+			t.Fatal(err)
 		}
-		block := text[loc[0]:end]
-		for _, key := range []string{"OPENAI_API_KEY", "ANTHROPIC_API_KEY"} {
-			has := strings.Contains(block, key)
-			if name == "litellm" && !has {
-				t.Errorf("o serviço litellm deveria receber %s", key)
-			}
-			if name != "litellm" && has {
-				t.Errorf("o serviço %s não pode receber %s: só o gateway conhece as chaves dos provedores", name, key)
-			}
+		text := string(b)
+		// Só a seção services: os blocos x-* do topo não são serviços.
+		if i := strings.Index(text, "\nservices:\n"); i >= 0 {
+			text = text[i:]
 		}
-		seen++
-	}
-	if seen < 5 {
-		t.Fatalf("só %d serviços encontrados no docker-compose.yml", seen)
+		services := regexp.MustCompile(`(?m)^  ([a-z][a-z0-9-]*):\s*$`)
+		locs := services.FindAllStringSubmatchIndex(text, -1)
+		seen := 0
+		for i, loc := range locs {
+			name := text[loc[2]:loc[3]]
+			end := len(text)
+			if i+1 < len(locs) {
+				end = locs[i+1][0]
+			}
+			block := text[loc[0]:end]
+			for _, key := range []string{"OPENAI_API_KEY", "ANTHROPIC_API_KEY"} {
+				has := strings.Contains(block, key)
+				if name == "litellm" && !has {
+					t.Errorf("%s: o serviço litellm deveria receber %s", file, key)
+				}
+				if name != "litellm" && has {
+					t.Errorf("%s: o serviço %s não pode receber %s: só o gateway conhece as chaves dos provedores", file, name, key)
+				}
+			}
+			seen++
+		}
+		if seen < 5 {
+			t.Fatalf("só %d serviços encontrados no %s", seen, file)
+		}
 	}
 }
 

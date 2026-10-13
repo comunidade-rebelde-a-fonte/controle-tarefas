@@ -358,6 +358,8 @@ Fica de fora, também por decisão do usuário (D-012): o agente `echo` do Fator
 **Aceite:** a instalação local sobe com todos os serviços; um backup completo é restaurado em ambiente limpo e as contagens conferem.  
 **Validação:** TEST-031.
 
+> **Como foi implementado (D-044).** O `docker-compose.prod.yml` sobe os 13 serviços do produto, com o Langfuse (decisão do usuário: um compose só). Só a aplicação, o n8n e a interface do Langfuse têm porta no host, e nenhum segredo tem valor padrão. O `scripts/backup.sh` copia os sete armazenamentos: os bancos por dump, o ClickHouse pelo `BACKUP` nativo e os volumes do MinIO e do n8n com o serviço pausado (decisão do usuário). Ele grava o `MANIFEST` das contagens e as somas SHA-256, com a rotação 7/4/12 da origem. O `scripts/restore.sh` restaura e confere cada contagem antes de subir os serviços. TEST-031: o `make test-restore` (`scripts/testar-restore.sh`) faz o ciclo inteiro numa instalação descartável (decisão do usuário), e o `backend/cmd/api/deploy_test.go` guarda o compose, o `.env.prod.example` e a cobertura do backup.
+
 ## 13. Adendo de 07/10/2026 — fatia vertical do Fator R (D-016)
 
 Para mostrar cedo a tela de outro sistema, o Fator R sem IA foi adiantado e validado como uma fatia única: TASK-006a → TASK-010 → TASK-011 → TASK-014a. Um commit local por TASK, depois da validação. As TASKs 006 e 014 foram divididas assim:

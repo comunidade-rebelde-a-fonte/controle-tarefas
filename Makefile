@@ -63,7 +63,7 @@ E2E_S3_ACCESS_KEY := conciliacao-e2e-app
 E2E_S3_SECRET_KEY := e2e-only-not-a-secret-app
 E2E_MINIO := MINIO_PORT=$(E2E_MINIO_PORT) MINIO_CONSOLE_PORT=$(E2E_MINIO_CONSOLE_PORT) S3_ROOT_USER=minio-e2e S3_ROOT_PASSWORD=e2e-only-not-a-secret-root 	S3_BUCKET=$(E2E_S3_BUCKET) S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) $(COMPOSE) -p controle-e2e
 
-.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo demo-fixtures gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse test-restore eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo demo-fixtures gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -186,6 +186,9 @@ eval-extrator: ## Avalia os extratores da Conciliação (extrato e comprovante) 
 
 test-langfuse: ## Integração com o Langfuse local real (exige make langfuse-up): envia uma corrida e confere pela API pública
 	cd backend && go test -count=1 -tags langfuse -run TestLangfuse ./internal/ai/tracer/
+
+test-restore: ## TEST-031: instalação completa descartável (sem porta e sem internet), backup, destruição, restauração e conferência (~15 min; constrói a imagem)
+	@scripts/testar-restore.sh
 
 audit: ## Vulnerabilidades conhecidas: govulncheck (Go) e npm audit (frontend e e2e) [docs/seguranca.md]
 	cd backend && $(BIN)/govulncheck ./...

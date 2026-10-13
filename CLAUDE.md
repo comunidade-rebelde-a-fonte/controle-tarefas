@@ -238,6 +238,14 @@ Seed-demo integrado (TASK-027, D-041):
 - o `make demo-fixtures` (`api seed --fixtures`, em `backend/seed/fixtures`) carrega o cenário pelos serviços dos módulos e espera o worker do ambiente (exige o `make dev` no ar). Ele grava os extratos do PGDAS-D em `demo/pgdas` (fora do git), e rodar de novo não duplica nada;
 - teste nenhum depende do cenário carregado na 111: o E2E roda só o seed, e o cenário usa os arquivos dos testes da Conciliação (a dedupe é única no sistema).
 
+## Execução e backup
+
+Execução local completa e backup de todos os armazenamentos (TASK-031, D-044; guia em `docs/operacao.md`):
+- o `docker-compose.prod.yml` sobe o produto inteiro, Langfuse incluído. Só a aplicação, o n8n e a interface do Langfuse têm porta no host (127.0.0.1), e nenhum segredo tem valor padrão (`${X:?}`);
+- variável nova do compose de execução entra no `.env.prod.example`, com segredo vazio;
+- volume novo com dados entra no `scripts/backup.sh` e no `scripts/restore.sh`, com contagem no MANIFEST (funções comuns em `scripts/backup-comum.sh`). O `backend/cmd/api/deploy_test.go` quebra com volume sem backup, porta publicada fora da lista ou segredo com valor padrão;
+- `make test-restore` (TEST-031, uns 15 min) faz o ciclo inteiro numa instalação descartável: projetos `controle-t031a` e `controle-t031b`, sem porta no host e sem internet (`docker/testar-restore.yml`). Ele constrói a imagem `controle-app:t031`, faz o backup, destrói, restaura numa instalação vazia, confere tudo e apaga os volumes no fim.
+
 ## UI
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).
