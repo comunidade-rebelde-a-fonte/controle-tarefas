@@ -206,7 +206,7 @@ export function LedgerPage() {
           </form>
         </div>
         {inverted ? (
-          <p role="alert" className="text-sm text-red-800">
+          <p role="alert" className="text-sm text-destructive">
             A competência inicial é depois da final.
           </p>
         ) : null}

@@ -17,7 +17,7 @@ function CategoryBlock({ category }: { category: Category }) {
     <li className="grid gap-1.5 border-b py-3 last:border-b-0" aria-label={`${category.label}: ${category.count}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 text-sm font-medium">
-          <Icon aria-hidden className={critical ? "size-4 text-destructive" : "size-4 text-amber-700"} />
+          <Icon aria-hidden className={critical ? "size-4 text-destructive" : "size-4 text-warning"} />
           {category.label}
         </span>
         <Badge variant={critical ? "danger" : "warning"}>{category.count}</Badge>
@@ -62,7 +62,7 @@ export function AttentionPanel({ attention }: { attention: Attention }) {
       <CardBody className="py-0">
         {visible.length === 0 ? (
           <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-            <CircleCheck aria-hidden className="size-4 text-emerald-700" /> Nada exige atenção nesta competência.
+            <CircleCheck aria-hidden className="size-4 text-success" /> Nada exige atenção nesta competência.
           </p>
         ) : (
           <ul aria-label="Categorias de atenção">

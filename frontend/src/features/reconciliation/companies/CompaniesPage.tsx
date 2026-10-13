@@ -115,7 +115,7 @@ export function CompaniesPage() {
                       <Td className="text-xs whitespace-nowrap">
                         {it.accounting_state === "CLOSED" ? "Fechado" : it.accounting_state === "OPEN" ? "Aberto" : "—"}
                         {it.blocks_accounting ? (
-                          <span className="mt-0.5 flex items-center gap-1 text-amber-900">
+                          <span className="mt-0.5 flex items-center gap-1 text-warning">
                             <Lock className="size-3" aria-hidden /> Não fecha: a Conciliação não está concluída
                           </span>
                         ) : null}

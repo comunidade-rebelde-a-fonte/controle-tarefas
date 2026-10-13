@@ -20,6 +20,7 @@ const FIRST_PAGES = 5;
 function PageImage({ src, alt, boxes }: { src: string; alt: string; boxes: Highlight[] }) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
   return (
+    // A folha do original fica branca, como o papel (exceção ao tema escuro, TASK-029).
     <div className="relative overflow-hidden rounded border bg-white">
       <img
         src={src}
@@ -36,7 +37,7 @@ function PageImage({ src, alt, boxes }: { src: string; alt: string; boxes: Highl
                 key={i}
                 title={b.label}
                 aria-hidden
-                className="pointer-events-none absolute rounded-sm border-2 border-amber-500 bg-amber-300/20"
+                className="pointer-events-none absolute rounded-sm border-2 border-warning/60 bg-warning/15"
                 style={{
                   left: `${(x0 / size.w) * 100}%`,
                   top: `${(y0 / size.h) * 100}%`,

@@ -135,7 +135,7 @@ function MonthRow({ companyId, competence, movement }: { companyId: string; comp
           {put.isPending ? "Salvando…" : "Salvar"}
         </Button>
         {state.kind === "error" ? (
-          <span role="alert" className="ml-2 text-xs text-red-800">
+          <span role="alert" className="ml-2 text-xs text-destructive">
             {state.message}
           </span>
         ) : null}

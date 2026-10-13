@@ -20,8 +20,8 @@ function Value({ label, value, testId }: { label: string; value: string; testId?
 type MonthState = "preenchido" | "faltante" | "fora";
 
 const MONTH_STYLE: Record<MonthState, string> = {
-  preenchido: "border-emerald-200 bg-emerald-50 text-emerald-900",
-  faltante: "border-red-200 bg-red-50 text-red-900",
+  preenchido: "border-success/30 bg-success/10 text-success",
+  faltante: "border-destructive/30 bg-destructive/10 text-destructive",
   fora: "border-border bg-muted text-muted-foreground",
 };
 

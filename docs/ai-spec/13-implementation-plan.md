@@ -286,8 +286,10 @@ Associar cenários fictícios existentes às empresas do Controle.
 **Requisitos:** REQ-050, REQ-051, REQ-052.  
 Implementar tokens/componentes oficiais somente após material disponível.
 
-**Aceite:** AC-033, AC-034, AC-035.  
+**Aceite:** AC-033, AC-034, AC-035.
 **Validação:** TEST-029 — screenshots + E2E + axe.
+
+> **Como foi implementado (D-043).** O tema InovaSala nos tokens do `frontend/src/index.css`, com as fontes do material servidas pelo sistema, o logo InovaSala by Ceath no menu e os componentes adaptados a uma tela densa. O menu está na ordem aprovada, com a Importação/Exportação no fim (decisões do usuário). TEST-029: `e2e/specs/visual-evidence.spec.ts` (tema e capturas, revisadas em `docs/consolidacao/evidencias/task-029`), o axe do `a11y.spec.ts` e a guarda `src/app/theme.test.ts`.
 
 ### TASK-030 — E2E consolidado e revisão final
 

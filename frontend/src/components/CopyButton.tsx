@@ -49,7 +49,7 @@ export function CopyButton({ value, label, showLabel = false, className, tabInde
           void copy();
         }}
       >
-        {copied ? <Check className="text-emerald-600" aria-hidden /> : <Copy aria-hidden />}
+        {copied ? <Check className="text-success" aria-hidden /> : <Copy aria-hidden />}
         {showLabel ? <span>{text}</span> : null}
         <span className="sr-only" aria-live="polite">
           {copied ? "Copiado" : ""}

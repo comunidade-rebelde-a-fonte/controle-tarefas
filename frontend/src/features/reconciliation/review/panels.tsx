@@ -44,7 +44,7 @@ function Marks({ marks }: { marks: unknown[] }) {
   return (
     <ul className="grid gap-1.5" aria-label="Marcas da linha">
       {list.map((m, i) => (
-        <li key={i} className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <li key={i} className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-sm text-warning">
           {reasonText(m.motivo ?? m.tipo)}
           {m.justificativa ? <span className="block text-xs">Motivo do desfazer: {m.justificativa}</span> : null}
         </li>
@@ -405,7 +405,7 @@ export function DocumentPanel({ id, showHeader = true }: { id: string; showHeade
           <p className="flex flex-wrap items-center gap-2 font-medium">
             {d.file_name} <DocStatusBadge status={d.status} />
           </p>
-          {reason ? <p className="text-sm text-amber-900">{reasonText(reason)}</p> : null}
+          {reason ? <p className="text-sm text-warning">{reasonText(reason)}</p> : null}
           <Link to={`/reconciliation/documents/${d.id}`} className="w-fit text-xs underline underline-offset-4">
             Abrir o documento
           </Link>

@@ -7,7 +7,7 @@ import type { ImportResult } from "@/services/imports";
 export function ResultStep({ result, onRestart }: { result: ImportResult; onRestart: () => void }) {
   return (
     <div className="grid max-w-2xl gap-4">
-      <div role="status" className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+      <div role="status" className="flex items-start gap-2 rounded-lg border border-success/30 bg-success/10 p-4 text-sm text-success">
         <CircleCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
         <div>
           <p className="font-medium">Importação concluída</p>

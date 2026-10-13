@@ -4,6 +4,8 @@
 
 Aplicação desktop-first, densa e operacional, com uma única navegação para os três domínios. A UI deve seguir o **Design System InovaSala** fornecido pelo usuário.
 
+> **Desde a TASK-029 (D-005, D-043):** o material foi entregue (`docs/design-system/`) e aplicado. As regras abaixo valeram até a entrega.
+
 [PENDING] O arquivo/anexo oficial do Design System não está disponível no contexto atual. Portanto:
 
 - não inventar paleta;
@@ -33,6 +35,8 @@ Ordem aprovada:
 14. Configurações
 
 A arquitetura visual (sidebar/topbar/submenus) deve ser derivada do Design System InovaSala quando disponível.
+
+> **Como foi implementado (TASK-029; D-043).** Menu lateral com o logo InovaSala by Ceath, as 14 áreas nesta ordem e a Importação/Exportação do Controle num item próprio no fim (decisão do usuário). Os itens ficam em cinco grupos: Visão geral, Operação mensal, Fator R e Conciliação, Acompanhamento e Sistema. O item ativo tem fundo `neutral-800` e o acento laranja do material. Os submenus do Fator R e da Conciliação continuam como abas no topo da área.
 
 ## 3. Dashboard
 
@@ -252,3 +256,5 @@ Prioridade desktop/notebook. Telas de tabela e revisão podem exigir viewport la
 ## 13. Critério visual
 
 **AC-035** só pode ser concluído com o Design System InovaSala real disponível. Claude Code deve registrar screenshots/evidência visual após aplicar tokens/componentes oficiais.
+
+> **Evidência (TASK-029; D-043):** as capturas das telas principais com o tema estão em `docs/consolidacao/evidencias/task-029`. Elas são geradas pelo `e2e/specs/visual-evidence.spec.ts`, que também confere fundo, fontes, logo e acento.

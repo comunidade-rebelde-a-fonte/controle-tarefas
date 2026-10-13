@@ -102,7 +102,7 @@ export function CompanyForm({
   return (
     <form onSubmit={(e) => void submit(e)} noValidate className="grid gap-5" aria-label={editing ? "Editar empresa" : "Cadastrar empresa"}>
       {conflict ? (
-        <div className="flex gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900" role="alert">
+        <div className="flex gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" role="alert">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           <div>
             <p>{conflict.message}</p>

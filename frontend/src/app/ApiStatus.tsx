@@ -15,7 +15,7 @@ export function ApiStatus() {
   const ok = !isError && data.status === "ok";
   return (
     <span
-      className={ok ? "inline-flex items-center gap-1.5 text-xs text-emerald-300" : "inline-flex items-center gap-1.5 text-xs text-amber-300"}
+      className={ok ? "inline-flex items-center gap-1.5 text-xs text-success" : "inline-flex items-center gap-1.5 text-xs text-warning"}
       role="status"
       aria-label={ok ? "API disponível" : "API indisponível"}
     >

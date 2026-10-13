@@ -25,7 +25,7 @@ export function JobProgress({ document }: { document: PgdasDocument }) {
 
   if (status === "dead") {
     return (
-      <div role="alert" className="grid gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900" data-testid="job-falhou">
+      <div role="alert" className="grid gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive" data-testid="job-falhou">
         <p className="flex items-start gap-2">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
@@ -46,7 +46,7 @@ export function JobProgress({ document }: { document: PgdasDocument }) {
   if (!jobActive(status)) return null;
   if (!workerOnline) {
     return (
-      <p role="status" className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="fila-parada">
+      <p role="status" className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" data-testid="fila-parada">
         <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
         Fila parada: nenhum worker ativo. O extrato está guardado e será lido quando o worker voltar.
       </p>

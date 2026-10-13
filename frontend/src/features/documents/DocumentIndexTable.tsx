@@ -64,7 +64,7 @@ export function DocumentIndexTable({
                 <tr key={`${d.module}:${d.id}`} data-modulo={d.module}>
                   <Td className="text-xs whitespace-nowrap tabular-nums">{formatDateTime(d.received_at)}</Td>
                   <Td className="max-w-72">
-                    <Link to={drilldownHref(d.detail)} className="inline-flex min-h-6 items-center truncate font-medium hover:underline" title={d.file_name}>
+                    <Link to={drilldownHref(d.detail)} className="block max-w-72 truncate leading-6 font-medium hover:underline" title={d.file_name}>
                       {d.file_name}
                     </Link>
                   </Td>

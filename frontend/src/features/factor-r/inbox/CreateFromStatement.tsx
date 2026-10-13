@@ -117,7 +117,7 @@ export function CreateFromStatement({ document }: { document: PgdasDocument }) {
   const suggestion = document.sugestao_cadastro;
   if (!suggestion || document.status !== "needs_review") return null;
   return (
-    <div data-testid="cadastro-pelo-extrato" className="grid gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950">
+    <div data-testid="cadastro-pelo-extrato" className="grid gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
       <p>
         <strong>Esse CNPJ não está no cadastro de empresas</strong> ({suggestion.cnpj_formatado}).
         {suggestion.nome_empresarial ? ` O extrato indica: ${suggestion.nome_empresarial}.` : null}

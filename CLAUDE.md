@@ -242,7 +242,13 @@ Seed-demo integrado (TASK-027, D-041):
 
 A interface final usa Design System InovaSala. O material oficial está em `docs/design-system/` (entregue em 07/10/2026; ver ADR-005 e `docs/consolidacao/decisoes.md` D-005).
 
-Não invente cores, fontes ou tokens fora desse material. Estrutura e comportamento podem ser implementados antes da TASK-029.
+Não invente cores, fontes ou tokens fora desse material.
+
+Aplicado na TASK-029 (D-043):
+- tokens em `frontend/src/index.css`: use os nomes semânticos (`bg-card`, `text-muted-foreground`, `border`, `text-primary`...). Para estado, use `success`, `warning`, `destructive` e `info`, nunca a paleta Tailwind de cor direta. A guarda `src/app/theme.test.ts` quebra com a paleta clara antiga ou com cor em hex;
+- fontes Inter (texto) e Bricolage Grotesque (`font-display`, títulos) vêm dos pacotes `@fontsource-variable`, sem rede;
+- menu em `frontend/src/app/areas.ts`, na ordem aprovada (08 §2), em cinco grupos; o logo do menu é gerado do SVG oficial por `docs/design-system/logos/render-logo.mjs`;
+- tela nova passa no axe do E2E (contraste AA no fundo escuro: texto secundário `neutral-400`, nunca `neutral-500` em texto pequeno).
 
 ## Execução da consolidação
 

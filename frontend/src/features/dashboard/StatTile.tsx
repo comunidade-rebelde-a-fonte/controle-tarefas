@@ -27,8 +27,8 @@ export function StatTile({
         className={cn(
           "text-2xl font-semibold tabular-nums",
           tone === "danger" && "text-destructive",
-          tone === "warning" && "text-amber-700",
-          tone === "success" && "text-emerald-700",
+          tone === "warning" && "text-warning",
+          tone === "success" && "text-success",
         )}
       >
         {value}

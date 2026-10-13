@@ -143,7 +143,7 @@ export function CompaniesPage() {
         </div>
 
         {isError ? (
-          <p className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+          <p className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
             Não foi possível carregar as empresas. Tente novamente.
           </p>
         ) : isPending ? (

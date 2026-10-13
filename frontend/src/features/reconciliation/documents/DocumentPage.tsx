@@ -46,7 +46,7 @@ export function DocumentPage() {
         </Link>
         <div className="flex flex-wrap items-center gap-2">
           <DocStatusBadge status={d.status} />
-          {reason ? <span className="text-sm text-amber-900">{reasonText(reason)}</span> : null}
+          {reason ? <span className="text-sm text-warning">{reasonText(reason)}</span> : null}
         </div>
         <DocumentJob document={d} />
         <div className="grid gap-4 lg:grid-cols-2">

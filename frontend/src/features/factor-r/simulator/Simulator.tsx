@@ -179,7 +179,7 @@ export function Simulator({ companyId, pa: initialPA, policyMeta }: { companyId:
           <Field label="IRRF marginal (%)" error={fieldError("irrf")}>
             <Input name="sim-irrf" inputMode="decimal" value={irrf} onChange={(e) => setIrrf(e.target.value)} />
           </Field>
-          <p className="col-span-2 flex items-start gap-2 text-xs text-amber-900" data-testid="aviso-inss">
+          <p className="col-span-2 flex items-start gap-2 text-xs text-warning" data-testid="aviso-inss">
             <TriangleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             INSS sem teto nesta versão: o custo pode ficar superestimado para pró-labore alto.
           </p>

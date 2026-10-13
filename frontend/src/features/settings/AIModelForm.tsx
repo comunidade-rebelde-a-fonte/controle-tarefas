@@ -81,22 +81,22 @@ function ChecksPanel({ title, ok, checks, footer }: { title: string; ok: boolean
     <div
       role="status"
       data-testid="resultado-validacao"
-      className={ok ? "rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950" : "rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-950"}
+      className={ok ? "rounded-md border border-success/30 bg-success/10 p-3 text-sm text-success" : "rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"}
     >
       <p className="font-medium">{title}</p>
       <ul className="mt-2 grid gap-1">
         {checks.map((c) => (
           <li key={c.code} className="flex items-start gap-2">
             {c.ok ? (
-              <CircleCheck className="mt-0.5 size-4 shrink-0 text-emerald-700" aria-label="ok" />
+              <CircleCheck className="mt-0.5 size-4 shrink-0 text-success" aria-label="ok" />
             ) : (
-              <CircleX className="mt-0.5 size-4 shrink-0 text-red-700" aria-label="reprovado" />
+              <CircleX className="mt-0.5 size-4 shrink-0 text-destructive" aria-label="reprovado" />
             )}
             <span>{c.message}</span>
           </li>
         ))}
       </ul>
-      {footer ? <p className="mt-2 text-xs opacity-80">{footer}</p> : null}
+      {footer ? <p className="mt-2 text-xs text-neutral-300">{footer}</p> : null}
     </div>
   );
 }

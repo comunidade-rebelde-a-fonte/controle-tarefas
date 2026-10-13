@@ -62,7 +62,7 @@ export function AIModelsTab() {
           {CREDENTIALS_NOTE}
         </p>
         {data && !data.gateway_configured ? (
-          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="sem-gateway">
+          <div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" data-testid="sem-gateway">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
             <p>Gateway de IA não configurado (LITELLM_BASE_URL): dá para ligar e desligar agentes, mas não para validar nem trocar o modelo.</p>
           </div>

@@ -157,7 +157,7 @@ export function CredentialSection({ row, type, editable = false }: { row: Creden
           {HINT[type]}
         </p>
         {error && (
-          <p role="alert" className="rounded-md border border-destructive/40 bg-red-50 px-3 py-2 text-sm text-red-800">
+          <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {error}
           </p>
         )}

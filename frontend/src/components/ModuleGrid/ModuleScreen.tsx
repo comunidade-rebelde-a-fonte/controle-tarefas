@@ -102,7 +102,7 @@ export function ModuleScreen({
                 {" · "}
                 <button
                   type="button"
-                  className="font-medium text-emerald-700 underline-offset-2 hover:underline"
+                  className="font-medium text-success underline-offset-2 hover:underline"
                   onClick={() => setFilter("readyToClose", true)}
                 >
                   {ready} {ready === 1 ? "pronta" : "prontas"} para fechar

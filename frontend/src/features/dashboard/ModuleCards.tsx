@@ -12,7 +12,7 @@ function Bar({ value, label }: { value: number; label: string }) {
         <span className="font-medium tabular-nums">{pct}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
-        <div className="h-full rounded-full bg-[#2a78d6]" style={{ width: `${Math.round(value * 100)}%` }} />
+        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
     </div>
   );

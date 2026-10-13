@@ -134,7 +134,7 @@ export function Completion({
         {current ? (
           <>
             <p className="flex items-start gap-2" role="status">
-              <CheckCheck className="mt-0.5 size-4 shrink-0 text-emerald-700" aria-hidden />
+              <CheckCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
               <span>
                 Concluída por {current.completed_by} em {formatDateTime(current.completed_at)}; {SYNC_TEXT[current.obligation_sync]}. As
                 mudanças na conciliação desta competência ficam travadas até a reabertura.
@@ -156,7 +156,7 @@ export function Completion({
                 <ul className="grid gap-0.5 pl-1" aria-label="O que falta para concluir">
                   {pending.map(([text, to]) => (
                     <li key={text} className="flex items-start gap-2">
-                      <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-700" aria-hidden />
+                      <CircleAlert className="mt-0.5 size-3.5 shrink-0 text-warning" aria-hidden />
                       <Link to={to} className="underline underline-offset-4">
                         {text}
                       </Link>

@@ -28,7 +28,7 @@ function Bar({ value, label }: { value: number; label: string }) {
         <span className="font-medium tabular-nums">{pct}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
-        <div className="h-full rounded-full bg-[#2a78d6]" style={{ width: `${Math.round(value * 100)}%` }} />
+        <div className="h-full rounded-full bg-primary" style={{ width: `${Math.round(value * 100)}%` }} />
       </div>
     </div>
   );
@@ -181,7 +181,7 @@ function Reconciliation({ r, href }: { r: CompanyOverview["reconciliation"]; hre
             </div>
             {r.state !== "concluida" ? <p>O que falta: {blockingText(r.blocking)}</p> : null}
             {r.blocks_accounting ? (
-              <p className="flex items-center gap-1 text-amber-900">
+              <p className="flex items-center gap-1 text-warning">
                 <Lock className="size-3.5" aria-hidden /> O Contábil não fecha enquanto a conciliação não estiver concluída.
               </p>
             ) : null}
@@ -240,7 +240,7 @@ function Attention({ categories }: { categories: CompanyOverview["attention"] })
             {categories.map((c) => (
               <li key={c.key} className="grid gap-1" aria-label={`${c.label}: ${String(c.count)}`}>
                 <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                  <TriangleAlert aria-hidden className="size-4 text-amber-700" />
+                  <TriangleAlert aria-hidden className="size-4 text-warning" />
                   {c.label}
                   <Badge variant="warning">{c.count}</Badge>
                   {c.drilldown ? (

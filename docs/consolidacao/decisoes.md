@@ -4,6 +4,50 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-043 — Design System InovaSala aplicado e navegação final (TASK-029; 13/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
+
+- **O que a spec pede:** o menu com as 14 áreas na ordem aprovada (08 §2, REQ-050, AC-033) e a interface no Design System InovaSala, sem inventar paleta, tipografia nem tokens (REQ-051, REQ-052, AC-035), com capturas como evidência (08 §13; TEST-029: capturas, E2E e axe).
+- **Decisões do usuário (as quatro recomendadas):**
+  - **fontes:** a Inter (texto) e a Bricolage Grotesque (títulos) vêm com o sistema, nos pacotes `@fontsource-variable/inter` e `@fontsource-variable/bricolage-grotesque` 5.3.0. São dependências novas, autorizadas pelo usuário, com licença OFL. Não há requisição ao Google, e funciona sem internet;
+  - **logo:** o InovaSala by Ceath branco no topo do menu, com o nome do sistema embaixo.
+    - O SVG oficial embute imagens (1,7 MB) e tem um retângulo preto atrás do texto.
+    - Por isso entra no frontend um PNG de 25 KB (`frontend/src/assets/brand`), renderizado dele no Chromium do E2E. O preto foi convertido em transparência (sobre preto, a aparência é a mesma) e a margem foi recortada.
+    - O SVG original e o script que gera o PNG ficam em `docs/design-system/logos`. O script gera o mesmo arquivo, byte a byte;
+  - **menu:** a ordem aprovada, com a Importação/Exportação do Controle num item próprio no fim (15 itens), em cinco grupos. Os rótulos continuam os do PRD do Controle:
+    - Visão geral: Dashboard e Empresas;
+    - Operação mensal: Fiscal, Declarações, Contábil, Folha e DCTFWeb;
+    - Fator R e Conciliação;
+    - Acompanhamento: Procurações e Certificados, Backlog, Documentos e Relatórios;
+    - Sistema: Cadastros e Configurações e Importação/Exportação;
+  - **visual operacional:**
+    - fundo preto, superfícies escuras e bordas finas;
+    - o laranja só na ação principal, no item ativo do menu, no foco e nos destaques;
+    - o botão principal com o gradiente do material e texto escuro;
+    - sem animação de entrada e sem brilho nas tabelas.
+- **Dentro da autonomia** (a adaptação do material a uma aplicação densa, como pede a ADR-005):
+  - **tokens** (`frontend/src/index.css`): os componentes já usavam nomes semânticos (fundo, cartão, borda, primário...), e os valores passaram a ser os do material:
+    - fundo `#050505`, cartão `#0A0A0A` e superfícies elevadas `neutral-900`;
+    - texto branco e `neutral-400`, e o acento `orange-500`, apontando para a paleta Tailwind que o próprio material usa;
+    - onde o material usa transparência sobre o fundo (`white/5`, `white/10`, `neutral-800/80`), o token é a cor já composta sobre `#050505`. Assim, os cabeçalhos fixos e as colunas congeladas não deixam o conteúdo transparecer;
+  - **contraste:**
+    - o texto auxiliar `neutral-500` do material não passa no AA em texto pequeno (4,3:1), então o texto secundário usa `neutral-400` (8:1);
+    - a borda dos campos usa `neutral-500` (4:1, acima do 3:1 exigido para componentes), porque a `white/10` do material teria 1,4:1;
+  - **estados:** o material não tem cores de estado. Ficaram, sempre com ícone ou texto (nunca só cor):
+    - o laranja (`orange-400`) para "em andamento" e o amarelo (`yellow-300`) para atenção, ambos do material;
+    - o verde (`emerald-400`) e o vermelho (`red-400`), da mesma paleta Tailwind, só para concluído e erro;
+    - as 117 classes da paleta clara, em 40 arquivos, viraram os tokens `success`, `warning`, `destructive` e `info`. A folha do original, no visualizador de documentos, continua branca como o papel;
+  - **componentes:**
+    - botões em pílula: o principal com gradiente, o secundário branco, o de contorno e o fantasma discretos e o de perigo em contorno vermelho;
+    - cartões `rounded-xl` com borda fina, campos `rounded-lg` com fundo `black/40`, e selos nos estilos "trending" e "tag neutra";
+    - diálogos, popovers e menus em `neutral-900`, e títulos de página em Bricolage leve;
+    - `color-scheme: dark` para os controles nativos, foco com contorno laranja, e gráficos e barras no laranja;
+  - **guarda:** um teste do frontend (`src/app/theme.test.ts`) falha se uma tela voltar a usar a paleta clara antiga ou cor em hex. Há duas exceções justificadas.
+- **Ambiente de dev:** o contêiner `web` instala dependências só ao subir. Depois da troca das fontes, ele precisa de `docker compose restart web`.
+- **TEST-029:**
+  - no E2E, `e2e/specs/visual-evidence.spec.ts` confere o tema aplicado: o fundo `#050505`, as duas fontes carregadas pelo próprio sistema, a Bricolage no título, o logo e o laranja no item ativo. A spec grava as capturas das telas principais, e as revisadas ficam em `docs/consolidacao/evidencias/task-029`;
+  - o axe (`e2e/specs/a11y.spec.ts`) passa em todas as telas, diálogos e menus com o tema novo. A única violação encontrada no caminho (um rodapé com opacidade no diálogo de alias de IA) foi corrigida;
+  - o teste do menu (`Layout.test.tsx`) confere a ordem, os grupos, o logo e o item ativo.
+
 ### D-042 — Exportação do razão em XLSX (TASK-028; 13/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede:** exportação genérica do razão em XLSX e CSV (REQ-029), sem leiaute de ERP (intake). Do razão filtrado, os dois arquivos preservam valores, competência, conta, contraparte e origem de forma determinística (AC-022) e são comparados a fixture (TEST-028).

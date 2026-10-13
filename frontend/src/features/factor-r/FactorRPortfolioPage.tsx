@@ -47,7 +47,7 @@ export function PayrollIncrease({ line }: { line: Pick<FactorRPortfolioLine, "re
   const { reforco_mensal_28: to28, reforco_mensal_meta: toTarget, meta_operacional: target } = line;
   if (to28 === null || toTarget === null) return <span className="text-muted-foreground">—</span>;
   const targetLabel = `meta de ${formatRate(target)}`;
-  if (!isPositive(toTarget)) return <span className="text-emerald-800">já na {targetLabel}</span>;
+  if (!isPositive(toTarget)) return <span className="text-success">já na {targetLabel}</span>;
   return (
     <div className="grid gap-0.5 whitespace-nowrap">
       {isPositive(to28) ? (
@@ -56,7 +56,7 @@ export function PayrollIncrease({ line }: { line: Pick<FactorRPortfolioLine, "re
           <span className="text-xs text-muted-foreground">para chegar a 28% (Anexo III)</span>
         </span>
       ) : (
-        <span className="text-xs text-emerald-800">já atinge 28% (Anexo III)</span>
+        <span className="text-xs text-success">já atinge 28% (Anexo III)</span>
       )}
       <span>
         <span className="tabular-nums">+ {formatMoney(toTarget)}</span>{" "}
@@ -108,7 +108,7 @@ function PortfolioTable({ data, lines }: { data: FactorRPortfolio; lines: Factor
                   {l.pacote_comercial ? <Badge variant="secondary">{PACKAGE_LABELS[l.pacote_comercial]}</Badge> : null}
                 </div>
                 {l.meses_faltantes.length > 0 ? (
-                  <p className="text-xs text-red-800">Faltam: {l.meses_faltantes.map(displayCompetence).join(", ")}</p>
+                  <p className="text-xs text-destructive">Faltam: {l.meses_faltantes.map(displayCompetence).join(", ")}</p>
                 ) : null}
               </Td>
               <Td>

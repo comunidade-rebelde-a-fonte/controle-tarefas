@@ -73,7 +73,7 @@ function DependencyBody({
         description={soft ? `Concluir ${typeName} mesmo com pré-requisitos pendentes exige confirmação e motivo.` : `${typeName} não pode ser concluída fora de ordem.`}
       />
       <div
-        className={soft ? "rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" : "rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900"}
+        className={soft ? "rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" : "rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"}
         role="alert"
       >
         <p className="flex items-start gap-2 font-medium">

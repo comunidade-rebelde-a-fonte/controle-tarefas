@@ -150,7 +150,7 @@ function UploadPanel() {
             s.result ? (
               <SentDocument key={s.key} sent={{ ...s, result: s.result }} />
             ) : (
-              <li key={s.key} role="alert" className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+              <li key={s.key} role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
                 <span className="font-medium">{s.name}</span>: {s.error}
               </li>
             ),

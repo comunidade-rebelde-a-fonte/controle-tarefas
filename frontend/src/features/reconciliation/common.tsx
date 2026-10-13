@@ -40,7 +40,7 @@ export function Amount({ value, direction }: { value: string | null | undefined;
   const Icon = credit ? ArrowDownLeft : ArrowUpRight;
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap tabular-nums">
-      <Icon className={credit ? "size-3.5 text-emerald-700" : "size-3.5 text-red-700"} aria-hidden />
+      <Icon className={credit ? "size-3.5 text-success" : "size-3.5 text-destructive"} aria-hidden />
       {formatMoney(value)}
       <span className="sr-only">{credit ? "(entrada)" : "(saída)"}</span>
     </span>
@@ -87,7 +87,7 @@ export function DocumentJob({ document }: { document: ReconciliationDocument }) 
   const errorCode = live.data?.last_error_code ?? job.last_error_code;
   if (status === "dead") {
     return (
-      <div role="alert" className="grid gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+      <div role="alert" className="grid gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
         <p className="flex items-start gap-2">
           <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
@@ -105,7 +105,7 @@ export function DocumentJob({ document }: { document: ReconciliationDocument }) 
   if (!jobActive(status)) return null;
   if (live.data && !live.data.worker_online) {
     return (
-      <p role="status" className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+      <p role="status" className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning">
         <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
         Fila parada: nenhum worker ativo. O documento está guardado e será processado quando o worker voltar.
       </p>
@@ -136,7 +136,7 @@ export function CsvImportError({ error, fallback }: { error: unknown; fallback: 
   if (lines.length === 0) return <ErrorAlert error={error} fallback={fallback} />;
   const shown = lines.slice(0, 50);
   return (
-    <div role="alert" className="grid gap-1.5 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+    <div role="alert" className="grid gap-1.5 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
       <p className="flex items-start gap-2 font-medium">
         <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
         {isApiError(error) ? error.message : fallback} Corrija as linhas e envie o arquivo de novo.
@@ -215,7 +215,7 @@ export function AutoRate({ matching }: { matching: ReconciliationMatching }) {
       </p>
       <div className="relative h-2 rounded bg-muted" aria-hidden>
         <div
-          className={cn("h-2 rounded", below ? "bg-amber-500" : "bg-emerald-600")}
+          className={cn("h-2 rounded", below ? "bg-warning" : "bg-success")}
           style={{ width: `${String(barWidth(matching.auto_percent))}%` }}
         />
         <div className="absolute -top-1 h-4 w-0.5 bg-foreground" style={{ left: `${String(barWidth(matching.target_percent))}%` }} />
@@ -230,7 +230,7 @@ export function RateBar({ value }: { value: string | null | undefined }) {
   return (
     <span className="inline-flex items-center gap-2">
       <span className="inline-block h-1.5 w-20 rounded bg-muted" aria-hidden>
-        <span className="block h-1.5 rounded bg-emerald-600" style={{ width: `${String(barWidth(value))}%` }} />
+        <span className="block h-1.5 rounded bg-success" style={{ width: `${String(barWidth(value))}%` }} />
       </span>
       <span className="tabular-nums">{percentText(value)}</span>
     </span>

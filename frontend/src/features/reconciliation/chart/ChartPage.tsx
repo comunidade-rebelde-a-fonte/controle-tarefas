@@ -145,7 +145,7 @@ function CopyChart({ companyId }: { companyId: string }) {
           <Copy aria-hidden /> Copiar o plano
         </Button>
       </div>
-      {source && source === companyId ? <p className="text-xs text-red-800">Escolha uma empresa diferente desta.</p> : null}
+      {source && source === companyId ? <p className="text-xs text-destructive">Escolha uma empresa diferente desta.</p> : null}
       <ErrorAlert error={copy.error} fallback="Não foi possível copiar o plano." />
     </div>
   );

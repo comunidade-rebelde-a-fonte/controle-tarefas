@@ -74,8 +74,8 @@ function Proposal({ p, lineId }: { p: ResolverProposal; lineId: string }) {
   const actions = useProposalActions(lineId);
   const pending = p.status === "pendente";
   return (
-    <li className="grid gap-2 rounded-md border bg-amber-50/40 p-3 text-sm" data-testid="hipotese">
-      <p className="flex items-center gap-1.5 text-xs font-medium text-amber-900">
+    <li className="grid gap-2 rounded-md border bg-warning/5 p-3 text-sm" data-testid="hipotese">
+      <p className="flex items-center gap-1.5 text-xs font-medium text-warning">
         <Lightbulb className="size-3.5" aria-hidden /> Sugestão do resolvedor — não é fato; quem decide é o contador.
         <Badge variant={pending ? "warning" : p.status === "aceita" ? "success" : "muted"} className="ml-auto">
           {p.status}
@@ -259,8 +259,8 @@ export function ClassificationSection({
       {items.length > 0 ? (
         <ul className="grid gap-2" aria-label="Sugestões do agente">
           {items.map((s) => (
-            <li key={s.id} className="grid gap-1.5 rounded-md border bg-amber-50/40 p-3 text-sm" data-testid="sugestao">
-              <p className="flex items-center gap-1.5 text-xs font-medium text-amber-900">
+            <li key={s.id} className="grid gap-1.5 rounded-md border bg-warning/5 p-3 text-sm" data-testid="sugestao">
+              <p className="flex items-center gap-1.5 text-xs font-medium text-warning">
                 <Lightbulb className="size-3.5" aria-hidden /> Sugestão do agente — só vale aceita.
                 <Badge variant={s.status === "pendente" ? "warning" : s.status === "aceita" ? "success" : "muted"} className="ml-auto">
                   {s.status}

@@ -9,7 +9,7 @@ export function Th({ className, ...props }: ComponentProps<"th">) {
   return (
     <th
       className={cn(
-        "sticky top-0 z-10 h-9 border-b bg-muted px-2.5 text-left align-middle text-xs font-semibold tracking-wide text-muted-foreground",
+        "sticky top-0 z-10 h-9 border-b bg-muted px-2.5 text-left align-middle text-xs font-medium tracking-wide text-muted-foreground",
         className,
       )}
       {...props}

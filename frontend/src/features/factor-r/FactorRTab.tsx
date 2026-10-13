@@ -28,7 +28,7 @@ function NotMonitored({ company, calc }: { company: Company; calc: FactorRCalc }
     );
   }
   return (
-    <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" data-testid="fora-da-carteira">
+    <div className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" data-testid="fora-da-carteira">
       <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
       <p>
         Esta empresa não entra na carteira do Fator R neste PA: {reasons.join("; ")}.{" "}
