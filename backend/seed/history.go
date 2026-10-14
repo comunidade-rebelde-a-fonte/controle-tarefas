@@ -68,6 +68,9 @@ var demoMix = map[int][3]int{
 	0: {15, 25, 5},
 }
 
+// accountingReconciliationStep é a etapa da Conciliação na sequência do Contábil (ordem 450).
+const accountingReconciliationStep = 5
+
 var demoStatuses = map[string]struct{ final, started, pending []string }{
 	"FISCAL_CLOSING": {[]string{"CLOSED"}, []string{"DOWNLOADED", "POSTED", "CHECKED"}, []string{"MISSING_DOCUMENTS", "ERROR"}},
 	"FISCAL_ITEM":    {[]string{"CLOSED", "CLOSED", "CLOSED", "NO_MOVEMENT"}, []string{"DOWNLOADED", "POSTED"}, []string{"MISSING_DOCUMENTS"}},
@@ -171,6 +174,12 @@ func applyDemoCompetence(ctx context.Context, tx pgx.Tx, c comp.Competence, age 
 				lvl = 2 + r%4
 			default:
 				lvl = r % 3
+			}
+			// A Construtora Horizonte fica com a Conciliação do cenário por fazer (TASK-027): o
+			// Contábil da competência continua aberto para a preparação dos fixtures carregar os
+			// extratos e comprovantes, e só fecha depois da conciliação concluída.
+			if d.company == HorizonteCode && c.String() == HorizonteCompetence {
+				lvl = min(lvl, accountingReconciliationStep-1)
 			}
 			levels[d.company] = lvl
 		}

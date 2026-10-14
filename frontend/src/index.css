@@ -1,47 +1,72 @@
 @import "tailwindcss";
 
-/* Tokens visuais (estilo shadcn/ui). Desktop-first, largura mínima 1280 px [PRD §45.5]. */
+/*
+ * Tema do Design System InovaSala / Luminous (docs/design-system; TASK-029, D-043), adaptado a
+ * uma aplicação operacional densa: base preta, superfícies escuras, bordas finas e o laranja como
+ * acento (ação principal, item ativo, foco e destaques). Desktop-first, largura mínima de 1280 px
+ * [PRD §45.5].
+ *
+ * Os tokens mantêm os nomes semânticos que os componentes usam e apontam para a paleta Tailwind do
+ * material (orange-500, neutral-400...), a mesma das classes. Onde o material usa transparência
+ * sobre o fundo (white/5, white/10, neutral-800/80), o token é a cor já composta sobre #050505, para
+ * que cabeçalhos fixos e células congeladas não deixem o conteúdo transparecer. As cores de estado
+ * vêm da mesma paleta Tailwind do material: o laranja para "em andamento", o amarelo para atenção, e
+ * o verde e o vermelho, que o material não tem, só para concluído e erro.
+ */
 @theme {
-  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: "Inter Variable", "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Inter Variable", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-background: oklch(0.985 0.003 250);
-  --color-foreground: oklch(0.22 0.025 257);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.22 0.025 257);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.22 0.025 257);
-  --color-muted: oklch(0.965 0.006 250);
-  --color-muted-foreground: oklch(0.48 0.025 257);
-  --color-accent: oklch(0.95 0.012 250);
-  --color-accent-foreground: oklch(0.25 0.04 257);
-  --color-border: oklch(0.905 0.01 250);
-  --color-input: oklch(0.88 0.012 250);
-  --color-ring: oklch(0.55 0.12 255);
+  /* Fundo e superfícies: bg-primary #050505, bg-card #0A0A0A, neutral-900 nas elevadas. */
+  --color-background: #050505;
+  --color-foreground: #ffffff;
+  --color-card: #0a0a0a;
+  --color-card-foreground: #ffffff;
+  --color-popover: var(--color-neutral-900);
+  --color-popover-foreground: #ffffff;
+  /* white/5 sobre o fundo; texto terciário neutral-400 (contraste 8:1). */
+  --color-muted: #121212;
+  --color-muted-foreground: var(--color-neutral-400);
+  /* neutral-800/80 sobre o fundo: o item ativo e o hover. */
+  --color-accent: #1f1f1f;
+  --color-accent-foreground: #ffffff;
+  /* white/10 sobre o fundo: bordas e divisórias. Campos com neutral-500 (contraste 4:1 com o fundo). */
+  --color-border: #1e1e1e;
+  --color-input: var(--color-neutral-500);
+  --color-ring: var(--color-orange-500);
 
-  --color-primary: oklch(0.36 0.085 257);
-  --color-primary-foreground: oklch(0.985 0.003 250);
-  --color-secondary: oklch(0.955 0.01 250);
-  --color-secondary-foreground: oklch(0.28 0.04 257);
-  --color-destructive: oklch(0.55 0.2 27);
-  --color-destructive-foreground: oklch(0.99 0 0);
-  --color-success: oklch(0.52 0.13 150);
-  --color-warning: oklch(0.7 0.15 75);
+  /* Acento laranja (orange-500); texto escuro do CTA quente sobre ele. */
+  --color-primary: var(--color-orange-500);
+  --color-primary-foreground: #2c1306;
+  --color-secondary: var(--color-neutral-800);
+  --color-secondary-foreground: #ffffff;
 
-  --color-sidebar: oklch(0.235 0.045 257);
-  --color-sidebar-foreground: oklch(0.9 0.012 250);
-  --color-sidebar-muted: oklch(0.7 0.025 250);
-  --color-sidebar-accent: oklch(0.31 0.055 257);
-  --color-sidebar-border: oklch(0.3 0.04 257);
+  /* Estados. */
+  --color-destructive: var(--color-red-400);
+  --color-destructive-foreground: #050505;
+  --color-success: var(--color-emerald-400);
+  --color-warning: var(--color-yellow-300);
+  --color-info: var(--color-orange-400);
 
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
+  /* Menu lateral: superfície de card, texto neutral-400, ativo neutral-800/80 e laranja. */
+  --color-sidebar: #0a0a0a;
+  --color-sidebar-foreground: var(--color-neutral-400);
+  --color-sidebar-muted: var(--color-neutral-400);
+  --color-sidebar-accent: #1f1f1f;
+  --color-sidebar-border: #121212;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
+  }
+  html {
+    color-scheme: dark;
   }
   html,
   body,
@@ -56,8 +81,14 @@
     -webkit-font-smoothing: antialiased;
     min-width: 1280px;
   }
+  ::selection {
+    background: color-mix(in oklab, var(--color-orange-500) 30%, transparent);
+  }
   :focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
+  }
+  a {
+    text-decoration-color: var(--color-primary);
   }
 }

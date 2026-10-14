@@ -16,6 +16,7 @@ import (
 	"controle/internal/app"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
+	"controle/internal/platform/decimal"
 )
 
 // SaoPaulo é o fuso de negócio padrão.
@@ -52,6 +53,12 @@ func TestConfig(t testing.TB) config.Config {
 		CORSOrigins:    []string{"http://localhost:5173"},
 		FileStorageDir: t.TempDir(),
 		LogLevel:       slog.LevelError,
+		// Os limiares da Conciliação com os padrões da origem (config.Load).
+		TriageThreshold: decimal.MustParse("0.70"),
+		FieldThreshold:  decimal.MustParse("0.70"),
+		FuzzyThreshold:  decimal.MustParse("0.86"),
+		// A meta da conciliação automática do painel (META_CONCILIACAO_AUTO), 80% da origem.
+		AutoTarget: decimal.MustParse("80"),
 	}
 }
 

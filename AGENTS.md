@@ -224,7 +224,7 @@ backend/      cmd/api, cmd/loadgen, internal/<domínio>, migrations, queries, se
 frontend/     src/{app,components,features,lib,services,types}
 e2e/          specs Playwright
 docker/       postgres/init (criação dos bancos locais)
-scripts/      backup.sh, restore.sh
+scripts/      backup.sh, restore.sh, backup-comum.sh, testar-restore.sh, health.sh
 docs/         PRD, plan, tasks, decisões, pendências, perf, segurança, operação
 ```
 
@@ -236,7 +236,7 @@ docs/         PRD, plan, tasks, decisões, pendências, perf, segurança, opera�
 | E2E | `docker-compose.yml` + `make e2e` | `db` + API apontada para E2E | `controle_e2e` (resetado a cada execução) |
 | Carga | `docker-compose.yml` + `loadgen` | `db` | `controle_perf` |
 | Integração Go | testcontainers | container efêmero por suíte | efêmero |
-| Produção | `docker-compose.prod.yml` | `db` (sem porta exposta), `app` (imagem única) | definido em `.env.prod` |
+| Produção | `docker-compose.prod.yml` | `db` (sem porta exposta), `app` (imagem única) e `worker` (mesma imagem), MinIO, LiteLLM, n8n e Langfuse (TASK-031) | definido em `.env.prod` |
 
 ### 8.2 Go
 

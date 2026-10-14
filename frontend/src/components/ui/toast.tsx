@@ -37,15 +37,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 if (!open) remove(t.id);
               }}
               className={cn(
-                "flex items-start gap-3 rounded-lg border bg-card p-3 pr-8 shadow-lg",
-                t.variant === "error" && "border-red-200 bg-red-50",
-                t.variant === "success" && "border-emerald-200 bg-emerald-50",
+                "flex items-start gap-3 rounded-xl border border-white/10 bg-popover p-3 pr-8 shadow-xl",
+                t.variant === "error" && "border-destructive/40",
+                t.variant === "success" && "border-success/40",
               )}
             >
               <Icon
                 className={cn(
                   "mt-0.5 size-4 shrink-0",
-                  t.variant === "error" ? "text-red-700" : t.variant === "success" ? "text-emerald-700" : "text-primary",
+                  t.variant === "error" ? "text-destructive" : t.variant === "success" ? "text-success" : "text-primary",
                 )}
                 aria-hidden
               />

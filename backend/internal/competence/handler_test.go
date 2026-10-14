@@ -6,6 +6,7 @@ import (
 
 	"controle/internal/testutil"
 	"controle/internal/testutil/seeded"
+	"controle/seed"
 )
 
 func TestCompetencies_LatestTriggersGenerationAndListCounts(t *testing.T) {
@@ -31,7 +32,7 @@ func TestCompetencies_LatestTriggersGenerationAndListCounts(t *testing.T) {
 		} `json:"items"`
 	}
 	srv.Get("/api/v1/competencies").MustStatus(t, http.StatusOK).JSON(t, &list)
-	if len(list.Items) != 1 || list.Items[0].Companies != 20 || list.Items[0].OpenPeriods == 0 {
+	if len(list.Items) != 1 || list.Items[0].Companies != seed.DemoCompanyCount || list.Items[0].OpenPeriods == 0 {
 		t.Fatalf("competências = %+v", list.Items)
 	}
 

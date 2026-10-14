@@ -5,10 +5,11 @@ import { displayCompetence } from "@/lib/competence";
 import { formatPercent } from "@/lib/format";
 import type { DashboardHistory } from "@/services/dashboard";
 
-// Série única: slot categórico 1 da paleta validada (contraste ≥ 3:1 sobre o fundo claro).
-const SERIES = "#2a78d6";
-const GRID = "#e1e0d9";
-const AXIS = "#898781";
+// Série única no laranja do Design System (orange-500, contraste ≥ 3:1 sobre o fundo escuro); a
+// grade em neutral-800 e os eixos em neutral-400 (TASK-029).
+const SERIES = "#f97316";
+const GRID = "#262626";
+const AXIS = "#a3a3a3";
 
 /** Variação com ícone e texto (nunca só cor); `higherIsBetter` define o sentido bom. */
 function Delta({ value, unit, higherIsBetter, format }: { value: number; unit: string; higherIsBetter: boolean; format: (n: number) => string }) {
@@ -23,7 +24,7 @@ function Delta({ value, unit, higherIsBetter, format }: { value: number; unit: s
   const good = up === higherIsBetter;
   const Icon = up ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${good ? "text-emerald-700" : "text-destructive"}`}>
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${good ? "text-success" : "text-destructive"}`}>
       <Icon aria-hidden className="size-3" />
       {up ? "+" : "−"}
       {format(Math.abs(value))} {unit}

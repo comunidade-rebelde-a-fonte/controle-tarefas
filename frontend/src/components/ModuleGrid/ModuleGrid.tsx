@@ -273,8 +273,10 @@ export function ModuleGrid({
         header: "Código",
         width: 96,
         cell: (row) => (
-          <span className="flex items-center gap-0.5 tabular-nums">
-            {row.company.internal_code}
+          <span className="flex min-w-0 items-center gap-0.5 tabular-nums">
+            <span className="min-w-0 truncate" title={row.company.internal_code}>
+              {row.company.internal_code}
+            </span>
             <CopyButton
               value={row.company.internal_code}
               label="Copiar código"

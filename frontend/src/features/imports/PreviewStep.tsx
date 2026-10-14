@@ -111,7 +111,7 @@ export function PreviewStep({ preview, onBack, onDone }: { preview: ImportPrevie
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.line} className={r.errors.length > 0 ? "bg-red-50/40" : undefined}>
+              <tr key={r.line} className={r.errors.length > 0 ? "bg-destructive/5" : undefined}>
                 <Td className="tabular-nums">{r.line}</Td>
                 <Td>{r.internal_code || "—"}</Td>
                 <Td>{r.legal_name || "—"}</Td>
@@ -121,7 +121,7 @@ export function PreviewStep({ preview, onBack, onDone }: { preview: ImportPrevie
                 </Td>
                 <Td>
                   {r.errors.length > 0 ? (
-                    <ul className="grid gap-0.5 text-xs text-red-800">
+                    <ul className="grid gap-0.5 text-xs text-destructive">
                       {r.errors.map((e, i) => (
                         <li key={i}>
                           <span className="font-medium">{e.column || e.field}:</span> {e.message}

@@ -17,16 +17,18 @@ function CategoryBlock({ category }: { category: Category }) {
     <li className="grid gap-1.5 border-b py-3 last:border-b-0" aria-label={`${category.label}: ${category.count}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 text-sm font-medium">
-          <Icon aria-hidden className={critical ? "size-4 text-destructive" : "size-4 text-amber-700"} />
+          <Icon aria-hidden className={critical ? "size-4 text-destructive" : "size-4 text-warning"} />
           {category.label}
         </span>
         <Badge variant={critical ? "danger" : "warning"}>{category.count}</Badge>
       </div>
       <ul className="grid gap-0.5 pl-5.5 text-xs">
         {category.sample.map((it, i) => (
-          <li key={`${it.company.id}:${i}`} className="flex flex-wrap gap-x-1.5">
+          <li key={`${it.company.id}:${i}`} className="flex flex-wrap items-center gap-x-1.5">
+            {/* Alvo de clique com 24 px de altura (WCAG 2.5.8): sem isso, o espaçamento entre as
+                linhas depende da fonte do sistema e o axe acusa target-size fora do macOS. */}
             {it.drilldown ? (
-              <Link className="font-medium hover:underline" to={drilldownHref(it.drilldown)}>
+              <Link className="inline-flex min-h-6 items-center font-medium hover:underline" to={drilldownHref(it.drilldown)}>
                 {it.company.legal_name}
               </Link>
             ) : (
@@ -40,7 +42,7 @@ function CategoryBlock({ category }: { category: Category }) {
         ))}
       </ul>
       {category.drilldown ? (
-        <Link className="pl-5.5 text-xs text-primary hover:underline" to={drilldownHref(category.drilldown)}>
+        <Link className="inline-flex min-h-6 items-center pl-5.5 text-xs text-primary hover:underline" to={drilldownHref(category.drilldown)}>
           Ver todos ({category.count})
         </Link>
       ) : null}
@@ -60,7 +62,7 @@ export function AttentionPanel({ attention }: { attention: Attention }) {
       <CardBody className="py-0">
         {visible.length === 0 ? (
           <p className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
-            <CircleCheck aria-hidden className="size-4 text-emerald-700" /> Nada exige atenção nesta competência.
+            <CircleCheck aria-hidden className="size-4 text-success" /> Nada exige atenção nesta competência.
           </p>
         ) : (
           <ul aria-label="Categorias de atenção">

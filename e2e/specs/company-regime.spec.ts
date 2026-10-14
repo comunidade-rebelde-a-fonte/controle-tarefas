@@ -6,6 +6,7 @@ test("§53.3-2 UC-04 troca de regime com vigência futura atualiza a linha do te
   await page.getByRole("link", { name: "Empresa Fictícia Alfa Comércio Ltda" }).click();
 
   await expect(page.getByRole("heading", { level: 1, name: "Empresa Fictícia Alfa Comércio Ltda" })).toBeVisible();
+  await page.getByRole("tab", { name: "Dados gerais" }).click();
   await page.getByRole("tab", { name: "Regime tributário" }).click();
 
   const timeline = page.getByRole("table", { name: "Linha do tempo de regimes" });

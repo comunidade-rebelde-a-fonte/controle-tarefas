@@ -7,6 +7,7 @@ import (
 	"controle/internal/platform/config"
 	"controle/internal/testutil"
 	"controle/internal/testutil/seeded"
+	"controle/seed"
 )
 
 func TestDemoSeed_LoadsTwentyCompaniesOnEmptyDatabase(t *testing.T) {
@@ -24,13 +25,14 @@ func TestDemoSeed_LoadsTwentyCompaniesOnEmptyDatabase(t *testing.T) {
 	}
 	for range 2 { // idempotente
 		srv.Post("/api/v1/demo/seed", nil).MustStatus(t, http.StatusOK).JSON(t, &res)
-		if res.Companies != 20 {
-			t.Fatalf("empresas após o seed = %d, want 20", res.Companies)
+		// As 20 do PRD e a 111 Construtora Horizonte (D-041).
+		if res.Companies != seed.DemoCompanyCount {
+			t.Fatalf("empresas após o seed = %d, want %d", res.Companies, seed.DemoCompanyCount)
 		}
 	}
 	srv.Get("/api/v1/companies").MustStatus(t, http.StatusOK).JSON(t, &list)
-	if list.Total != 20 {
-		t.Fatalf("GET /companies = %d, want 20", list.Total)
+	if list.Total != seed.DemoCompanyCount {
+		t.Fatalf("GET /companies = %d, want %d", list.Total, seed.DemoCompanyCount)
 	}
 }
 

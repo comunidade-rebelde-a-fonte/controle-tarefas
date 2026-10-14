@@ -84,9 +84,9 @@ function visualOf(code: string, def: StatusDefinition | undefined, applicable: b
   if (!applicable || code === "NOT_APPLICABLE") return { Icon: CircleMinus, tone: "text-muted-foreground" };
   if (code === "NO_MOVEMENT") return { Icon: CircleSlash, tone: "text-muted-foreground" };
   if (!def) return { Icon: Circle, tone: "text-muted-foreground" };
-  if (def.is_blocking) return { Icon: TriangleAlert, tone: "text-amber-700" };
-  if (def.is_final) return { Icon: CircleCheck, tone: "text-emerald-700" };
-  if (def.counts_as_started) return { Icon: CircleDot, tone: "text-sky-700" };
+  if (def.is_blocking) return { Icon: TriangleAlert, tone: "text-warning" };
+  if (def.is_final) return { Icon: CircleCheck, tone: "text-success" };
+  if (def.counts_as_started) return { Icon: CircleDot, tone: "text-info" };
   return { Icon: Circle, tone: "text-muted-foreground" };
 }
 
@@ -238,7 +238,7 @@ export function StatusCell({
             }}
           >
             {blockedMessage ? (
-              <DropdownMenuLabel id={blockedId} className="flex max-w-72 items-start gap-1.5 text-xs font-normal text-amber-800">
+              <DropdownMenuLabel id={blockedId} className="flex max-w-72 items-start gap-1.5 text-xs font-normal text-warning">
                 <TriangleAlert aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
                 {blockedMessage}
               </DropdownMenuLabel>
@@ -272,7 +272,7 @@ function Indicators({ instance }: { instance: ObligationInstance }) {
   }
   if (instance.due_overridden) {
     const reason = instance.due_date_override_reason;
-    items.push({ key: "due", Icon: CalendarClock, text: reason ? `Prazo alterado manualmente: ${reason}` : "Prazo alterado manualmente", tone: "text-sky-700" });
+    items.push({ key: "due", Icon: CalendarClock, text: reason ? `Prazo alterado manualmente: ${reason}` : "Prazo alterado manualmente", tone: "text-info" });
   }
   if (instance.has_history) {
     items.push({ key: "history", Icon: History, text: "Possui histórico de alterações", tone: "text-muted-foreground" });

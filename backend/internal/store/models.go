@@ -6,7 +6,126 @@ package store
 
 import (
 	"time"
+
+	"controle/internal/platform/decimal"
 )
+
+type AiDecision struct {
+	ID        string
+	TraceID   string
+	Agent     string
+	Kind      string
+	Data      []byte
+	CreatedAt time.Time
+}
+
+type AiGoldEval struct {
+	ID                 string
+	TraceID            string
+	Field              string
+	Expected           *string
+	Obtained           *string
+	WithinTolerance    *bool
+	Status             string
+	LangfuseSyncStatus string
+	CreatedAt          time.Time
+}
+
+type AiHumanEval struct {
+	ID                 string
+	TraceID            string
+	UserID             string
+	Rating             string
+	Comment            *string
+	LangfuseSyncStatus string
+	CreatedAt          time.Time
+}
+
+type AiModelAlias struct {
+	Alias      string
+	Provider   *string
+	Model      *string
+	Parameters []byte
+	Enabled    bool
+	Version    int32
+	UpdatedBy  *string
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+}
+
+type AiModelAliasHistory struct {
+	Alias      string
+	Version    int32
+	Provider   *string
+	Model      *string
+	Parameters []byte
+	Enabled    bool
+	ChangedBy  *string
+	ChangedAt  time.Time
+}
+
+type AiRun struct {
+	TraceID            string
+	Agent              string
+	Trigger            string
+	UserID             *string
+	CompanyID          *string
+	Competence         *time.Time
+	Alias              *string
+	Provider           *string
+	Model              *string
+	ModelConfigVersion *int32
+	PromptVersion      *string
+	Metadata           []byte
+	Input              []byte
+	Output             []byte
+	Decision           []byte
+	Spans              []byte
+	Status             string
+	Confidence         *decimal.Decimal
+	LatencyMs          *int32
+	TokensIn           *int32
+	TokensOut          *int32
+	CostUsd            *decimal.Decimal
+	ErrorCode          *string
+	LangfuseSyncStatus string
+	LangfuseAttempts   int32
+	LangfuseLastError  *string
+	LangfuseSyncedAt   *time.Time
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type BankAccount struct {
+	ID        string
+	CompanyID string
+	Bank      string
+	Branch    string
+	Account   string
+	Active    bool
+	CreatedBy *string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type BankPlaybook struct {
+	ID                 string
+	Bank               string
+	Version            int32
+	TableStartPage     int32
+	IgnoredPages       []byte
+	DateFormat         string
+	DecimalSeparator   string
+	SignRepresentation string
+	BalanceLocation    string
+	WinningStrategy    string
+	ValidatedAt        *time.Time
+	Valid              bool
+	Successes          int32
+	Failures           int32
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
 
 type BusinessCalendar struct {
 	ID        string
@@ -15,6 +134,70 @@ type BusinessCalendar struct {
 	State     *string
 	City      *string
 	CreatedAt time.Time
+}
+
+type ChartAccount struct {
+	ID        string
+	CompanyID string
+	Code      string
+	Name      string
+	Active    bool
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type ClassificationRule struct {
+	ID                           string
+	CompanyID                    string
+	RuleType                     string
+	Pattern                      string
+	AccountCode                  string
+	Active                       bool
+	CreatedBy                    *string
+	CreatedAt                    time.Time
+	UpdatedAt                    time.Time
+	SourceStatementTransactionID *string
+	DeactivatedBy                *string
+	DeactivatedAt                *time.Time
+}
+
+type ClassificationSuggestion struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Payload                []byte
+	AccountCode            *string
+	Status                 string
+	TraceID                *string
+	CreatedBy              *string
+	CreatedAt              time.Time
+	DecidedBy              *string
+	DecidedAt              *time.Time
+}
+
+type ClientEntry struct {
+	ID                    string
+	CompanyID             string
+	DocumentID            *string
+	EntryDate             *time.Time
+	Amount                *decimal.Decimal
+	Direction             *string
+	Counterparty          *string
+	CounterpartyDoc       *string
+	DocumentRef           *string
+	OperationType         *string
+	Status                string
+	FieldConfidence       []byte
+	FieldOrigin           []byte
+	DuplicateFlagged      bool
+	AccountCode           *string
+	ClassificationOrigin  *string
+	ClassificationPending bool
+	Flags                 []byte
+	CreatedBy             *string
+	CreatedAt             time.Time
+	UpdatedAt             time.Time
+	TraceID               *string
 }
 
 type Company struct {
@@ -60,6 +243,22 @@ type CompanyCompetenceSnapshot struct {
 	City                          *string
 	State                         *string
 	CreatedAt                     time.Time
+}
+
+type CompanyFactorRSetting struct {
+	CompanyID        string
+	Cnae             *string
+	Atividade        *string
+	QuantidadeSocios int32
+	Contato          *string
+	PacoteComercial  *string
+	HonorarioMensal  decimal.Decimal
+	InicioAtividade  *time.Time
+	Notas            *string
+	Version          int32
+	UpdatedBy        *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type CompanyModulePeriod struct {
@@ -159,6 +358,121 @@ type DueDateRule struct {
 	UpdatedAt                time.Time
 }
 
+type ExtractionLog struct {
+	ID              string
+	CompanyID       *string
+	DocumentID      *string
+	FileSha256      *string
+	Alias           string
+	ResolvedModel   *string
+	PromptHash      *string
+	PromptVersion   *string
+	RawOutput       *string
+	ValidatorResult []byte
+	Attempt         int32
+	TokensIn        *int32
+	TokensOut       *int32
+	CostUsd         *decimal.Decimal
+	LatencyMs       *int32
+	TraceID         *string
+	JobID           *string
+	ActorID         *string
+	Change          *string
+	Error           *string
+	CreatedAt       time.Time
+}
+
+type FactorRMovement struct {
+	ID                       string
+	CompanyID                string
+	Competence               time.Time
+	ReceitaBruta             decimal.Decimal
+	ProLabore                decimal.Decimal
+	Salarios13Ferias         decimal.Decimal
+	CppRecolhida             decimal.Decimal
+	FgtsRecolhido            decimal.Decimal
+	FolhaTotalDeclaradaPgdas *decimal.Decimal
+	FolhaMes                 *decimal.Decimal
+	Origem                   string
+	Observacao               *string
+	PgdasDocumentID          *string
+	Version                  int32
+	UpdatedBy                *string
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+}
+
+type FactorRPgdasDocument struct {
+	ID            string
+	CompanyID     *string
+	Sha256        string
+	FileRef       string
+	Mime          string
+	SizeBytes     int32
+	OriginalName  *string
+	Status        string
+	Motivo        *string
+	CnpjExtraido  *string
+	Pa            *time.Time
+	Confidence    *decimal.Decimal
+	ParserVersion *string
+	ParsedJson    []byte
+	ExtractedText *string
+	TraceID       *string
+	JobID         *string
+	UploadedBy    *string
+	Version       int32
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}
+
+type FactorRPolicy struct {
+	ID                    bool
+	MetaOperacional       decimal.Decimal
+	CppDasIntegraFs12     bool
+	PisoEconomiaAnual     decimal.Decimal
+	LimiarConfiancaParser decimal.Decimal
+	ToleranciaOuroPct     decimal.Decimal
+	Version               int32
+	UpdatedBy             *string
+	UpdatedAt             time.Time
+}
+
+type FactorRSimplesTable struct {
+	ID              string
+	Anexo           string
+	Faixa           int16
+	Rbt12Ate        decimal.Decimal
+	AliquotaNominal decimal.Decimal
+	ParcelaDeduzir  decimal.Decimal
+	VigenciaInicio  time.Time
+	VigenciaFim     *time.Time
+}
+
+type FactorRSimulation struct {
+	ID                string
+	CompanyID         string
+	Pa                time.Time
+	Meta              decimal.Decimal
+	FracaoProLabore   decimal.Decimal
+	Inss              decimal.Decimal
+	Irrf              decimal.Decimal
+	HorizonteMeses    int32
+	PisoEconomiaAnual decimal.Decimal
+	Status            string
+	Veredito          *string
+	Reforco12m        decimal.Decimal
+	ReforcoMensal     decimal.Decimal
+	CustoTotal        decimal.Decimal
+	Economia12m       *decimal.Decimal
+	Liquido           *decimal.Decimal
+	ParametrosJson    []byte
+	ResultadoJson     []byte
+	TraceID           string
+	CreatedBy         *string
+	CreatedAt         time.Time
+}
+
 type Holiday struct {
 	ID         string
 	CalendarID string
@@ -180,6 +494,26 @@ type ImportPreview struct {
 	CommittedAt *time.Time
 	CommittedBy *string
 	Result      []byte
+}
+
+type Job struct {
+	ID               string
+	Kind             string
+	Status           string
+	Payload          []byte
+	DedupeKey        *string
+	Attempts         int32
+	MaxAttempts      int32
+	RunAfter         time.Time
+	LockedAt         *time.Time
+	LockedBy         *string
+	LastErrorCode    *string
+	LastErrorMessage *string
+	FinishedAt       *time.Time
+	RetriedBy        *string
+	RetriedAt        *time.Time
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
 }
 
 type ObligationDependency struct {
@@ -262,11 +596,136 @@ type ObligationTypeRegimeRule struct {
 	Active            bool
 }
 
+type Reconciliation struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Score                  *decimal.Decimal
+	Pass                   *int16
+	Method                 string
+	Origin                 string
+	ProposalID             *string
+	CreatedBy              *string
+	CreatedAt              time.Time
+	UndoneAt               *time.Time
+	UndoneBy               *string
+	UndoReason             *string
+}
+
+type ReconciliationCompletion struct {
+	ID                     string
+	CompanyID              string
+	Competence             time.Time
+	CompletedBy            string
+	CompletedAt            time.Time
+	ObligationInstanceID   *string
+	ObligationStatusBefore *string
+	ObligationSync         string
+	ReopenedBy             *string
+	ReopenedAt             *time.Time
+	ReopenReason           *string
+	ReopenObligationSync   *string
+	Seq                    *int64
+}
+
+type ReconciliationDocument struct {
+	ID               string
+	CompanyID        *string
+	Competence       *time.Time
+	StorageBackend   string
+	Bucket           string
+	ObjectKey        string
+	ObjectVersionID  *string
+	Sha256           string
+	FileName         string
+	ContentType      string
+	SizeBytes        *int64
+	Kind             *string
+	Bank             *string
+	Branch           *string
+	Account          *string
+	PeriodStart      *time.Time
+	PeriodEnd        *time.Time
+	Status           string
+	TriageConfidence *decimal.Decimal
+	Diagnosis        []byte
+	UploadedBy       *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	JobID            *string
+	TriageTraceID    *string
+}
+
+type ReconciliationItem struct {
+	ReconciliationID string
+	CompanyID        string
+	ClientEntryID    string
+	ReleasedAt       *time.Time
+}
+
+type ResolverProposal struct {
+	ID                     string
+	CompanyID              string
+	StatementTransactionID string
+	Payload                []byte
+	Status                 string
+	TraceID                *string
+	DecidedBy              *string
+	DecidedAt              *time.Time
+	CreatedBy              *string
+	CreatedAt              time.Time
+}
+
 type Setting struct {
 	Key       string
 	Value     []byte
 	UpdatedBy *string
 	UpdatedAt time.Time
+}
+
+type StatementImport struct {
+	ID             string
+	CompanyID      string
+	DocumentID     string
+	BankAccountID  *string
+	Bank           string
+	Branch         string
+	Account        string
+	PeriodStart    time.Time
+	PeriodEnd      time.Time
+	OpeningBalance decimal.Decimal
+	ClosingBalance decimal.Decimal
+	ValidationOk   bool
+	Validation     []byte
+	Attempts       int32
+	CreatedAt      time.Time
+	TraceID        *string
+}
+
+type StatementTransaction struct {
+	ID                         string
+	CompanyID                  string
+	StatementImportID          string
+	Position                   int32
+	TxnDate                    time.Time
+	Competence                 *time.Time
+	Description                string
+	DocumentRef                *string
+	Amount                     decimal.Decimal
+	Direction                  string
+	BalanceAfter               *decimal.Decimal
+	DedupeKey                  string
+	Confidence                 *decimal.Decimal
+	Flags                      []byte
+	AccountCode                *string
+	ClassificationOrigin       *string
+	ClassificationPending      bool
+	CreatedAt                  time.Time
+	ClassificationRuleID       *string
+	ClassificationHistoryID    *string
+	ClassificationSuggestionID *string
+	ClassifiedBy               *string
+	ClassifiedAt               *time.Time
 }
 
 type StatusDefinition struct {
@@ -331,4 +790,10 @@ type VObligationInstance struct {
 	IsBlocking                  bool
 	ExcludedFromDenominator     bool
 	InDenominator               *bool
+}
+
+type WorkerHeartbeat struct {
+	WorkerID   string
+	StartedAt  time.Time
+	LastSeenAt time.Time
 }

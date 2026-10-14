@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router";
 import { cn } from "@/lib/utils";
-import { drilldownHref, type Metric } from "@/services/dashboard";
+import { drilldownHref, type Metric, type MoneyMetric } from "@/services/dashboard";
 
 /**
  * Número do dashboard [PRD §24.2, §24.7]: rótulo, valor e, quando há drill-down, o tile inteiro
@@ -16,7 +16,7 @@ export function StatTile({
 }: {
   label: string;
   value: string;
-  metric?: Metric | undefined;
+  metric?: Metric | MoneyMetric | undefined;
   hint?: ReactNode;
   tone?: "danger" | "warning" | "success" | undefined;
 }) {
@@ -27,8 +27,8 @@ export function StatTile({
         className={cn(
           "text-2xl font-semibold tabular-nums",
           tone === "danger" && "text-destructive",
-          tone === "warning" && "text-amber-700",
-          tone === "success" && "text-emerald-700",
+          tone === "warning" && "text-warning",
+          tone === "success" && "text-success",
         )}
       >
         {value}

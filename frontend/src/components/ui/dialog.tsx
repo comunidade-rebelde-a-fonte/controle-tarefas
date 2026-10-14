@@ -8,9 +8,9 @@ export const Dialog = DialogPrimitive.Root;
 export const DialogTrigger = DialogPrimitive.Trigger;
 export const DialogClose = DialogPrimitive.Close;
 
-const overlay = "fixed inset-0 z-50 bg-black/40";
+const overlay = "fixed inset-0 z-50 bg-black/70 backdrop-blur-sm";
 const panel =
-  "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-lg border bg-card p-6 shadow-xl focus:outline-none";
+  "fixed top-1/2 left-1/2 z-50 grid max-h-[90vh] w-full -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-xl border border-white/10 bg-popover p-6 shadow-2xl focus:outline-none";
 
 export function DialogContent({
   className,

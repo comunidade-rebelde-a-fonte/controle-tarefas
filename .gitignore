@@ -7,12 +7,19 @@
 # Armazenamento local de arquivos (procurações/certificados)
 storage/
 
+# Extratos do PGDAS-D gerados pela preparação dos fixtures da demonstração (make demo-fixtures)
+/demo/
+
 # Ferramentas instaladas por `make tools`
 .bin/
 
 # Go
 backend/tmp/
+backend/tmp-worker/
 backend/bin/
+# Relatórios do make eval-extrator (TASK-016 e TASK-017)
+backend/eval-extrator.json
+backend/eval-extrator-comprovantes.json
 *.test
 *.out
 coverage.*
@@ -37,3 +44,7 @@ e2e/.cache/
 
 # Backups locais
 backups/
+
+# n8n: pasta monitorada pelo workflow de ingestão (documentos do cliente; nunca versionar)
+n8n/inbox/*
+!n8n/inbox/.gitkeep

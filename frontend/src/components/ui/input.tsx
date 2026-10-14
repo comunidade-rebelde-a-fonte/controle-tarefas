@@ -5,7 +5,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       className={cn(
-        "flex h-9 w-full rounded-md border border-input bg-card px-3 py-1 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
+        "flex h-9 w-full rounded-lg border border-input bg-black/40 px-3 py-1 text-sm text-zinc-300 transition-colors placeholder:text-neutral-500 focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
         className,
       )}
       {...props}
@@ -17,7 +17,7 @@ export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
   return (
     <textarea
       className={cn(
-        "flex min-h-20 w-full rounded-md border border-input bg-card px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
+        "flex min-h-20 w-full rounded-lg border border-input bg-black/40 px-3 py-2 text-sm text-zinc-300 placeholder:text-neutral-500 focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
         className,
       )}
       {...props}
@@ -30,7 +30,7 @@ export function NativeSelect({ className, children, ...props }: ComponentProps<"
   return (
     <select
       className={cn(
-        "flex h-9 w-full rounded-md border border-input bg-card px-2.5 py-1 text-sm shadow-xs focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
+        "flex h-9 w-full rounded-lg border border-input bg-card px-2.5 py-1 text-sm text-zinc-300 focus-visible:outline-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive",
         className,
       )}
       {...props}
@@ -41,5 +41,5 @@ export function NativeSelect({ className, children, ...props }: ComponentProps<"
 }
 
 export function Label({ className, ...props }: ComponentProps<"label">) {
-  return <label className={cn("text-sm font-medium leading-none", className)} {...props} />;
+  return <label className={cn("text-sm font-medium leading-none text-neutral-300", className)} {...props} />;
 }

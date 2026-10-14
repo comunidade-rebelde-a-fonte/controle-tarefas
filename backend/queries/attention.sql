@@ -1,4 +1,5 @@
--- "Exige atenção" [PRD §24.6]: contagem e amostra (5 primeiros) por categoria.
+-- "Exige atenção" [PRD §24.6]: contagem e amostra (5 primeiros) por categoria. company_id restringe
+-- a uma empresa: as pendências da Visão geral da ficha (TASK-025, D-039).
 
 -- name: AttentionObligations :many
 -- Atrasadas, pendências, documentos faltantes e erros na competência, com os filtros do
@@ -24,6 +25,7 @@ FROM (
             CASE WHEN v.applicable AND v.status_code = 'ERROR' THEN 'ERROR' END
         ]::text[]) AS cat
         WHERE v.competence_id = sqlc.arg('competence_id') AND cat IS NOT NULL
+          AND (sqlc.narg('company_id')::uuid IS NULL OR c.id = sqlc.narg('company_id')::uuid)
           AND (sqlc.narg('regime_group')::text IS NULL OR s.regime_group = sqlc.narg('regime_group')::text)
           AND (sqlc.narg('tax_regime')::text IS NULL OR s.tax_regime = sqlc.narg('tax_regime')::text)
           AND (sqlc.narg('responsible_id')::uuid IS NULL OR sqlc.narg('responsible_id')::uuid = CASE v.primary_module
@@ -46,6 +48,7 @@ FROM (
         JOIN companies c ON c.id = p.company_id
         JOIN company_competence_snapshots s ON s.company_id = p.company_id AND s.competence_id = p.competence_id
         WHERE k.competence_key < sqlc.arg('competence_key') AND p.state = 'OPEN'
+          AND (sqlc.narg('company_id')::uuid IS NULL OR c.id = sqlc.narg('company_id')::uuid)
           AND (sqlc.narg('regime_group')::text IS NULL OR s.regime_group = sqlc.narg('regime_group')::text)
           AND (sqlc.narg('tax_regime')::text IS NULL OR s.tax_regime = sqlc.narg('tax_regime')::text)
           AND (sqlc.narg('responsible_id')::uuid IS NULL OR sqlc.narg('responsible_id')::uuid = CASE p.module_code
@@ -79,6 +82,7 @@ FROM (
         WHERE dep.active AND d.competence_id = sqlc.arg('competence_id')
           AND d.applicable AND NOT d.is_final AND p.applicable AND NOT p.is_final
           AND (dep.dependency_mode = 'SOFT' OR p.is_blocking)
+          AND (sqlc.narg('company_id')::uuid IS NULL OR c.id = sqlc.narg('company_id')::uuid)
           AND (sqlc.narg('regime_group')::text IS NULL OR s.regime_group = sqlc.narg('regime_group')::text)
           AND (sqlc.narg('tax_regime')::text IS NULL OR s.tax_regime = sqlc.narg('tax_regime')::text)
           AND (sqlc.narg('responsible_id')::uuid IS NULL OR sqlc.narg('responsible_id')::uuid = CASE d.primary_module

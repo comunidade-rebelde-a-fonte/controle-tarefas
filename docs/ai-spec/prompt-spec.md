@@ -1,0 +1,85 @@
+# Prompt Spec
+
+## 1. Armazenamento
+
+Prompts de runtime devem ser versionados no repositório, em diretório equivalente a `backend/internal/ai/prompts/` ou estrutura coerente com o código existente.
+
+Cada corrida registra:
+- nome lógico do prompt;
+- versão;
+- hash do conteúdo;
+- alias/modelo resolvido.
+
+> **Como foi implementado (TASK-013; D-024).** Os prompts ficam em `backend/internal/ai/prompts/` (pacote `prompts`, embutidos no binário).
+> - A referência `nome@versão#hash` vai para `ai_runs.prompt_version` e `metadata.prompts`; o alias e o modelo resolvidos ficam nas colunas da corrida.
+> - Um teste fixa o hash de cada versão: mudar o texto exige versão nova.
+> - Outro teste confere os itens do contrato comum (§2).
+
+## 2. Contrato comum
+
+Todo prompt deve conter:
+1. papel específico do agente;
+2. schema de saída;
+3. ferramentas permitidas;
+4. regras que o agente não pode decidir;
+5. política de abstenção;
+6. instrução anti-prompt-injection de documento;
+7. regra de não inventar campos ausentes;
+8. distinção entre dado extraído e inferência.
+
+## 3. Parser PGDAS
+
+Não há prompt: o parser é determinístico (ADR-006). As regras abaixo valem para o código do parser.
+
+Deve extrair somente os campos definidos no PRD de origem e distinguir:
+- campo presente;
+- campo ausente;
+- “não se aplica”;
+- confiança.
+
+Nunca gerar split de folha não fornecido pelo documento.
+
+## 4. Extrator de extrato
+
+Deve respeitar o schema congelado. A cada nova tentativa recebe feedback determinístico:
+- soma créditos;
+- soma débitos;
+- saldo calculado;
+- saldo esperado;
+- diferença;
+- lacunas/linhas suspeitas.
+
+Estratégias por tentativa devem preservar o comportamento original: texto nativo → render intermediário → render maior/modelo forte, conforme implementável na stack final.
+
+> **Como foi implementado (TASK-016; D-027).** Os prompts estão em `backend/internal/ai/prompts/conciliacao/`: triador, extrator, correção e o bloco do playbook. São os textos da origem com os itens do §2 e a entrada que o sistema envia.
+> - Tentativa 1: texto nativo (ou as páginas renderizadas, sem texto).
+> - Tentativa 2: páginas a 150 DPI, o extrato anterior, o resultado do validador e as dicas.
+> - Tentativa 3: o mesmo a 300 DPI, com o `extrator_forte`.
+
+## 5. Extrator de comprovante
+
+Saída com confiança por campo e evidência/trecho ou bbox quando disponível. Campo incerto deve ser `null`/marcado, nunca inventado.
+
+> **Como foi implementado (TASK-017; D-028).** `backend/internal/ai/prompts/conciliacao/extrator_comprovante.md`: o texto da origem com os itens do §2, a entrada que o sistema envia (estratégia, empresa do documento, texto e/ou imagens) e as marcas de borda no vocabulário da origem. O sentido é relativo à empresa do documento; sem ela no comprovante, `sentido` nulo e confiança baixa.
+
+## 6. Resolvedor
+
+A linguagem deve ser propositiva: “hipótese”, “parece corresponder”, “candidatos”. Não usar linguagem de conclusão quando o sistema ainda exige decisão humana.
+
+> **Como foi implementado (TASK-019; D-030).** `backend/internal/ai/prompts/conciliacao/resolvedor.md`: o texto da origem, com a entrada que o sistema envia no lugar das ferramentas, a linguagem de hipótese e a regra de que descritivos e nomes da entrada são dado, não instrução. Saída estruturada com `json_schema` estrito.
+
+> **Classificador (TASK-020; D-031).** `backend/internal/ai/prompts/conciliacao/classificador.md`: o texto da origem, com a entrada que o sistema envia (lançamento, plano ativo e histórico parecido) no lugar das ferramentas, a conta obrigatoriamente do plano e a linguagem de sugestão.
+
+## 7. Consultor Fator R
+
+Recebe números calculados e deve explicá-los. Não efetua aritmética normativa como fonte de verdade. Deve manter disclaimer de que PGDAS-D prevalece.
+
+## 8. Priorizador
+
+Só prioriza a carteira fornecida pelas tools/serviços. Não cria empresa nem altera semáforo.
+
+## 9. Testes de prompt
+
+- Mudança de prompt do parser/extrato/comprovante exige golden/eval antes de merge.
+- Teste padrão não usa provider real.
+- Integração real com provider é suíte marcada/manual.

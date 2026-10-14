@@ -1,0 +1,31 @@
+{
+  "sintetica": true,
+  "layout": "declaratorio",
+  "origem": "pdf/com_cnpj/03_servico_sem_fator_r.pdf (exemplo fictício, CNPJ fictício com DV válido)",
+  "campos": {
+    "cnpj": "34567890000130",
+    "pa": "2026-08",
+    "rbt12": "144000.00",
+    "rpa": "12000.00",
+    "fs12": null,
+    "fator_r": null,
+    "das": "720.00",
+    "anexo": "III"
+  },
+  "lacunas_conhecidas": {
+    "das": "T-504"
+  },
+  "identificacao": {
+    "nome_empresarial": "EMPRESA DE SERVICOS C - ANONIMIZADA",
+    "sujeita_fator_r": false,
+    "inicio_atividade": "2021-01"
+  },
+  "confianca_min": 0.75,
+  "confianca_max": 0.75,
+  "motivo": null,
+  "series_anteriores": {
+    "meses": 12,
+    "receitas_conferem": true,
+    "folhas_conferem": false
+  }
+}

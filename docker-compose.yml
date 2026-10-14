@@ -1,6 +1,18 @@
 # Ambiente de desenvolvimento local. Não usar em produção (ver docker-compose.prod.yml).
 name: controle
 
+# Modelo padrão de cada alias de agente [ADR-004], no formato provedor/modelo. Q-003 decidida em
+# 07/10/2026 (D-015); trocáveis no .env e (TASK-008) na tela Configurações → IA. Usado pelo LiteLLM, pela
+# API e pelo worker; TestCatalog_MatchesGatewayAndCompose confere esta lista com o código.
+x-ai-models: &ai-models
+  TRIADOR_MODEL: ${TRIADOR_MODEL:-openai/gpt-6-luna}
+  EXTRATOR_MODEL: ${EXTRATOR_MODEL:-openai/gpt-6-sol}
+  EXTRATOR_FORTE_MODEL: ${EXTRATOR_FORTE_MODEL:-openai/gpt-6-astra}
+  RESOLVEDOR_MODEL: ${RESOLVEDOR_MODEL:-openai/gpt-6-sol}
+  CLASSIFICADOR_MODEL: ${CLASSIFICADOR_MODEL:-openai/gpt-6-sol}
+  CONSULTOR_MODEL: ${CONSULTOR_MODEL:-openai/gpt-6-luna}
+  PRIORIZADOR_MODEL: ${PRIORIZADOR_MODEL:-openai/gpt-6-luna}
+
 services:
   db:
     # Imagem oficial Debian (não alpine) por causa das collations ICU.
@@ -29,8 +41,10 @@ services:
       start_period: 5s
 
   api:
-    image: golang:1.26.8-bookworm
+    image: golang:1.26.9-bookworm
     working_dir: /app/backend
+    # tini como PID 1: recolhe os processos órfãos dos reloads, que o air deixava como zumbis [D-035].
+    init: true
     # air é instalado com versão fixada; o cache fica em volumes nomeados.
     command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.toml"]
     environment:
@@ -42,6 +56,27 @@ services:
       FILE_STORAGE_DIR: /app/storage
       DB_MAX_CONNS: ${DB_MAX_CONNS:-10}
       GOFLAGS: -buildvcs=false
+      # Gateway de IA: só a chave do gateway; as dos provedores ficam no container do LiteLLM.
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      <<: *ai-models
+      # Auditoria de IA (TASK-009): a API só monta o link do trace no Langfuse; quem envia é o worker.
+      LANGFUSE_PUBLIC_URL: http://localhost:${LANGFUSE_WEB_PORT:-3100}
+      LANGFUSE_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado-dev}
+      # Originais da Conciliação (TASK-015): usuário da aplicação no MinIO, sem permissão de
+      # apagar (docker/minio/init.sh). Com o MinIO fora, só o envio da Conciliação falha (503).
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-only-change-me-app}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+      # Matching da Conciliação (TASK-018): a rodada pela API usa o limiar do passe 3 da origem.
+      LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}
+      # Resolvedor (TASK-019): desligado, a hipótese só sai a pedido do contador na fila.
+      RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
+      # Classificador (TASK-020): desligado, a sugestão de conta só sai a pedido do contador.
+      CLASSIFICADOR_AUTOMATICO: ${CLASSIFICADOR_AUTOMATICO:-false}
+      # Métricas da Conciliação (TASK-021c): a meta da conciliação automática, 80% da origem.
+      META_CONCILIACAO_AUTO: ${META_CONCILIACAO_AUTO:-80}
     ports:
       - "${HTTP_PORT:-8080}:${HTTP_PORT:-8080}"
     volumes:
@@ -92,9 +127,190 @@ services:
       retries: 60
       start_period: 60s
 
+  # --- Consolidação (TASK-003): serviços auxiliares do Fator R e da Conciliação [ADR-002] ---
+  # Portas novas publicadas só em 127.0.0.1 [spec 09 §8]. Langfuse: docker-compose.langfuse.yml.
+
+  # Jobs assíncronos: mesmo binário da API, subcomando `worker`, processo separado [spec 04 §7].
+  worker:
+    image: golang:1.26.9-bookworm
+    working_dir: /app/backend
+    # tini como PID 1, como na API [D-035].
+    init: true
+    command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.worker.toml"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-controle}:${POSTGRES_PASSWORD:-dev-only-change-me}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+      APP_ENV: ${APP_ENV:-development}
+      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      FILE_STORAGE_DIR: /app/storage
+      DB_MAX_CONNS: ${WORKER_DB_MAX_CONNS:-5}
+      WORKER_ID: ${WORKER_ID:-worker-dev}
+      WORKER_HEALTH_PORT: 8090
+      # Fila de jobs (TASK-005): padrões da origem (3 tentativas, 1 s de espera) e posse de 5 min.
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-1}
+      JOB_MAX_TENTATIVAS: ${JOB_MAX_TENTATIVAS:-3}
+      JOB_POLL_SECONDS: ${JOB_POLL_SECONDS:-1}
+      JOB_LEASE_SECONDS: ${JOB_LEASE_SECONDS:-300}
+      ROTINA_PRIORIZADOR_HORA: ${ROTINA_PRIORIZADOR_HORA:-7}
+      GOFLAGS: -buildvcs=false
+      LITELLM_BASE_URL: http://litellm:4000
+      LITELLM_API_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      <<: *ai-models
+      # Conciliação (TASK-016 a 018): o worker lê os originais no MinIO com o usuário da aplicação
+      # (sem permissão de apagar) e usa os limiares da origem: o da triagem (LIMIAR_TRIAGEM) e o
+      # por campo do comprovante (LIMIAR_CAMPO), ambos 0,70, e o do passe 3 do matching
+      # (LIMIAR_FUZZY, 0,86).
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-only-change-me-app}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+      LIMIAR_TRIAGEM: ${LIMIAR_TRIAGEM:-0.70}
+      LIMIAR_CAMPO: ${LIMIAR_CAMPO:-0.70}
+      LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}
+      # Resolvedor (TASK-019): ligado, a rodada pede hipótese para cada linha que sobrou sem
+      # proposta; o resolvedor só sugere, quem concilia é o contador.
+      RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
+      # Classificador (TASK-020): ligado, a rodada pede sugestão de conta para cada linha conciliada
+      # sem regra nem histórico; o agente só sugere, quem classifica é o contador.
+      CLASSIFICADOR_AUTOMATICO: ${CLASSIFICADOR_AUTOMATICO:-false}
+      # Langfuse (TASK-009): o worker envia traces e notas pela rede controle-obs, onde o
+      # langfuse-web responde como "langfuse". Fora do ar, as corridas ficam failed e o worker
+      # reenvia a cada LANGFUSE_RETRY_SECONDS; o domínio não para [AC-030].
+      LANGFUSE_HOST: http://langfuse:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-pk-lf-dev-only-change-me}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-sk-lf-dev-only-change-me}
+      LANGFUSE_ENVIRONMENT: ${LANGFUSE_ENVIRONMENT:-development}
+      LANGFUSE_RETRY_SECONDS: ${LANGFUSE_RETRY_SECONDS:-300}
+      TRACE_PAYLOAD_MAX_KB: ${TRACE_PAYLOAD_MAX_KB:-32}
+    networks: [default, observabilidade]
+    volumes:
+      - ./backend:/app/backend
+      - ./storage:/app/storage
+      - gomodcache:/go/pkg/mod
+      - gobuildcache:/root/.cache/go-build
+      - gobin:/go/bin
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8090/health >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 30s
+
+  # Originais da Conciliação: bucket versionado; o usuário da aplicação não apaga [spec 09 §5].
+  # Imagem da Chainguard fixada por digest: a MinIO deixou de publicar imagens da edição
+  # comunitária (quay.io/minio/* não existe mais) [docs/consolidacao/decisoes.md D-013].
+  minio:
+    image: cgr.dev/chainguard/minio:latest@sha256:e7ca559d9f7c0b5f24f5f669bb92f40f3ca88d56273b808bf3a7c116c17d2ffa
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      MINIO_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:-dev-only-change-me}
+    ports:
+      - "127.0.0.1:${MINIO_PORT:-9000}:9000"
+      - "127.0.0.1:${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  # Execução avulsa e idempotente (make dev: compose run --rm minio-init). Nenhum serviço depende
+  # dela: com o MinIO fora, só o upload da Conciliação falha [spec 11 §9].
+  minio-init:
+    image: cgr.dev/chainguard/minio:latest@sha256:e7ca559d9f7c0b5f24f5f669bb92f40f3ca88d56273b808bf3a7c116c17d2ffa
+    entrypoint: ["sh", "/scripts/init.sh"]
+    environment:
+      S3_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      S3_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:-dev-only-change-me}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-dev-only-change-me-app}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+    volumes:
+      - ./docker/minio/init.sh:/scripts/init.sh:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
+  # Gateway de modelos dos agentes [ADR-004]. Configuração: litellm/config.yaml. As chaves dos
+  # provedores existem só aqui; a aplicação usa a chave do gateway (LITELLM_API_KEY).
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.104.0
+    restart: unless-stopped
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:-sk-dev-only-change-me}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Tabela de modelos embutida na versão fixada: sem download do GitHub a cada start e sem
+      # mudança de comportamento silenciosa (ex.: saída estruturada) [D-014].
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      <<: *ai-models
+    ports:
+      - "127.0.0.1:${LITELLM_PORT:-4000}:4000"
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # Ingestão automatizada (pasta monitorada → API). A demonstração usa upload manual [spec 04 DEC-008].
+  n8n:
+    image: n8nio/n8n:2.42.4
+    restart: unless-stopped
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:${N8N_PORT:-5678}/
+      GENERIC_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      TZ: ${APP_TIMEZONE:-America/Sao_Paulo}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      # O workflow de ingestão (n8n/workflows/ingestao.json, importado com make n8n-import)
+      # observa /data/inbox e envia cada arquivo novo para a Conciliação (TASK-015).
+      N8N_RESTRICT_FILE_ACCESS_TO: /data/inbox
+      # O n8n 2.x desliga por padrão o gatilho de pasta: aqui só ele é religado; executar comando
+      # continua desligado.
+      NODES_EXCLUDE: '["n8n-nodes-base.executeCommand"]'
+      # O workflow lê o endereço da API em $env.CONTROLE_API_URL (nada secreto no ambiente do n8n).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      CONTROLE_API_URL: http://api:${HTTP_PORT:-8080}
+    ports:
+      - "127.0.0.1:${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+      - ./n8n/inbox:/data/inbox
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5678/healthz || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+
+# Rede compartilhada com o Langfuse (projeto controle-langfuse), criada pelo Makefile
+# (make obs-net): o worker alcança o langfuse-web pelo nome, inclusive no Linux, sem publicar o
+# Langfuse fora de 127.0.0.1 (ponto aberto da D-013, resolvido na D-022).
+networks:
+  observabilidade:
+    name: controle-obs
+    external: true
+
 volumes:
   pgdata:
   web_node_modules:
   gomodcache:
   gobuildcache:
   gobin:
+  minio_data:
+  n8n_data:

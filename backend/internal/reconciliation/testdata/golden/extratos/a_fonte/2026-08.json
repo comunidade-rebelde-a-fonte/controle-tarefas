@@ -1,0 +1,291 @@
+{
+ "banco": "a_fonte",
+ "agencia": "1234",
+ "conta": "56789-0",
+ "periodo_inicio": "2026-08-01",
+ "periodo_fim": "2026-08-31",
+ "saldo_inicial": "85430.12",
+ "saldo_final": "213142.37",
+ "transacoes": [
+  {
+   "ordem": 1,
+   "data": "2026-08-01",
+   "descricao": "TARIFA MANUTENCAO CONTA PJ",
+   "valor": "89.90",
+   "sentido": "D"
+  },
+  {
+   "ordem": 2,
+   "data": "2026-08-01",
+   "descricao": "PAGTO FOLHA SALARIOS 07/2026",
+   "valor": "68450.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 3,
+   "data": "2026-08-04",
+   "descricao": "TED RECEBIDA INCORPORADORA VALE VERDE - MEDICAO 03 OBRA AURORA",
+   "valor": "120000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 4,
+   "data": "2026-08-05",
+   "descricao": "BOLETO CONCRETEIRA FORTE MIX - CONCRETO USINADO",
+   "valor": "42300.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 5,
+   "data": "2026-08-05",
+   "descricao": "GPS/FGTS COMPETENCIA 07/2026",
+   "valor": "5476.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 6,
+   "data": "2026-08-05",
+   "descricao": "PIX RECEBIDO ANA LUCIA FERREIRA",
+   "valor": "2000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 7,
+   "data": "2026-08-06",
+   "descricao": "PIX ENVIADO ACO BRASIL DISTRIBUIDORA",
+   "valor": "20000.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 8,
+   "data": "2026-08-07",
+   "descricao": "PIX RECEBIDO CONDOMINIO JARDINS - REFORMA FACHADA",
+   "valor": "35000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 9,
+   "data": "2026-08-07",
+   "descricao": "DARF INSS COMPETENCIA 07/2026",
+   "valor": "14920.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 10,
+   "data": "2026-08-08",
+   "descricao": "BOLETO LOCADORA MAQUINAS PESADAS - LOCACAO RETROESCAVADEIRA",
+   "valor": "9800.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 11,
+   "data": "2026-08-08",
+   "descricao": "PIX RECEBIDO ANA LUCIA FERREIRA",
+   "valor": "6000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 12,
+   "data": "2026-08-09",
+   "descricao": "PIX ENVIADO ACO BRASIL DISTRIBUIDORA",
+   "valor": "11850.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 13,
+   "data": "2026-08-11",
+   "descricao": "PIX ENVIADO POSTO RODOVIA - COMBUSTIVEL FROTA",
+   "valor": "4320.50",
+   "sentido": "D"
+  },
+  {
+   "ordem": 14,
+   "data": "2026-08-12",
+   "descricao": "TED RECEBIDA PREF MUN RIO CLARO - PAVIMENTACAO R DAS FLORES P2",
+   "valor": "95000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 15,
+   "data": "2026-08-12",
+   "descricao": "DEB AUTOMATICO ENERGIA ELETRICA CANTEIRO",
+   "valor": "3187.45",
+   "sentido": "D"
+  },
+  {
+   "ordem": 16,
+   "data": "2026-08-13",
+   "descricao": "BOLETO CERAMICA SANTA RITA - BLOCOS E TIJOLOS",
+   "valor": "18696.50",
+   "sentido": "D"
+  },
+  {
+   "ordem": 17,
+   "data": "2026-08-14",
+   "descricao": "PIX ENVIADO CARLOS ELETRICISTA ME - SUBEMPREITADA ELETRICA",
+   "valor": "8500.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 18,
+   "data": "2026-08-14",
+   "descricao": "PIX RECEBIDO ANA LUCIA FERREIRA",
+   "valor": "3000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 19,
+   "data": "2026-08-15",
+   "descricao": "PIX RECEBIDO JOAO PEDRO ALMEIDA - RESIDENCIA UNIFAMILIAR",
+   "valor": "48000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 20,
+   "data": "2026-08-15",
+   "descricao": "ADIANTAMENTO SALARIAL 08/2026",
+   "valor": "21300.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 21,
+   "data": "2026-08-18",
+   "descricao": "DAM ISS PREFEITURA COMPETENCIA 07/2026",
+   "valor": "6850.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 22,
+   "data": "2026-08-18",
+   "descricao": "BOLETO ARGAMASSA & CIA - CIMENTO E ARGAMASSA",
+   "valor": "15420.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 23,
+   "data": "2026-08-19",
+   "descricao": "TED RECEBIDA INCORPORADORA VALE VERDE - MEDICAO 04 OBRA AURORA",
+   "valor": "110000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 24,
+   "data": "2026-08-19",
+   "descricao": "DEB AUTOMATICO SEGURO RISCO ENGENHARIA",
+   "valor": "2780.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 25,
+   "data": "2026-08-20",
+   "descricao": "PIX ENVIADO HIDRAULICA TOTAL - TUBOS E CONEXOES",
+   "valor": "7960.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 26,
+   "data": "2026-08-20",
+   "descricao": "DARF IRPJ/CSLL 2 TRIM 2026",
+   "valor": "9400.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 27,
+   "data": "2026-08-21",
+   "descricao": "PIX ENVIADO HIDRAULICA TOTAL - TUBOS E CONEXOES",
+   "valor": "7960.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 28,
+   "data": "2026-08-21",
+   "descricao": "PIX ENVIADO EPI SEGURANCA - EQUIPAMENTOS PROTECAO",
+   "valor": "3215.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 29,
+   "data": "2026-08-21",
+   "descricao": "PIX RECEBIDO ANA LUCIA FERREIRA",
+   "valor": "5000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 30,
+   "data": "2026-08-22",
+   "descricao": "LIQUIDACAO BOLETO MERCADO BOM PRECO - AMPLIACAO LOJA",
+   "valor": "27603.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 31,
+   "data": "2026-08-22",
+   "descricao": "PAGTO FATURA CARTAO CORPORATIVO",
+   "valor": "5734.80",
+   "sentido": "D"
+  },
+  {
+   "ordem": 32,
+   "data": "2026-08-25",
+   "descricao": "BOLETO VIDRACARIA CRISTAL - ESQUADRIAS",
+   "valor": "14200.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 33,
+   "data": "2026-08-26",
+   "descricao": "DEB AUTOMATICO AGUA E ESGOTO CANTEIRO",
+   "valor": "1245.60",
+   "sentido": "D"
+  },
+  {
+   "ordem": 34,
+   "data": "2026-08-27",
+   "descricao": "PIX ENVIADO MARCOS PINTURAS ME - SUBEMPREITADA PINTURA",
+   "valor": "11000.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 35,
+   "data": "2026-08-28",
+   "descricao": "BOLETO ALUGUEL ESCRITORIO 08/2026",
+   "valor": "4500.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 36,
+   "data": "2026-08-28",
+   "descricao": "PIX ENVIADO CONTABIL SILVA - HONORARIOS",
+   "valor": "2800.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 37,
+   "data": "2026-08-29",
+   "descricao": "TED RECEBIDA CONSTRUTORA XYZ - SUBEMPREITADA ESTRUTURA",
+   "valor": "30000.00",
+   "sentido": "C"
+  },
+  {
+   "ordem": 38,
+   "data": "2026-08-29",
+   "descricao": "PARCELA FINANCIAMENTO CAMINHAO 18/48",
+   "valor": "6890.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 39,
+   "data": "2026-08-29",
+   "descricao": "TARIFAS TED/PIX",
+   "valor": "45.00",
+   "sentido": "D"
+  },
+  {
+   "ordem": 40,
+   "data": "2026-08-31",
+   "descricao": "TRANSF DISTRIBUICAO LUCROS SOCIOS",
+   "valor": "25000.00",
+   "sentido": "D"
+  }
+ ]
+}

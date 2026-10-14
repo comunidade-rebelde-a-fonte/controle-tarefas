@@ -9,6 +9,7 @@ export type Backlog = Schemas["Backlog"];
 export type BacklogItem = Schemas["BacklogItem"];
 export type Drilldown = Schemas["Drilldown"];
 export type Metric = Schemas["Metric"];
+export type MoneyMetric = Schemas["MoneyMetric"];
 
 export type DashboardQuery = NonNullable<paths["/dashboard"]["get"]["parameters"]["query"]>;
 export type BacklogQuery = NonNullable<paths["/backlog"]["get"]["parameters"]["query"]>;

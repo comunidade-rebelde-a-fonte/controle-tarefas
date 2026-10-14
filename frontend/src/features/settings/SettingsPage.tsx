@@ -1,6 +1,7 @@
 import { useSearchParams } from "react-router";
 import { PageHeader } from "@/components/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AIModelsTab } from "./AIModelsTab";
 import { CatalogTab } from "./CatalogTab";
 import { DueDateRulesTab } from "./DueDateRulesTab";
 import { HolidaysTab } from "./HolidaysTab";
@@ -13,15 +14,16 @@ const TABS = [
   ["holidays", "Feriados"],
   ["thresholds", "Faixas de validade"],
   ["users", "Responsáveis"],
+  ["ai", "IA"],
 ] as const;
 
-/** Cadastros e Configurações [PRD §6 item 10, §20, §21, §19.3]. */
+/** Cadastros e Configurações [PRD §6 item 10, §20, §21, §19.3; IA: 08 §9]. */
 export function SettingsPage() {
   const [params, setParams] = useSearchParams();
   const tab = TABS.some(([t]) => t === params.get("tab")) ? (params.get("tab") ?? "catalog") : "catalog";
   return (
     <>
-      <PageHeader title="Cadastros e Configurações" description="Catálogo de obrigações, vencimentos, feriados, faixas de validade e responsáveis." />
+      <PageHeader title="Cadastros e Configurações" description="Catálogo de obrigações, vencimentos, feriados, faixas de validade, responsáveis e modelos de IA." />
       <Tabs
         value={tab}
         onValueChange={(v) => setParams(v === "catalog" ? {} : { tab: v }, { replace: true })}
@@ -47,6 +49,9 @@ export function SettingsPage() {
         </TabsContent>
         <TabsContent value="users">
           <UsersTab />
+        </TabsContent>
+        <TabsContent value="ai">
+          <AIModelsTab />
         </TabsContent>
       </Tabs>
     </>

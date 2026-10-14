@@ -1,0 +1,75 @@
+SIMPLES NACIONAL
+Programa Gerador do Documento de Arrecadacao do Simples Nacional - Declaratorio
+EXEMPLO FICTICIO - SEM VALIDADE FISCAL
+Servico - nao sujeito ao fator r
+Declaracao demonstrativa
+Periodo de Apuracao: 01/08/2026 a 31/08/2026
+1. Identificacao do Contribuinte
+CNPJ Matriz: 34.567.890/0001-30
+Nome empresarial: EMPRESA DE SERVICOS C - ANONIMIZADA
+Data de abertura no CNPJ: 22/01/2021
+Optante pelo Simples Nacional: Sim
+Regime de Apuracao: Competencia
+No da Declaracao: 20260914000000003
+1.1 CNPJ das filiais presentes nesta declaracao: Nenhuma
+2. Apuracao do Simples Nacional
+2.1 Discriminativo de Receitas
+Total de Receitas Brutas (R$) Mercado Interno Mercado Externo Total
+Receita Bruta do PA (RPA) 12.000,00 0,00 12.000,00
+Receita bruta acumulada nos 12 meses anteriores (RBT12) 144.000,00 0,00 144.000,00
+Receita bruta acumulada no ano-calendario corrente (RBA) 96.000,00 0,00 96.000,00
+Receita bruta acumulada no ano-calendario anterior (RBAA) 144.000,00 0,00 144.000,00
+Limite de receita bruta proporcionalizado 4.800.000,00 4.800.000,00
+2.2 Receitas Brutas Anteriores (R$) - Mercado Interno
+Mes Valor Mes Valor Mes Valor
+08/2025 12.000,00 09/2025 12.000,00 10/2025 12.000,00
+11/2025 12.000,00 12/2025 12.000,00 01/2026 12.000,00
+02/2026 12.000,00 03/2026 12.000,00 04/2026 12.000,00
+05/2026 12.000,00 06/2026 12.000,00 07/2026 12.000,00
+2.3 Folha de Salarios Anteriores (R$)
+Aplicacao Resultado
+Folha para fator r Nao se aplica a esta atividade
+2.4 Fator r
+Resultado
+Fator r = Nao se aplica - Anexo III
+Declaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3
+Autenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 1
+2.5 Valores Fixos
+Resultado
+Nao se aplica
+2.6 Resumo da Declaracao
+Receita Bruta Auferida (regime competencia) Aliquota efetiva Valor Total do Debito Declarado (R$)
+12.000,00 6,00% 720,00
+2.7 Informacoes da Declaracao por Estabelecimento
+Campo Informacao
+CNPJ Estabelecimento 34.567.890/0001-30
+Municipio / UF BELO HORIZONTE / MG
+Enquadramento Anexo III
+Valor do Debito por Tributo para a Atividade (R$)
+Prestacao de servicos de treinamento e cursos livres - atividade nao sujeita ao fator 'r' (Anexo III).
+IRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total
+28,80 25,20 92,30 20,02 312,48 0,00 0,00 241,20 720,00
+Totais do Estabelecimento
+Valor Informado Total do Debito Declarado Total Exigivel Total Suspenso
+12.000,00 720,00 720,00 0,00
+2.8 Total Geral da Empresa
+IRPJ CSLL COFINS PIS/Pasep INSS/CPP ICMS IPI ISS Total
+28,80 25,20 92,30 20,02 312,48 0,00 0,00 241,20 720,00
+Resumo didatico do enquadramento
+Servico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.
+Declaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3
+Autenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 2
+3. Informacoes da Recepcao da Declaracao
+Campo Informacao
+Data e horario da transmissao 14/09/2026 10:02:55
+Numero do Recibo 31.26.10003.0000003-3
+Autenticacao C3D4E.F5G6H.I7J8K.L9M0N
+Observacoes
+Documento inteiramente ficticio, produzido apenas para demonstracao e treinamento. Nao substitui
+declaracao emitida pelo PGDAS-D e nao possui validade fiscal.
+Servico classificado diretamente no Anexo III: o fator r nao se aplica neste exemplo.
+Criterio usado: fator r igual ou superior a 28% direciona as atividades sujeitas ao fator r para o Anexo III; fator
+inferior a 28% direciona para o Anexo V. Comercio e atividades de servicos nao sujeitas ao fator r seguem seus
+anexos proprios.
+Declaracao: 20260914000000003 Recibo: 31.26.10003.0000003-3
+Autenticacao: C3D4E.F5G6H.I7J8K.L9M0N Pagina 3

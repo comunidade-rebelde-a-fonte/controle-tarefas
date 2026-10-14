@@ -60,7 +60,7 @@ function CloseForm({ target, onClose, onClosed }: { target: PeriodTarget; onClos
         description={`${target.companyName}. O fechamento vale só para este módulo; os demais continuam como estão. As obrigações do módulo ficam bloqueadas até a reabertura.`}
       />
       {closingStage ? (
-        <p className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+        <p className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" role="alert">
           <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
           {closingStage}
         </p>

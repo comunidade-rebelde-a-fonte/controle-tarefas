@@ -62,4 +62,5 @@ export const CHANGE_SOURCE_LABELS: Record<ChangeSource, string> = {
   BULK: "Em massa",
   IMPORT: "Importação",
   SYSTEM: "Sistema",
+  SYSTEM_INTEGRATION: "Integração entre módulos",
 };

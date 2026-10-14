@@ -18,7 +18,7 @@ export function DropdownMenuContent({ className, sideOffset = 4, align = "end", 
       <Menu.Content
         sideOffset={sideOffset}
         align={align}
-        className={cn("z-50 min-w-44 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md", className)}
+        className={cn("z-50 min-w-44 overflow-hidden rounded-xl border border-white/10 bg-popover p-1 text-popover-foreground shadow-xl", className)}
         {...props}
       />
     </Menu.Portal>

@@ -65,17 +65,25 @@ func Down(ctx context.Context, dsn string, w io.Writer) error {
 
 // Reset reverte todas as migrations (usado para recriar os bancos de E2E e carga).
 func Reset(ctx context.Context, dsn string, w io.Writer) error {
+	if err := DownTo(ctx, dsn, 0, w); err != nil {
+		return fmt.Errorf("migrate reset: %w", err)
+	}
+	return nil
+}
+
+// DownTo reverte as migrations posteriores a version (0 = todas).
+func DownTo(ctx context.Context, dsn string, version int64, w io.Writer) error {
 	p, db, err := provider(dsn)
 	if err != nil {
 		return err
 	}
 	defer closeDB(db)
-	results, err := p.DownTo(ctx, 0)
+	results, err := p.DownTo(ctx, version)
 	for _, r := range results {
 		printf(w, "down %s\n", r.Source.Path)
 	}
 	if err != nil {
-		return fmt.Errorf("migrate reset: %w", err)
+		return fmt.Errorf("migrate down até %d: %w", version, err)
 	}
 	return nil
 }

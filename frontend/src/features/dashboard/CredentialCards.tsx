@@ -32,7 +32,7 @@ export function CredentialCards({ cards }: { cards: Dashboard["credentials"] }) 
           <div key={c.type} className="grid gap-1">
             <span className="text-sm font-medium">{c.label}</span>
             <Row icon={<CircleAlert aria-hidden className="size-3.5" />} label="Vencidos" metric={c.expired} tone="text-destructive" />
-            <Row icon={<Clock aria-hidden className="size-3.5" />} label={`Vencem em até ${c.due_soon_days} dias`} metric={c.due_soon} tone="text-amber-800" />
+            <Row icon={<Clock aria-hidden className="size-3.5" />} label={`Vencem em até ${c.due_soon_days} dias`} metric={c.due_soon} tone="text-warning" />
             <Row icon={<ShieldCheck aria-hidden className="size-3.5" />} label="Vigentes" metric={c.current} />
             <Row icon={<span aria-hidden className="inline-block size-3.5" />} label="Sem data" metric={c.no_date} tone="text-muted-foreground" />
           </div>

@@ -1,7 +1,97 @@
-# Produção [T-M7-06, docs/operacao.md]. Uso:
-#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-# O .env.prod não é versionado (modelo: .env.prod.example).
+# Execução local completa, fora do modo dev (TASK-031, D-044; base: T-M7-06). Sobe o produto
+# inteiro: o app (API + SPA), o worker, o banco, o MinIO dos originais da Conciliação, o LiteLLM,
+# o n8n e o Langfuse com os seus armazenamentos. Uso (docs/operacao.md):
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build --wait
+# O .env.prod não é versionado (modelo: .env.prod.example). Mantido do T-M7-06: o banco sem porta
+# publicada, uma imagem única (a do app, também usada pelo worker) e usuário não-root. Só três
+# portas vão para o host, em 127.0.0.1 por padrão: a aplicação, o n8n e o Langfuse. Os segredos
+# não têm valor padrão: o compose recusa subir sem eles.
+# Backup e restauração de todos os volumes: scripts/backup.sh e scripts/restore.sh.
 name: controle-prod
+
+# Modelo padrão de cada alias de agente [ADR-004], o mesmo do docker-compose.yml (D-015).
+# TestCatalog_MatchesGatewayAndCompose confere esta lista com o código.
+x-ai-models: &ai-models
+  TRIADOR_MODEL: ${TRIADOR_MODEL:-openai/gpt-6-luna}
+  EXTRATOR_MODEL: ${EXTRATOR_MODEL:-openai/gpt-6-sol}
+  EXTRATOR_FORTE_MODEL: ${EXTRATOR_FORTE_MODEL:-openai/gpt-6-astra}
+  RESOLVEDOR_MODEL: ${RESOLVEDOR_MODEL:-openai/gpt-6-sol}
+  CLASSIFICADOR_MODEL: ${CLASSIFICADOR_MODEL:-openai/gpt-6-sol}
+  CONSULTOR_MODEL: ${CONSULTOR_MODEL:-openai/gpt-6-luna}
+  PRIORIZADOR_MODEL: ${PRIORIZADOR_MODEL:-openai/gpt-6-luna}
+
+# Ambiente comum do app e do worker (o mesmo binário). Os padrões são os da origem; o
+# .env.prod.example explica cada um.
+x-controle-env: &controle-env
+  <<: *ai-models
+  APP_ENV: production
+  DATABASE_URL: postgres://${POSTGRES_USER:?defina POSTGRES_USER no .env.prod}:${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env.prod}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+  APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+  FILE_STORAGE_DIR: /data/storage
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  # Gateway de IA: só a chave do gateway; as dos provedores ficam no container do LiteLLM.
+  LITELLM_BASE_URL: http://litellm:4000
+  LITELLM_API_KEY: ${LITELLM_MASTER_KEY:?defina LITELLM_MASTER_KEY no .env.prod}
+  LITELLM_TIMEOUT_SECONDS: ${LITELLM_TIMEOUT_SECONDS:-120}
+  # Originais da Conciliação: o usuário da aplicação no MinIO, sem permissão de apagar.
+  S3_ENDPOINT: http://minio:9000
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?defina S3_SECRET_KEY no .env.prod}
+  S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+  LIMIAR_TRIAGEM: ${LIMIAR_TRIAGEM:-0.70}
+  LIMIAR_CAMPO: ${LIMIAR_CAMPO:-0.70}
+  LIMIAR_FUZZY: ${LIMIAR_FUZZY:-0.86}
+  RESOLVEDOR_AUTOMATICO: ${RESOLVEDOR_AUTOMATICO:-false}
+  CLASSIFICADOR_AUTOMATICO: ${CLASSIFICADOR_AUTOMATICO:-false}
+  META_CONCILIACAO_AUTO: ${META_CONCILIACAO_AUTO:-80}
+
+# Langfuse self-hosted (v4), o mesmo do docker-compose.langfuse.yml, com os serviços prefixados
+# por "langfuse-" e nenhuma porta própria no host além da interface web.
+x-langfuse-env: &langfuse-env
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3100}
+  DATABASE_URL: postgresql://postgres:${LF_POSTGRES_PASSWORD:?defina LF_POSTGRES_PASSWORD no .env.prod}@langfuse-postgres:5432/postgres
+  SALT: ${SALT:?defina SALT no .env.prod}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:?defina ENCRYPTION_KEY no .env.prod (openssl rand -hex 32)}
+  TELEMETRY_ENABLED: "false"
+  LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
+  CLICKHOUSE_MIGRATION_URL: clickhouse://langfuse-clickhouse:9000
+  CLICKHOUSE_URL: http://langfuse-clickhouse:8123
+  CLICKHOUSE_USER: clickhouse
+  CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?defina CLICKHOUSE_PASSWORD no .env.prod}
+  CLICKHOUSE_CLUSTER_ENABLED: "false"
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD no .env.prod}
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD no .env.prod}
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://langfuse-minio:9000
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+  LANGFUSE_S3_BATCH_EXPORT_ENABLED: "false"
+  REDIS_HOST: langfuse-redis
+  REDIS_PORT: "6379"
+  REDIS_AUTH: ${REDIS_AUTH:?defina REDIS_AUTH no .env.prod}
+  REDIS_TLS_ENABLED: "false"
+
+x-langfuse-depends-on: &langfuse-depends-on
+  langfuse-postgres:
+    condition: service_healthy
+  langfuse-minio:
+    condition: service_healthy
+  langfuse-redis:
+    condition: service_healthy
+  langfuse-clickhouse:
+    condition: service_healthy
+
+# Imagem do MinIO (Chainguard, fixada por digest): a MinIO deixou de publicar imagens da edição
+# comunitária [docs/consolidacao/decisoes.md D-013].
+x-minio-image: &minio-image cgr.dev/chainguard/minio:latest@sha256:e7ca559d9f7c0b5f24f5f669bb92f40f3ca88d56273b808bf3a7c116c17d2ffa
 
 services:
   db:
@@ -25,6 +115,7 @@ services:
       retries: 30
       start_period: 10s
 
+  # API + SPA (imagem única, usuário não-root). Aplica as migrations no boot.
   app:
     image: controle-app:${APP_VERSION:-local}
     build:
@@ -34,20 +125,293 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      # O bucket pronto antes do primeiro envio. Opcional: com o MinIO fora, o app sobe assim
+      # mesmo e só o envio da Conciliação falha [spec 11 §9]. É também o que faz o "up --wait"
+      # esperar o minio-init terminar, em vez de tratá-lo como serviço que parou.
+      minio-init:
+        condition: service_completed_successfully
+        required: false
     environment:
-      APP_ENV: production
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable
+      <<: *controle-env
       HTTP_PORT: "8080"
-      APP_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      DB_MAX_CONNS: ${DB_MAX_CONNS:-10}
       CORS_ORIGINS: ${CORS_ORIGINS:-}
-      FILE_STORAGE_DIR: /data/storage
       MIGRATE_ON_BOOT: "true"
-      LOG_LEVEL: ${LOG_LEVEL:-info}
+      # Auditoria de IA (TASK-009): a API só monta o link do trace no Langfuse; quem envia é o worker.
+      LANGFUSE_PUBLIC_URL: ${NEXTAUTH_URL:-http://localhost:3100}
+      LANGFUSE_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado}
     ports:
       - "${APP_BIND:-127.0.0.1}:${APP_PORT:-8080}:8080"
     volumes:
       - storage:/data/storage
 
+  # Jobs assíncronos: o mesmo binário (api worker), processo separado [spec 04 §7]. Sobe depois do
+  # app, que aplica as migrations, e divide com ele os arquivos locais (procurações e PGDAS-D).
+  worker:
+    image: controle-app:${APP_VERSION:-local}
+    # A imagem é a do app, construída por ele: nunca baixada de um registro.
+    pull_policy: never
+    restart: unless-stopped
+    command: ["worker"]
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      <<: *controle-env
+      DB_MAX_CONNS: ${WORKER_DB_MAX_CONNS:-5}
+      WORKER_ID: ${WORKER_ID:-worker-1}
+      WORKER_HEALTH_PORT: "8090"
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-1}
+      JOB_MAX_TENTATIVAS: ${JOB_MAX_TENTATIVAS:-3}
+      JOB_POLL_SECONDS: ${JOB_POLL_SECONDS:-1}
+      JOB_LEASE_SECONDS: ${JOB_LEASE_SECONDS:-300}
+      ROTINA_PRIORIZADOR_HORA: ${ROTINA_PRIORIZADOR_HORA:-7}
+      # Langfuse (TASK-009): só o worker conhece a chave secreta e envia traces e notas. Fora do ar,
+      # as corridas ficam na trilha local e o worker reenvia depois; o domínio não para [AC-030].
+      LANGFUSE_HOST: http://langfuse-web:3000
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?defina LANGFUSE_PUBLIC_KEY no .env.prod}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?defina LANGFUSE_SECRET_KEY no .env.prod}
+      LANGFUSE_ENVIRONMENT: ${LANGFUSE_ENVIRONMENT:-production}
+      LANGFUSE_RETRY_SECONDS: ${LANGFUSE_RETRY_SECONDS:-300}
+      TRACE_PAYLOAD_MAX_KB: ${TRACE_PAYLOAD_MAX_KB:-32}
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8090/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+  # Originais da Conciliação: bucket versionado; o usuário da aplicação não apaga [spec 09 §5].
+  # Sem porta no host: o app e o worker falam com ele pela rede interna.
+  minio:
+    image: *minio-image
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      MINIO_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:?defina S3_ROOT_PASSWORD no .env.prod}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
+
+  # Bucket versionado e usuário da aplicação sem permissão de apagar (docker/minio/init.sh).
+  # Idempotente: roda a cada "up" e termina.
+  minio-init:
+    image: *minio-image
+    entrypoint: ["sh", "/scripts/init.sh"]
+    environment:
+      S3_ROOT_USER: ${S3_ROOT_USER:-minio-admin}
+      S3_ROOT_PASSWORD: ${S3_ROOT_PASSWORD:?defina S3_ROOT_PASSWORD no .env.prod}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-conciliacao-app}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?defina S3_SECRET_KEY no .env.prod}
+      S3_BUCKET: ${S3_BUCKET:-conciliacao-originais}
+    volumes:
+      - ./docker/minio/init.sh:/scripts/init.sh:ro
+    depends_on:
+      minio:
+        condition: service_healthy
+    restart: "no"
+
+  # Gateway de modelos dos agentes [ADR-004]. Configuração: litellm/config.yaml. As chaves dos
+  # provedores existem só aqui; a aplicação usa a chave do gateway. Sem porta no host.
+  litellm:
+    image: ghcr.io/berriai/litellm:v1.104.0
+    restart: unless-stopped
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?defina LITELLM_MASTER_KEY no .env.prod}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Tabela de modelos embutida na versão fixada: sem download a cada start [D-014].
+      LITELLM_LOCAL_MODEL_COST_MAP: "True"
+      <<: *ai-models
+    volumes:
+      - ./litellm/config.yaml:/app/config.yaml:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness')"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  # Ingestão automatizada (pasta monitorada → API). O caminho obrigatório é o envio pela tela; o
+  # workflow de ingestão é importado e ativado à parte (docs/operacao.md) [REQ-045, DEC-008].
+  n8n:
+    image: n8nio/n8n:2.42.4
+    restart: unless-stopped
+    environment:
+      N8N_HOST: localhost
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: http://localhost:${N8N_PORT:-5678}/
+      GENERIC_TIMEZONE: ${APP_TIMEZONE:-America/Sao_Paulo}
+      TZ: ${APP_TIMEZONE:-America/Sao_Paulo}
+      N8N_DIAGNOSTICS_ENABLED: "false"
+      N8N_VERSION_NOTIFICATIONS_ENABLED: "false"
+      # O workflow (n8n/workflows/ingestao.json) observa /data/inbox e envia cada arquivo novo
+      # para a Conciliação. Só o gatilho de pasta é religado; executar comando segue desligado.
+      N8N_RESTRICT_FILE_ACCESS_TO: /data/inbox
+      NODES_EXCLUDE: '["n8n-nodes-base.executeCommand"]'
+      # O workflow lê o endereço da API em $env.CONTROLE_API_URL (nada secreto no ambiente do n8n).
+      N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+      CONTROLE_API_URL: http://app:8080
+    ports:
+      - "127.0.0.1:${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/workflows:ro
+      # A pasta monitorada fica no host (a pasta compartilhada do escritório, por exemplo).
+      - ${N8N_INBOX_DIR:-./n8n/inbox}:/data/inbox
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5678/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 60
+      start_period: 20s
+
+  # --- Langfuse: observabilidade e evals dos agentes [spec 04 §9, ADR-002] ---
+  langfuse-web:
+    image: docker.langfuse.com/langfuse/langfuse:4.53.0
+    restart: unless-stopped
+    depends_on: *langfuse-depends-on
+    ports:
+      - "127.0.0.1:${LANGFUSE_WEB_PORT:-3100}:3000"
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?defina NEXTAUTH_SECRET no .env.prod}
+      # Escuta em todas as interfaces: o worker do Controle o alcança pela rede interna.
+      HOSTNAME: 0.0.0.0
+      # Sem cadastro aberto: a interface do Langfuse é só para quem mantém a plataforma.
+      AUTH_DISABLE_SIGNUP: "true"
+      # Inicialização headless: organização, projeto, chaves do worker e usuário admin.
+      LANGFUSE_INIT_ORG_ID: controle-integrado
+      LANGFUSE_INIT_ORG_NAME: Controle Integrado
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-controle-integrado}
+      LANGFUSE_INIT_PROJECT_NAME: producao
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:?defina LANGFUSE_PUBLIC_KEY no .env.prod}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY:?defina LANGFUSE_SECRET_KEY no .env.prod}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_ADMIN_EMAIL:?defina LANGFUSE_ADMIN_EMAIL no .env.prod}
+      LANGFUSE_INIT_USER_NAME: Admin
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_ADMIN_PASSWORD:?defina LANGFUSE_ADMIN_PASSWORD no .env.prod}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://$$(hostname):3000/api/public/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  langfuse-worker:
+    image: docker.langfuse.com/langfuse/langfuse-worker:4.53.0
+    restart: unless-stopped
+    depends_on: *langfuse-depends-on
+    environment:
+      <<: *langfuse-env
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://$$(hostname):3030/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 30s
+
+  langfuse-postgres:
+    image: docker.io/postgres:17.11-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${LF_POSTGRES_PASSWORD:?defina LF_POSTGRES_PASSWORD no .env.prod}
+      POSTGRES_DB: postgres
+      TZ: UTC
+      PGTZ: UTC
+    volumes:
+      - langfuse_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  langfuse-clickhouse:
+    image: docker.io/clickhouse/clickhouse-server:25.12.11.4
+    restart: unless-stopped
+    user: "101:101"
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:?defina CLICKHOUSE_PASSWORD no .env.prod}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+      # Área temporária do BACKUP/RESTORE nativo usado pelo scripts/backup.sh e restore.sh.
+      - langfuse_clickhouse_backups:/backups
+      - ./docker/langfuse/clickhouse-backups.xml:/etc/clickhouse-server/config.d/backups.xml:ro
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 1s
+
+  langfuse-minio:
+    image: *minio-image
+    restart: unless-stopped
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?defina MINIO_ROOT_PASSWORD no .env.prod}
+    volumes:
+      - langfuse_minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+      start_period: 1s
+
+  langfuse-redis:
+    image: docker.io/redis:7.4.11-bookworm
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_AUTH:?defina REDIS_AUTH no .env.prod}
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\" --maxmemory-policy noeviction"]
+    volumes:
+      - langfuse_redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "REDISCLI_AUTH=\"$$REDIS_PASSWORD\" redis-cli ping"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  # Ferramenta do scripts/backup.sh e do scripts/restore.sh: copia os volumes de arquivos com o tar
+  # GNU (dono e permissões numéricos), com o serviço dono pausado ou parado. Não sobe com o "up"
+  # (profile "backup") e não tem rede. Usa a imagem do banco, que já está na máquina.
+  backup:
+    image: postgres:16.15-bookworm
+    profiles: ["backup"]
+    user: "0:0"
+    network_mode: none
+    entrypoint: ["bash", "-euo", "pipefail", "-c"]
+    volumes:
+      - storage:/volumes/storage
+      - minio_data:/volumes/minio
+      - n8n_data:/volumes/n8n
+      - langfuse_minio_data:/volumes/langfuse-minio
+
 volumes:
   pgdata:
   storage:
+  minio_data:
+  n8n_data:
+  langfuse_postgres_data:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_clickhouse_backups:
+  langfuse_minio_data:
+  langfuse_redis_data:

@@ -382,6 +382,155 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/settings/ai/models": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Modelos de IA por alias (Configurações → IA), sem segredos
+         * @description Aliases do catálogo, na ordem de exibição, com a escolha gravada na tela, o padrão do ambiente e o modelo que as novas corridas usam. Nunca devolve credencial: as chaves dos provedores ficam só no ambiente do LiteLLM [REQ-047].
+         */
+        get: operations["listAIModels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/ai/models/{alias}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Troca o modelo e os parâmetros de um alias (vale para as novas corridas)
+         * @description Substitui a configuração do alias, com concorrência otimista por `version`. Mudança no modelo efetivo ou nos parâmetros é conferida no gateway antes de gravar: reprovada, 422 `AI_MODEL_INVALID` com as conferências em `details.checks`; gateway fora do ar, 503. Ligar ou desligar o alias não depende do gateway. Campos fora do contrato, como `api_key`, são recusados (400). A corrida em andamento mantém o modelo resolvido no início.
+         */
+        put: operations["updateAIModel"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/settings/ai/models/{alias}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Valida uma configuração no gateway, sem gravar
+         * @description Confere o modelo (provedor/modelo, ou o padrão do ambiente) na tabela de modelos do LiteLLM: tipo chat, saída estruturada e visão quando o agente exige, e os parâmetros escolhidos. Não chama o provedor e não tem custo. Reprovação volta como 200 com `ok: false`.
+         */
+        post: operations["validateAIModel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel de observabilidade dos agentes (FR-18)
+         * @description Corridas nas últimas 24 h e no total, pendências sem nota humana, acerto ouro (ok sobre ok mais erro, entre campos comparáveis) e humano (acerto sobre notas), métricas por agente e custo e tokens do LLM nos últimos 30 dias, todos da trilha local (o custo é o informado pelo gateway).
+         */
+        get: operations["getAISummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Corridas de agente, mais recentes primeiro */
+        get: operations["listAIRuns"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs/{trace_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Detalhe da corrida — entrada, saída, decisão, spans, decisões e notas
+         * @description Os spans vêm da trilha local: o detalhe não depende do Langfuse estar no ar. O campo langfuse_url abre o trace no Langfuse (configuração não secreta).
+         */
+        get: operations["getAIRun"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/ai/runs/{trace_id}/evaluation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registra a nota humana da corrida (acerto, parcial ou erro)
+         * @description A nota vale na trilha local e é espelhada no Langfuse como o score categórico human_eval, como na origem. Nota erro exige comentário (422 EVAL_COMMENT_REQUIRED).
+         */
+        post: operations["evaluateAIRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/credential-controls": {
         parameters: {
             query?: never;
@@ -542,7 +691,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Carrega as 20 empresas fictícias (idempotente; indisponível em produção) */
+        /** Carrega as 21 empresas fictícias de demonstração e o histórico (idempotente; indisponível em produção) */
         post: operations["loadDemoData"];
         delete?: never;
         options?: never;
@@ -724,7 +873,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013) */
+        /**
+         * Fecha o módulo da empresa na competência, sem afetar os demais módulos (CA-013)
+         * @description No Contábil, a autoridade única da trava da Conciliação (ADR-003): se a empresa usa a
+         *     Conciliação na competência (extrato importado que a cobre ou documento dela), o fechamento
+         *     exige a obrigação Conciliação em status final ou não aplicável (422
+         *     `RECONCILIATION_NOT_FINAL`; TASK-023, D-037, decisão do usuário). Sem Conciliação, o
+         *     Contábil fecha como antes. Fechado, toda mutação da Conciliação na competência responde 423
+         *     `PERIOD_CLOSED` até a reabertura com motivo.
+         */
         post: operations["closeModulePeriod"];
         delete?: never;
         options?: never;
@@ -924,7 +1081,13 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5) */
+        /**
+         * KPIs, cards por módulo, vencimentos de credenciais e progresso por responsável (PRD §24.1-§24.5)
+         * @description Desde a TASK-024 (D-038), também as seções `factor_r` e `reconciliation` (PRD §8, 08 §3),
+         *     com os mesmos filtros: no Fator R, o responsável é o do Fiscal; na Conciliação, o do
+         *     Contábil (decisões do usuário). Cada número traz o drill-down da lista que o explica, com
+         *     os filtros na query.
+         */
         get: operations["getDashboard"];
         put?: never;
         post?: never;
@@ -985,6 +1148,85 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/companies/{id}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Visão geral da empresa na competência [08 §5; TASK-025, D-039]
+         * @description A ficha como hub: o progresso por módulo, as próximas obrigações a vencer (as atrasadas
+         *     primeiro), o Fator R no PA igual à competência com a ação sugerida e a tendência dos
+         *     últimos seis PAs (só se a empresa está na carteira), a Conciliação da competência (só se a
+         *     empresa a usa ou tem item na fila) e as pendências do "Exige atenção" só da empresa. Tudo
+         *     da mesma empresa (`companies.id`). Numa competência ainda não gerada (um PA futuro),
+         *     `competence_generated` é falso e só o Fator R e a Conciliação vêm.
+         */
+        get: operations["getCompanyOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/company-indicators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Indicadores compactos da listagem de empresas [08 §4; TASK-025, D-039]
+         * @description Por empresa com algum indicador na competência: o semáforo do Fator R (as monitoradas no
+         *     PA), o estado da conciliação (quem usa a Conciliação) e os alertas críticos (obrigações
+         *     atrasadas na competência e credenciais vencidas). Uma consulta por fonte, sem N+1.
+         */
+        get: operations["getCompanyIndicators"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A área Documentos consolidada [06 §6, 08 §8; TASK-026, D-040]
+         * @description Índice de navegação sobre os documentos de cada módulo, sem tabela nova nem cópia de
+         *     arquivo (REQ-037, REQ-043, REQ-044): os extratos do PGDAS-D do Fator R (armazenamento
+         *     local), os documentos da Conciliação (MinIO) e os arquivos de procuração e certificado do
+         *     Controle (armazenamento local). Cada documento traz o status do seu módulo e a situação
+         *     comum de leitura (decisão do usuário): Fator R — `received` e `parsed` em processamento,
+         *     `needs_review` em revisão, `linked` concluído, `rejected` descartado; Conciliação —
+         *     `pendente` e `triado` em processamento, as revisões e `pendencia_periodo_fechado` em
+         *     revisão, `extraido` e `importado` concluídos, `duplicado` descartado; Controle — o arquivo,
+         *     `arquivado`. `detail` é a tela do módulo que abre o documento. O status do módulo só vale
+         *     com o módulo escolhido. A competência casa com o PA do PGDAS-D e com a competência ou o
+         *     período do documento da Conciliação (os arquivos do Controle não têm competência).
+         */
+        get: operations["listDocumentIndex"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/companies/{id}/history": {
         parameters: {
             query?: never;
@@ -998,6 +1240,1502 @@ export interface paths {
         get: operations["getCompanyHistory"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/portfolio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Carteira do Fator R no PA, ordenada por semáforo e economia [REQ-011, AC-007]
+         * @description Empresas ativas, sujeitas ao Fator R (`companies.factor_r`) e no Simples Nacional no PA
+         *     (D-017). Ordem: vermelho, amarelo, verde e dados insuficientes; dentro de cada grupo, a
+         *     maior economia primeiro e depois o nome. Os filtros de empresa do Dashboard valem pelo
+         *     snapshot da competência do PA, com o responsável do Fiscal; com eles, os KPIs são os das
+         *     empresas filtradas (TASK-024, D-038).
+         */
+        get: operations["getFactorRPortfolio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Configuração do Fator R da empresa (padrões e `version = 0` se ainda não gravada) */
+        get: operations["getFactorRSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Altera a configuração do Fator R da empresa
+         * @description Só os campos enviados mudam; `null` limpa. `version = 0` cria a configuração. "Sujeita ao
+         *     Fator R" não fica aqui: é o `factor_r` do cadastro (`PATCH /companies/{id}`, D-017).
+         */
+        patch: operations["updateFactorRSettings"];
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/movements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Série mensal de receita e folha da empresa, em ordem de competência [REQ-009] */
+        get: operations["listFactorRMovements"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/movements/{competence}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                competence: components["schemas"]["Competence"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Lança o mês à mão (cria ou substitui a competência inteira, com origem manual)
+         * @description Valor ausente vale `0.00`. `version = 0` cria o mês. Um mês do PGDAS-D lançado de novo à
+         *     mão ("Detalhar folha") perde a folha total declarada e passa a ter a divisão informada.
+         */
+        put: operations["putFactorRMovement"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/calc": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Fator R da empresa no PA — janela, RBT12, FS12, anexo, metas, gaps, alíquotas e economia [AC-005]
+         * @description Cálculo determinístico, por código (motor portado da origem, ADR-007). Com dados
+         *     insuficientes (`status = dados_insuficientes`), anexo, alíquotas e economia ficam nulos.
+         */
+        get: operations["getFactorRCalc"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/factor-r/simulations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Histórico de simulações da empresa, mais recentes primeiro */
+        get: operations["listFactorRSimulations"];
+        put?: never;
+        /**
+         * Simula a correção da folha até a meta e grava a simulação no trace [REQ-013, AC-010]
+         * @description Todo valor é calculado pelo motor e pelo simulador portados (nunca pelo LLM). A simulação
+         *     roda numa corrida do agente consultor (gatilho `ficha`, sem LLM) e fica no trace: é ela que
+         *     autoriza uma recomendação "corrigir". Parâmetros ausentes usam os padrões da origem: meta
+         *     da política, pró-labore 100% do reforço, INSS 11%, IRRF 27,5% e 12 meses.
+         */
+        post: operations["createFactorRSimulation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/agents/consult": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agente consultor — situação, simulação ou explicação para uma empresa [REQ-014]
+         * @description O LLM (alias `consultor`, pelo LiteLLM) só classifica a intenção e redige o texto a partir
+         *     da decisão já calculada. O texto é validado contra a decisão: número, data ou palavra de
+         *     valor que não está nela, ou recomendação que contradiz o veredito, faz a resposta usar o
+         *     template. Sem LLM (gateway fora, alias desligado), a intenção vem de palavras-chave e o
+         *     texto do template. "Corrigir" só com simulação gravada (409
+         *     `RECOMMENDATION_WITHOUT_SIMULATION`). Toda resposta traz o disclaimer do PGDAS-D.
+         */
+        post: operations["consultFactorRAgent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/agents/prioritize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Agente priorizador — fila da carteira (Anexo V e entre 28% e a meta) por economia de DAS [REQ-014]
+         * @description Só lê a carteira calculada; não altera nada. O LLM (alias `priorizador`) só classifica e
+         *     redige, com a mesma validação do consultor. O worker também registra a fila uma vez por
+         *     semana, aos domingos, sem LLM (gatilho `rotina`).
+         */
+        post: operations["prioritizeFactorRAgent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Documentos do inbox, mais recentes primeiro, com a contagem por status
+         * @description A contagem por status é a do inbox inteiro, independente dos filtros. Com `company_id`,
+         *     vêm os extratos vinculados à empresa (aba Fator R da ficha).
+         */
+        get: operations["listPgdasDocuments"];
+        put?: never;
+        /**
+         * Envia um extrato PGDAS-D ao inbox e enfileira o processamento [REQ-012, REQ-046, AC-014]
+         * @description PDF com camada de texto ou TXT (UTF-8 ou latin-1), validado pelo conteúdo e nunca pela
+         *     extensão, até 10 MB. O original fica fora de qualquer diretório servido, com o sha256 como
+         *     nome; o nome enviado é só metadado. A resposta não espera o processamento: o job
+         *     `pgdas_parse` roda no worker (parser determinístico, sem LLM: ADR-006) e o estado aparece em
+         *     `GET /factor-r/pgdas/{id}` (campo `job`). O mesmo arquivo enviado de novo devolve o
+         *     documento existente (200, `duplicate = true`), sem novo job.
+         */
+        post: operations["uploadPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Documento do inbox — campos lidos, decisão, job de processamento e sugestão de cadastro */
+        get: operations["getPgdasDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Baixa o original como anexo (nosniff, sem cache) */
+        get: operations["downloadPgdasDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Vincula manualmente um documento em revisão a uma empresa [AC-008]
+         * @description Numa corrida nova do agente `parser_pgdas` (gatilho `vinculo_manual`): grava a receita do
+         *     PA e os meses anteriores conferidos, só em competências vazias, e a nota ouro. Só para
+         *     documentos em `needs_review` (409 `PGDAS_INVALID_STATE` nos demais).
+         */
+        post: operations["linkPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decisão de revisão do analista — hoje, a rejeição do documento
+         * @description Numa corrida nova do agente (gatilho `rejeicao`), com o motivo informado. Documento já
+         *     vinculado ou rejeitado não muda (409 `PGDAS_INVALID_STATE`).
+         */
+        post: operations["reviewPgdasDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/factor-r/pgdas/{id}/create-company": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cadastra a empresa do extrato e vincula o documento, numa transação só [REQ-012]
+         * @description Sempre por pedido explícito do analista, nunca automaticamente. A empresa entra pelo
+         *     cadastro canônico (mesmas validações de `POST /companies`), com o CNPJ lido no extrato.
+         *     Recusas antes de qualquer gravação: estado (409 `PGDAS_INVALID_STATE`), extrato sem CNPJ
+         *     válido (422 `PGDAS_NO_VALID_CNPJ`), CNPJ diferente do lido (422 `PGDAS_CNPJ_MISMATCH`) e
+         *     CNPJ já cadastrado (409 `CNPJ_CONFLICT`, com a empresa em `details.conflicting_company`).
+         */
+        post: operations["createCompanyFromPgdas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Documentos da Conciliação, mais recentes primeiro, com a contagem por status
+         * @description A competência casa com a informada no envio ou com o período do extrato lido na triagem
+         *     que encosta no mês. Desde a TASK-024 (D-038), `status` aceita mais de um, separados por
+         *     vírgula (os grupos do Dashboard), e os filtros de empresa do Dashboard valem pelo snapshot
+         *     de `filter_competence` (a competência do Dashboard), com o responsável do Contábil. A
+         *     contagem por status é a dos documentos das empresas filtradas (a empresa e os filtros do
+         *     Dashboard), independente dos demais filtros.
+         */
+        get: operations["listReconciliationDocuments"];
+        put?: never;
+        /**
+         * Envia um extrato ou comprovante; guarda o original no MinIO e enfileira a triagem [REQ-018, AC-013, AC-014]
+         * @description PDF, imagem (PNG ou JPEG) ou texto (CSV/TXT), validado pelo conteúdo e nunca pela
+         *     extensão, até 20 MB. O original vai para o bucket versionado com o SHA-256 como chave (o
+         *     nome enviado é só metadado) e o documento nasce `pendente`, com o job
+         *     `reconciliation_triage` na fila: a resposta não espera o processamento. O mesmo arquivo de
+         *     novo é recusado (409 `DUPLICATE_DOCUMENT`, com o documento existente em
+         *     `details.document_id`), como na origem. Com `company_id` e `competence` informados e o
+         *     Contábil fechado na competência, o original é guardado e o documento fica como
+         *     `pendencia_periodo_fechado`, sem job. Com o MinIO fora ou não configurado, nada é gravado
+         *     (503 `STORAGE_UNAVAILABLE`). É também o endpoint do workflow de ingestão do n8n.
+         */
+        post: operations["uploadReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * A Conciliação por empresa na competência [TASK-024, D-038]
+         * @description As empresas que usam a Conciliação na competência (extrato que a cobre ou documento dela)
+         *     ou têm item na fila dela, com o estado da conclusão (em andamento, pronta, concluída), o
+         *     que falta, o Contábil, a obrigação Conciliação e se a Conciliação bloqueia o fechamento do
+         *     Contábil. É a lista do drill-down das prontas para concluir e do Contábil bloqueado do
+         *     Dashboard. Uma consulta só para a competência inteira.
+         */
+        get: operations["getReconciliationOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Documento da Conciliação — hash, versão do original, triagem, diagnóstico, job, importação e tentativas */
+        get: operations["getReconciliationDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reprocessa o documento em revisão, parado por período fechado ou com o processamento encerrado sem sucesso [06 §4]
+         * @description Não ignora portão nenhum: o documento volta para a fila e passa de novo pela triagem
+         *     (`revisao_triagem`, `pendencia_periodo_fechado`, ou `pendente` com o job encerrado sem
+         *     sucesso) ou pela extração (`revisao_extracao` de extrato ou de comprovante sem lançamento,
+         *     ou `triado` com o job encerrado sem sucesso). Fica no log de extração como intervenção
+         *     humana (alias `humano`). Importado, ainda na fila ou comprovante que já tem lançamento (a
+         *     correção dele é campo a campo, na fila de revisão): 409 `DOCUMENT_NOT_RETRYABLE`. Contábil
+         *     fechado na competência do envio ou do período lido: 423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["retryReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Lê a versão gravada do original, para ver (inline) ou baixar (?download=1)
+         * @description O tipo é o detectado no envio (`nosniff`, sem cache); o nome enviado só vai no
+         *     Content-Disposition. O original nunca é servido por diretório público [09 §5].
+         */
+        get: operations["downloadReconciliationDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lançamentos do cliente (lidos dos comprovantes e manuais), por data */
+        get: operations["listReconciliationEntries"];
+        put?: never;
+        /**
+         * Insere um lançamento do cliente à mão [CC-12]
+         * @description O criar_lancamento da origem, com a empresa obrigatória: nasce com o status `manual`,
+         *     fica no log de extração como intervenção humana e passa pela trava do Contábil na
+         *     competência da data (423 `PERIOD_CLOSED`) [AC-025]. Valor positivo, até 2 casas; o sentido
+         *     diz se entra (C) ou sai (D).
+         */
+        post: operations["createReconciliationEntry"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importa lançamentos do cliente de um CSV (data;valor;sentido;contraparte) [CC-12]
+         * @description O csv_lancamentos da origem, na empresa informada: uma linha por lançamento, separada por
+         *     ponto e vírgula, com a data em AAAA-MM-DD, o valor com ponto ou vírgula decimal, o sentido
+         *     C ou D e a contraparte (colunas a mais são ignoradas); a 1ª linha com "data" é o
+         *     cabeçalho; linhas em branco são puladas. Tudo ou nada: com uma linha inválida, nada é
+         *     gravado e a resposta traz o erro de cada linha (400 `INVALID_ENTRIES_CSV`, com
+         *     `details.lines`). UTF-8 ou Windows-1252, até 2 MB e 5.000 lançamentos. Trava do Contábil
+         *     em cada competência (423 `PERIOD_CLOSED`).
+         */
+        post: operations["importReconciliationEntries"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Roda o matching determinístico da competência (passes 1 a 4) e devolve os baldes [REQ-024, AC-018]
+         * @description O rodar_matching da origem para a empresa e a competência: as linhas livres do extrato da
+         *     competência contra os lançamentos livres da empresa. Antes da cascata, o pré-filtro da
+         *     origem e os casos de borda (transferência entre contas, estorno em até 7 dias, bruto ×
+         *     líquido até R$ 20,00 em D±3) tiram linhas do automático, com o motivo marcado para a fila
+         *     [REQ-030]. A cascata só concilia o que não é ambíguo dos dois lados (ADR-008); entram no
+         *     automático os lançamentos extraídos e manuais (o parcial espera a revisão). Conciliação
+         *     automática tem origem `auto`, o passe, o método e o score, sem autor. Idempotente: a rodada
+         *     repetida não concilia de novo nem duplica marcas. O worker também roda a competência
+         *     quando chega extrato importado ou comprovante (job `reconciliation_run`). Contábil fechado:
+         *     423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["runReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pede ao resolvedor uma hipótese para a linha do extrato [REQ-025, AC-019]
+         * @description O pedir_hipotese da origem, agora assíncrono: enfileira o job `agent_resolver` e responde
+         *     sem esperar o modelo. O resolvedor só grava a proposta (hipótese, justificativa e pares),
+         *     com o trace da corrida; nada é conciliado até o aceite humano. Com um pedido da mesma
+         *     linha já na fila, devolve o mesmo job (`already_queued`). Linha conciliada: 409
+         *     `LINE_RECONCILED`; Contábil fechado: 423 `PERIOD_CLOSED` [AC-025]. O pedido fica no log
+         *     de extração como ação humana.
+         */
+        post: operations["requestResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/proposals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /** Propostas do resolvedor para a linha, da mais recente para a mais antiga */
+        get: operations["listResolverProposals"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/accept-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aceita a proposta do resolvedor — o único caminho do resolvedor até a conciliação [AC-019]
+         * @description O aceitar_hip da origem: cada par vira conciliação com origem `manual`, o método
+         *     `resolvedor` (ou `sem_comprovante`, no par de extrato sem comprovante), o autor e a
+         *     proposta. A linha do par (ou, sem ela, a linha da proposta) e os lançamentos só entram se
+         *     forem da empresa e estiverem livres; os outros são ignorados, como na origem. Sem nenhum
+         *     par a conciliar, nada muda e a proposta segue pendente (409
+         *     `PROPOSAL_NOTHING_TO_ACCEPT`: rejeite). Proposta já decidida: 409 `PROPOSAL_DECIDED`;
+         *     Contábil fechado em alguma competência das linhas: 423 `PERIOD_CLOSED` [AC-025].
+         *     Serializado com a rodada do matching da empresa.
+         */
+        post: operations["acceptResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/reject-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rejeita a proposta do resolvedor; nada é conciliado
+         * @description O rejeitar_hip da origem: a proposta fica `rejeitada`, com o autor e a data, e a ação vai
+         *     para o log de extração. Proposta já decidida: 409 `PROPOSAL_DECIDED`; Contábil fechado:
+         *     423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["rejectResolverProposal"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Plano de contas da empresa, por código [REQ-026, CC-20] */
+        get: operations["listChartAccounts"];
+        put?: never;
+        /**
+         * Inclui uma conta no plano da empresa (M5.1)
+         * @description Código sem espaço nem ponto e vírgula, até 32 caracteres; nome até 255. Código repetido na
+         *     empresa: 409 `ACCOUNT_CODE_EXISTS`. A ação fica no log de extração.
+         */
+        post: operations["createChartAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                accountId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Altera o nome ou desativa (reativa) a conta; o código não muda
+         * @description Desativada, a conta sai das novas classificações, das regras que apontam para ela e do
+         *     histórico; as classificações feitas ficam. Nada é apagado.
+         */
+        patch: operations["updateChartAccount"];
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importa o plano de contas de um CSV (codigo;nome) [CC-20]
+         * @description Uma conta por linha, separada por ponto e vírgula (colunas a mais são ignoradas); a 1ª linha
+         *     com "codigo" é o cabeçalho; linhas em branco são puladas. Tudo ou nada: com uma linha
+         *     inválida (ou código repetido no arquivo), nada é gravado e a resposta traz o erro de cada
+         *     linha (400 `INVALID_ACCOUNTS_CSV`, com `details.lines`). Conta que já existe ganha o nome do
+         *     arquivo e volta a ativa. UTF-8 ou Windows-1252, até 2 MB e 5.000 contas.
+         */
+        post: operations["importChartAccounts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/chart-accounts/copy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Copia o plano de outra empresa (o padrão) [CC-20, D-020]
+         * @description As contas ativas da empresa padrão que esta ainda não tem; as que ela já tem ficam como
+         *     estão (`skipped`).
+         */
+        post: operations["copyChartAccounts"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Regras de classificação, da mais nova para a mais antiga (a ordem em que valem) */
+        get: operations["listClassificationRules"];
+        put?: never;
+        /**
+         * Confirma uma regra de classificação (M5.2, M5.5) [REQ-027]
+         * @description CNPJ (só os dígitos, 11 ou 14), contraparte (comparada normalizada) ou regex do descritivo
+         *     (o `re` do Python, com IGNORECASE, no subconjunto que o porte traduz). A conta precisa estar
+         *     no plano ativo. A regra vale para as próximas classificações e nunca troca o que já foi
+         *     confirmado; a mais nova vale, e a ativa com o mesmo tipo e padrão é desativada
+         *     (`replaced_rule_ids`). É também como o contador confirma a regra proposta depois da
+         *     correção ou do aceite da sugestão.
+         */
+        post: operations["createClassificationRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification-rules/{ruleId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                ruleId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Desativa a regra (nunca apaga) */
+        post: operations["deactivateClassificationRule"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/classification/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Classifica as linhas conciliadas da competência — regra, depois histórico [REQ-026, AC-020]
+         * @description A rodada do matching já classifica o que concilia; esta rota aplica uma regra recém-
+         *     confirmada às linhas que ainda esperam classificação. Só preenche o que não foi confirmado:
+         *     a classificação do contador nunca é trocada. Sem regra nem histórico (as classificações
+         *     confirmadas dos meses anteriores, a mais recente vale), a linha fica à espera do agente ou
+         *     do contador. Contábil fechado: 423 `PERIOD_CLOSED` [AC-025].
+         */
+        post: operations["runClassification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Classifica a linha à mão e propõe a regra derivada (M5.5) [REQ-027]
+         * @description Origem `manual`, com o autor. A resposta traz a regra derivada da correção (CNPJ, senão
+         *     contraparte, senão o descritivo escapado), que só vale depois de confirmada em
+         *     `POST /companies/{id}/classification-rules`. Só a linha conciliada é classificada (409
+         *     `LINE_NOT_RECONCILED`); a conta precisa estar no plano ativo (400); Contábil fechado: 423.
+         */
+        put: operations["correctClassification"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pede ao agente classificador uma conta para a linha [AC-020]
+         * @description Enfileira o job `agent_classifier` (o mesmo job se o pedido já está na fila). Antes do
+         *     modelo, o job roda de novo a regra e o histórico; o agente só sugere uma conta do plano
+         *     ativo, e a sugestão fica pendente até o contador aceitar ou rejeitar. Recusas: 409
+         *     `LINE_NOT_RECONCILED`, `LINE_ALREADY_CLASSIFIED` (regra, histórico ou contador) e
+         *     `CHART_EMPTY`; 423 `PERIOD_CLOSED`.
+         */
+        post: operations["requestClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/classification-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /** Sugestões do agente para a linha, da mais recente para a mais antiga */
+        get: operations["listClassificationSuggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/accept-classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirma a sugestão do agente — a única forma de a sugestão virar classificação [AC-020]
+         * @description A linha ganha a conta com a origem `agente`, o autor e a sugestão. A resposta propõe a regra
+         *     sugerida pelo agente (ou, sem ela, a derivada), que só vale confirmada. Recusas: 404
+         *     `SUGGESTION_NOT_FOUND`; 409 `SUGGESTION_DECIDED`, `SUGGESTION_WITHOUT_ACCOUNT` (conta fora
+         *     do plano), `ACCOUNT_INACTIVE` e `LINE_NOT_RECONCILED`; 423 `PERIOD_CLOSED`.
+         */
+        post: operations["acceptClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/reject-classification-suggestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rejeita a sugestão; a linha continua à espera da classificação */
+        post: operations["rejectClassificationSuggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/ledger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Razão como consulta — uma linha por conciliação ativa [REQ-028, AC-021]
+         * @description O linhas_razao da origem: as conciliações ativas das competências do período, por data e
+         *     conta bancária, com a conta contábil e a origem da classificação, a contraparte, o débito
+         *     (saída do extrato) e o crédito (entrada), e os ids do drill-down (conciliação, transação,
+         *     original do extrato, comprovantes e originais deles). Nunca tabela escrita: reclassificar ou
+         *     desfazer muda o razão porque muda a origem. `account` filtra como a origem: a conta bancária
+         *     contém o texto (sem caixa) ou a conta contábil é igual a ele.
+         */
+        get: operations["getLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/ledger/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Exporta o razão filtrado em CSV ou XLSX [REQ-029, AC-022]
+         * @description As colunas da origem (`data;conta;historico;debito;credito`) e as do AC-022 (`competencia`,
+         *     `conta_contabil`, `nome_conta`, `contraparte`, `origem_classificacao`, `origem_conciliacao`),
+         *     na ordem do razão: o mesmo razão dá sempre o mesmo arquivo.
+         *     - `csv` (padrão): separado por ponto e vírgula, com aspas no campo que precisa delas.
+         *     - `xlsx` (TASK-028, D-042): a aba "Razão", com os mesmos títulos na 1ª linha, débito e crédito
+         *       como número de duas casas e a data como data (dd/mm/aaaa), e a aba "Resumo", com a empresa,
+         *       o período, o filtro de conta, a quantidade de lançamentos e os totais. Texto nunca vira
+         *       fórmula, e o arquivo não leva data de geração.
+         */
+        get: operations["exportLedger"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/reconciliations/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /** Conciliação no drill-down do razão — classificação, transação e documentos [AC-021] */
+        get: operations["getReconciliation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Painel de métricas da Conciliação [11-observability §7, CC-22]
+         * @description O /metricas da origem (o percentual automático contra a meta e as conciliações por passe) e
+         *     os demais números do §7: os itens por balde (a mesma contagem da fila), a leitura dos
+         *     extratos e dos comprovantes (aprovação na 1ª tentativa, tentativas médias e custo por
+         *     documento, como o `make eval-extrator`), as correções humanas depois da leitura, o que se
+         *     achou depois do fechamento (reaberturas do Contábil e documentos tardios; D-034), o custo do
+         *     resolvedor e do classificador por item e o sucesso dos playbooks por banco. Tudo é consulta
+         *     sobre as tabelas da Conciliação. Empresa e competência são opcionais; sem base, o percentual
+         *     é nulo. O custo é o que o LiteLLM informa, em dólares, sem conversão.
+         */
+        get: operations["getReconciliationMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/playbooks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Playbooks por banco, todas as versões [REQ-022, CC-09]
+         * @description O /playbooks da origem: a receita de extração de cada banco, que só persiste depois que o
+         *     portão aprova, com a versão, o estado (no máximo uma válida por banco), os sucessos, as
+         *     falhas e a taxa. Por banco e da versão mais nova para a mais antiga. Somente leitura.
+         */
+        get: operations["listBankPlaybooks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A Conciliação da empresa na competência, para a aba da ficha [REQ-036, AC-034]
+         * @description Se o Contábil está fechado (a trava da Conciliação), os extratos importados que cobrem a
+         *     competência, as linhas e o percentual automático contra a meta, os itens da fila por balde,
+         *     os lançamentos do cliente, a classificação das linhas conciliadas e a conclusão da
+         *     conciliação com a obrigação Conciliação do Contábil (TASK-022).
+         */
+        get: operations["getCompanyReconciliationSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Conclui a conciliação da competência e a obrigação Conciliação do Contábil [REQ-031, AC-023]
+         * @description O evento de conclusão da F-008, confirmado pelo contador (D-036). Pronta quando o extrato está
+         *     todo resolvido: ao menos um extrato importado cobre a competência, toda linha conciliada (ou
+         *     confirmada sem comprovante) e classificada, e nenhum documento nem comprovante parcial em
+         *     revisão; comprovante sem extrato só avisa. Senão, 409 `RECONCILIATION_NOT_READY` com
+         *     `details.blocking`.
+         *
+         *     Na mesma transação, a obrigação Conciliação (`ACCOUNTING_RECONCILIATION`) vai para OK pelo
+         *     serviço de obrigações, com a origem `SYSTEM_INTEGRATION` e o evento no histórico; as
+         *     dependências HARD do Contábil valem (422 `DEPENDENCY_BLOCKED`). Já final, não aplicável ou
+         *     inexistente, a obrigação fica como está (`obligation_sync`). Idempotente: concluída, devolve o
+         *     estado sem gravar de novo. Com o Contábil fechado, 423 `PERIOD_CLOSED`.
+         *
+         *     Concluída, a competência trava as mutações da Conciliação (423 `RECONCILIATION_COMPLETED`) até
+         *     a reabertura, e o documento novo dela fica como pendência (motivo `conciliacao_concluida`).
+         */
+        post: operations["completeReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reabre a conciliação concluída, com motivo [REQ-032, AC-024]
+         * @description A obrigação Conciliação volta para Pendente (decisão do usuário, D-036), com a origem
+         *     `SYSTEM_INTEGRATION` e o motivo no histórico, se ainda estiver no OK que a conclusão aplicou e
+         *     ninguém tiver mudado o status depois; senão, fica como está (`mantida`). A competência
+         *     destrava. Sem conclusão em vigor, 409 `RECONCILIATION_NOT_COMPLETED`; com o Contábil fechado,
+         *     423 `PERIOD_CLOSED` (reabra o Contábil antes).
+         */
+        post: operations["reopenReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/reconciliation/closure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * O fechamento do Contábil visto pela Conciliação [06 §5, REQ-033, REQ-034]
+         * @description Derivado do período do Contábil (`company_module_periods`): a Conciliação não tem
+         *     fechamento próprio (ADR-003). O período (nulo se não foi gerado), os eventos de abertura,
+         *     fechamento e reabertura (com o motivo), e se fechar o Contábil exige a obrigação
+         *     Conciliação final (`requires_reconciliation`: a empresa usa a Conciliação na competência e a
+         *     obrigação existe e se aplica; D-037).
+         *     Para fechar e reabrir, use `POST /company-module-periods/{id}/close` e `.../reopen`.
+         */
+        get: operations["getReconciliationClosure"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/bank-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Contas bancárias da empresa e as lidas nos extratos sem cadastro [CC-11]
+         * @description As contas cadastradas, com os extratos já importados de cada uma, e as contas que os
+         *     extratos importados da empresa leram e que ninguém cadastrou (`read`), com o banco, a
+         *     agência e a conta exatamente como a leitura gravou.
+         */
+        get: operations["listBankAccounts"];
+        put?: never;
+        /**
+         * Cadastra a conta bancária na empresa (conta_bancaria da origem) [CC-11]
+         * @description A conta cadastrada decide a empresa dos próximos extratos dela, e o extrato dela enviado
+         *     para outra empresa vai para a revisão (`conta_de_outra_empresa`; D-027). Banco, agência e
+         *     conta precisam ser os que a leitura grava (o leitor do cenário grava `a_fonte` ou `beta`):
+         *     prefira cadastrar a partir de `read`. Sem espaços nas pontas; até 64, 16 e 32 caracteres. A
+         *     identidade é única no sistema: já cadastrada, 409 `BANK_ACCOUNT_EXISTS`, com a empresa dona
+         *     em `details.company_id` quando é outra. A ação fica no log de extração.
+         */
+        post: operations["createBankAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review-queue": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Fila de revisão por balde, com as contagens [08 §7, REQ-019, REQ-024]
+         * @description A fila da origem (/fila): documentos e comprovantes parciais em revisão (`revisao`), linhas
+         *     livres marcadas (`divergencia`: divergência, caso de borda ou conciliação desfeita) e sem
+         *     marca (`extrato_sem`), comprovantes completos sem extrato (`comprovante_sem`) e, da TASK-020,
+         *     linhas conciliadas à espera da classificação (`classificacao`). Filtros opcionais por
+         *     empresa, competência (itens sem data aparecem em qualquer competência) e balde. Os filtros
+         *     de empresa do Dashboard (agrupamento, regime e responsável do Contábil, pelo snapshot da
+         *     competência) exigem a competência (TASK-024, D-038).
+         */
+        get: operations["getReviewQueue"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        /**
+         * A linha do extrato na fila — conciliação ou candidatos
+         * @description A linha com a empresa, a conta bancária, o original do extrato e as marcas. Conciliada, a
+         *     conciliação ativa com os comprovantes; livre, os candidatos da origem
+         *     (candidatos_para_extrato): lançamentos livres de mesmo valor e sentido em D±3, mais os que o
+         *     matching anotou, do mais perto ao mais longe.
+         */
+        get: operations["getReviewLine"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/manual-match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Concilia a linha à mão com um ou mais lançamentos (N:1) [REQ-024]
+         * @description O conciliar_manual da origem, com N lançamentos: origem `manual`, método `manual` e o autor.
+         *     Os lançamentos precisam ser da empresa e estar livres (409 `ENTRY_NOT_FREE`); a linha, livre
+         *     (409 `LINE_RECONCILED`). O valor não é conferido, como na origem: a diferença vai na
+         *     resposta. A linha passa pela classificação (TASK-020). Contábil fechado: 423.
+         */
+        post: operations["manualMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/review/{id}/confirm-no-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * "Não há comprovante": concilia a linha sem lançamento
+         * @description O marcar_sem da origem: método `sem_comprovante`, origem `manual` e o autor; a linha passa
+         *     pela classificação. Linha conciliada: 409 `LINE_RECONCILED`; Contábil fechado: 423.
+         */
+        post: operations["confirmNoReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * O comprovante na fila — conciliação ou linhas candidatas
+         * @description O lançamento, a conciliação ativa (se houver) e, livre e completo, as linhas candidatas da
+         *     origem (candidatos_para_comprovante): linhas livres de mesmo valor e sentido em D±3.
+         */
+        get: operations["getReconciliationEntry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Corrige campos do comprovante — a revisão campo a campo [REQ-023]
+         * @description Só os campos enviados mudam (texto vazio limpa o opcional), com as regras do lançamento
+         *     manual. O campo corrigido ganha confiança 1 e origem humana. Com os campos essenciais
+         *     (data, valor, sentido, contraparte), o parcial sai da revisão (`extraido`; o manual continua
+         *     manual) e a competência roda de novo (`round`). Só o lançamento livre (409
+         *     `ENTRY_RECONCILED`); Contábil fechado na data antiga ou nova: 423.
+         */
+        patch: operations["correctReconciliationEntry"];
+        trace?: never;
+    };
+    "/reconciliation/reconciliations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** As últimas conciliações ativas (para desfazer) */
+        get: operations["listRecentReconciliations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/reconciliations/{id}/undo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Desfaz a conciliação, automática ou manual, com motivo [D-032]
+         * @description Nada é apagado: a conciliação guarda quem, quando e por quê, e os lançamentos ficam livres.
+         *     A linha perde a classificação e ganha a marca `desfeita`: volta para a fila como divergência
+         *     e não volta sozinha ao automático. Já desfeita: 409 `RECONCILIATION_UNDONE`; Contábil
+         *     fechado: 423.
+         */
+        post: operations["undoReconciliation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/identify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * "Que documento é esse?": o contador diz o tipo e a empresa [REQ-019]
+         * @description Para o documento em revisão da triagem ou da extração (o comprovante sem lançamento): o tipo
+         *     (extrato ou comprovante), a empresa e, no extrato, banco, agência, conta e período (os não
+         *     informados ficam como a triagem leu). O documento volta para a extração (202, com o job),
+         *     com os mesmos portões. Outro estado: 409 `DOCUMENT_NOT_IDENTIFIABLE`; já na fila: 409
+         *     `DOCUMENT_NOT_RETRYABLE`; Contábil fechado: 423.
+         */
+        post: operations["identifyReconciliationDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Como mostrar o original na fila — páginas do PDF como imagem [D-032]
+         * @description PDF: o total de páginas, renderizadas em `GET .../pages/{page}` no DPI do extrator do
+         *     comprovante (o bbox de cada campo cai no lugar). Sem páginas (`pages` 0: imagem ou texto),
+         *     a tela abre o próprio arquivo (`GET .../file`).
+         */
+        get: operations["getReconciliationDocumentPages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/reconciliation/documents/{id}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                /** @description Página, a partir de 1 */
+                page: number;
+            };
+            cookie?: never;
+        };
+        /** A página do PDF renderizada (PNG) */
+        get: operations["getReconciliationDocumentPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Estado de um job da fila — status, tentativas, horários e erro sanitizado [06 §8]
+         * @description `worker_online` diz se algum worker deu sinal recente: job pendente sem worker ativo
+         *     significa fila parada (runbook "Worker parado", 11 §9). O payload não é exposto.
+         */
+        get: operations["getJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/jobs/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reenvia um job encerrado com falha (dead), com as tentativas zeradas
+         * @description Só para `dead` (409 `JOB_NOT_RETRYABLE` nos demais estados). O reenvio não pula portões de
+         *     domínio, que ficam no processamento do job. Com outro job ativo para o mesmo item, 409
+         *     `JOB_ALREADY_ACTIVE`.
+         */
+        post: operations["retryJob"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1530,6 +3268,270 @@ export interface components {
             /** @description Faixas "vence em até N dias", crescentes (padrão 7, 15, 30, 60) */
             days: number[];
         };
+        /**
+         * @description Provedor com rota no gateway (litellm/config.yaml)
+         * @enum {string}
+         */
+        AIProvider: "openai" | "anthropic";
+        /**
+         * @description De onde vem o modelo das novas corridas: `settings` = escolha da tela; `env` = padrão do ambiente (`<ALIAS>_MODEL`); `none` = sem modelo (as corridas falham até configurar).
+         * @enum {string}
+         */
+        AIModelSource: "settings" | "env" | "none";
+        /**
+         * @description Nome do modelo no provedor, sem o prefixo (ex. `gpt-6-luna`). Nome com cara de chave de API (`sk-…`, `pk-…`, `rk-…`) é recusado.
+         * @example gpt-6-luna
+         */
+        AIModelName: string;
+        /** @description Parâmetros de chamada permitidos (lista fechada); ausente = padrão do provedor. Nunca credenciais. */
+        AIModelParameters: {
+            temperature?: number;
+            /** Format: int32 */
+            max_tokens?: number;
+        };
+        AIModelAlias: {
+            /** @example triador */
+            alias: string;
+            /** @enum {string} */
+            module: "conciliacao" | "fator_r";
+            purpose: string;
+            /** @description O que o agente exige do modelo (conferido na validação) */
+            requirements: {
+                structured_output: boolean;
+                vision: boolean;
+            };
+            /** @description Escolha gravada na tela; null = padrão do ambiente */
+            provider: components["schemas"]["AIProvider"] | null;
+            /** @description Escolha gravada na tela; null = padrão do ambiente */
+            model: components["schemas"]["AIModelName"] | null;
+            /**
+             * @description Padrão do ambiente, em provedor/modelo
+             * @example openai/gpt-6-luna
+             */
+            default_model: string | null;
+            /** @description Modelo das novas corridas, em provedor/modelo; null = sem modelo */
+            effective_model: string | null;
+            source: components["schemas"]["AIModelSource"];
+            parameters: components["schemas"]["AIModelParameters"];
+            /** @description Desligado: as corridas do agente não resolvem modelo */
+            enabled: boolean;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AIModelList: {
+            /** @description false = LITELLM_BASE_URL ausente; sem gateway não há como validar nem trocar o modelo */
+            gateway_configured: boolean;
+            items: components["schemas"]["AIModelAlias"][];
+        };
+        /** @description Configuração completa do alias. provider e model nulos voltam ao padrão do ambiente. */
+        AIModelUpdate: {
+            provider: components["schemas"]["AIProvider"] | null;
+            model: components["schemas"]["AIModelName"] | null;
+            parameters: components["schemas"]["AIModelParameters"];
+            enabled: boolean;
+            /**
+             * Format: int32
+             * @description Versão lida; diferente da atual = 409 VERSION_CONFLICT
+             */
+            version: number;
+        };
+        AIModelValidateRequest: {
+            provider: components["schemas"]["AIProvider"] | null;
+            model: components["schemas"]["AIModelName"] | null;
+            parameters: components["schemas"]["AIModelParameters"];
+        };
+        AIModelCheck: {
+            /** @enum {string} */
+            code: "MODEL_CONFIGURED" | "MODEL_KNOWN" | "CHAT_MODE" | "STRUCTURED_OUTPUT" | "VISION" | "PARAM_TEMPERATURE" | "PARAM_MAX_TOKENS";
+            ok: boolean;
+            message: string;
+        };
+        /** @description Capacidades do modelo segundo a tabela de modelos do gateway */
+        AIModelCapabilities: {
+            /** @example chat */
+            mode: string;
+            structured_output: boolean;
+            vision: boolean;
+            /** Format: int32 */
+            max_output_tokens: number | null;
+            /** @description Parâmetros permitidos que o modelo aceita */
+            parameters: ("temperature" | "max_tokens")[];
+        };
+        AIModelValidation: {
+            ok: boolean;
+            /** @description Modelo conferido, em provedor/modelo */
+            model: string | null;
+            source: components["schemas"]["AIModelSource"];
+            checks: components["schemas"]["AIModelCheck"][];
+            capabilities: components["schemas"]["AIModelCapabilities"] | null;
+        };
+        /**
+         * @description Resultado da corrida, como na origem
+         * @enum {string}
+         */
+        AIRunStatus: "ok" | "error" | "needs_review";
+        /**
+         * @description Sincronização com o Langfuse; failed é reenviado periodicamente
+         * @enum {string}
+         */
+        AISyncStatus: "pending" | "ok" | "failed";
+        AIRun: {
+            trace_id: string;
+            /** @example consultor */
+            agent: string;
+            /** @example pergunta */
+            trigger: string;
+            status: components["schemas"]["AIRunStatus"];
+            confidence: components["schemas"]["DecimalString"] | null;
+            /** Format: int32 */
+            latency_ms: number | null;
+            company_id: components["schemas"]["Uuid"] | null;
+            /** @description Competência (Conciliação) ou PA (Fator R) */
+            competence: components["schemas"]["Competence"] | null;
+            /** @description Snapshot da resolução do alias; nulo em agente determinístico */
+            alias: string | null;
+            provider: string | null;
+            model: string | null;
+            /** Format: int32 */
+            tokens_in: number | null;
+            /** Format: int32 */
+            tokens_out: number | null;
+            cost_usd: components["schemas"]["DecimalString"] | null;
+            langfuse_sync_status: components["schemas"]["AISyncStatus"];
+            has_human_eval: boolean;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIRunList: {
+            items: components["schemas"]["AIRun"][];
+            /** Format: int64 */
+            total: number;
+        };
+        /** @description Passo da corrida (plan, parse, tool, decide, render) ou chamada ao LLM (generation) */
+        AIRunSpan: {
+            id: string;
+            /** @description Ausente: filho da raiz */
+            parent_id?: string;
+            name: string;
+            /** @enum {string} */
+            type: "chain" | "tool" | "generation";
+            /** Format: date-time */
+            start: string;
+            /** Format: date-time */
+            end: string;
+            /** @enum {string} */
+            level?: "WARNING" | "ERROR";
+            status_message?: string;
+            input?: unknown;
+            output?: unknown;
+            metadata?: {
+                [key: string]: string;
+            };
+            model?: string;
+            response_model?: string;
+            tokens_in?: number;
+            tokens_out?: number;
+            /** @description Custo informado pelo gateway, em decimal textual */
+            cost_usd?: string;
+        };
+        AIDecision: {
+            id: components["schemas"]["Uuid"];
+            kind: string;
+            data: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIGoldEval: {
+            field: string;
+            expected: string | null;
+            obtained: string | null;
+            within_tolerance: boolean | null;
+            /** @enum {string} */
+            status: "ok" | "erro" | "ouro_indisponivel";
+        };
+        /**
+         * @description Nota humana, como na origem (score categórico human_eval no Langfuse)
+         * @enum {string}
+         */
+        AIHumanEvalRating: "acerto" | "parcial" | "erro";
+        AIHumanEval: {
+            id: components["schemas"]["Uuid"];
+            user_id: components["schemas"]["Uuid"];
+            rating: components["schemas"]["AIHumanEvalRating"];
+            comment: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AIHumanEvalInput: {
+            rating: components["schemas"]["AIHumanEvalRating"];
+            /** @description Obrigatório quando a nota é erro */
+            comment?: string | null;
+        };
+        AIRunDetail: components["schemas"]["AIRun"] & {
+            /**
+             * Format: int32
+             * @description Versão da configuração do alias usada (D-021)
+             */
+            model_config_version: number | null;
+            prompt_version: string | null;
+            /** @description Código do erro (nunca a mensagem crua) */
+            error_code: string | null;
+            metadata: {
+                [key: string]: string;
+            };
+            /** @description Entrada sanitizada */
+            input: {
+                [key: string]: unknown;
+            };
+            output: {
+                [key: string]: unknown;
+            };
+            decision: {
+                [key: string]: unknown;
+            };
+            spans: components["schemas"]["AIRunSpan"][];
+            decisions: components["schemas"]["AIDecision"][];
+            gold_evals: components["schemas"]["AIGoldEval"][];
+            human_evals: components["schemas"]["AIHumanEval"][];
+            /** Format: int32 */
+            langfuse_attempts: number;
+            /** @description Erro sanitizado do último envio */
+            langfuse_last_error: string | null;
+            /** Format: date-time */
+            langfuse_synced_at: string | null;
+            /** @description Link para o trace no Langfuse */
+            langfuse_url: string | null;
+        };
+        AIAgentSummary: {
+            agent: string;
+            /** Format: int64 */
+            runs: number;
+            /** Format: int64 */
+            avg_latency_ms: number | null;
+            avg_confidence: components["schemas"]["DecimalString"] | null;
+            /** Format: int64 */
+            errors: number;
+            /** Format: int64 */
+            reviews: number;
+        };
+        AISummary: {
+            /** Format: int64 */
+            runs_24h: number;
+            /** Format: int64 */
+            runs_total: number;
+            /** Format: int64 */
+            pending_human_eval: number;
+            gold_accuracy: components["schemas"]["DecimalString"] | null;
+            human_accuracy: components["schemas"]["DecimalString"] | null;
+            by_agent: components["schemas"]["AIAgentSummary"][];
+            llm_cost_30d: components["schemas"]["DecimalString"] | null;
+            /** Format: int64 */
+            llm_tokens_30d: number | null;
+        };
         CompetenceInfo: {
             competence: components["schemas"]["Competence"];
             /** Format: date-time */
@@ -1659,8 +3661,11 @@ export interface components {
             new_value: string | null;
             old_label: string | null;
             new_label: string | null;
-            /** @enum {string} */
-            change_source: "INLINE" | "BULK" | "IMPORT" | "SYSTEM";
+            /**
+             * @description SYSTEM_INTEGRATION: mudança automática de outro módulo (a conclusão da Conciliação, TASK-022), com o evento em override_reason
+             * @enum {string}
+             */
+            change_source: "INLINE" | "BULK" | "IMPORT" | "SYSTEM" | "SYSTEM_INTEGRATION";
             override_reason: string | null;
             user: components["schemas"]["UserRef"];
             /** Format: date-time */
@@ -1861,6 +3866,115 @@ export interface components {
             modules: components["schemas"]["DashboardModuleCard"][];
             credentials: components["schemas"]["DashboardCredentialCard"][];
             responsibles: components["schemas"]["DashboardResponsible"][];
+            factor_r: components["schemas"]["DashboardFactorR"];
+            reconciliation: components["schemas"]["DashboardReconciliation"];
+        };
+        /** @description Valor em reais clicável (D-038) */
+        MoneyMetric: {
+            value: components["schemas"]["DecimalString"];
+            drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @description Empresa que exige ação, na ordem da carteira (semáforo e economia) */
+        DashboardFactorRPriority: {
+            company: components["schemas"]["FactorRPortfolioCompany"];
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            fator_r: components["schemas"]["DecimalString"] | null;
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            acao: components["schemas"]["FactorRAction"];
+            acao_texto: string;
+            drilldown: components["schemas"]["Drilldown"];
+        };
+        /**
+         * @description A carteira do Fator R no PA igual à competência do Dashboard (PRD §8; TASK-024, D-038),
+         *     calculada pelo motor da carteira (`GET /factor-r/portfolio`), com o responsável do Fiscal
+         *     no filtro. O drill-down leva à carteira com o filtro de semáforo (`semaforo`, separado por
+         *     vírgula; `insuficiente` são os dados insuficientes). Sem tabela do Simples vigente no PA,
+         *     `unavailable` traz o motivo e os números ficam zerados.
+         */
+        DashboardFactorR: {
+            pa: components["schemas"]["Competence"];
+            unavailable: string | null;
+            /** @description A meta operacional da política (vazia se indisponível) */
+            meta_operacional: string;
+            monitored: components["schemas"]["Metric"];
+            red: components["schemas"]["Metric"];
+            yellow: components["schemas"]["Metric"];
+            green: components["schemas"]["Metric"];
+            insufficient: components["schemas"]["Metric"];
+            /** @description A economia positiva em 12 meses de quem está no vermelho ou no amarelo */
+            savings_at_play: components["schemas"]["MoneyMetric"];
+            /** @description Empresas com ação sugerida diferente de manter (vermelho, amarelo e dados insuficientes) */
+            action_required: components["schemas"]["Metric"];
+            /** @description As cinco primeiras que exigem ação, na ordem da carteira */
+            priorities: components["schemas"]["DashboardFactorRPriority"][];
+        };
+        /**
+         * @description A Conciliação (PRD §8, 08 §3; TASK-024, D-038), com o responsável do Contábil no filtro.
+         *     Os documentos contam todas as competências (decisão do usuário): processando (pendente e
+         *     triado), em revisão de triagem ou extração e parados por período fechado. A fila e as
+         *     empresas são as da competência: as prontas para concluir (o extrato todo resolvido, ainda
+         *     não concluídas) e as com o Contábil bloqueado (aberto, a empresa usa a Conciliação e a
+         *     obrigação Conciliação aplicável não está final; decisão do usuário).
+         */
+        DashboardReconciliation: {
+            processing: components["schemas"]["Metric"];
+            extraction_review: components["schemas"]["Metric"];
+            closed_period: components["schemas"]["Metric"];
+            queue: components["schemas"]["Metric"];
+            divergent: components["schemas"]["Metric"];
+            without_receipt: components["schemas"]["Metric"];
+            without_statement: components["schemas"]["Metric"];
+            ready: components["schemas"]["Metric"];
+            blocks_accounting: components["schemas"]["Metric"];
+        };
+        /** @description A Conciliação de uma empresa na competência (TASK-024, D-038) */
+        ReconciliationOverviewCompany: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            };
+            /**
+             * @description A regra da conclusão (D-036)
+             * @enum {string}
+             */
+            state: "em_andamento" | "pronta" | "concluida";
+            /** @description Extratos importados que cobrem a competência */
+            statements: number;
+            blocking: {
+                missing_statement: boolean;
+                divergent: number;
+                without_receipt: number;
+                review: number;
+                classification: number;
+            };
+            /** @description Comprovantes sem extrato (só avisam) */
+            without_statement: number;
+            /** @description Extrato que cobre a competência ou documento dela (a guarda do fechamento do Contábil, D-037) */
+            uses_reconciliation: boolean;
+            /** @enum {string|null} */
+            accounting_state: "OPEN" | "CLOSED" | null;
+            obligation: {
+                instance_id: components["schemas"]["Uuid"];
+                status_code: string;
+                status_label: string;
+                is_final: boolean;
+                applicable: boolean;
+            } | null;
+            /** @description O Contábil está aberto e não fecha pela Conciliação (a obrigação aplicável não está final) */
+            blocks_accounting: boolean;
+        };
+        ReconciliationOverview: {
+            competence: components["schemas"]["Competence"];
+            /** @description Totais antes dos filtros de estado e de bloqueio */
+            counts: {
+                total: number;
+                em_andamento: number;
+                pronta: number;
+                concluida: number;
+                blocks_accounting: number;
+            };
+            items: components["schemas"]["ReconciliationOverviewCompany"][];
         };
         AttentionItem: {
             company: {
@@ -1880,6 +3994,120 @@ export interface components {
             count: number;
             sample: components["schemas"]["AttentionItem"][];
             drilldown: components["schemas"]["Drilldown"] | null;
+        };
+        /** @enum {string} */
+        DocumentModule: "factor_r" | "reconciliation" | "credentials";
+        /** @enum {string} */
+        DocumentKind: "pgdas" | "extrato" | "comprovante" | "desconhecido" | "procuracao" | "certificado";
+        /** @enum {string} */
+        DocumentSituation: "em_processamento" | "em_revisao" | "concluido" | "descartado";
+        DocumentIndexItem: {
+            id: components["schemas"]["Uuid"];
+            module: components["schemas"]["DocumentModule"];
+            /** @enum {string} */
+            storage_backend: "local" | "minio";
+            kind: components["schemas"]["DocumentKind"];
+            /** @description O status do módulo, sem tradução */
+            status: string;
+            situation: components["schemas"]["DocumentSituation"];
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            } | null;
+            competence: components["schemas"]["Competence"] | null;
+            period_start: components["schemas"]["Date"] | null;
+            period_end: components["schemas"]["Date"] | null;
+            bank: string | null;
+            file_name: string;
+            /** @description Validade da procuração ou do certificado */
+            expires_at: components["schemas"]["Date"] | null;
+            /** Format: date-time */
+            received_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            detail: components["schemas"]["Drilldown"];
+        };
+        DocumentIndex: {
+            items: components["schemas"]["DocumentIndexItem"][];
+            total: number;
+            /** @description Quantidades por módulo, situação e status com os filtros de empresa, tipo, banco e competência */
+            counts: {
+                module: components["schemas"]["DocumentModule"];
+                situation: components["schemas"]["DocumentSituation"];
+                status: string;
+                total: number;
+            }[];
+        };
+        /** @description A Visão geral da empresa na competência (TASK-025, D-039) */
+        CompanyOverview: {
+            company: {
+                id: components["schemas"]["Uuid"];
+                internal_code: string;
+                legal_name: string;
+            };
+            competence: components["schemas"]["Competence"];
+            competence_generated: boolean;
+            modules: {
+                module: string;
+                label: string;
+                /** @enum {string} */
+                period_state: "OPEN" | "CLOSED";
+                applicable: number;
+                done: number;
+                pending: number;
+                overdue: number;
+                operational_progress: number;
+                final_completion: number;
+                drilldown: components["schemas"]["Drilldown"] | null;
+            }[];
+            next_due: {
+                instance_id: components["schemas"]["Uuid"];
+                module: string;
+                module_label: string;
+                obligation: string;
+                status_label: string;
+                due_date: components["schemas"]["Date"] | null;
+                overdue: boolean;
+                drilldown: components["schemas"]["Drilldown"] | null;
+            }[];
+            factor_r: {
+                pa: components["schemas"]["Competence"];
+                status: components["schemas"]["FactorRStatus"];
+                motivo: components["schemas"]["FactorRReason"] | null;
+                semaforo: components["schemas"]["FactorRLight"] | null;
+                fator_r: components["schemas"]["DecimalString"] | null;
+                anexo: components["schemas"]["FactorRAnnex"] | null;
+                economia_12m: components["schemas"]["DecimalString"] | null;
+                acao: components["schemas"]["FactorRAction"];
+                acao_texto: string;
+                /** @description Os últimos seis PAs até o da competência (sem os PAs sem tabela do Simples vigente) */
+                trend: {
+                    pa: components["schemas"]["Competence"];
+                    semaforo: components["schemas"]["FactorRLight"] | null;
+                    fator_r: components["schemas"]["DecimalString"] | null;
+                }[];
+            } | null;
+            reconciliation: components["schemas"]["ReconciliationOverviewCompany"] | null;
+            /** @description As categorias do "Exige atenção" com itens, só da empresa */
+            attention: components["schemas"]["AttentionCategory"][];
+        };
+        CompanyIndicatorList: {
+            competence: components["schemas"]["Competence"];
+            items: {
+                company_id: components["schemas"]["Uuid"];
+                factor_r: {
+                    semaforo: components["schemas"]["FactorRLight"] | null;
+                    acao: components["schemas"]["FactorRAction"];
+                } | null;
+                reconciliation: {
+                    /** @enum {string} */
+                    state: "em_andamento" | "pronta" | "concluida";
+                    blocks_accounting: boolean;
+                } | null;
+                overdue: number;
+                credentials_expired: number;
+            }[];
         };
         Attention: {
             competence: components["schemas"]["Competence"];
@@ -1997,6 +4225,1571 @@ export interface components {
             role?: components["schemas"]["UserRole"];
             active?: boolean;
         };
+        /**
+         * @description Estados do Conciliador de origem (contrato congelado, D-020): pendente → triado → extraido →
+         *     importado, com as revisões; pendencia_periodo_fechado é o documento tardio com o Contábil
+         *     fechado na competência.
+         * @enum {string}
+         */
+        ReconciliationDocumentStatus: "pendente" | "triado" | "extraido" | "importado" | "revisao_triagem" | "revisao_extracao" | "duplicado" | "pendencia_periodo_fechado";
+        /**
+         * @description Tipo definido pela triagem (nulo até ela)
+         * @enum {string}
+         */
+        ReconciliationDocumentKind: "extrato" | "comprovante" | "desconhecido";
+        ReconciliationUpload: {
+            document_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Job de triagem; nulo no documento parado por período fechado
+             */
+            job_id: string | null;
+            status: components["schemas"]["ReconciliationDocumentStatus"];
+        };
+        /** @description Estado do job que processa o documento [AC-014] */
+        DocumentJobState: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            last_error_code: string | null;
+        };
+        ReconciliationDocument: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["ReconciliationDocumentStatus"];
+            /**
+             * Format: uuid
+             * @description Informada no envio ou definida na triagem
+             */
+            company_id: string | null;
+            /** @description Competência informada no envio */
+            competence: components["schemas"]["Competence"] | null;
+            /** @description Nome enviado (só metadado) */
+            file_name: string;
+            /**
+             * @description Tipo detectado pelo conteúdo
+             * @example application/pdf
+             * @example text/plain; charset=utf-8
+             */
+            content_type: string;
+            /** Format: int64 */
+            size_bytes: number | null;
+            /** @description Hash do original: chave no bucket e dedupe */
+            sha256: string;
+            /** @description Versão do objeto no bucket versionado */
+            object_version_id: string | null;
+            kind: components["schemas"]["ReconciliationDocumentKind"] | null;
+            bank: string | null;
+            branch: string | null;
+            account: string | null;
+            /** Format: date */
+            period_start: string | null;
+            /** Format: date */
+            period_end: string | null;
+            triage_confidence: components["schemas"]["DecimalString"] | null;
+            /** @description Corrida do triador que classificou o documento (nula nos caminhos determinísticos) */
+            triage_trace_id: string | null;
+            /**
+             * @description Diagnóstico do documento em revisão ou pendência: `motivo` (confianca_baixa,
+             *     tipo_desconhecido, documento_ilegivel, agente_desligado, saida_invalida, saldo_nao_fecha,
+             *     metadados_ausentes, csv_ilegivel, empresa_nao_identificada, conta_de_outra_empresa,
+             *     periodo_fechado, campos_abaixo_limiar), os detalhes (no comprovante, `campos` a revisar
+             *     e o `limiar`) e, quando houver, `validacao` (o ResultadoValidacao da origem).
+             */
+            diagnosis: {
+                [key: string]: unknown;
+            } | null;
+            job: components["schemas"]["DocumentJobState"] | null;
+            /**
+             * @description Endpoint de leitura do original
+             * @example /api/v1/reconciliation/documents/{id}/file
+             */
+            file_url: string;
+            /** Format: uuid */
+            uploaded_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /**
+         * @description ResultadoValidacao da origem: o portão aritmético (tolerância R$ 0,00), o mesmo que a
+         *     ferramenta validar_saldo responde ao extrator [REQ-021].
+         */
+        ReconciliationValidation: {
+            ok: boolean;
+            soma_c: components["schemas"]["DecimalString"];
+            soma_d: components["schemas"]["DecimalString"];
+            saldo_calculado: components["schemas"]["DecimalString"];
+            saldo_esperado: components["schemas"]["DecimalString"];
+            diferenca: components["schemas"]["DecimalString"];
+            linhas_rejeitadas: {
+                ordem: number;
+                /** @enum {string} */
+                motivo: "valor_nao_positivo" | "sentido_invalido";
+            }[];
+            lacunas_ordem: number[];
+            datas_fora_periodo: number[];
+        };
+        /** @description Importação do extrato (só existe com o portão aprovado) [AC-015] */
+        ReconciliationStatementImport: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Conta bancária cadastrada, se houver
+             */
+            bank_account_id: string | null;
+            bank: string;
+            branch: string;
+            account: string;
+            /** Format: date */
+            period_start: string;
+            /** Format: date */
+            period_end: string;
+            opening_balance: components["schemas"]["DecimalString"];
+            closing_balance: components["schemas"]["DecimalString"];
+            /** @description Tentativas do extrator; 0 = leitor determinístico */
+            attempts: number;
+            validation: components["schemas"]["ReconciliationValidation"];
+            /**
+             * Format: int64
+             * @description Transações gravadas por esta importação (as repetidas ficam de fora)
+             */
+            transactions: number;
+            /** @description Corrida do extrator (nula no leitor determinístico) */
+            trace_id: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description Linha do log de extração [CC-10]: tentativa do agente (triador, extrator, extrator_forte),
+         *     leitura determinística (`leitor_local`, tentativa 0) ou intervenção humana (`humano`). A
+         *     saída bruta não é exposta.
+         */
+        ReconciliationExtractionAttempt: {
+            id: components["schemas"]["Uuid"];
+            alias: string;
+            attempt: number;
+            /** @description Modelo informado pelo provedor */
+            model: string | null;
+            /** @description nome@versão#hash dos prompts enviados */
+            prompt_version: string | null;
+            /** @description O validador do extrato (portão) ou as regras de campo do comprovante */
+            validation: components["schemas"]["ReconciliationValidation"] | components["schemas"]["ReconciliationReceiptCheck"] | null;
+            tokens_in: number | null;
+            tokens_out: number | null;
+            cost_usd: components["schemas"]["DecimalString"] | null;
+            latency_ms: number | null;
+            trace_id: string | null;
+            /** Format: uuid */
+            job_id: string | null;
+            /** Format: uuid */
+            actor_id: string | null;
+            /** @description O que a intervenção humana fez (JSON em texto) */
+            change: string | null;
+            /** @description Por que a tentativa foi perdida (saída fora do schema, leitor) */
+            error: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description Regras de campo do comprovante (M3.4 da origem) numa tentativa: os campos essenciais
+         *     (data, valor, sentido, contraparte) nulos, inválidos ou com confiança abaixo do limiar.
+         */
+        ReconciliationReceiptCheck: {
+            /** @description Nenhum campo a revisar */
+            ok: boolean;
+            campos_a_revisar: ("data" | "valor" | "sentido" | "contraparte")[];
+            limiar: components["schemas"]["DecimalString"];
+        };
+        /**
+         * @description Documento com a importação do extrato ou o lançamento do comprovante e o histórico das
+         *     tentativas (AC-014)
+         */
+        ReconciliationDocumentDetail: components["schemas"]["ReconciliationDocument"] & {
+            import: components["schemas"]["ReconciliationStatementImport"] | null;
+            /** @description Lançamento lido do comprovante (um por documento) */
+            entry: components["schemas"]["ReconciliationClientEntry"] | null;
+            attempts: components["schemas"]["ReconciliationExtractionAttempt"][];
+        };
+        /**
+         * @description parcial: comprovante com campo essencial a revisar (fora do razão, na fila); extraido:
+         *     comprovante com os campos essenciais acima do limiar; manual: inserido à mão.
+         * @enum {string}
+         */
+        ReconciliationEntryStatus: "pendente" | "parcial" | "extraido" | "manual";
+        /** @description Onde o campo está no documento (OrigemCampo da origem), para a fila destacar */
+        ReconciliationFieldOrigin: {
+            pagina: number;
+            trecho: string;
+            /** @description [x0, y0, x1, y1] na página renderizada, ou null */
+            bbox: number[] | null;
+        };
+        /** @description Lançamento do cliente (lancamento_cliente da origem) [REQ-023, CC-12] */
+        ReconciliationClientEntry: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Comprovante de origem (nulo no manual)
+             */
+            document_id: string | null;
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            counterparty: string | null;
+            /** @description CPF (11) ou CNPJ (14 dígitos) */
+            counterparty_doc: string | null;
+            /** @description Nota fiscal, ID da transação, nosso número… */
+            document_ref: string | null;
+            /**
+             * @example pix
+             * @example boleto
+             * @example ted
+             */
+            operation_type: string | null;
+            status: components["schemas"]["ReconciliationEntryStatus"];
+            /** @description Confiança de cada campo lido (texto decimal) */
+            field_confidence: {
+                [key: string]: components["schemas"]["DecimalString"];
+            };
+            field_origin: {
+                [key: string]: components["schemas"]["ReconciliationFieldOrigin"];
+            };
+            /** @description Possível duplicata de leiaute diferente: sinalizada, nunca descartada */
+            duplicate_flagged: boolean;
+            /** @description Marcas de borda: parcelado, juros, iss_retido e nf:<número> [REQ-030] */
+            flags: string[];
+            account_code: string | null;
+            /** @enum {string|null} */
+            classification_origin: "regra" | "historico" | "agente" | "manual" | null;
+            classification_pending: boolean;
+            /** @description Corrida do extrator (nula no leitor determinístico e no manual) */
+            trace_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ReconciliationClientEntryList: {
+            items: components["schemas"]["ReconciliationClientEntry"][];
+            /**
+             * Format: int64
+             * @description Total com os filtros
+             */
+            total: number;
+        };
+        ReconciliationClientEntryCreate: {
+            company_id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            /**
+             * @description Positivo, até 2 casas (ponto ou vírgula decimal)
+             * @example 1234.56
+             */
+            amount: string;
+            /** @enum {string} */
+            direction: "C" | "D";
+            counterparty?: string | null;
+            /** @description CPF ou CNPJ (11 ou 14 dígitos; pontuação é ignorada) */
+            counterparty_doc?: string | null;
+            document_ref?: string | null;
+        };
+        ReconciliationEntriesImport: {
+            inserted: number;
+            ids: components["schemas"]["Uuid"][];
+        };
+        /**
+         * @description Resultado da rodada do matching e os baldes da competência (PRD §8 da origem). As linhas
+         *     livres marcadas levam em `flags` a divergência (`tipo` divergencia: o `motivo`, os
+         *     `candidatos` e as linhas `concorrentes`) ou o caso de borda (`tipo` borda: o `motivo` e os
+         *     `relacionados`).
+         */
+        ReconciliationRunSummary: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description Conciliações automáticas desta rodada */
+            new_matches: number;
+            /** @description Conciliações desta rodada por passe (passe_1 a passe_4) */
+            by_pass: {
+                [key: string]: number;
+            };
+            /** @description Linhas da competência conciliadas (balde conciliado) */
+            reconciled: number;
+            /** @description Linhas livres marcadas para a fila: divergência ou caso de borda */
+            divergent: number;
+            /** @description Linhas livres sem marca (extrato sem comprovante) */
+            without_receipt: number;
+            /** @description Lançamentos livres da competência que passaram pelo automático sem linha (comprovante sem extrato) */
+            without_statement: number;
+            /** @description Lançamentos parciais da competência, fora do automático até a revisão */
+            awaiting_review: number;
+            /**
+             * @description Pedidos de hipótese que a rodada enfileirou para as linhas livres que nunca tiveram
+             *     proposta nem pedido (RESOLVEDOR_AUTOMATICO; zero quando desligado). O resolvedor só
+             *     sugere.
+             */
+            resolver_requested: number;
+            /** @description Classificação das linhas conciliadas da competência (regra → histórico; TASK-020) */
+            classification: components["schemas"]["ClassificationRunSummary"];
+            /**
+             * @description Pedidos de sugestão de conta que a rodada enfileirou para as linhas à espera do agente
+             *     que nunca tiveram sugestão nem pedido (CLASSIFICADOR_AUTOMATICO; zero quando desligado).
+             */
+            classifier_requested: number;
+        };
+        /**
+         * @description Par proposto pelo resolvedor (ParProposto da origem). Os IDs são os que o modelo devolveu:
+         *     o aceite só concilia os da empresa ainda livres.
+         */
+        ResolverPair: {
+            /** @description Linha do extrato (nula: a linha da proposta) */
+            extrato_transacao_id: string | null;
+            lancamento_cliente_ids: string[];
+            /** @description 1:1, N:1, extrato_sem_comprovante, comprovante_sem_extrato, bruto_liquido, transferencia_interna, estorno ou outro */
+            tipo: string;
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. "0.85") */
+            confianca: string;
+        };
+        /** @description A hipótese do resolvedor (HipoteseResolvedor da origem), gravada como veio do modelo validado. */
+        ResolverHypothesis: {
+            hipotese: string;
+            justificativa: string;
+            pares_propostos: components["schemas"]["ResolverPair"][];
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava (ex. "0.85") */
+            confianca: string;
+            pede_humano: boolean;
+        };
+        /** @description Proposta do resolvedor para uma linha do extrato; só o aceite humano concilia [AC-019]. */
+        ResolverProposal: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            status: "pendente" | "aceita" | "rejeitada";
+            hypothesis: components["schemas"]["ResolverHypothesis"];
+            /** @description Corrida do resolvedor na auditoria de IA */
+            trace_id: string | null;
+            /**
+             * Format: uuid
+             * @description Quem pediu (nulo no resolvedor automático)
+             */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            decided_by: string | null;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        ResolverProposalList: {
+            items: components["schemas"]["ResolverProposal"][];
+        };
+        ResolverProposalRequest: {
+            job_id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** @description O pedido da linha já estava na fila (mesmo job) */
+            already_queued: boolean;
+        };
+        ResolverProposalDecision: {
+            proposal_id: components["schemas"]["Uuid"];
+        };
+        ResolverProposalAccept: {
+            proposal: components["schemas"]["ResolverProposal"];
+            reconciliation_ids: components["schemas"]["Uuid"][];
+        };
+        /** @description Conta do plano de contas da empresa (plano_contas da origem). */
+        ChartAccount: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            code: string;
+            name: string;
+            active: boolean;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ChartAccountList: {
+            items: components["schemas"]["ChartAccount"][];
+        };
+        ChartAccountCreate: {
+            /** @description Sem espaço nem ponto e vírgula */
+            code: string;
+            name: string;
+        };
+        ChartAccountPatch: {
+            name?: string;
+            active?: boolean;
+        };
+        ChartAccountsImport: {
+            /** @description Contas novas */
+            inserted: number;
+            /** @description Contas que já existiam: nome do arquivo e reativadas */
+            updated: number;
+        };
+        ChartAccountsCopy: {
+            /** @description Contas copiadas da empresa padrão */
+            inserted: number;
+            /** @description Contas que a empresa já tinha */
+            skipped: number;
+        };
+        /** @enum {string} */
+        ClassificationRuleType: "cnpj" | "contraparte" | "regex_descritivo";
+        /** @description Regra de classificação (regra_classificacao da origem); a mais nova vale. */
+        ClassificationRule: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            /** @description CNPJ só com os dígitos, contraparte ou regex do re do Python (IGNORECASE) */
+            pattern: string;
+            account_code: string;
+            active: boolean;
+            /**
+             * Format: uuid
+             * @description Linha cuja correção originou a regra
+             */
+            source_statement_transaction_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            deactivated_by: string | null;
+            /** Format: date-time */
+            deactivated_at: string | null;
+        };
+        ClassificationRuleList: {
+            items: components["schemas"]["ClassificationRule"][];
+        };
+        ClassificationRuleCreate: {
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            pattern: string;
+            account_code: string;
+            /** Format: uuid */
+            source_statement_transaction_id?: string | null;
+        };
+        ClassificationRuleCreated: {
+            rule: components["schemas"]["ClassificationRule"];
+            /** @description Regras ativas de mesmo tipo e padrão, desativadas */
+            replaced_rule_ids: components["schemas"]["Uuid"][];
+        };
+        /** @description Regra que o sistema propõe ao contador (M5.5); só vale confirmada em POST /companies/{id}/classification-rules. */
+        ClassificationRuleProposal: {
+            rule_type: components["schemas"]["ClassificationRuleType"];
+            pattern: string;
+            account_code: string;
+            source_statement_transaction_id: components["schemas"]["Uuid"];
+        };
+        /**
+         * @description agente com pending: à espera do agente ou do contador; agente sem pending: sugestão aceita
+         * @enum {string}
+         */
+        ClassificationOrigin: "regra" | "historico" | "agente" | "manual";
+        /** @description Classificação das linhas conciliadas da competência. */
+        ClassificationRunSummary: {
+            by_rule: number;
+            by_history: number;
+            /** @description Linhas sem regra nem histórico, à espera do agente ou do contador */
+            pending: number;
+        };
+        LineClassification: {
+            statement_transaction_id: components["schemas"]["Uuid"];
+            account_code: string | null;
+            origin: components["schemas"]["ClassificationOrigin"] | null;
+            pending: boolean;
+            /** Format: uuid */
+            rule_id: string | null;
+            /**
+             * Format: uuid
+             * @description Linha do histórico que classificou
+             */
+            history_line_id: string | null;
+            /** Format: uuid */
+            suggestion_id: string | null;
+            /** Format: uuid */
+            classified_by: string | null;
+            /** Format: date-time */
+            classified_at: string | null;
+        };
+        ClassificationCorrection: {
+            classification: components["schemas"]["LineClassification"];
+            proposed_rule: components["schemas"]["ClassificationRuleProposal"] | null;
+        };
+        /** @description A SugestaoClassificacao da origem, como o agente a devolveu (validada). */
+        ClassifierSuggestionPayload: {
+            conta_codigo: string | null;
+            conta_nome: string | null;
+            justificativa: string;
+            regra_sugerida: {
+                [key: string]: unknown;
+            } | null;
+            /** @description Decimal de 0 a 1 em texto, como o pydantic da origem o grava */
+            confianca: string;
+        };
+        /** @description Sugestão do agente classificador; só o aceite humano muda a conta da linha [AC-020]. */
+        ClassificationSuggestion: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            status: "pendente" | "aceita" | "rejeitada";
+            /** @description A conta sugerida, só quando está no plano ativo */
+            account_code: string | null;
+            suggestion: components["schemas"]["ClassifierSuggestionPayload"];
+            trace_id: string | null;
+            /**
+             * Format: uuid
+             * @description Quem pediu (nulo no classificador automático)
+             */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: uuid */
+            decided_by: string | null;
+            /** Format: date-time */
+            decided_at: string | null;
+        };
+        ClassificationSuggestionList: {
+            items: components["schemas"]["ClassificationSuggestion"][];
+        };
+        ClassificationSuggestionRequest: {
+            job_id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            already_queued: boolean;
+        };
+        ClassificationSuggestionDecision: {
+            suggestion_id: components["schemas"]["Uuid"];
+        };
+        ClassificationSuggestionAccept: {
+            classification: components["schemas"]["LineClassification"];
+            suggestion: components["schemas"]["ClassificationSuggestion"];
+            proposed_rule: components["schemas"]["ClassificationRuleProposal"] | null;
+        };
+        /** @description Linha do razão (uma conciliação ativa), com os ids do drill-down. */
+        LedgerLine: {
+            /** Format: date */
+            date: string;
+            competence: components["schemas"]["Competence"];
+            /** @description Conta bancária de origem (banco agência/conta) */
+            bank_account: string;
+            account_code: string | null;
+            account_name: string | null;
+            classification_origin: components["schemas"]["ClassificationOrigin"] | null;
+            classification_pending: boolean;
+            /** @description Descritivo do extrato */
+            history: string;
+            /** @description Contrapartes distintas dos comprovantes */
+            counterparty: string | null;
+            debit: components["schemas"]["DecimalString"];
+            credit: components["schemas"]["DecimalString"];
+            reconciliation_id: components["schemas"]["Uuid"];
+            reconciliation_method: string;
+            /** @enum {string} */
+            reconciliation_origin: "auto" | "manual";
+            statement_transaction_id: components["schemas"]["Uuid"];
+            statement_document_id: components["schemas"]["Uuid"];
+            entry_ids: components["schemas"]["Uuid"][];
+            receipt_document_ids: components["schemas"]["Uuid"][];
+        };
+        Ledger: {
+            company_id: components["schemas"]["Uuid"];
+            from: components["schemas"]["Competence"];
+            to: components["schemas"]["Competence"];
+            items: components["schemas"]["LedgerLine"][];
+            total_debit: components["schemas"]["DecimalString"];
+            total_credit: components["schemas"]["DecimalString"];
+        };
+        /** @description Conciliação no drill-down do razão (AC-021). */
+        ReconciliationDetail: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            method: string;
+            /** @enum {string} */
+            origin: "auto" | "manual";
+            pass: number | null;
+            score: components["schemas"]["DecimalString"] | null;
+            /** Format: uuid */
+            proposal_id: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            undone_at: string | null;
+            statement_transaction: {
+                id: components["schemas"]["Uuid"];
+                /** Format: date */
+                date: string;
+                competence: components["schemas"]["Competence"];
+                description: string;
+                amount: components["schemas"]["DecimalString"];
+                /** @enum {string} */
+                direction: "C" | "D";
+                bank_account: string;
+                statement_import_id: components["schemas"]["Uuid"];
+                statement_document_id: components["schemas"]["Uuid"];
+            };
+            entries: {
+                id: components["schemas"]["Uuid"];
+                /** Format: date */
+                date: string | null;
+                amount: components["schemas"]["DecimalString"] | null;
+                /** @enum {string|null} */
+                direction: "C" | "D" | null;
+                counterparty: string | null;
+                counterparty_doc: string | null;
+                document_ref: string | null;
+                status: components["schemas"]["ReconciliationEntryStatus"];
+                /**
+                 * Format: uuid
+                 * @description Original do comprovante
+                 */
+                document_id: string | null;
+            }[];
+            classification: {
+                account_code: string | null;
+                account_name: string | null;
+                origin: components["schemas"]["ClassificationOrigin"] | null;
+                pending: boolean;
+                rule: {
+                    id: components["schemas"]["Uuid"];
+                    rule_type: components["schemas"]["ClassificationRuleType"];
+                    pattern: string;
+                } | null;
+                /** Format: uuid */
+                history_line_id: string | null;
+                /** Format: uuid */
+                suggestion_id: string | null;
+                /** Format: uuid */
+                classified_by: string | null;
+                /** Format: date-time */
+                classified_at: string | null;
+            };
+        };
+        /**
+         * @description revisao: documento em revisão (triagem, extração, período fechado) ou comprovante parcial;
+         *     divergencia: linha livre com divergência, caso de borda ou conciliação desfeita;
+         *     extrato_sem: linha livre sem marca; comprovante_sem: comprovante completo sem extrato;
+         *     classificacao: linha conciliada à espera da classificação.
+         * @enum {string}
+         */
+        ReviewBucket: "revisao" | "divergencia" | "extrato_sem" | "comprovante_sem" | "classificacao";
+        ReviewQueueItem: {
+            /** @enum {string} */
+            kind: "linha" | "comprovante" | "documento";
+            id: components["schemas"]["Uuid"];
+            bucket: components["schemas"]["ReviewBucket"];
+            /** Format: uuid */
+            company_id: string | null;
+            company_code: string | null;
+            company_name: string | null;
+            /** @description Estado do documento, status do lançamento ou tipo da marca da linha */
+            state: string;
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            /** @description Descritivo, contraparte ou nome do arquivo */
+            summary: string;
+            /** @description Código do motivo (a tela mostra o texto) */
+            reason: string | null;
+            competence: components["schemas"]["Competence"] | null;
+        };
+        ReviewQueue: {
+            items: components["schemas"]["ReviewQueueItem"][];
+            /** @description Por balde e o total (total) */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * @description Conciliação das linhas do extrato: o percentual automático da origem (automáticas ÷ linhas,
+         *     uma casa) contra a meta (`META_CONCILIACAO_AUTO`) e as conciliações ativas por método.
+         */
+        ReconciliationMatching: {
+            /** @description Linhas do extrato */
+            lines: number;
+            /** @description Linhas com conciliação ativa */
+            reconciled: number;
+            auto: number;
+            /** @description À mão, sem comprovante e aceite do resolvedor */
+            manual: number;
+            free: number;
+            auto_percent: components["schemas"]["DecimalString"] | null;
+            target_percent: components["schemas"]["DecimalString"];
+            /** @description Conciliações ativas por método: passe_1 a passe_4, manual, sem_comprovante e resolvedor */
+            by_method: {
+                [key: string]: number;
+            };
+            /** @description Conciliações automáticas desfeitas */
+            undone_auto: number;
+        };
+        /**
+         * @description Leitura dos documentos de um tipo, como o `make eval-extrator` (D-027): as tentativas são as
+         *     do agente; aprovado é o extrato importado ou o comprovante completo sem campo corrigido à
+         *     mão; o leitor determinístico fica à parte; o custo soma todas as chamadas de modelo do
+         *     documento (triagem e extração), em dólares.
+         */
+        ReconciliationExtraction: {
+            /** @description Documentos lidos, pelo leitor ou pelo agente */
+            documents: number;
+            /** @description Lidos pelo leitor determinístico, sem agente */
+            local_reader: number;
+            /** @description Lidos pelo agente */
+            agent: number;
+            /** @description Aprovados na 1ª tentativa do agente */
+            first_attempt: number;
+            first_attempt_percent: components["schemas"]["DecimalString"] | null;
+            average_attempts: components["schemas"]["DecimalString"] | null;
+            /** @description Lidos pelo agente e não aprovados */
+            not_approved: number;
+            cost_usd: components["schemas"]["DecimalString"];
+            cost_per_document_usd: components["schemas"]["DecimalString"] | null;
+        };
+        /** @description Corridas de um agente que só sugere e o custo por item (M4.7 da origem) */
+        ReconciliationAgentCost: {
+            runs: number;
+            cost_usd: components["schemas"]["DecimalString"];
+            cost_per_run_usd: components["schemas"]["DecimalString"] | null;
+        };
+        /** @description Painel de métricas da Conciliação (11-observability §7) */
+        ReconciliationMetrics: {
+            /** Format: uuid */
+            company_id: string | null;
+            competence: components["schemas"]["Competence"] | null;
+            matching: components["schemas"]["ReconciliationMatching"];
+            /** @description Itens da fila por balde e o total (total), a mesma contagem da fila */
+            buckets: {
+                [key: string]: number;
+            };
+            extraction: {
+                statements: components["schemas"]["ReconciliationExtraction"];
+                receipts: components["schemas"]["ReconciliationExtraction"];
+            };
+            /** @description Correções humanas depois da leitura (campo do comprovante e "que documento é esse?") */
+            corrections: {
+                actions: number;
+                /** @description Documentos corrigidos */
+                documents: number;
+                /** @description Documentos corrigidos ÷ documentos lidos */
+                rate_percent: components["schemas"]["DecimalString"] | null;
+            };
+            /**
+             * @description Erro achado depois do fechamento (meta zero; D-034): as reaberturas do Contábil (sempre
+             *     com motivo) nas competências com a Conciliação e, à parte, os documentos que chegaram
+             *     com a competência fechada.
+             */
+            after_close: {
+                reopenings: number;
+                late_documents: number;
+            };
+            agents: {
+                resolver: components["schemas"]["ReconciliationAgentCost"];
+                classifier: components["schemas"]["ReconciliationAgentCost"];
+            };
+            /** @description Sucesso dos playbooks de cada banco, somando as versões (não depende dos filtros) */
+            playbooks: {
+                bank: string;
+                versions: number;
+                valid_version: number | null;
+                successes: number;
+                failures: number;
+                success_percent: components["schemas"]["DecimalString"] | null;
+            }[];
+        };
+        /** @description Versão do playbook de um banco (playbook_banco da origem; schema congelado, D-020) */
+        BankPlaybook: {
+            id: components["schemas"]["Uuid"];
+            bank: string;
+            version: number;
+            valid: boolean;
+            successes: number;
+            failures: number;
+            success_percent: components["schemas"]["DecimalString"] | null;
+            table_start_page: number;
+            ignored_pages: number[];
+            date_format: string;
+            decimal_separator: string;
+            sign_representation: string;
+            balance_location: string;
+            winning_strategy: string;
+            /** Format: date-time */
+            validated_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        BankPlaybookList: {
+            items: components["schemas"]["BankPlaybook"][];
+        };
+        /** @description Uma conclusão da conciliação, com a reabertura quando houver */
+        ReconciliationCompletionRecord: {
+            id: components["schemas"]["Uuid"];
+            /** @description Nome de quem concluiu */
+            completed_by: string;
+            /** Format: date-time */
+            completed_at: string;
+            /** @description Status da obrigação antes da conclusão */
+            obligation_status_before: string | null;
+            /**
+             * @description concluida: a obrigação foi para OK; ja_final: já era final; nao_aplicavel; sem_obrigacao
+             * @enum {string}
+             */
+            obligation_sync: "concluida" | "ja_final" | "nao_aplicavel" | "sem_obrigacao";
+            /** @description Nome de quem reabriu */
+            reopened_by: string | null;
+            /** Format: date-time */
+            reopened_at: string | null;
+            reopen_reason: string | null;
+            /**
+             * @description pendente: a obrigação voltou para Pendente; mantida: alguém mudou depois, ou já era final
+             * @enum {string|null}
+             */
+            reopen_obligation_sync: "pendente" | "mantida" | "nao_aplicavel" | "sem_obrigacao" | null;
+        };
+        /**
+         * @description A conclusão da conciliação da empresa na competência (F-008; D-036): em andamento, pronta
+         *     (o extrato todo resolvido) ou concluída, o que ainda impede, o aviso, a obrigação Conciliação
+         *     do Contábil e o histórico das conclusões.
+         */
+        ReconciliationCompletion: {
+            /** @enum {string} */
+            state: "em_andamento" | "pronta" | "concluida";
+            ready: boolean;
+            blocking: {
+                /** @description Nenhum extrato importado cobre a competência */
+                missing_statement: boolean;
+                /** @description Linhas livres marcadas (divergência, borda ou desfeita) */
+                divergent: number;
+                /** @description Linhas livres sem marca (extrato sem comprovante) */
+                without_receipt: number;
+                /** @description Documentos e comprovantes parciais em revisão */
+                review: number;
+                /** @description Linhas conciliadas à espera da conta */
+                classification: number;
+            };
+            warnings: {
+                /** @description Comprovantes sem linha do extrato (não impedem) */
+                without_statement: number;
+            };
+            /** @description A obrigação Conciliação do Contábil na competência (nula se não foi gerada) */
+            obligation: {
+                instance_id: components["schemas"]["Uuid"];
+                status_code: string;
+                status_label: string;
+                is_final: boolean;
+                applicable: boolean;
+            } | null;
+            /** @description A conclusão em vigor (nula se não está concluída) */
+            current: components["schemas"]["ReconciliationCompletionRecord"] | null;
+            /** @description As conclusões, da mais recente para a mais antiga */
+            history: components["schemas"]["ReconciliationCompletionRecord"][];
+        };
+        /** @description O fechamento do Contábil visto pela Conciliação (06 §5; D-037) */
+        ReconciliationClosure: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description O período do Contábil da empresa na competência (nulo se não foi gerado) */
+            period: components["schemas"]["CompanyModulePeriod"] | null;
+            /** @description Abertura, fechamento e reabertura, do mais recente para o mais antigo */
+            events: components["schemas"]["CompanyModulePeriodEvent"][];
+            /** @description Fechar o Contábil exige a obrigação Conciliação final: a empresa usa a Conciliação na competência (extrato que a cobre ou documento dela) e a obrigação existe e se aplica */
+            requires_reconciliation: boolean;
+        };
+        /** @description A Conciliação da empresa na competência (a aba da ficha) */
+        CompanyReconciliationSummary: {
+            company_id: components["schemas"]["Uuid"];
+            competence: components["schemas"]["Competence"];
+            /** @description Contábil fechado: a Conciliação da competência está travada */
+            accounting_closed: boolean;
+            statements: {
+                import_id: components["schemas"]["Uuid"];
+                document_id: components["schemas"]["Uuid"];
+                file_name: string;
+                /** @description Banco agência/conta */
+                bank_account: string;
+                /** Format: date */
+                period_start: string;
+                /** Format: date */
+                period_end: string;
+                opening_balance: components["schemas"]["DecimalString"];
+                closing_balance: components["schemas"]["DecimalString"];
+                /** @description Tentativas do extrator (0: leitor determinístico) */
+                attempts: number;
+                transactions: number;
+            }[];
+            matching: components["schemas"]["ReconciliationMatching"];
+            buckets: {
+                [key: string]: number;
+            };
+            entries: {
+                total: number;
+                partial: number;
+            };
+            classification: {
+                /** @description Linhas conciliadas com a conta confirmada */
+                classified: number;
+                /** @description Linhas conciliadas à espera da conta */
+                pending: number;
+            };
+            completion: components["schemas"]["ReconciliationCompletion"];
+        };
+        /** @description Conta bancária cadastrada da empresa (conta_bancaria da origem; CC-11) */
+        BankAccount: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            bank: string;
+            branch: string;
+            account: string;
+            /** @description Banco agência/conta, como no razão */
+            label: string;
+            active: boolean;
+            /** @description Extratos já importados da conta pela empresa */
+            statements: number;
+            /** Format: date */
+            last_period_end: string | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        BankAccountList: {
+            items: components["schemas"]["BankAccount"][];
+            /** @description Contas lidas nos extratos importados da empresa que ninguém cadastrou */
+            read: {
+                bank: string;
+                branch: string;
+                account: string;
+                label: string;
+                statements: number;
+                /** Format: date */
+                last_period_end: string;
+            }[];
+        };
+        BankAccountCreate: {
+            bank: string;
+            branch: string;
+            account: string;
+        };
+        ReviewLine: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            company_code: string;
+            company_name: string;
+            /** Format: date */
+            date: string;
+            competence: components["schemas"]["Competence"];
+            description: string;
+            document_ref: string | null;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            balance_after: components["schemas"]["DecimalString"] | null;
+            bank_account: string;
+            statement_import_id: components["schemas"]["Uuid"];
+            statement_document_id: components["schemas"]["Uuid"];
+            /** @description Marcas da linha: divergência, borda, desfeita (objetos com tipo e motivo) */
+            marks: unknown[];
+            account_code: string | null;
+            classification_origin: components["schemas"]["ClassificationOrigin"] | null;
+            classification_pending: boolean;
+        };
+        ReviewEntry: {
+            id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string | null;
+            amount: components["schemas"]["DecimalString"] | null;
+            /** @enum {string|null} */
+            direction: "C" | "D" | null;
+            counterparty: string | null;
+            counterparty_doc: string | null;
+            document_ref: string | null;
+            status: components["schemas"]["ReconciliationEntryStatus"];
+            /** Format: uuid */
+            document_id: string | null;
+        };
+        ReviewCandidate: components["schemas"]["ReviewEntry"] & {
+            operation_type: string | null;
+            /** @description Dias até a linha (nulo sem data) */
+            days_apart: number | null;
+            /** @description Anotado pelo matching na divergência */
+            annotated: boolean;
+        };
+        ReviewLineDetail: {
+            line: components["schemas"]["ReviewLine"];
+            reconciliation: {
+                id: components["schemas"]["Uuid"];
+                method: string;
+                /** @enum {string} */
+                origin: "auto" | "manual";
+                pass: number | null;
+                /** Format: uuid */
+                created_by: string | null;
+                /** Format: date-time */
+                created_at: string;
+                entries: components["schemas"]["ReviewEntry"][];
+                entries_total: components["schemas"]["DecimalString"];
+            } | null;
+            candidates: components["schemas"]["ReviewCandidate"][];
+        };
+        ManualMatchResult: {
+            reconciliation_id: components["schemas"]["Uuid"];
+            /** @enum {string} */
+            method: "manual" | "sem_comprovante";
+            entries_total: components["schemas"]["DecimalString"];
+            /** @description Valor da linha menos a soma dos lançamentos */
+            difference: components["schemas"]["DecimalString"];
+            /** @description Origem da classificação aplicada (regra, historico, agente) ou vazio */
+            classification: string;
+        };
+        ReviewLineCandidate: {
+            id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            description: string;
+            bank_account: string;
+            days_apart: number;
+        };
+        ReviewEntryDetail: {
+            entry: components["schemas"]["ReconciliationClientEntry"];
+            /** Format: uuid */
+            reconciliation_id: string | null;
+            /** Format: uuid */
+            statement_transaction_id: string | null;
+            candidates: components["schemas"]["ReviewLineCandidate"][];
+        };
+        /** @description Só os campos enviados mudam; texto vazio limpa o opcional. */
+        EntryFieldsPatch: {
+            /** Format: date */
+            date?: string;
+            /** @description Positivo, até 2 casas (ponto ou vírgula) */
+            amount?: string;
+            /** @enum {string} */
+            direction?: "C" | "D";
+            counterparty?: string;
+            /** @description CPF ou CNPJ (11 ou 14 dígitos) */
+            counterparty_doc?: string;
+            document_ref?: string;
+        };
+        EntryCorrection: {
+            entry: components["schemas"]["ReconciliationClientEntry"];
+            round: components["schemas"]["ReconciliationRunSummary"] | null;
+        };
+        RecentReconciliation: {
+            id: components["schemas"]["Uuid"];
+            company_id: components["schemas"]["Uuid"];
+            company_code: string;
+            method: string;
+            /** @enum {string} */
+            origin: "auto" | "manual";
+            pass: number | null;
+            /** Format: uuid */
+            created_by: string | null;
+            /** Format: date-time */
+            created_at: string;
+            statement_transaction_id: components["schemas"]["Uuid"];
+            /** Format: date */
+            date: string;
+            amount: components["schemas"]["DecimalString"];
+            /** @enum {string} */
+            direction: "C" | "D";
+            description: string;
+        };
+        RecentReconciliationList: {
+            items: components["schemas"]["RecentReconciliation"][];
+        };
+        DocumentIdentify: {
+            /** @enum {string} */
+            kind: "extrato" | "comprovante";
+            company_id: components["schemas"]["Uuid"];
+            bank?: string | null;
+            branch?: string | null;
+            account?: string | null;
+            /** Format: date */
+            period_start?: string | null;
+            /** Format: date */
+            period_end?: string | null;
+        };
+        ReconciliationDocumentList: {
+            items: components["schemas"]["ReconciliationDocument"][];
+            /**
+             * Format: int64
+             * @description Total com os filtros
+             */
+            total: number;
+            count_by_status: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * @description pending: na fila; running: em execução por um worker; retry: nova tentativa agendada
+         *     (run_after); done: concluído; dead: encerrado sem sucesso (tentativas esgotadas ou falha
+         *     permanente).
+         * @enum {string}
+         */
+        JobStatus: "pending" | "running" | "retry" | "done" | "dead";
+        Job: {
+            id: components["schemas"]["Uuid"];
+            /** @example pgdas_parse */
+            kind: string;
+            status: components["schemas"]["JobStatus"];
+            /**
+             * Format: int32
+             * @description Tentativas iniciadas
+             */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            /**
+             * Format: date-time
+             * @description Quando o job pode ser executado (backoff entre tentativas)
+             */
+            run_after: string;
+            /** Format: date-time */
+            locked_at: string | null;
+            /** @description Worker que tem a posse do job */
+            locked_by: string | null;
+            /** @example WORKER_LOST */
+            last_error_code: string | null;
+            /** @description Mensagem sanitizada (sem chaves nem tokens), até 300 caracteres */
+            last_error_message: string | null;
+            /** Format: date-time */
+            finished_at: string | null;
+            /**
+             * Format: date-time
+             * @description Último reenvio manual
+             */
+            retried_at: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            /** @description Algum worker deu sinal recente */
+            worker_online: boolean;
+        };
+        /**
+         * @description Número decimal exato, como string em notação de ponto fixo (nunca float) [06 §12]. A
+         *     quantidade de casas é a do cálculo (ex.: `43740.00000000`); a interface arredonda só
+         *     para exibir.
+         * @example 43740.00000000
+         * @example 0.2799
+         */
+        DecimalString: string;
+        /**
+         * @description Valor em reais não negativo, com até 12 dígitos inteiros e 2 casas decimais.
+         * @example 1234.56
+         */
+        MoneyInput: string;
+        /**
+         * @description Pacote comercial da carteira (null = sem pacote).
+         * @enum {string}
+         */
+        FactorRPackage: "monitoramento" | "correcao" | "retainer";
+        FactorRSettings: {
+            company_id: components["schemas"]["Uuid"];
+            cnae: string | null;
+            atividade: string | null;
+            /** Format: int32 */
+            quantidade_socios: number;
+            contato: string | null;
+            pacote_comercial: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal: components["schemas"]["DecimalString"];
+            /** @description Mês de início da atividade da empresa (não é o início do atendimento) */
+            inicio_atividade: components["schemas"]["Competence"] | null;
+            notas: string | null;
+            /**
+             * Format: int32
+             * @description 0 = ainda sem configuração gravada
+             */
+            version: number;
+            /** Format: date-time */
+            updated_at: string | null;
+        };
+        FactorRSettingsUpdate: {
+            /** Format: int32 */
+            version: number;
+            cnae?: string | null;
+            atividade?: string | null;
+            /** Format: int32 */
+            quantidade_socios?: number;
+            contato?: string | null;
+            pacote_comercial?: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal?: components["schemas"]["MoneyInput"];
+            inicio_atividade?: components["schemas"]["Competence"] | null;
+            notas?: string | null;
+        };
+        /** @enum {string} */
+        FactorRMovementOrigin: "manual" | "pgdas" | "folha" | "agente";
+        FactorRMovement: {
+            competence: components["schemas"]["Competence"];
+            receita_bruta: components["schemas"]["DecimalString"];
+            pro_labore: components["schemas"]["DecimalString"];
+            salarios_13_ferias: components["schemas"]["DecimalString"];
+            cpp_recolhida: components["schemas"]["DecimalString"];
+            fgts_recolhido: components["schemas"]["DecimalString"];
+            /** @description Folha total declarada no PGDAS-D, sem divisão (só em mês de origem pgdas) */
+            folha_total_declarada_pgdas: components["schemas"]["DecimalString"] | null;
+            /** @description Folha do mês — a total declarada ou pró-labore + salários + CPP + FGTS */
+            folha_mes: components["schemas"]["DecimalString"];
+            origem: components["schemas"]["FactorRMovementOrigin"];
+            observacao: string | null;
+            pgdas_document_id: components["schemas"]["Uuid"] | null;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        FactorRMovementList: {
+            items: components["schemas"]["FactorRMovement"][];
+        };
+        FactorRMovementInput: {
+            /**
+             * Format: int32
+             * @description 0 = mês ainda sem lançamento
+             */
+            version: number;
+            receita_bruta?: components["schemas"]["MoneyInput"];
+            pro_labore?: components["schemas"]["MoneyInput"];
+            salarios_13_ferias?: components["schemas"]["MoneyInput"];
+            cpp_recolhida?: components["schemas"]["MoneyInput"];
+            fgts_recolhido?: components["schemas"]["MoneyInput"];
+            observacao?: string | null;
+        };
+        /** @enum {string} */
+        FactorRStatus: "ok" | "dados_insuficientes";
+        /**
+         * @description Motivo dos dados insuficientes, em ordem de precedência. `empresa_nova_regra_pendente`:
+         *     menos de 12 meses na janela (proporcionalização pendente, P-05 da origem).
+         * @enum {string}
+         */
+        FactorRReason: "empresa_nova_regra_pendente" | "rbt12_zero" | "rbt12_acima_do_limite_do_simples";
+        /** @enum {string} */
+        FactorRAnnex: "III" | "V";
+        /**
+         * @description Semáforo — vermelho abaixo de 28% (Anexo V), amarelo de 28% até a meta, verde na meta.
+         * @enum {string}
+         */
+        FactorRLight: "vermelho" | "amarelo" | "verde";
+        /** @enum {string} */
+        FactorRAction: "reuniao_correcao" | "vigiar_simular" | "manter" | "completar_lancamentos";
+        FactorRCalc: {
+            pa: components["schemas"]["Competence"];
+            janela_inicio: components["schemas"]["Competence"];
+            janela_fim: components["schemas"]["Competence"];
+            meses_preenchidos: components["schemas"]["Competence"][];
+            /** @description Meses válidos da janela sem lançamento (mês antes do início da atividade não conta) */
+            meses_faltantes: components["schemas"]["Competence"][];
+            status: components["schemas"]["FactorRStatus"];
+            motivo: components["schemas"]["FactorRReason"] | null;
+            rbt12: components["schemas"]["DecimalString"];
+            fs12: components["schemas"]["DecimalString"];
+            fator_r: components["schemas"]["DecimalString"] | null;
+            anexo: components["schemas"]["FactorRAnnex"] | null;
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            folha_minima_28: components["schemas"]["DecimalString"] | null;
+            folha_minima_meta: components["schemas"]["DecimalString"] | null;
+            gap_12m_28: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_28: components["schemas"]["DecimalString"] | null;
+            gap_12m_meta: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_meta: components["schemas"]["DecimalString"] | null;
+            aliquota_efetiva_iii: components["schemas"]["DecimalString"] | null;
+            aliquota_efetiva_v: components["schemas"]["DecimalString"] | null;
+            /** @description Economia estimada de DAS em 12 meses (Anexo V menos Anexo III); pode ser negativa na faixa 6 */
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            meta_operacional: components["schemas"]["DecimalString"];
+            /** @description Política do escritório: a CPP do DAS integra a FS12 */
+            cpp_integra_fs12: boolean;
+            tabela_vigencia_inicio: components["schemas"]["Date"];
+            regime_no_pa: components["schemas"]["TaxRegime"] | null;
+            /** @description Ativa, sujeita ao Fator R e no Simples Nacional no PA, ou seja, está na carteira */
+            monitorada: boolean;
+        };
+        FactorRPortfolioCompany: {
+            id: components["schemas"]["Uuid"];
+            internal_code: string;
+            legal_name: string;
+            trade_name: string | null;
+            cnpj: components["schemas"]["Cnpj"];
+        };
+        FactorRPortfolioLine: {
+            company: components["schemas"]["FactorRPortfolioCompany"];
+            pacote_comercial: components["schemas"]["FactorRPackage"] | null;
+            honorario_mensal: components["schemas"]["DecimalString"];
+            acao: components["schemas"]["FactorRAction"];
+            /** @example reunião de correção */
+            acao_texto: string;
+            status: components["schemas"]["FactorRStatus"];
+            motivo: components["schemas"]["FactorRReason"] | null;
+            semaforo: components["schemas"]["FactorRLight"] | null;
+            fator_r: components["schemas"]["DecimalString"] | null;
+            anexo: components["schemas"]["FactorRAnnex"] | null;
+            rbt12: components["schemas"]["DecimalString"];
+            fs12: components["schemas"]["DecimalString"];
+            reforco_mensal_28: components["schemas"]["DecimalString"] | null;
+            reforco_mensal_meta: components["schemas"]["DecimalString"] | null;
+            meta_operacional: components["schemas"]["DecimalString"];
+            economia_12m: components["schemas"]["DecimalString"] | null;
+            meses_faltantes: components["schemas"]["Competence"][];
+        };
+        FactorRKPIs: {
+            monitoradas: number;
+            /** @description No Anexo V */
+            no_v: number;
+            /** @description Amarelo: de 28% até a meta */
+            no_limite: number;
+            /** @description Verde: na meta ou acima */
+            seguras: number;
+            dados_insuficientes: number;
+            /** @description Soma da economia positiva das empresas em vermelho e amarelo (12 meses) */
+            economia_em_jogo: components["schemas"]["DecimalString"];
+            /** @description Soma dos honorários mensais dos pacotes das empresas monitoradas */
+            honorarios_pacotes: components["schemas"]["DecimalString"];
+        };
+        FactorRPortfolio: {
+            pa: components["schemas"]["Competence"];
+            meta_operacional: components["schemas"]["DecimalString"];
+            kpis: components["schemas"]["FactorRKPIs"];
+            linhas: components["schemas"]["FactorRPortfolioLine"][];
+        };
+        /**
+         * @description Veredito do simulador; nulo com dados insuficientes.
+         * @enum {string}
+         */
+        FactorRVerdict: "ja_na_meta" | "corrigir" | "nao_forcar";
+        FactorRSimulationInput: {
+            pa: components["schemas"]["Competence"];
+            /**
+             * @description De 0.28 a menos de 1 (até 6 casas); nulo = meta da política
+             * @example 0.30
+             */
+            meta?: string | null;
+            /** @description Fração do reforço em pró-labore, de 0 a 1 (padrão 1) */
+            fracao_pro_labore?: string | null;
+            /** @description Alíquota do INSS, de 0 a 1 (padrão 0.11) */
+            inss?: string | null;
+            /** @description Alíquota do IRRF, de 0 a 1 (padrão 0.275) */
+            irrf?: string | null;
+            /** @description Padrão 12 */
+            horizonte_meses?: number | null;
+        };
+        FactorRSimulation: {
+            simulation_id: components["schemas"]["Uuid"];
+            /** @description Corrida do consultor que fez a simulação */
+            trace_id: string;
+            pa: components["schemas"]["Competence"];
+            veredito: components["schemas"]["FactorRVerdict"] | null;
+            /** @description Texto do simulador, com o disclaimer do PGDAS-D */
+            texto: string;
+            /** @description meta, fracao_pro_labore, inss, irrf, horizonte_meses e piso_economia_anual usados */
+            parametros: {
+                [key: string]: unknown;
+            };
+            /**
+             * @description ResultadoSimulacao da origem: status, motivo, veredito, parametros, fator_atual,
+             *     reforco_12m, reforco_mensal, pro_labore_extra_mensal, pro_labore_extra_horizonte,
+             *     custo_inss, custo_irrf, custo_total, economia_12m, economia_horizonte e liquido. Os
+             *     valores em reais saem em centavos e o fator com 6 casas; o banco guarda o valor exato.
+             */
+            resultado: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at: string;
+        };
+        FactorRSimulationList: {
+            items: components["schemas"]["FactorRSimulation"][];
+        };
+        FactorRConsultInput: {
+            mensagem: string;
+            /**
+             * Format: uuid
+             * @description A empresa da ficha; sem ela, a empresa citada no pedido
+             */
+            company_id?: string | null;
+        };
+        FactorRPrioritizeInput: {
+            mensagem: string;
+            pa?: components["schemas"]["Competence"] | null;
+        };
+        FactorRAgentResponse: {
+            /** @description Texto validado do LLM ou o template, sempre com o disclaimer do PGDAS-D */
+            texto: string;
+            /**
+             * @description Decisão estruturada com os valores calculados pelo motor (intencao; situação: empresa,
+             *     pa, status, fator_r, anexo, semaforo, rbt12, fs12, gaps, reforços, economia;
+             *     simulação: veredito, simulation_id, reforco_mensal, custo_total, liquido; fila: pa e
+             *     fila com posicao, empresa, semaforo, fator_r, economia_12m e acao; ou erro).
+             */
+            decisao: {
+                [key: string]: unknown;
+            };
+            /** @description Corrida do agente (auditoria local e Langfuse) */
+            trace_id: string;
+        };
+        /**
+         * @description received: enviado, aguardando o job; needs_review: em revisão (CNPJ fora da carteira,
+         *     confiança abaixo do limiar ou documento sem texto); linked: vinculado a uma empresa;
+         *     rejected: rejeitado pelo analista. parsed é o estado intermediário da origem.
+         * @enum {string}
+         */
+        PgdasStatus: "received" | "parsed" | "needs_review" | "linked" | "rejected";
+        PgdasUpload: {
+            document_id: components["schemas"]["Uuid"];
+            /**
+             * Format: uuid
+             * @description Job pgdas_parse do documento
+             */
+            job_id: string | null;
+            status: components["schemas"]["PgdasStatus"];
+            /** @description O arquivo já tinha sido enviado */
+            duplicate: boolean;
+        };
+        /** @description Campos lidos pelo parser (nulos até o processamento e quando não encontrados). */
+        PgdasFields: {
+            /** @description Dígitos do CNPJ lido */
+            cnpj: string | null;
+            /**
+             * @description Período de apuração, YYYY-MM
+             * @example 2026-09
+             */
+            pa: string | null;
+            /** @example 600000.00 */
+            rbt12: string | null;
+            /** @example 50000.00 */
+            rpa: string | null;
+            /** @example 180000.00 */
+            fs12: string | null;
+            /** @example 0.30 */
+            fator_r: string | null;
+            /** @example 4500.00 */
+            das: string | null;
+            /** @example III */
+            anexo: string | null;
+        };
+        /** @description Dados de cadastro lidos do extrato, fora da confiança e da nota ouro. */
+        PgdasIdentification: {
+            nome_empresarial: string | null;
+            /** @description Fator r numérico = sim; não se aplica = não */
+            sujeita_fator_r: boolean | null;
+            /** @description YYYY-MM da data de abertura no CNPJ */
+            inicio_atividade: string | null;
+        };
+        /**
+         * @description Receita e folha mês a mês dos 12 meses anteriores ao PA, como declaradas (YYYY-MM para o
+         *     valor). Só são gravadas quando conferem: os meses são a janela do PA e a soma bate com o
+         *     RBT12 e a FS12 declarados.
+         */
+        PgdasPriorSeries: {
+            receitas: {
+                [key: string]: string;
+            };
+            folhas: {
+                [key: string]: string;
+            };
+            receitas_conferem: boolean;
+            folhas_conferem: boolean;
+        };
+        PgdasJobState: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["JobStatus"];
+            /** Format: int32 */
+            attempts: number;
+            /** Format: int32 */
+            max_attempts: number;
+            /** @example PGDAS_FILE_MISSING */
+            last_error_code: string | null;
+        };
+        /** @description Pré-preenchimento do cadastro de uma empresa fora da carteira (só para CNPJ válido). */
+        PgdasSuggestion: {
+            cnpj: string;
+            /** @example 11.222.333/0001-81 */
+            cnpj_formatado: string;
+            nome_empresarial: string | null;
+            sujeita_fator_r: boolean | null;
+            inicio_atividade: string | null;
+        };
+        PgdasDocument: {
+            id: components["schemas"]["Uuid"];
+            status: components["schemas"]["PgdasStatus"];
+            /** @description Motivo da revisão (cnpj_nao_encontrado, confianca_baixa (…), sem_camada_texto, pdf_ilegivel, extracao_excedeu_limites) ou da rejeição */
+            motivo: string | null;
+            /**
+             * Format: uuid
+             * @description Só no documento vinculado
+             */
+            company_id: string | null;
+            nome_original: string | null;
+            /** @enum {string} */
+            mime: "application/pdf" | "text/plain";
+            /** Format: int32 */
+            tamanho_bytes: number;
+            campos: components["schemas"]["PgdasFields"];
+            /** @description Confiança por campo (1, 0 ou 0.3 com DV inválido) */
+            confianca_campos: {
+                [key: string]: string;
+            };
+            /** @description Avisos do parser, ex. cnpj_digito_verificador_invalido */
+            motivos: string[];
+            identificacao: components["schemas"]["PgdasIdentification"];
+            series_anteriores: components["schemas"]["PgdasPriorSeries"];
+            /** @description Confiança do documento, por regra (0 a 1, 4 casas) */
+            confianca: components["schemas"]["DecimalString"] | null;
+            /** @example 2026.09.3 */
+            parser_version: string | null;
+            /** @description Última corrida do agente parser_pgdas sobre o documento */
+            trace_id: string | null;
+            /** @description Texto da última corrida, com o disclaimer do PGDAS-D */
+            texto_agente: string | null;
+            job: components["schemas"]["PgdasJobState"] | null;
+            sugestao_cadastro: components["schemas"]["PgdasSuggestion"] | null;
+            /** Format: int32 */
+            version: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        PgdasDocumentList: {
+            items: components["schemas"]["PgdasDocument"][];
+            /**
+             * Format: int64
+             * @description Total com o filtro de status
+             */
+            total: number;
+            contagem_por_status: {
+                [key: string]: number;
+            };
+        };
+        PgdasLinkInput: {
+            company_id: components["schemas"]["Uuid"];
+        };
+        PgdasReviewInput: {
+            /** @enum {string} */
+            decisao: "rejeitar";
+            motivo: string;
+        };
+        PgdasCreateCompanyInput: {
+            empresa: components["schemas"]["CompanyCreate"];
+            /** @description Início da atividade (YYYY-MM) para a configuração do Fator R */
+            inicio_atividade?: string | null;
+        };
+        PgdasCreateCompanyResult: {
+            documento: components["schemas"]["PgdasDocument"];
+            empresa: components["schemas"]["Company"];
+        };
     };
     responses: {
         /** @description Payload inválido */
@@ -2053,10 +5846,29 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description Serviço auxiliar indisponível ou não configurado (ex. gateway de IA) */
+        ServiceUnavailable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
     };
     parameters: {
+        /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+        AIAliasPath: string;
+        /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+        TraceIdPath: string;
+        /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+        FactorRPA: components["schemas"]["Competence"];
         IdPath: components["schemas"]["Uuid"];
         DashboardRegimeGroup: components["schemas"]["RegimeGroup"];
+        /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+        CompanyFilterRegimeGroup: components["schemas"]["RegimeGroup"];
+        /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+        CompanyFilterTaxRegime: components["schemas"]["TaxRegime"];
         DashboardTaxRegime: components["schemas"]["TaxRegime"];
         /** @description Responsável do módulo da obrigação (snapshot da competência) */
         DashboardResponsible: components["schemas"]["Uuid"];
@@ -2852,6 +6664,191 @@ export interface operations {
             400: components["responses"]["BadRequest"];
         };
     };
+    listAIModels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuração dos aliases */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelList"];
+                };
+            };
+        };
+    };
+    updateAIModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIModelUpdate"];
+            };
+        };
+        responses: {
+            /** @description Configuração gravada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelAlias"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    validateAIModel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Alias do catálogo (ex. `triador`); desconhecido = 404 `AI_ALIAS_NOT_FOUND` */
+                alias: components["parameters"]["AIAliasPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIModelValidateRequest"];
+            };
+        };
+        responses: {
+            /** @description Resultado das conferências */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIModelValidation"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getAISummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Painel */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AISummary"];
+                };
+            };
+        };
+    };
+    listAIRuns: {
+        parameters: {
+            query?: {
+                agent?: string;
+                status?: components["schemas"]["AIRunStatus"];
+                company_id?: components["schemas"]["Uuid"];
+                /** @description Só as corridas sem nota humana */
+                without_human_eval?: boolean;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de corridas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getAIRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Corrida */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIRunDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    evaluateAIRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description trace_id da corrida (32 hex), o mesmo no Langfuse; outro formato devolve 404 */
+                trace_id: components["parameters"]["TraceIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AIHumanEvalInput"];
+            };
+        };
+        responses: {
+            /** @description Nota registrada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AIHumanEval"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+        };
+    };
     listCredentialControls: {
         parameters: {
             query?: {
@@ -3395,7 +7392,7 @@ export interface operations {
                     "application/json": components["schemas"]["Error"];
                 };
             };
-            /** @description Período já fechado (PERIOD_ALREADY_CLOSED) ou dependência HARD do estágio de fechamento */
+            /** @description Período já fechado (PERIOD_ALREADY_CLOSED), dependência HARD do estágio de fechamento (DEPENDENCY_BLOCKED) ou, no Contábil, a Conciliação usada e não concluída (RECONCILIATION_NOT_FINAL) */
             422: {
                 headers: {
                     [name: string]: unknown;
@@ -3919,6 +7916,8 @@ export interface operations {
                 tax_regime?: components["parameters"]["DashboardTaxRegime"];
                 /** @description Empresa, código ou CNPJ (com ou sem máscara) */
                 q?: string;
+                /** @description Só a empresa (a aba Obrigações da ficha; TASK-025, D-039) */
+                company_id?: components["schemas"]["Uuid"];
                 overdue_min?: number;
                 overdue_max?: number;
                 sort?: "days_overdue" | "due_date" | "competence" | "company";
@@ -3938,6 +7937,89 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Backlog"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getCompanyOverview: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Visão geral */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyOverview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getCompanyIndicators: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Indicadores */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyIndicatorList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listDocumentIndex: {
+        parameters: {
+            query?: {
+                module?: components["schemas"]["DocumentModule"];
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+                kind?: components["schemas"]["DocumentKind"];
+                /** @description Status do módulo (exige module) */
+                status?: string;
+                situation?: components["schemas"]["DocumentSituation"];
+                /** @description Banco lido no documento da Conciliação (sem diferenciar maiúsculas) */
+                bank?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Uma página do índice, o mais recente primeiro */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentIndex"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3964,6 +8046,2240 @@ export interface operations {
                 };
             };
             404: components["responses"]["NotFound"];
+        };
+    };
+    getFactorRPortfolio: {
+        parameters: {
+            query?: {
+                /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+                pa?: components["parameters"]["FactorRPA"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Fiscal da empresa (snapshot da competência do PA) */
+                responsible_id?: components["schemas"]["Uuid"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Carteira */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRPortfolio"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getFactorRSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuração */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSettings"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    updateFactorRSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Configuração gravada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    listFactorRMovements: {
+        parameters: {
+            query?: {
+                /** @description Primeira competência (inclusive); ausente = desde o início */
+                from?: components["schemas"]["Competence"];
+                /** @description Última competência (inclusive); ausente = até a última */
+                to?: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Movimentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRMovementList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    putFactorRMovement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                competence: components["schemas"]["Competence"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRMovementInput"];
+            };
+        };
+        responses: {
+            /** @description Mês gravado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRMovement"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getFactorRCalc: {
+        parameters: {
+            query?: {
+                /** @description Período de apuração `AAAA-MM`; ausente = competência corrente */
+                pa?: components["parameters"]["FactorRPA"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado do cálculo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRCalc"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listFactorRSimulations: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Simulações */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSimulationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createFactorRSimulation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRSimulationInput"];
+            };
+        };
+        responses: {
+            /** @description Simulação gravada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRSimulation"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    consultFactorRAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRConsultInput"];
+            };
+        };
+        responses: {
+            /** @description Resposta do agente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRAgentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    prioritizeFactorRAgent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FactorRPrioritizeInput"];
+            };
+        };
+        responses: {
+            /** @description Resposta do agente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FactorRAgentResponse"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Não há tabela do Simples vigente no PA (SIMPLES_TABLE_NOT_IN_FORCE) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listPgdasDocuments: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PgdasStatus"];
+                /** @description Só os extratos vinculados a esta empresa */
+                company_id?: components["schemas"]["Uuid"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocumentList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    uploadPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description O arquivo já tinha sido enviado (documento existente) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasUpload"];
+                };
+            };
+            /** @description Documento recebido; processamento enfileirado */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Arquivo acima de 10 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description O conteúdo não é PDF nem TXT (UNSUPPORTED_FILE) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    downloadPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O arquivo enviado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    linkPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasLinkInput"];
+            };
+        };
+        responses: {
+            /** @description Documento vinculado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    reviewPgdasDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasReviewInput"];
+            };
+        };
+        responses: {
+            /** @description Documento rejeitado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasDocument"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    createCompanyFromPgdas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PgdasCreateCompanyInput"];
+            };
+        };
+        responses: {
+            /** @description Empresa cadastrada e documento vinculado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PgdasCreateCompanyResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+        };
+    };
+    listReconciliationDocuments: {
+        parameters: {
+            query?: {
+                /** @description Um ou mais status, separados por vírgula */
+                status?: string;
+                company_id?: components["schemas"]["Uuid"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot de filter_competence) */
+                responsible_id?: components["schemas"]["Uuid"];
+                /** @description Competência do snapshot dos filtros de empresa (obrigatória com eles) */
+                filter_competence?: components["schemas"]["Competence"];
+                kind?: components["schemas"]["ReconciliationDocumentKind"];
+                /** @description Banco lido na triagem (sem diferenciar maiúsculas) */
+                bank?: string;
+                competence?: components["schemas"]["Competence"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documentos */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDocumentList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    uploadReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    company_id?: components["schemas"]["Uuid"];
+                    competence?: components["schemas"]["Competence"];
+                };
+            };
+        };
+        responses: {
+            /** @description Documento recebido (pendente, com a triagem na fila, ou parado por período fechado) */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            409: components["responses"]["Conflict"];
+            /** @description Arquivo acima de 20 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description O conteúdo não é PDF, imagem PNG/JPEG nem texto (UNSUPPORTED_FILE) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description MinIO fora ou não configurado (STORAGE_UNAVAILABLE); nada foi gravado */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationOverview: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+                state?: "em_andamento" | "pronta" | "concluida";
+                /** @description true: só as que bloqueiam o Contábil */
+                blocked?: boolean;
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot da competência) */
+                responsible_id?: components["schemas"]["Uuid"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A Conciliação por empresa */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationOverview"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDocumentDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    retryReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documento de volta à fila, com o novo job */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    downloadReconciliationDocument: {
+        parameters: {
+            query?: {
+                /** @description 1 = como anexo */
+                download?: "1";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O original enviado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "image/png": string;
+                    "image/jpeg": string;
+                    "text/plain": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description MinIO fora (STORAGE_UNAVAILABLE) */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listReconciliationEntries: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                status?: components["schemas"]["ReconciliationEntryStatus"];
+                /** @description Data do lançamento a partir de */
+                date_from?: string;
+                /** @description Data do lançamento até */
+                date_to?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lançamentos (sem data por último) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClientEntryList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    createReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReconciliationClientEntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Lançamento gravado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClientEntry"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    importReconciliationEntries: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                    company_id: components["schemas"]["Uuid"];
+                };
+            };
+        };
+        responses: {
+            /** @description Lançamentos gravados */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationEntriesImport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description CSV acima de 2 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    runReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado da rodada e baldes da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationRunSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pedido na fila */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Linha já conciliada (LINE_RECONCILED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listResolverProposals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Propostas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolverProposalDecision"];
+            };
+        };
+        responses: {
+            /** @description Proposta aceita e conciliações criadas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposalAccept"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Proposta já decidida (PROPOSAL_DECIDED) ou sem par a conciliar (PROPOSAL_NOTHING_TO_ACCEPT) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    rejectResolverProposal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResolverProposalDecision"];
+            };
+        };
+        responses: {
+            /** @description Proposta rejeitada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResolverProposal"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Proposta já decidida (PROPOSAL_DECIDED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listChartAccounts: {
+        parameters: {
+            query?: {
+                /** @description true: só as contas ativas */
+                active?: "true";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createChartAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChartAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Conta incluída */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    updateChartAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                accountId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChartAccountPatch"];
+            };
+        };
+        responses: {
+            /** @description Conta alterada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    importChartAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Plano importado */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountsImport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description CSV acima de 2 MB (FILE_TOO_LARGE) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    copyChartAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    source_company_id: components["schemas"]["Uuid"];
+                };
+            };
+        };
+        responses: {
+            /** @description Contas copiadas */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ChartAccountsCopy"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listClassificationRules: {
+        parameters: {
+            query?: {
+                /** @description true: só as ativas */
+                active?: "true";
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regras */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRuleList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createClassificationRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationRuleCreate"];
+            };
+        };
+        responses: {
+            /** @description Regra confirmada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRuleCreated"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    deactivateClassificationRule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                ruleId: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Regra desativada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRule"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description Regra já desativada (RULE_INACTIVE) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    runClassification: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Classificação da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationRunSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    correctClassification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    account_code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Classificação gravada e regra proposta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationCorrection"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Linha não conciliada (LINE_NOT_RECONCILED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    requestClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Pedido na fila */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionRequest"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listClassificationSuggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sugestões */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    acceptClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationSuggestionDecision"];
+            };
+        };
+        responses: {
+            /** @description Sugestão aceita */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestionAccept"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    rejectClassificationSuggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClassificationSuggestionDecision"];
+            };
+        };
+        responses: {
+            /** @description Sugestão rejeitada */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassificationSuggestion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            /** @description Sugestão já decidida (SUGGESTION_DECIDED) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getLedger: {
+        parameters: {
+            query: {
+                /** @description Competência inicial */
+                from: components["schemas"]["Competence"];
+                /** @description Competência final */
+                to: components["schemas"]["Competence"];
+                account?: string;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Razão do período */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ledger"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    exportLedger: {
+        parameters: {
+            query: {
+                format?: "csv" | "xlsx";
+                from: components["schemas"]["Competence"];
+                to: components["schemas"]["Competence"];
+                account?: string;
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O razão no formato pedido (razao-<cnpj>-<de>-<até>.csv ou .xlsx) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getReconciliation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conciliação */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    getReconciliationMetrics: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Métricas do filtro */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationMetrics"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    listBankPlaybooks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Playbooks */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankPlaybookList"];
+                };
+            };
+        };
+    };
+    getCompanyReconciliationSummary: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resumo da competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyReconciliationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    completeReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A conciliação concluída (ou já concluída) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationCompletion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            422: components["responses"]["Unprocessable"];
+            423: components["responses"]["Locked"];
+        };
+    };
+    reopenReconciliation: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description A conciliação reaberta */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationCompletion"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            423: components["responses"]["Locked"];
+        };
+    };
+    getReconciliationClosure: {
+        parameters: {
+            query: {
+                competence: components["schemas"]["Competence"];
+            };
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description O fechamento do Contábil na competência */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationClosure"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    listBankAccounts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankAccountList"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    createBankAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BankAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Conta cadastrada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BankAccount"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    getReviewQueue: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                competence?: components["schemas"]["Competence"];
+                bucket?: components["schemas"]["ReviewBucket"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                regime_group?: components["parameters"]["CompanyFilterRegimeGroup"];
+                /** @description Filtro de empresa do Dashboard (D-038), pelo snapshot da competência */
+                tax_regime?: components["parameters"]["CompanyFilterTaxRegime"];
+                /** @description Responsável do Contábil da empresa (snapshot da competência) */
+                responsible_id?: components["schemas"]["Uuid"];
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Itens e contagens por balde (o total em `total`) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewQueue"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    getReviewLine: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linha */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewLineDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    manualMatch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    entry_ids: components["schemas"]["Uuid"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Conciliação criada */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualMatchResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    confirmNoReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Linha do extrato */
+                id: components["schemas"]["Uuid"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Linha confirmada sem comprovante */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualMatchResult"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lançamento */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReviewEntryDetail"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    correctReconciliationEntry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EntryFieldsPatch"];
+            };
+        };
+        responses: {
+            /** @description Lançamento corrigido */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EntryCorrection"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listRecentReconciliations: {
+        parameters: {
+            query?: {
+                company_id?: components["schemas"]["Uuid"];
+                origin?: "auto" | "manual";
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conciliações, da mais recente */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecentReconciliationList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+        };
+    };
+    undoReconciliation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    reason: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Conciliação desfeita */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        reconciliation_id: components["schemas"]["Uuid"];
+                        statement_transaction_id: components["schemas"]["Uuid"];
+                        /** Format: date-time */
+                        undone_at: string;
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    identifyReconciliationDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentIdentify"];
+            };
+        };
+        responses: {
+            /** @description Documento de volta à extração */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReconciliationUpload"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            /** @description Contábil fechado (PERIOD_CLOSED) */
+            423: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    getReconciliationDocumentPages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Páginas */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        content_type: string;
+                        pages: number;
+                        dpi: number;
+                    };
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getReconciliationDocumentPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+                /** @description Página, a partir de 1 */
+                page: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página em PNG */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": string;
+                };
+            };
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["Unprocessable"];
+            503: components["responses"]["ServiceUnavailable"];
+        };
+    };
+    getJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Job"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+        };
+    };
+    retryJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: components["parameters"]["IdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Job de volta à fila */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Job"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
         };
     };
 }

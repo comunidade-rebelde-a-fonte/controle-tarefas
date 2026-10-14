@@ -1,6 +1,6 @@
-// Package seed carrega os dados de referência (status, catálogo, feriados) e os
-// dados de demonstração (20 empresas fictícias e histórico). Todos os seeds são
-// idempotentes: podem rodar várias vezes sem duplicar registros.
+// Package seed carrega os dados de referência (status, catálogo, feriados, tabelas do
+// Simples do Fator R) e os dados de demonstração (21 empresas fictícias e histórico). Todos
+// os seeds são idempotentes: podem rodar várias vezes sem duplicar registros.
 package seed
 
 import (
@@ -42,6 +42,7 @@ func ReferenceSteps() []Step {
 		sqlStep("status.sql"),
 		calendarStep(),
 		sqlStep("catalog.sql"),
+		simplesTablesStep(),
 	}
 }
 
@@ -81,7 +82,7 @@ func Demo(ctx context.Context, pool *pgxpool.Pool, clk clock.Clock, out io.Write
 	if err := DemoCompanies(ctx, pool, clk, out); err != nil {
 		return err
 	}
-	if err := Run(ctx, pool, clk, []Step{credentialsStep()}, out); err != nil {
+	if err := Run(ctx, pool, clk, []Step{credentialsStep(), factorRDemoStep()}, out); err != nil {
 		return err
 	}
 	if err := demoHistory(ctx, pool, clk); err != nil {

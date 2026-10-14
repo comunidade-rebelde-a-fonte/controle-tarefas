@@ -124,7 +124,8 @@ func TestFiscalGrid_SeedGroups(t *testing.T) {
 	if normal.Module != "FISCAL" || normal.Competence != "2026-10" || normal.Group == nil || *normal.Group != "normal" || normal.Today != "2026-10-01" {
 		t.Fatalf("cabeçalho = %+v", normal)
 	}
-	if len(normal.Rows) != 10 || normal.Total != 10 {
+	// As 10 Normais do PRD e a 111 Construtora Horizonte (Lucro Presumido, D-041).
+	if len(normal.Rows) != 11 || normal.Total != 11 {
 		t.Fatalf("Normais: %d linhas (%v)", len(normal.Rows), normal.codes())
 	}
 	wantNormal := []string{"FISCAL_FECHAMENTO", "FISCAL_ENTRADAS", "FISCAL_SAIDAS", "FISCAL_PRESTADOS", "FISCAL_TOMADOS", "FISCAL_PIS",
@@ -239,7 +240,7 @@ func TestFiscalGrid_FiltersAndDerived(t *testing.T) {
 		t.Fatalf("status + coluna = %v", got)
 	}
 	// Não iniciadas: a 101 não tem mais controles "A iniciar".
-	if got := fetch(t, srv, "group=normal&not_started=true").codes(); len(got) != 9 || slices.Contains(got, "101") {
+	if got := fetch(t, srv, "group=normal&not_started=true").codes(); len(got) != 10 || slices.Contains(got, "101") {
 		t.Fatalf("not_started = %v", got)
 	}
 
@@ -261,7 +262,7 @@ func TestFiscalGrid_FiltersAndDerived(t *testing.T) {
 	if got := fetch(t, srv, "group=normal&closing_status=CLOSED").codes(); !slices.Equal(got, []string{"101"}) {
 		t.Fatalf("closing_status = %v", got)
 	}
-	if got := fetch(t, srv, "group=normal&period_state=OPEN").codes(); len(got) != 9 {
+	if got := fetch(t, srv, "group=normal&period_state=OPEN").codes(); len(got) != 10 {
 		t.Fatalf("abertas = %v", got)
 	}
 
@@ -275,12 +276,12 @@ func TestFiscalGrid_FiltersAndDerived(t *testing.T) {
 	if got := fetch(t, srv, "group=normal&note=with").codes(); !slices.Equal(got, []string{"102"}) {
 		t.Fatalf("note=with = %v", got)
 	}
-	if got := fetch(t, srv, "group=normal&note=without").codes(); len(got) != 9 {
+	if got := fetch(t, srv, "group=normal&note=without").codes(); len(got) != 10 {
 		t.Fatalf("note=without = %v", got)
 	}
 
 	// Regime e responsável do snapshot.
-	if got := fetch(t, srv, "group=normal&tax_regime=LUCRO_REAL"); len(got.Rows) == 0 || len(got.Rows) == 10 {
+	if got := fetch(t, srv, "group=normal&tax_regime=LUCRO_REAL"); len(got.Rows) == 0 || len(got.Rows) == 11 {
 		t.Fatalf("tax_regime = %v", got.codes())
 	}
 	resp := *g.Rows[0].Snapshot.Responsible
@@ -296,7 +297,7 @@ func TestFiscalGrid_FiltersAndDerived(t *testing.T) {
 	}
 	srv.Clock.Set(time.Date(2026, 12, 1, 12, 0, 0, 0, time.UTC))
 	late := fetch(t, srv, "group=normal&overdue=true")
-	if slices.Contains(late.codes(), "101") || len(late.Rows) != 9 {
+	if slices.Contains(late.codes(), "101") || len(late.Rows) != 10 {
 		t.Fatalf("overdue em 01/12 = %v", late.codes())
 	}
 	for _, r := range late.Rows {
@@ -362,7 +363,7 @@ func TestGrid_AtMostThreeQueries(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(g.Rows) != 10 {
+	if len(g.Rows) != 11 {
 		t.Fatalf("linhas = %d", len(g.Rows))
 	}
 	if n := counter.n.Load(); n > 3 {

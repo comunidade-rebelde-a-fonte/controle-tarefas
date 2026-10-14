@@ -6,9 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"controle/internal/ai"
+	"controle/internal/platform/decimal"
 )
 
 // Environment identifica o ambiente de execução.
@@ -37,10 +42,110 @@ type Config struct {
 	// FixedTime congela o relógio da aplicação (somente fora de produção).
 	// Usado pelos testes E2E para datas determinísticas.
 	FixedTime *time.Time
+	// WorkerID identifica o processo worker (subcomando `worker`) nos logs.
+	WorkerID string
+	// WorkerHealthPort é a porta do healthcheck do worker, que roda separado da API.
+	WorkerHealthPort int
+	// WorkerConcurrency é quantos jobs o worker executa ao mesmo tempo (padrão 1, como a origem).
+	WorkerConcurrency int
+	// JobMaxAttempts é o padrão de tentativas de um job (JOB_MAX_TENTATIVAS; origem: 3).
+	JobMaxAttempts int32
+	// JobPollInterval é a espera do worker com a fila vazia (JOB_POLL_SECONDS; origem: 1 s).
+	JobPollInterval time.Duration
+	// JobLease é o prazo da posse de um job; o worker a renova enquanto executa (TASK-005).
+	JobLease time.Duration
+	// RoutinePriorizadorHour é a hora (APP_TIMEZONE) a partir da qual, aos domingos, o worker
+	// roda a fila semanal do priorizador (ROTINA_PRIORIZADOR_HORA; origem: 7).
+	RoutinePriorizadorHour int
+	// LiteLLMBaseURL é o gateway de modelos dos agentes [ADR-004]; vazio = IA não configurada.
+	LiteLLMBaseURL string
+	// LiteLLMAPIKey autentica a aplicação no gateway. As chaves dos provedores (OpenAI etc.)
+	// ficam só no ambiente do LiteLLM e nunca passam pela aplicação [spec 09 §4].
+	LiteLLMAPIKey Secret
+	// LiteLLMTimeout limita cada chamada ao gateway.
+	LiteLLMTimeout time.Duration
+	// AIDefaults são os modelos padrão dos aliases (<ALIAS>_MODEL). A escolha feita na tela
+	// Configurações → IA vence o padrão (TASK-008).
+	AIDefaults ai.Defaults
+	// Langfuse (TASK-009): espelho dos traces e notas dos agentes, sincronizado pelo worker.
+	// LangfuseHost vazio = sem sincronização; as corridas ficam pending na trilha local.
+	LangfuseHost      string
+	LangfusePublicKey string
+	// LangfuseSecretKey só vai para o worker, que envia ao Langfuse.
+	LangfuseSecretKey   Secret
+	LangfuseEnvironment string
+	LangfuseTimeout     time.Duration
+	// LangfuseRetry é o intervalo do reenvio periódico das corridas com falha (origem: 5 min).
+	LangfuseRetry time.Duration
+	// TracePayloadMaxKB limita cada atributo enviado ao Langfuse (origem: 32 KB).
+	TracePayloadMaxKB int
+	// LangfusePublicURL e LangfuseProjectID montam o link do trace para o navegador.
+	LangfusePublicURL string
+	LangfuseProjectID string
+	// Originais da Conciliação no MinIO (S3, bucket versionado; REQ-043, TASK-015). S3Endpoint
+	// vazio = armazenamento não configurado: o envio responde 503 STORAGE_UNAVAILABLE. A
+	// credencial é a do usuário da aplicação, sem permissão de apagar (docker/minio/init.sh).
+	S3Endpoint  string
+	S3Region    string
+	S3AccessKey string
+	S3SecretKey Secret
+	S3Bucket    string
+	// TriageThreshold é o limiar de confiança da triagem da Conciliação (LIMIAR_TRIAGEM, padrão
+	// 0,70 como na origem; TASK-016): abaixo dele, o documento vai para revisao_triagem.
+	TriageThreshold decimal.Decimal
+	// FieldThreshold é o limiar de confiança por campo do comprovante (LIMIAR_CAMPO, padrão 0,70
+	// como na origem; TASK-017): campo essencial abaixo dele deixa o lançamento parcial.
+	FieldThreshold decimal.Decimal
+	// FuzzyThreshold é o limiar de similaridade do passe 3 do matching (LIMIAR_FUZZY, padrão 0,86
+	// como na origem; TASK-018): contraparte × descritivo pelo Jaro-Winkler.
+	FuzzyThreshold decimal.Decimal
+	// ResolverAuto faz a rodada do matching pedir hipótese ao resolvedor para as linhas que
+	// sobraram, uma vez por linha (RESOLVEDOR_AUTOMATICO, padrão false; TASK-019). A origem só
+	// pedia à mão; cada pedido é uma chamada de modelo.
+	ResolverAuto bool
+	// ClassifierAuto faz a rodada do matching pedir sugestão de conta ao classificador para as
+	// linhas conciliadas sem regra nem histórico, uma vez por linha (CLASSIFICADOR_AUTOMATICO,
+	// padrão false; TASK-020). Cada pedido é uma chamada de modelo.
+	ClassifierAuto bool
+	// AutoTarget é a meta da conciliação automática, em percentual das linhas do extrato
+	// (META_CONCILIACAO_AUTO, padrão 80 como na origem; TASK-021c): a régua do painel de métricas.
+	AutoTarget decimal.Decimal
 }
+
+// Secret guarda um segredo que nunca aparece em log, print ou JSON: String, GoString,
+// LogValue e MarshalJSON devolvem "[oculto]". O valor só sai por Reveal [spec 09 §4].
+type Secret string
+
+const redacted = "[oculto]"
+
+// Reveal devolve o valor real, para uso direto na chamada que precisa dele.
+func (s Secret) Reveal() string { return string(s) }
+
+func (s Secret) String() string {
+	if s == "" {
+		return ""
+	}
+	return redacted
+}
+
+func (s Secret) GoString() string { return s.String() }
+
+func (s Secret) LogValue() slog.Value { return slog.StringValue(s.String()) }
+
+func (s Secret) MarshalJSON() ([]byte, error) { return []byte(`"` + s.String() + `"`), nil }
 
 // IsProduction indica se a aplicação roda em produção.
 func (c Config) IsProduction() bool { return c.Env == EnvProduction }
+
+// LangfuseTraceURL é o link do trace no Langfuse, para o navegador; nil sem LANGFUSE_PUBLIC_URL
+// e LANGFUSE_PROJECT_ID.
+func (c Config) LangfuseTraceURL(traceID string) *string {
+	if c.LangfusePublicURL == "" || c.LangfuseProjectID == "" {
+		return nil
+	}
+	u := c.LangfusePublicURL + "/project/" + url.PathEscape(c.LangfuseProjectID) + "/traces/" + url.PathEscape(traceID)
+	return &u
+}
 
 // Load lê a configuração das variáveis de ambiente usando getenv.
 func Load(getenv func(string) string) (Config, error) {
@@ -129,10 +234,165 @@ func Load(getenv func(string) string) (Config, error) {
 		}
 	}
 
+	cfg.WorkerID = orDefault(getenv("WORKER_ID"), "worker-local")
+	workerPort, err := strconv.Atoi(orDefault(getenv("WORKER_HEALTH_PORT"), "8090"))
+	if err != nil || workerPort <= 0 || workerPort > 65535 {
+		errs = append(errs, fmt.Errorf("WORKER_HEALTH_PORT inválida: %q", getenv("WORKER_HEALTH_PORT")))
+	}
+	cfg.WorkerHealthPort = workerPort
+
+	cfg.RoutinePriorizadorHour, err = strconv.Atoi(orDefault(getenv("ROTINA_PRIORIZADOR_HORA"), "7"))
+	if err != nil || cfg.RoutinePriorizadorHour < 0 || cfg.RoutinePriorizadorHour > 23 {
+		errs = append(errs, fmt.Errorf("ROTINA_PRIORIZADOR_HORA inválida: %q (0 a 23)", getenv("ROTINA_PRIORIZADOR_HORA")))
+	}
+	cfg.WorkerConcurrency, err = strconv.Atoi(orDefault(getenv("WORKER_CONCURRENCY"), "1"))
+	if err != nil || cfg.WorkerConcurrency < 1 || cfg.WorkerConcurrency > 16 {
+		errs = append(errs, fmt.Errorf("WORKER_CONCURRENCY inválido: %q (1 a 16)", getenv("WORKER_CONCURRENCY")))
+	}
+	maxAttempts, err := strconv.ParseInt(orDefault(getenv("JOB_MAX_TENTATIVAS"), "3"), 10, 32)
+	if err != nil || maxAttempts < 1 || maxAttempts > 20 {
+		errs = append(errs, fmt.Errorf("JOB_MAX_TENTATIVAS inválido: %q (1 a 20)", getenv("JOB_MAX_TENTATIVAS")))
+	}
+	cfg.JobMaxAttempts = int32(maxAttempts)
+	poll, err := strconv.ParseFloat(orDefault(getenv("JOB_POLL_SECONDS"), "1"), 64)
+	if err != nil || poll <= 0 || poll > 60 {
+		errs = append(errs, fmt.Errorf("JOB_POLL_SECONDS inválido: %q (maior que 0, até 60)", getenv("JOB_POLL_SECONDS")))
+	}
+	cfg.JobPollInterval = time.Duration(poll * float64(time.Second))
+	lease, err := strconv.Atoi(orDefault(getenv("JOB_LEASE_SECONDS"), "300"))
+	if err != nil || lease < 10 || lease > 86400 {
+		errs = append(errs, fmt.Errorf("JOB_LEASE_SECONDS inválido: %q (10 a 86400)", getenv("JOB_LEASE_SECONDS")))
+	}
+	cfg.JobLease = time.Duration(lease) * time.Second
+
+	cfg.LiteLLMBaseURL = strings.TrimRight(strings.TrimSpace(getenv("LITELLM_BASE_URL")), "/")
+	if cfg.LiteLLMBaseURL != "" {
+		u, err := url.Parse(cfg.LiteLLMBaseURL)
+		if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			errs = append(errs, fmt.Errorf("LITELLM_BASE_URL inválida: %q (use http://host:porta)", cfg.LiteLLMBaseURL))
+		}
+	}
+	cfg.LiteLLMAPIKey = Secret(strings.TrimSpace(getenv("LITELLM_API_KEY")))
+	timeout, err := strconv.Atoi(orDefault(getenv("LITELLM_TIMEOUT_SECONDS"), "120"))
+	if err != nil || timeout < 1 || timeout > 3600 {
+		errs = append(errs, fmt.Errorf("LITELLM_TIMEOUT_SECONDS inválido: %q (1 a 3600)", getenv("LITELLM_TIMEOUT_SECONDS")))
+	}
+	cfg.LiteLLMTimeout = time.Duration(timeout) * time.Second
+	if cfg.AIDefaults, err = ai.DefaultsFromEnv(getenv); err != nil {
+		errs = append(errs, err)
+	}
+	errs = append(errs, loadLangfuse(&cfg, getenv)...)
+	errs = append(errs, loadS3(&cfg, getenv)...)
+	// Limiares da Conciliação, com os padrões da origem (app/config.py). O do passe 3 não pode ser
+	// zero: casaria qualquer par de mesmo valor pela "similaridade".
+	for _, l := range []struct {
+		name, def string
+		positive  bool
+		dst       *decimal.Decimal
+	}{{"LIMIAR_TRIAGEM", "0.70", false, &cfg.TriageThreshold}, {"LIMIAR_CAMPO", "0.70", false, &cfg.FieldThreshold},
+		{"LIMIAR_FUZZY", "0.86", true, &cfg.FuzzyThreshold}} {
+		threshold, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv(l.name)), l.def))
+		if terr != nil || threshold.Sign() < 0 || (l.positive && threshold.Sign() == 0) || threshold.Cmp(decimal.FromInt(1)) > 0 {
+			errs = append(errs, fmt.Errorf("%s inválido: %q (decimal de 0 a 1, ex.: %s)", l.name, getenv(l.name), l.def))
+		}
+		*l.dst = threshold
+	}
+	target, terr := decimal.Parse(orDefault(strings.TrimSpace(getenv("META_CONCILIACAO_AUTO")), "80"))
+	if terr != nil || target.Sign() < 0 || target.Cmp(decimal.FromInt(100)) > 0 {
+		errs = append(errs, fmt.Errorf("META_CONCILIACAO_AUTO inválido: %q (percentual de 0 a 100, ex.: 80)", getenv("META_CONCILIACAO_AUTO")))
+	}
+	cfg.AutoTarget = target
+	for _, f := range []struct {
+		name string
+		dst  *bool
+	}{{"RESOLVEDOR_AUTOMATICO", &cfg.ResolverAuto}, {"CLASSIFICADOR_AUTOMATICO", &cfg.ClassifierAuto}} {
+		on, ferr := strconv.ParseBool(orDefault(strings.TrimSpace(getenv(f.name)), "false"))
+		if ferr != nil {
+			errs = append(errs, fmt.Errorf("%s inválido: %q (true ou false)", f.name, getenv(f.name)))
+		}
+		*f.dst = on
+	}
+
 	if len(errs) > 0 {
 		return Config{}, errors.Join(errs...)
 	}
 	return cfg, nil
+}
+
+var (
+	langfuseEnvRe     = regexp.MustCompile(`^[a-z0-9_-]{1,40}$`)
+	langfuseProjectRe = regexp.MustCompile(`^[A-Za-z0-9_-]{1,100}$`)
+)
+
+// loadLangfuse lê LANGFUSE_* e TRACE_PAYLOAD_MAX_KB (TASK-009).
+// loadS3 lê o armazenamento dos originais da Conciliação. Com endpoint, credencial e bucket são
+// obrigatórios.
+func loadS3(cfg *Config, getenv func(string) string) []error {
+	var errs []error
+	cfg.S3Endpoint = strings.TrimRight(strings.TrimSpace(getenv("S3_ENDPOINT")), "/")
+	if cfg.S3Endpoint != "" {
+		if u, err := url.Parse(cfg.S3Endpoint); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" || (u.Path != "" && u.Path != "/") {
+			errs = append(errs, fmt.Errorf("S3_ENDPOINT inválido: %q (use http://host:porta)", cfg.S3Endpoint))
+		}
+	}
+	cfg.S3Region = orDefault(strings.TrimSpace(getenv("S3_REGION")), "us-east-1")
+	cfg.S3AccessKey = strings.TrimSpace(getenv("S3_ACCESS_KEY"))
+	cfg.S3SecretKey = Secret(strings.TrimSpace(getenv("S3_SECRET_KEY")))
+	cfg.S3Bucket = strings.TrimSpace(getenv("S3_BUCKET"))
+	if cfg.S3Endpoint != "" && (cfg.S3AccessKey == "" || cfg.S3SecretKey == "" || cfg.S3Bucket == "") {
+		errs = append(errs, errors.New("S3_ENDPOINT exige S3_ACCESS_KEY, S3_SECRET_KEY e S3_BUCKET"))
+	}
+	if cfg.S3Bucket != "" && !s3BucketRe.MatchString(cfg.S3Bucket) {
+		errs = append(errs, fmt.Errorf("S3_BUCKET inválido: %q (3 a 63 caracteres: minúsculas, dígitos, ponto e hífen)", cfg.S3Bucket))
+	}
+	return errs
+}
+
+// s3BucketRe são os nomes de bucket aceitos pelo S3/MinIO (forma simplificada).
+var s3BucketRe = regexp.MustCompile(`^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$`)
+
+func loadLangfuse(cfg *Config, getenv func(string) string) []error {
+	var errs []error
+	httpURL := func(name, v string) string {
+		v = strings.TrimRight(strings.TrimSpace(v), "/")
+		if v == "" {
+			return ""
+		}
+		if u, err := url.Parse(v); err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+			errs = append(errs, fmt.Errorf("%s inválida: %q (use http://host:porta)", name, v))
+		}
+		return v
+	}
+	cfg.LangfuseHost = httpURL("LANGFUSE_HOST", getenv("LANGFUSE_HOST"))
+	cfg.LangfusePublicURL = httpURL("LANGFUSE_PUBLIC_URL", getenv("LANGFUSE_PUBLIC_URL"))
+	cfg.LangfusePublicKey = strings.TrimSpace(getenv("LANGFUSE_PUBLIC_KEY"))
+	cfg.LangfuseSecretKey = Secret(strings.TrimSpace(getenv("LANGFUSE_SECRET_KEY")))
+	if cfg.LangfuseHost != "" && (cfg.LangfusePublicKey == "" || cfg.LangfuseSecretKey == "") {
+		errs = append(errs, errors.New("LANGFUSE_HOST exige LANGFUSE_PUBLIC_KEY e LANGFUSE_SECRET_KEY"))
+	}
+	cfg.LangfuseProjectID = strings.TrimSpace(getenv("LANGFUSE_PROJECT_ID"))
+	if cfg.LangfuseProjectID != "" && !langfuseProjectRe.MatchString(cfg.LangfuseProjectID) {
+		errs = append(errs, fmt.Errorf("LANGFUSE_PROJECT_ID inválido: %q", cfg.LangfuseProjectID))
+	}
+	cfg.LangfuseEnvironment = strings.ToLower(orDefault(getenv("LANGFUSE_ENVIRONMENT"), string(cfg.Env)))
+	if !langfuseEnvRe.MatchString(cfg.LangfuseEnvironment) || strings.HasPrefix(cfg.LangfuseEnvironment, "langfuse") {
+		errs = append(errs, fmt.Errorf("LANGFUSE_ENVIRONMENT inválido: %q (minúsculas, dígitos, - e _; sem o prefixo langfuse)", cfg.LangfuseEnvironment))
+	}
+	timeout, err := strconv.Atoi(orDefault(getenv("LANGFUSE_TIMEOUT_SECONDS"), "5"))
+	if err != nil || timeout < 1 || timeout > 60 {
+		errs = append(errs, fmt.Errorf("LANGFUSE_TIMEOUT_SECONDS inválido: %q (1 a 60)", getenv("LANGFUSE_TIMEOUT_SECONDS")))
+	}
+	cfg.LangfuseTimeout = time.Duration(timeout) * time.Second
+	retry, err := strconv.Atoi(orDefault(getenv("LANGFUSE_RETRY_SECONDS"), "300"))
+	if err != nil || retry < 30 || retry > 86400 {
+		errs = append(errs, fmt.Errorf("LANGFUSE_RETRY_SECONDS inválido: %q (30 a 86400)", getenv("LANGFUSE_RETRY_SECONDS")))
+	}
+	cfg.LangfuseRetry = time.Duration(retry) * time.Second
+	cfg.TracePayloadMaxKB, err = strconv.Atoi(orDefault(getenv("TRACE_PAYLOAD_MAX_KB"), "32"))
+	if err != nil || cfg.TracePayloadMaxKB < 1 || cfg.TracePayloadMaxKB > 1024 {
+		errs = append(errs, fmt.Errorf("TRACE_PAYLOAD_MAX_KB inválido: %q (1 a 1024)", getenv("TRACE_PAYLOAD_MAX_KB")))
+	}
+	return errs
 }
 
 func orDefault(v, def string) string {

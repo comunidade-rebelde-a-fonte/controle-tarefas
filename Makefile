@@ -25,6 +25,10 @@ $(error DB inválido: "$(DB)". Use dev, e2e ou perf)
 endif
 
 COMPOSE := docker compose
+# Langfuse self-hosted em compose dedicado (pesado: Postgres, ClickHouse, Redis e MinIO próprios).
+COMPOSE_LF := docker compose -f docker-compose.langfuse.yml
+# Rede compartilhada entre o worker e o Langfuse (TASK-009, D-022): externa aos dois projetos.
+OBS_NET := controle-obs
 
 # Ferramentas de desenvolvimento, instaladas em .bin/ com versões fixadas (make tools).
 BIN := $(CURDIR)/.bin
@@ -49,8 +53,17 @@ E2E_API_PORT ?= 8091
 E2E_WEB_PORT ?= 5174
 # Relógio fixo do E2E (API e seed): datas e "competência atual" não dependem do dia real.
 E2E_FIXED_TIME ?= 2026-09-15T12:00:00-03:00
+# MinIO só do E2E (TASK-021a): projeto compose próprio (controle-e2e), com volume, porta e
+# credenciais próprios; nunca o MinIO de dev. O mesmo init.sh: bucket versionado e usuário da
+# aplicação sem permissão de apagar. As credenciais são de teste, descartáveis.
+E2E_MINIO_PORT ?= 9102
+E2E_MINIO_CONSOLE_PORT ?= 9103
+E2E_S3_BUCKET := conciliacao-e2e
+E2E_S3_ACCESS_KEY := conciliacao-e2e-app
+E2E_S3_SECRET_KEY := e2e-only-not-a-secret-app
+E2E_MINIO := MINIO_PORT=$(E2E_MINIO_PORT) MINIO_CONSOLE_PORT=$(E2E_MINIO_CONSOLE_PORT) S3_ROOT_USER=minio-e2e S3_ROOT_PASSWORD=e2e-only-not-a-secret-root 	S3_BUCKET=$(E2E_S3_BUCKET) S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) $(COMPOSE) -p controle-e2e
 
-.PHONY: help tools dev dev-logs dev-down db-up db-down db-reset db-psql db-logs test test-backend test-frontend lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo gen perf-generate perf-bench db-dump db-restore audit
+.PHONY: help tools obs-net dev dev-all dev-logs dev-down langfuse-up langfuse-down langfuse-logs n8n-import health db-up db-down db-reset db-psql db-logs test test-backend test-frontend test-litellm test-langfuse test-restore eval-extrator lint lint-backend lint-frontend e2e migrate migrate-down migrate-status db-clean seed seed-demo demo-fixtures gen perf-generate perf-bench db-dump db-restore audit
 
 help: ## Lista os alvos disponíveis
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -64,15 +77,43 @@ tools: ## Instala as ferramentas de desenvolvimento (sqlc, goose, golangci-lint,
 	GOBIN=$(BIN) go install golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION)
 	@echo "ferramentas instaladas em $(BIN)"
 
-dev: ## Sobe o ambiente completo (db + api + web) e espera ficar healthy
-	$(COMPOSE) up -d --wait db api web
+dev: obs-net ## Sobe o ambiente (db, api, web, worker, MinIO, LiteLLM, n8n) e espera ficar healthy
+	$(COMPOSE) up -d --wait db api web worker minio litellm n8n
+	$(COMPOSE) run --rm minio-init
 	@echo ">>> SPA: http://localhost:5173  |  API: http://localhost:$${HTTP_PORT:-8080}/api/v1/health"
+	@echo ">>> MinIO: http://localhost:$${MINIO_CONSOLE_PORT:-9001}  |  LiteLLM: http://localhost:$${LITELLM_PORT:-4000}  |  n8n: http://localhost:$${N8N_PORT:-5678}"
+	@echo ">>> Langfuse (opcional, pesado): make langfuse-up  |  saúde de tudo: make health"
+
+dev-all: dev langfuse-up ## Sobe o ambiente de desenvolvimento e o Langfuse
 
 dev-logs: ## Acompanha os logs do ambiente de desenvolvimento
 	$(COMPOSE) logs -f --tail=100
 
-dev-down: ## Para o ambiente de desenvolvimento (dados preservados)
+dev-down: ## Para o ambiente de desenvolvimento e o Langfuse (dados preservados)
 	$(COMPOSE) stop
+	-@$(COMPOSE_LF) stop
+
+langfuse-up: obs-net ## Sobe o Langfuse self-hosted (traces e evals dos agentes) e espera ficar healthy
+	$(COMPOSE_LF) up -d --wait
+	@echo ">>> Langfuse: http://localhost:$${LANGFUSE_WEB_PORT:-3100} (usuário: LANGFUSE_ADMIN_EMAIL do .env)"
+
+langfuse-down: ## Para o Langfuse (dados preservados)
+	$(COMPOSE_LF) stop
+
+langfuse-logs: ## Acompanha os logs do Langfuse
+	$(COMPOSE_LF) logs -f --tail=100
+
+obs-net: ## Cria a rede do worker com o Langfuse (controle-obs), se ainda não existir
+	@docker network inspect $(OBS_NET) >/dev/null 2>&1 || docker network create $(OBS_NET) >/dev/null
+
+n8n-import: ## Importa e ativa no n8n o workflow de ingestão da pasta n8n/inbox (Conciliação, TASK-015)
+	$(COMPOSE) exec -T n8n n8n import:workflow --input=/workflows/ingestao.json
+	$(COMPOSE) exec -T n8n n8n update:workflow --id=ConcilIngestInbx --active=true
+	$(COMPOSE) restart n8n
+	@echo ">>> arquivos colocados em n8n/inbox/ vão para POST /api/v1/reconciliation/documents"
+
+health: ## Mostra a saúde de cada serviço local (API, banco, worker, MinIO, LiteLLM, n8n, Langfuse)
+	@scripts/health.sh
 
 db-up: ## Sobe somente o banco e espera ficar healthy
 	$(COMPOSE) up -d --wait db
@@ -105,8 +146,14 @@ migrate-status: ## Mostra o estado das migrations (DB=e2e|perf para os outros ba
 seed: ## Carrega os dados de referência (status, catálogo, feriados) — idempotente
 	@$(API) seed
 
-seed-demo: ## Carrega as 20 empresas fictícias e o histórico de demonstração — idempotente
+seed-demo: ## Carrega as 21 empresas fictícias (as 20 do PRD e a Construtora Horizonte) e o histórico de demonstração — idempotente
 	@$(API) seed --demo
+
+# MinIO de dev visto do host (a preparação dos fixtures roda fora do compose).
+DEMO_S3_ENDPOINT ?= http://localhost:$(or $(MINIO_PORT),9000)
+
+demo-fixtures: ## Prepara os fixtures da demonstração (cenário da Conciliação na 111 e extratos do PGDAS-D em demo/pgdas): depois do seed-demo, com o make dev no ar — idempotente
+	@cd backend && DATABASE_URL='$(DB_URL)' S3_ENDPOINT='$(DEMO_S3_ENDPOINT)' go run ./cmd/api seed --fixtures
 
 gen: ## Gera código (sqlc) e tipos TypeScript (openapi-typescript)
 	cd backend && $(BIN)/sqlc generate
@@ -116,7 +163,7 @@ lint: lint-backend lint-frontend ## Lint do backend e do frontend
 
 lint-backend:
 	@test -x $(BIN)/golangci-lint || { echo "golangci-lint ausente: rode 'make tools'"; exit 1; }
-	cd backend && $(BIN)/golangci-lint run ./...
+	cd backend && $(BIN)/golangci-lint run --build-tags litellm,langfuse ./...
 
 lint-frontend:
 	cd frontend && npm run lint && npm run typecheck
@@ -130,6 +177,18 @@ test-backend:
 
 test-frontend:
 	cd frontend && npm test
+
+test-litellm: ## Integração com o LiteLLM real (container) e provedor simulado: alias → modelo → provedor, sem chamada externa
+	cd backend && go test -count=1 -tags litellm -run TestGateway ./internal/ai/litellm/
+
+eval-extrator: ## Avalia os extratores da Conciliação (extrato e comprovante) contra o golden com o LiteLLM do ambiente (CUSTO de provedor real: só com autorização)
+	cd backend && LITELLM_BASE_URL=http://localhost:$(LITELLM_PORT) LITELLM_API_KEY=$(LITELLM_MASTER_KEY) EVAL_REPORT=$(CURDIR)/backend/eval-extrator.json EVAL_REPORT_COMPROVANTES=$(CURDIR)/backend/eval-extrator-comprovantes.json go test -count=1 -timeout 30m -tags golden -run 'TestGolden(Receipt)?Report_RealGateway' -v ./internal/reconciliation/pipeline/
+
+test-langfuse: ## Integração com o Langfuse local real (exige make langfuse-up): envia uma corrida e confere pela API pública
+	cd backend && go test -count=1 -tags langfuse -run TestLangfuse ./internal/ai/tracer/
+
+test-restore: ## TEST-031: instalação completa descartável (sem porta e sem internet), backup, destruição, restauração e conferência (~15 min; constrói a imagem)
+	@scripts/testar-restore.sh
 
 audit: ## Vulnerabilidades conhecidas: govulncheck (Go) e npm audit (frontend e e2e) [docs/seguranca.md]
 	cd backend && $(BIN)/govulncheck ./...
@@ -160,10 +219,12 @@ perf-generate: ## Massa sintética no controle_perf (COMPANIES=300 COMPETENCES=3
 perf-bench: ## Mede grades, dashboard, backlog, exportações, ensure, PATCH e bulk no controle_perf (BENCH_ARGS="-iterations 50")
 	@$(LOADGEN) bench $(BENCH_ARGS)
 
-e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução)
+e2e: ## Testes E2E (Playwright) contra o banco controle_e2e (recriado a cada execução) e o MinIO só do E2E
 	$(COMPOSE) up -d --wait db
+	$(E2E_MINIO) up -d --wait minio
+	$(E2E_MINIO) run --rm minio-init
 	@APP_FIXED_TIME='$(E2E_FIXED_TIME)' $(MAKE) --no-print-directory db-clean DB=e2e
 	@test -d e2e/node_modules || (cd e2e && npm ci --no-audit --no-fund)
 	@cd e2e && npx playwright install chromium >/dev/null
 	@echo ">>> playwright (API :$(E2E_API_PORT) e SPA :$(E2E_WEB_PORT) sobre controle_e2e, relógio fixo em $(E2E_FIXED_TIME))"
-	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_FIXED_TIME='$(E2E_FIXED_TIME)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) npx playwright test $(ARGS)
+	@cd e2e && E2E_DATABASE_URL='$(E2E_DB_URL)' E2E_FIXED_TIME='$(E2E_FIXED_TIME)' E2E_API_PORT=$(E2E_API_PORT) E2E_WEB_PORT=$(E2E_WEB_PORT) 		E2E_S3_ENDPOINT=http://localhost:$(E2E_MINIO_PORT) E2E_S3_BUCKET=$(E2E_S3_BUCKET) E2E_S3_ACCESS_KEY=$(E2E_S3_ACCESS_KEY) 		E2E_S3_SECRET_KEY=$(E2E_S3_SECRET_KEY) npx playwright test $(ARGS)

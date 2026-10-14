@@ -3,7 +3,6 @@ package dashboard
 import (
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -93,28 +92,10 @@ func parseCompetence(q url.Values, name string) (comp.Competence, error) {
 // ParseFilters lê os filtros do dashboard (usados também pelos relatórios PDF).
 func ParseFilters(q url.Values) (Filters, error) { return parseFilters(q) }
 
-// parseFilters lê regime_group, tax_regime e responsible_id.
+// parseFilters lê regime_group, tax_regime e responsible_id (os filtros de empresa, D-038).
 func parseFilters(q url.Values) (Filters, error) {
-	var f Filters
-	if v := strings.ToUpper(strings.TrimSpace(q.Get("regime_group"))); v != "" {
-		if v != company.GroupNormal && v != company.GroupSimples {
-			return f, validate.Field("regime_group", "Use NORMAL ou SIMPLES.")
-		}
-		f.RegimeGroup = &v
-	}
-	if v := strings.TrimSpace(q.Get("tax_regime")); v != "" {
-		if company.RegimeGroup(v) == "" {
-			return f, validate.Field("tax_regime", "Regime inválido.")
-		}
-		f.TaxRegime = &v
-	}
-	if v := strings.TrimSpace(q.Get("responsible_id")); v != "" {
-		if !httpx.IsUUID(v) {
-			return f, validate.Field("responsible_id", "Identificador inválido.")
-		}
-		f.ResponsibleID = &v
-	}
-	return f, nil
+	f, err := company.ParseFilter(q)
+	return Filters(f), err
 }
 
 func (h *Handler) dashboard(w http.ResponseWriter, r *http.Request) {

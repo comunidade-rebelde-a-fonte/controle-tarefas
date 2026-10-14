@@ -11,7 +11,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # 2) API (binário estático, com a base de fusos embutida)
-FROM golang:1.26.8-bookworm AS api
+FROM golang:1.26.9-bookworm AS api
 WORKDIR /src/backend
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download

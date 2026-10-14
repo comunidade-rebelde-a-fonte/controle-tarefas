@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"controle/internal/company"
 	"controle/internal/credential"
 	"controle/internal/obligation"
 	"controle/internal/platform/apperr"
@@ -38,7 +39,7 @@ const (
 	StateOverdue    = "overdue"
 )
 
-// Filters são os filtros do dashboard [PRD §24.4, §24.5].
+// Filters são os filtros do dashboard [PRD §24.4, §24.5]: os filtros de empresa (company.Filter).
 type Filters struct {
 	RegimeGroup   *string `json:"regime_group"`   // NORMAL | SIMPLES
 	TaxRegime     *string `json:"tax_regime"`     // regime específico
@@ -128,6 +129,9 @@ type Dashboard struct {
 	Modules      []ModuleCard          `json:"modules"`
 	Credentials  []CredentialCard      `json:"credentials"`
 	Responsibles []ResponsibleProgress `json:"responsibles"`
+	// As seções da consolidação (PRD §8; TASK-024, D-038), com os mesmos filtros.
+	FactorR        FactorRSection        `json:"factor_r"`
+	Reconciliation ReconciliationSection `json:"reconciliation"`
 }
 
 // Service monta os agregados do dashboard.
@@ -142,6 +146,14 @@ func NewService(pool *pgxpool.Pool, clk clock.Clock, credentials *credential.Ser
 	return &Service{pool: pool, clock: clk, credentials: credentials}
 }
 
+// CompetenceID resolve a competência gerada (404 se ainda não gerada).
+func CompetenceID(ctx context.Context, q *store.Queries, c comp.Competence) (string, error) {
+	return competenceID(ctx, q, c)
+}
+
+// ModuleLabel é o nome do módulo na interface.
+func ModuleLabel(module string) string { return moduleLabels[module] }
+
 // competenceID resolve a competência gerada (404 se ainda não gerada).
 func competenceID(ctx context.Context, q *store.Queries, c comp.Competence) (string, error) {
 	k, err := q.GetCompetenceByKey(ctx, c.String())
@@ -153,6 +165,9 @@ func competenceID(ctx context.Context, q *store.Queries, c comp.Competence) (str
 	}
 	return k.ID, nil
 }
+
+// company são os filtros de empresa, para as seções Fator R e Conciliação (D-038).
+func (f Filters) company() company.Filter { return company.Filter(f) }
 
 // baseQuery são os filtros comuns a todos os drill-downs.
 func (f Filters) baseQuery(c comp.Competence) map[string]string {
@@ -322,8 +337,24 @@ func (s *Service) Build(ctx context.Context, c comp.Competence, f Filters) (Dash
 			Overdue: int(r.Overdue), OperationalProgress: p.OperationalPct, FinalCompletion: p.FinalPct,
 		})
 	}
+
+	if d.FactorR, err = factorRSection(ctx, q, c, f.company()); err != nil {
+		// Sem tabela do Simples vigente no PA, a seção Fator R fica indisponível, com o motivo; o
+		// resto do Dashboard segue.
+		var ae *apperr.Error
+		if !errors.As(err, &ae) || ae.Code != codeSimplesTableNotInForce {
+			return d, err
+		}
+		d.FactorR = FactorRSection{PA: c, Unavailable: &ae.Message, SavingsAtPlay: MoneyMetric{Value: "0"}, Priorities: []FactorRPriority{}}
+	}
+	if d.Reconciliation, err = reconciliationSection(ctx, q, c, f.company()); err != nil {
+		return d, err
+	}
 	return d, nil
 }
+
+// codeSimplesTableNotInForce é a recusa do motor do Fator R sem tabela do Simples no PA.
+const codeSimplesTableNotInForce = "SIMPLES_TABLE_NOT_IN_FORCE"
 
 var credentialLabels = map[string]string{
 	credential.TypePowerOfAttorney: "Procurações RFB",

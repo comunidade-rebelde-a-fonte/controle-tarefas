@@ -1,0 +1,867 @@
+{
+ "brl": {
+  "-0": "0,00",
+  "-1234.565": "-1.234,56",
+  "0": "0,00",
+  "0.005": "0,00",
+  "1234.5": "1.234,50",
+  "12345678901234567890.123": "12.345.678.901.234.567.890,12",
+  "1E+3": "1.000,00",
+  "600000.00": "600.000,00",
+  "999.995": "1.000,00",
+  "null": "-"
+ },
+ "casos": [
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "ok_frase_completa",
+   "orfaos": [],
+   "texto": "A Beta Engenharia está com Fator R de 24,00% no PA 2026-09, com RBT12 de R$ 600.000,00.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "ok_reforco",
+   "orfaos": [],
+   "texto": "Reforço mensal de R$ 3.000,00 por 12 meses leva à meta.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "ok_formas",
+   "orfaos": [],
+   "texto": "Fator R em 24% e receita de 600000.00.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "orfao_inventado",
+   "orfaos": [
+    "43.740,00"
+   ],
+   "texto": "A economia estimada é de R$ 43.740,00.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "orfao_arredondado",
+   "orfaos": [
+    "25"
+   ],
+   "texto": "O Fator R está em 25%.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "orfao_competencia",
+   "orfaos": [
+    "2026-10"
+   ],
+   "texto": "Situação do PA 2026-10.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_extenso",
+   "orfaos": [
+    "trinta",
+    "mil"
+   ],
+   "texto": "A economia é de trinta mil reais.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_mil",
+   "orfaos": [
+    "mil"
+   ],
+   "texto": "Economia de R$ 12 mil no ano.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_colado",
+   "orfaos": [
+    "45000"
+   ],
+   "texto": "Código x45000 aplicado.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_sinal",
+   "orfaos": [
+    "-99.000,00"
+   ],
+   "texto": "Perda de R$-99.000,00.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_contradiz",
+   "orfaos": [
+    "veredito_contraditorio"
+   ],
+   "texto": "Vale corrigir a folha agora.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "m2_coerente",
+   "orfaos": [],
+   "texto": "Não forçar: economia de R$ 43.740,00 em 12 meses.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "corrigir_contradito",
+   "orfaos": [
+    "veredito_contraditorio"
+   ],
+   "texto": "Não vale a pena; não compensa mexer.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "corrigir_coerente",
+   "orfaos": [],
+   "texto": "Vale corrigir: reforço de R$ 3.000,00.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "ja_na_meta"
+   },
+   "nome": "recomendamos",
+   "orfaos": [
+    "veredito_contraditorio"
+   ],
+   "texto": "Recomendamos a corrigir a folha.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "custo": "0.00",
+    "economia_12m": "43740.00",
+    "horizonte_meses": 12,
+    "veredito": "nao_forcar"
+   },
+   "nome": "convem",
+   "orfaos": [
+    "veredito_contraditorio"
+   ],
+   "texto": "Convém corrigir.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "economia_12m": "1.00"
+   },
+   "nome": "sem_veredito",
+   "orfaos": [],
+   "texto": "Vale corrigir e não forçar.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "data_barra",
+   "orfaos": [],
+   "texto": "Em 09/2026 o Fator R foi 24,00%.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "data_barra_orfa",
+   "orfaos": [
+    "10/2026"
+   ],
+   "texto": "Em 10/2026 o Fator R foi 24,00%.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "data_lista",
+   "orfaos": [
+    "2026-03"
+   ],
+   "texto": "Faltam 2026-01 e 01/2026 e 2026-03.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "data_colada",
+   "orfaos": [
+    "2026",
+    "-09",
+    "2026",
+    "-091"
+   ],
+   "texto": "Código x2026-09 e 2026-091.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "empresa": "Beta Engenharia",
+    "fator_r": "0.240000",
+    "horizonte_meses": 12,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_meta": "3000.00",
+    "veredito": "corrigir"
+   },
+   "nome": "data_mes_invalido",
+   "orfaos": [
+    "2026-13"
+   ],
+   "texto": "No 2026-13 nada.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "percentual_inteiro",
+   "orfaos": [],
+   "texto": "Fator R de 30% e meta de 30,00%.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "percentual_fracao",
+   "orfaos": [
+    "0.300"
+   ],
+   "texto": "Fator 0.300000 e 0,3 e 0.3.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "milhar_sem_virgula",
+   "orfaos": [
+    "12",
+    "12"
+   ],
+   "texto": "RBT12 de 600.000 e FS12 de 180.000.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "milhar_negativo",
+   "orfaos": [
+    "-1.000",
+    "1.234"
+   ],
+   "texto": "Valor de -1.000 e 1.2345.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "zero_e_menos_zero",
+   "orfaos": [],
+   "texto": "Gap de 0 e -0 e 0,00.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "economia",
+   "orfaos": [
+    "12"
+   ],
+   "texto": "Economia de R$ 36.000,00 em 12 meses.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "arabe": "١٢",
+    "bool": true,
+    "competencia_com_quebra": "2026-08\n",
+    "expoente": "1e3",
+    "fracao": "0.5",
+    "fracao_um": "1",
+    "grande": "12345678901234567890.50",
+    "lista": [
+     "2025-12",
+     7,
+     "x"
+    ],
+    "nada": null,
+    "negativo_zero": "-0",
+    "sublinhado": "1_000"
+   },
+   "nome": "unicode_digitos",
+   "orfaos": [],
+   "texto": "Valor ١٢ e 12.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "arabe": "١٢",
+    "bool": true,
+    "competencia_com_quebra": "2026-08\n",
+    "expoente": "1e3",
+    "fracao": "0.5",
+    "fracao_um": "1",
+    "grande": "12345678901234567890.50",
+    "lista": [
+     "2025-12",
+     7,
+     "x"
+    ],
+    "nada": null,
+    "negativo_zero": "-0",
+    "sublinhado": "1_000"
+   },
+   "nome": "especiais",
+   "orfaos": [
+    "Mil"
+   ],
+   "texto": "Mil? 1000 e 1.000 e 1_000 e 0,5 e 50% e 100%.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "arabe": "١٢",
+    "bool": true,
+    "competencia_com_quebra": "2026-08\n",
+    "expoente": "1e3",
+    "fracao": "0.5",
+    "fracao_um": "1",
+    "grande": "12345678901234567890.50",
+    "lista": [
+     "2025-12",
+     7,
+     "x"
+    ],
+    "nada": null,
+    "negativo_zero": "-0",
+    "sublinhado": "1_000"
+   },
+   "nome": "grande",
+   "orfaos": [],
+   "texto": "Total 12345678901234567890,50 e 12.345.678.901.234.567.890,50.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "arabe": "١٢",
+    "bool": true,
+    "competencia_com_quebra": "2026-08\n",
+    "expoente": "1e3",
+    "fracao": "0.5",
+    "fracao_um": "1",
+    "grande": "12345678901234567890.50",
+    "lista": [
+     "2025-12",
+     7,
+     "x"
+    ],
+    "nada": null,
+    "negativo_zero": "-0",
+    "sublinhado": "1_000"
+   },
+   "nome": "lista_e_nada",
+   "orfaos": [
+    "2026-08"
+   ],
+   "texto": "Item 7 e 2025-12 e 2026-08.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "fila": [
+     {
+      "acao": "Corrigir folha",
+      "company_id": "0b6f7d1e-0000-4000-8000-000000000001",
+      "economia_12m": "45000.00",
+      "empresa": "Vermelha",
+      "fator_r": "0.100000",
+      "posicao": 1,
+      "semaforo": "vermelho"
+     },
+     {
+      "acao": "Monitorar",
+      "company_id": "0b6f7d1e-0000-4000-8000-000000000002",
+      "economia_12m": null,
+      "empresa": "Amarela 3",
+      "fator_r": "0.290000",
+      "posicao": 2,
+      "semaforo": "amarelo"
+     }
+    ],
+    "intencao": "priorizar",
+    "pa": "2026-09"
+   },
+   "nome": "fila",
+   "orfaos": [
+    "3"
+   ],
+   "texto": "Priorize Vermelha (economia R$ 45.000,00) e Amarela 3; 2 empresas em 2026-09.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "fila": [
+     {
+      "acao": "Corrigir folha",
+      "company_id": "0b6f7d1e-0000-4000-8000-000000000001",
+      "economia_12m": "45000.00",
+      "empresa": "Vermelha",
+      "fator_r": "0.100000",
+      "posicao": 1,
+      "semaforo": "vermelho"
+     },
+     {
+      "acao": "Monitorar",
+      "company_id": "0b6f7d1e-0000-4000-8000-000000000002",
+      "economia_12m": null,
+      "empresa": "Amarela 3",
+      "fator_r": "0.290000",
+      "posicao": 2,
+      "semaforo": "amarelo"
+     }
+    ],
+    "intencao": "priorizar",
+    "pa": "2026-09"
+   },
+   "nome": "fila_posicao",
+   "orfaos": [
+    "3"
+   ],
+   "texto": "1. Vermelha; 2. Amarela 3 com 10% e 29%.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "nome_com_numero",
+   "orfaos": [
+    "2000"
+   ],
+   "texto": "A Clínica 2000 Ltda está bem.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "extenso_variantes",
+   "orfaos": [
+    "Duzentos",
+    "quinhentas",
+    "MILHÕES",
+    "milhao",
+    "cento",
+    "onze"
+   ],
+   "texto": "Duzentos e quinhentas; MILHÕES e milhao, cento e onze.",
+   "valido": false
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "extenso_dentro_de_palavra",
+   "orfaos": [],
+   "texto": "Família vinteana e milhares.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "disclaimer",
+   "orfaos": [],
+   "texto": "Fator R de 30,00%.\n\nEsta plataforma não é a apuração oficial. O PGDAS-D da Receita Federal prevalece.",
+   "valido": true
+  },
+  {
+   "decisao": {
+    "anexo": "III",
+    "economia_12m": "36000.00",
+    "empresa": "Clínica 2000 Ltda",
+    "fator_r": "0.300000",
+    "fs12": "180000.00",
+    "gap_12m_28": "0.00",
+    "gap_12m_meta": "0.00",
+    "intencao": "status_empresa",
+    "meses_faltantes": [
+     "2026-01",
+     "2026-02"
+    ],
+    "meta_operacional": "0.300000",
+    "motivo": null,
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "reforco_mensal_28": "0.00",
+    "reforco_mensal_meta": "0.00",
+    "semaforo": "verde",
+    "status": "ok"
+   },
+   "nome": "vazio",
+   "orfaos": [],
+   "texto": "",
+   "valido": true
+  },
+  {
+   "decisao": {},
+   "nome": "sem_numeros",
+   "orfaos": [],
+   "texto": "Situação estável.",
+   "valido": true
+  }
+ ],
+ "disclaimer": "Esta plataforma não é a apuração oficial. O PGDAS-D da Receita Federal prevalece.",
+ "percentual": {
+  "-0.1234": "-12,34%",
+  "0": "0,00%",
+  "0.12345": "12,34%",
+  "0.240000": "24,00%",
+  "0.3": "30,00%",
+  "1": "100,00%",
+  "null": "-"
+ }
+}

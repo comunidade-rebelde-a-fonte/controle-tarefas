@@ -11,22 +11,46 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"controle/internal/ai/aliases"
+	"controle/internal/ai/litellm"
+	"controle/internal/ai/runs"
+	"controle/internal/ai/tracer"
 	"controle/internal/calendar"
 	"controle/internal/catalog"
 	"controle/internal/company"
+	"controle/internal/companyhub"
 	"controle/internal/competence"
 	"controle/internal/credential"
 	"controle/internal/dashboard"
 	"controle/internal/demo"
+	"controle/internal/docindex"
 	"controle/internal/exporter"
+	"controle/internal/factorr"
+	"controle/internal/factorr/agents"
+	"controle/internal/factorr/inbox"
 	"controle/internal/grid"
 	"controle/internal/importer"
+	"controle/internal/jobs"
 	"controle/internal/obligation"
 	"controle/internal/period"
 	"controle/internal/platform/clock"
 	"controle/internal/platform/config"
 	"controle/internal/platform/httpx"
+	"controle/internal/platform/objectstore"
+	"controle/internal/platform/pdftext"
 	"controle/internal/platform/settings"
+	"controle/internal/reconciliation/bankaccount"
+	"controle/internal/reconciliation/chart"
+	"controle/internal/reconciliation/classify"
+	"controle/internal/reconciliation/completion"
+	"controle/internal/reconciliation/documents"
+	"controle/internal/reconciliation/entries"
+	"controle/internal/reconciliation/ledger"
+	"controle/internal/reconciliation/metrics"
+	"controle/internal/reconciliation/overview"
+	"controle/internal/reconciliation/proposals"
+	"controle/internal/reconciliation/reconcile"
+	"controle/internal/reconciliation/review"
 	"controle/internal/report"
 	"controle/internal/user"
 )
@@ -97,11 +121,80 @@ func New(d Deps) *App {
 		catalog.NewHandler(catalog.NewService(d.Pool)).Routes(api)
 		calendar.NewHandler(d.Pool).Routes(api)
 		settings.NewHandler(settings.NewService(d.Pool)).Routes(api)
+		// Configurações → IA: só configuração não secreta; a chave é a do gateway (TASK-008).
+		gateway := litellm.New(d.Config.LiteLLMBaseURL, d.Config.LiteLLMAPIKey, d.Config.LiteLLMTimeout)
+		aliases.NewHandler(aliases.NewService(d.Pool, d.Clock, d.Config.AIDefaults, gateway)).Routes(api)
+		// Auditoria local de IA (TASK-009): tempo operacional, como a fila de jobs. O envio ao
+		// Langfuse é do worker; a API só monta o link do trace.
+		aiClock := clock.NewSystem(d.Clock.Location())
+		tr := tracer.New(aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
+		runs.NewHandler(runs.NewService(d.Pool, aiClock, tr, d.Config.LangfuseTraceURL)).Routes(api)
 		importer.NewHandler(importer.NewService(d.Pool, d.Clock, companies)).Routes(api)
 		credentials := credential.NewService(d.Pool, d.Clock, d.Config.FileStorageDir, d.Logger)
 		credential.NewHandler(credentials).Routes(api)
 		dash := dashboard.NewService(d.Pool, d.Clock, credentials)
 		dashboard.NewHandler(dash).Routes(api)
+		factorRSvc := factorr.NewService(d.Pool, d.Clock)
+		factorr.NewHandler(factorRSvc).Routes(api)
+		// A ficha da empresa como hub (TASK-025): a Visão geral na competência e os indicadores da
+		// listagem, a partir dos serviços de cada módulo, sempre pela mesma empresa.
+		companyhub.NewHandler(companyhub.NewService(d.Pool, d.Clock, dash, factorRSvc, credentials)).Routes(api)
+		// A área Documentos consolidada (TASK-026): um índice sobre os documentos de cada módulo, cada
+		// um no seu armazenamento; abrir leva à tela do módulo.
+		docindex.NewHandler(docindex.NewService(d.Pool)).Routes(api)
+		// Inbox PGDAS-D (TASK-012): a API guarda o original e enfileira; o worker processa.
+		inbox.NewHandler(inbox.NewService(d.Pool, aiClock, tr, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts),
+			inbox.NewStorage(d.Config.FileStorageDir), companies, d.Logger)).Routes(api)
+		// Simulador e agentes consultor/priorizador (TASK-013): números do motor; o LLM, pelo
+		// gateway com os aliases da tela de IA, só classifica e redige.
+		agents.NewHandler(agents.NewService(d.Pool, d.Clock, aiClock, tr, aliases.NewResolver(d.Config.AIDefaults), gateway, d.Logger)).Routes(api)
+		// Conciliação (TASK-015): o original vai para o MinIO versionado e a triagem para a fila.
+		originals := objectstore.New(objectstore.Config{
+			Endpoint: d.Config.S3Endpoint, Region: d.Config.S3Region, AccessKey: d.Config.S3AccessKey,
+			SecretKey: d.Config.S3SecretKey.Reveal(), Bucket: d.Config.S3Bucket,
+		})
+		docs := documents.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts), originals, d.Logger)
+		documents.NewHandler(docs).Routes(api)
+		// Visualizador da fila (TASK-021a): as páginas do PDF como imagem, no DPI do extrator; o
+		// PDFium só carrega na primeira página pedida.
+		documents.NewViewer(docs, pdftext.New(0)).Routes(api)
+		// Lançamentos do cliente (TASK-017): os lidos dos comprovantes e os manuais (CC-12).
+		entries.NewHandler(entries.NewService(d.Pool, aiClock)).Routes(api)
+		// Rodada do matching da competência (TASK-018): passes 1 a 4 com a regra dos dois lados; com
+		// RESOLVEDOR_AUTOMATICO, pede hipótese para as linhas que sobraram (TASK-019).
+		rounds := reconcile.NewService(d.Pool, aiClock, reconcile.OptionsFrom(d.Config.FuzzyThreshold), d.Logger)
+		if d.Config.ResolverAuto {
+			rounds.AutoResolve(jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
+		}
+		if d.Config.ClassifierAuto {
+			rounds.AutoClassify(jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))
+		}
+		reconcile.NewHandler(rounds).Routes(api)
+		// Resolvedor de exceções (TASK-019): pedir a hipótese (o agente roda no worker), aceitar e
+		// rejeitar. Só o aceite humano concilia.
+		proposals.NewHandler(proposals.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
+		// Classificação e razão (TASK-020): plano de contas e regras por empresa; a classificação
+		// regra → histórico → agente (o agente roda no worker e só sugere); o razão como consulta.
+		chart.NewHandler(chart.NewService(d.Pool, aiClock)).Routes(api)
+		// Fila de revisão (TASK-021a): os baldes, a linha com os candidatos e as ações humanas
+		// (conciliar à mão, sem comprovante, desfazer e corrigir o comprovante).
+		review.NewHandler(review.NewService(d.Pool, aiClock, rounds)).Routes(api)
+		classify.NewHandler(classify.NewService(d.Pool, aiClock, jobs.NewQueue(aiClock, d.Config.JobMaxAttempts))).Routes(api)
+		ledger.NewHandler(ledger.NewService(d.Pool)).Routes(api)
+		// Métricas, playbooks e o resumo da ficha (TASK-021c): consultas sobre as tabelas da
+		// Conciliação, com a meta da automática de META_CONCILIACAO_AUTO; e as contas bancárias da
+		// empresa (CC-11), que decidem a empresa dos extratos.
+		metrics.NewHandler(metrics.NewService(d.Pool, d.Config.AutoTarget)).Routes(api)
+		bankaccount.NewHandler(bankaccount.NewService(d.Pool, aiClock)).Routes(api)
+		// Conclusão da conciliação (TASK-022): o contador conclui a competência pronta e a obrigação
+		// Conciliação do Contábil vai para OK pelo serviço de obrigações; reaberta, volta a Pendente.
+		// O relógio é o do Controle: o histórico da obrigação fica na mesma linha do tempo.
+		completion.NewHandler(completion.NewService(d.Pool, d.Clock)).Routes(api)
+		// A Conciliação por empresa na competência (TASK-024): a lista que explica as prontas para
+		// concluir e o Contábil bloqueado da seção Conciliação do Dashboard.
+		overview.NewHandler(overview.NewService(d.Pool)).Routes(api)
+		// Fila de jobs: tempo operacional (relógio real), mesmo com APP_FIXED_TIME.
+		jobs.NewHandler(jobs.NewService(d.Pool, clock.NewSystem(d.Clock.Location()))).Routes(api)
 		report.NewHandler(d.Pool, d.Clock, grids, dash, credentials).Routes(api)
 		// Dados fictícios pela interface (estado vazio): nunca em produção.
 		if !d.Config.IsProduction() {

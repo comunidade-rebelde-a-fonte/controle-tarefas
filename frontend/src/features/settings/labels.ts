@@ -38,3 +38,13 @@ export function describeRule(r: Rule): string {
           : "; sem ajuste para dia não útil";
   return `${day} ${monthText(r.month_offset)}${adjust}.`;
 }
+
+/** Texto obrigatório da tela Configurações → IA [08 §9]. */
+export const CREDENTIALS_NOTE = "Credenciais são configuradas no ambiente e não ficam salvas nesta tela.";
+
+/** "openai/gpt-6-luna" → ["openai", "gpt-6-luna"]. */
+export function splitModel(model: string | null): [string, string] | null {
+  if (!model) return null;
+  const i = model.indexOf("/");
+  return i < 0 ? null : [model.slice(0, i), model.slice(i + 1)];
+}

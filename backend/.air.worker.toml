@@ -1,0 +1,44 @@
+# Hot reload do worker no container de desenvolvimento (make dev). Mesmo binário da API, subcomando
+# `worker`. Diretório de build próprio: a API (.air.toml) usa tmp/ e o apaga ao sair. Build, início e
+# polling seguem o mesmo esquema do .air.toml (mudou um, mude o outro), explicado na D-035.
+root = "."
+tmp_dir = "tmp-worker"
+
+[build]
+  # Um build por vez no container (ver .air.toml).
+  cmd = "flock /tmp/air-build.lock go build -o ./tmp-worker/api ./cmd/api"
+  # Até 40 s de encerramento ordenado: o job em andamento tem 30 s para terminar (ShutdownGrace da
+  # fila); se não terminar, é cancelado e registrado como WORKER_SHUTDOWN, em vez de ficar preso até
+  # a posse de 5 min vencer, como acontecia com o SIGKILL direto.
+  full_bin = "exec sh .air-run.sh 40 ./tmp-worker/api worker"
+  send_interrupt = true
+  kill_delay = 40000
+  # O que observar e com que frequência: ver .air.toml.
+  include_ext = ["go", "sql", "md", "csv"]
+  include_file = ["go.mod", "go.sum"]
+  exclude_regex = ["_test\\.go$"]
+  exclude_dir = [
+    "tmp", "tmp-worker", "bin", "testdata",
+    "api", "queries", "cmd/loadgen", "internal/loadgen", "internal/testutil",
+    "internal/ai/langfuse/testdata",
+    "internal/factorr/agents/testdata",
+    "internal/factorr/engine/testdata",
+    "internal/factorr/pgdas/testdata",
+    "internal/platform/pdftext/testdata",
+    "internal/reconciliation/classification/testdata",
+    "internal/reconciliation/matching/testdata",
+    "internal/reconciliation/receipt/testdata",
+    "internal/reconciliation/resolver/testdata",
+    "internal/reconciliation/statement/testdata",
+    "internal/reconciliation/testdata",
+  ]
+  poll = true
+  poll_interval = 2000
+  delay = 1000
+  stop_on_error = true
+
+[log]
+  time = false
+
+[misc]
+  clean_on_exit = true

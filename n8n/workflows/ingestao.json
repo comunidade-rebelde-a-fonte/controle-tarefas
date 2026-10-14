@@ -1,0 +1,77 @@
+{
+  "id": "ConcilIngestInbx",
+  "name": "Conciliação: ingestão da pasta n8n/inbox",
+  "nodes": [
+    {
+      "parameters": {
+        "triggerOn": "folder",
+        "path": "/data/inbox",
+        "events": ["add"],
+        "options": {
+          "awaitWriteFinish": true,
+          "usePolling": true,
+          "ignoreMode": "match",
+          "ignored": "**/.*"
+        }
+      },
+      "id": "5b0f1d6e-3d43-4d2f-9c1a-0c5e9a5b1a01",
+      "name": "Pasta n8n/inbox",
+      "type": "n8n-nodes-base.localFileTrigger",
+      "typeVersion": 1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "fileSelector": "={{ $json.path }}",
+        "options": {
+          "dataPropertyName": "data"
+        }
+      },
+      "id": "5b0f1d6e-3d43-4d2f-9c1a-0c5e9a5b1a02",
+      "name": "Ler o arquivo",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [260, 0]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CONTROLE_API_URL }}/api/v1/reconciliation/documents",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5b0f1d6e-3d43-4d2f-9c1a-0c5e9a5b1a03",
+      "name": "Enviar para a Conciliação",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [520, 0]
+    }
+  ],
+  "connections": {
+    "Pasta n8n/inbox": {
+      "main": [[{ "node": "Ler o arquivo", "type": "main", "index": 0 }]]
+    },
+    "Ler o arquivo": {
+      "main": [[{ "node": "Enviar para a Conciliação", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}

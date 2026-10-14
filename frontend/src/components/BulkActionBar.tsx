@@ -172,7 +172,7 @@ function ConfirmBulk({
         ) : null}
         {soft ? (
           <>
-            <p className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950" role="alert">
+            <p className="flex items-start gap-2 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning" role="alert">
               <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
               {plural(preview.soft_warnings, "obrigação tem", "obrigações têm")} pré-requisitos pendentes. Para concluir, registre o motivo da exceção.
             </p>

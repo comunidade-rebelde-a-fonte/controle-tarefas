@@ -1,0 +1,2764 @@
+{
+ "saida": [
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "```json\n{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}\n```",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "Segue:\n{\n  \"data\": \"2026-08-05\",\n  \"valor\": \"2000.00\",\n  \"sentido\": \"C\",\n  \"contraparte\": \"Ana Lucia Ferreira\",\n  \"contraparte_doc\": null,\n  \"documento\": \"E777\",\n  \"tipo_operacao\": \"pix\",\n  \"alertas\": [\n    \"parcelado\"\n  ],\n  \"confianca_por_campo\": {\n    \"data\": 0.98,\n    \"valor\": 0.99,\n    \"sentido\": 0.9,\n    \"contraparte\": 0.95,\n    \"contraparte_doc\": 0,\n    \"documento\": 0.8,\n    \"tipo_operacao\": 1\n  },\n  \"origem_por_campo\": {\n    \"valor\": {\n      \"pagina\": 1,\n      \"trecho\": \"R$ 2.000,00\",\n      \"bbox\": [\n        10,\n        20.5,\n        110,\n        40\n      ]\n    },\n    \"data\": {\n      \"pagina\": 1,\n      \"trecho\": \"05/08/2026\",\n      \"bbox\": null\n    }\n  }\n}\nok",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{}",
+   "resultado": "ok",
+   "saida": {
+    "data": null,
+    "valor": null,
+    "sentido": null,
+    "contraparte": null,
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": null,
+    "alertas": [],
+    "confianca_por_campo": {},
+    "origem_por_campo": {}
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "data",
+    "valor",
+    "sentido",
+    "contraparte"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"1.234,56\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "excecao:InvalidOperation"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"abc\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "excecao:InvalidOperation"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"0.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "0.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"-5.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "-5.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \" 7.5 \", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "7.50",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"1e3\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "1000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"NaN\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"Infinity\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "excecao:InvalidOperation"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "excecao:InvalidOperation"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"999999999999.99\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "999999999999.99",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"1000000000000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "1000000000000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": null, \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": null,
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "valor"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": 10, \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "10.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": 10.5, \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "excecao:TypeError"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": null,
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "valor"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"05/08/2026\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-02-30\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05T00:00:00\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": null, \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": null,
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "data"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"D\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "D",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"c\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"X\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": null, \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": null,
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "sentido"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": null, \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": null,
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "contraparte"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": 5, \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": 5, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": null, \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": 5, \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": null, \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": null,
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": 5, \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"darf\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "darf",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"juros\", \"nf:NF 1\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "juros",
+     "nf:NF 1"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": null, \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": \"parcelado\", \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [1], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.9, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.9",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.69, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.69",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "data"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "valor"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.9, \"valor\": 0.9, \"sentido\": 0.7, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.9",
+     "valor": "0.9",
+     "sentido": "0.7",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.2, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.2",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "data",
+    "contraparte"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {},
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": [
+    "data",
+    "valor",
+    "sentido",
+    "contraparte"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": \"0.95\", \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.95",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": null, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 1.5, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.5",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [
+    "confianca"
+   ],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.9, \"valor\": -0.1, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.9",
+     "valor": "-0.1",
+     "sentido": "0.9",
+     "contraparte": "0.9"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [
+    "confianca"
+   ],
+   "abaixo_limiar": [
+    "valor"
+   ]
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.9, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9, \"extra\": 0.5}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.9",
+     "valor": "0.9",
+     "sentido": "0.9",
+     "contraparte": "0.9",
+     "extra": "0.5"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": true, \"valor\": 0.9, \"sentido\": 0.9, \"contraparte\": 0.9}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": null, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": [1], \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {}
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 2}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 2,
+      "trecho": "",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"bbox\": [1, 2]}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "",
+      "bbox": [
+       1.0,
+       2.0
+      ]
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"bbox\": [\"a\"]}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"trecho\": null}}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": null}}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1.0, \"extra\": 1}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"x\": {\"pagina\": 3, \"trecho\": \"t\", \"bbox\": [0.5, 1.25, 2, 3]}}}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "x": {
+      "pagina": 3,
+      "trecho": "t",
+      "bbox": [
+       0.5,
+       1.25,
+       2.0,
+       3.0
+      ]
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": null}",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"2000.00\", \"sentido\": \"C\", \"contraparte\": \"Ana Lucia Ferreira\", \"contraparte_doc\": null, \"documento\": \"E777\", \"tipo_operacao\": \"pix\", \"alertas\": [\"parcelado\"], \"confianca_por_campo\": {\"data\": 0.98, \"valor\": 0.99, \"sentido\": 0.9, \"contraparte\": 0.95, \"contraparte_doc\": 0, \"documento\": 0.8, \"tipo_operacao\": 1}, \"origem_por_campo\": {\"valor\": {\"pagina\": 1, \"trecho\": \"R$ 2.000,00\", \"bbox\": [10, 20.5, 110, 40]}, \"data\": {\"pagina\": 1, \"trecho\": \"05/08/2026\", \"bbox\": null}}, \"extra\": \"ignorado\"}",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E777",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "0.98",
+     "valor": "0.99",
+     "sentido": "0.9",
+     "contraparte": "0.95",
+     "contraparte_doc": "0",
+     "documento": "0.8",
+     "tipo_operacao": "1"
+    },
+    "origem_por_campo": {
+     "valor": {
+      "pagina": 1,
+      "trecho": "R$ 2.000,00",
+      "bbox": [
+       10.0,
+       20.5,
+       110.0,
+       40.0
+      ]
+     },
+     "data": {
+      "pagina": 1,
+      "trecho": "05/08/2026",
+      "bbox": null
+     }
+    }
+   },
+   "guarda": [],
+   "abaixo_limiar": []
+  },
+  {
+   "entrada": "não é json",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "[]",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "null",
+   "resultado": "invalido"
+  },
+  {
+   "entrada": "{\"valor\": NaN}",
+   "resultado": "excecao:TypeError"
+  },
+  {
+   "entrada": "{\"data\": \"2026-08-05\", \"valor\": \"1.00\"} lixo",
+   "resultado": "invalido"
+  }
+ ],
+ "leitor": [
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 1\nID da transação (E2E)\nE7770000020260805091200000000101\nAutenticação: 3C91972E.3C2659CA.0871546C.C665508B\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E7770000020260805091200000000101",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n06/08/2026 10:20\nValor\nR$ 20.000,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nAco Brasil Distribuidora Ltda\nCNPJ\n89.012.345/0001-67\nChave PIX\nfinanceiro@acobrasil.example\nInstituição\nBanco Comercial Sul (555)\nDescrição\nNF 4410 vergalhoes - parte 1 de 2\nID da transação (E2E)\nE7770000020260806102000000000201\nAutenticação: 6405AF16.15EE7694.26DB0DB6.519DFE0D\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-06",
+    "valor": "20000.00",
+    "sentido": "D",
+    "contraparte": "Aco Brasil Distribuidora Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 4410",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado",
+     "nf:NF 4410"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n08/08/2026 14:47\nValor\nR$ 6.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 2\nID da transação (E2E)\nE7770000020260808144700000000102\nAutenticação: 9267881E.922724F9.DB92FD7E.F0475D61\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-08",
+    "valor": "6000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E7770000020260808144700000000102",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n09/08/2026 16:05\nValor\nR$ 11.850,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nAco Brasil Distribuidora Ltda\nCNPJ\n89.012.345/0001-67\nChave PIX\nfinanceiro@acobrasil.example\nInstituição\nBanco Comercial Sul (555)\nDescrição\nNF 4410 vergalhoes - parte 2 de 2\nID da transação (E2E)\nE7770000020260809160500000000202\nAutenticação: 94ECB51E.13BFF2E4.8B8234E4.8461AE72\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-09",
+    "valor": "11850.00",
+    "sentido": "D",
+    "contraparte": "Aco Brasil Distribuidora Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 4410",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado",
+     "nf:NF 4410"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Beta\nComprovante de pagamento de boleto\nData do pagamento\n10/08/2026 09:55\nBeneficiário\nMadeireira Pinheiro Ltda\nCNPJ beneficiário\n01.234.567/0001-89\nPagador\nConstrutora Horizonte Ltda\nConta debitada\nBanco Beta (888) Ag 0021 CC 33412-7\nLinha digitável\n97581.50012 04574.230890 81669.082254 2 22805617247\nReferência\nNF 2203 - formas e escoras\nVencimento\n10/08/2026\nValor do documento\nR$ 12.640,00\n(+) Multa/juros\nR$ 0,00\nValor pago\nR$ 12.640,00\nAutenticação: 8A7314B4.D092BE67.CD106801.C643F59B\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-10",
+    "valor": "12640.00",
+    "sentido": "D",
+    "contraparte": "Madeireira Pinheiro Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 2203",
+    "tipo_operacao": "boleto",
+    "alertas": [
+     "nf:NF 2203"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Prefeitura Municipal de Rio Claro - Tesouraria\nOrdem bancária / Comprovante de TED\nData\n12/08/2026 13:20\nOrdem bancária\n2026OB004512\nEmpenho\n2026NE001877\nFavorecido\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta de crédito\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDocumento fiscal\nNFS-e 1044 - Pavimentacao Rua das Flores - parcela 2\nValor bruto\nR$ 100.000,00\n(-) ISS retido na fonte 5%\nR$ 5.000,00\nValor líquido creditado\nR$ 95.000,00\nAutenticação: 207E9E1D.17A6E6F5.C112D5EF.6D4C2FD1\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-12",
+    "valor": "95000.00",
+    "sentido": "C",
+    "contraparte": "Prefeitura Municipal de Rio Claro",
+    "contraparte_doc": null,
+    "documento": "NFS-E 1044",
+    "tipo_operacao": "ted",
+    "alertas": [
+     "parcelado",
+     "iss_retido",
+     "nf:NFS-E 1044"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de pagamento de boleto\nData do pagamento\n13/08/2026 15:41\nBeneficiário\nCeramica Santa Rita Ltda\nCNPJ beneficiário\n90.123.456/0001-78\nPagador\nConstrutora Horizonte Ltda\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nLinha digitável\n09895.61919 50391.657517 35383.610727 5 40453621041\nNosso número\n000007719-0\nReferência\nNF 7719 - blocos e tijolos\nVencimento\n08/08/2026\nValor do documento\nR$ 18.300,00\n(+) Multa 2%\nR$ 366,00\n(+) Juros 1% a.m. (5 dias)\nR$ 30,50\n(-) Desconto\nR$ 0,00\nValor pago\nR$ 18.696,50\nAutenticação: B9B5A7E9.2AB37BF7.AE641D29.C4FB5097\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-13",
+    "valor": "18696.50",
+    "sentido": "D",
+    "contraparte": "Ceramica Santa Rita Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 7719",
+    "tipo_operacao": "boleto",
+    "alertas": [
+     "juros",
+     "nf:NF 7719"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n14/08/2026 11:03\nValor\nR$ 3.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 3\nID da transação (E2E)\nE7770000020260814110300000000103\nAutenticação: 39776CA4.A945D8B3.C1DECA36.87DBEA8F\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-14",
+    "valor": "3000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E7770000020260814110300000000103",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n20/08/2026 11:30\nValor\nR$ 7.960,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nHidraulica Total Ltda\nCNPJ\n02.345.678/0001-90\nChave PIX\n+55 19 99999-0102\nInstituição\nBanco Digital Nuvem (444)\nDescrição\nNF 5502 tubos e conexoes\nID da transação (E2E)\nE7770000020260820113000000000301\nAutenticação: DEE33257.1B1A3634.43430112.4EFAD520\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-20",
+    "valor": "7960.00",
+    "sentido": "D",
+    "contraparte": "Hidraulica Total Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 5502",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "nf:NF 5502"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de transferência PIX\nData e hora\n21/08/2026 08:02\nValor\nR$ 7.960,00\nPagador\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nRecebedor\nHidraulica Total Ltda\nCNPJ\n02.345.678/0001-90\nChave PIX\n+55 19 99999-0102\nInstituição\nBanco Digital Nuvem (444)\nDescrição\nNF 5502 tubos e conexoes\nID da transação (E2E)\nE7770000020260821080200000000302\nAutenticação: B68BDE9E.F818ECD9.BEF29D29.7C03CD45\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-21",
+    "valor": "7960.00",
+    "sentido": "D",
+    "contraparte": "Hidraulica Total Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 5502",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "nf:NF 5502"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n21/08/2026 18:30\nValor\nR$ 5.000,00\nPagador\nAna Lucia Ferreira\nCPF\n***.456.789-**\nInstituição\nBanco Digital Nuvem - Ag 0001 CC 98.221-4\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\n12.345.678/0001-90\nInstituição\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nPagamento muro e portao - parcela 4\nID da transação (E2E)\nE7770000020260821183000000000104\nAutenticação: 032448EF.D2E1543B.A80D72DB.1787597F\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-21",
+    "valor": "5000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "E7770000020260821183000000000104",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Comercial Sul\nComprovante de pagamento de boleto\nData do pagamento\n22/08/2026 10:18\nBeneficiário\nConstrutora Horizonte Ltda\nCNPJ beneficiário\n12.345.678/0001-90\nBanco emissor do boleto\nBanco A Fonte (777)\nPagador\nMercado Bom Preco Ltda\nCNPJ pagador\n56.789.012/0001-34\nLinha digitável\n00924.58870 48700.954244 37241.275050 4 33058692424\nNosso número\n000001047-5\nReferência\nNF 1047 - ampliacao de loja\nVencimento\n15/08/2026\nValor do documento\nR$ 27.000,00\n(+) Multa 2%\nR$ 540,00\n(+) Juros 1% a.m. (7 dias)\nR$ 63,00\nValor pago\nR$ 27.603,00\nAutenticação: 5FE6EAAC.CB90F7FF.919F0F89.2CAD799D\nComprovante enviado pelo cliente ao setor financeiro da Construtora Horizonte.\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-22",
+    "valor": "27603.00",
+    "sentido": "C",
+    "contraparte": "Mercado Bom Preco Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 1047",
+    "tipo_operacao": "boleto",
+    "alertas": [
+     "juros",
+     "nf:NF 1047"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Cooperativa CrediEscola\nComprovante de transferência PIX\nData e hora\n26/08/2026 16:44\nValor\nR$ 20.000,00\nPagador\nEscola Crescer Ltda\nCNPJ\n67.890.123/0001-45\nRecebedor\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nChave PIX\nfinanceiro@construtorahorizonte.example\nInstituição\nBanco Beta (888) Ag 0021 CC 33412-7\nDescrição\nNF 1048 cobertura quadra\nID da transação (E2E)\nE7770000020260826164400000000401\nAutenticação: E6F00704.28E76CA0.3617FBF8.F818FD68\nComprovante enviado pelo cliente ao setor financeiro da Construtora Horizonte.\nDocumento fictício gerado para fins didáticos (aula de conciliação bancária).\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-26",
+    "valor": "20000.00",
+    "sentido": "C",
+    "contraparte": "Escola Crescer Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 1048",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "nf:NF 1048"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Comercial Sul\nComprovante de transferência TED\nData e hora\n04/08/2026 10:05\nValor\nR$ 120.000,00\nRemetente\nIncorporadora Vale Verde Ltda\nCNPJ\n23.456.789/0001-01\nConta debitada\nBanco Comercial Sul (555) Ag 0310 CC 44.120-8\nFavorecido\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nConta de crédito\nBanco A Fonte (777) Ag 1234 CC 56789-0\nDescrição\nNF 1041 - Medicao 03 Obra Residencial Aurora\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-04",
+    "valor": "120000.00",
+    "sentido": "C",
+    "contraparte": "Incorporadora Vale Verde Ltda",
+    "contraparte_doc": null,
+    "documento": "NF 1041",
+    "tipo_operacao": "ted",
+    "alertas": [
+     "nf:NF 1041"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Prefeitura Municipal de Rio Claro - Tesouraria\nOrdem bancária / Comprovante de TED\nData\n12/08/2026 13:20\nOrdem bancária\n2026OB004512\nFavorecido\nConstrutora Horizonte Ltda\nCNPJ\n12.345.678/0001-90\nDocumento fiscal\nNFS-e 1044 - Pavimentacao Rua das Flores - parcela 2\nValor bruto\nR$ 100.000,00\n(-) ISS retido na fonte 5%\nR$ 5.000,00\nValor líquido creditado\nR$ 95.000,00\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-12",
+    "valor": "95000.00",
+    "sentido": "C",
+    "contraparte": "Prefeitura Municipal de Rio Claro",
+    "contraparte_doc": null,
+    "documento": "NFS-E 1044",
+    "tipo_operacao": "ted",
+    "alertas": [
+     "parcelado",
+     "iss_retido",
+     "nf:NFS-E 1044"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco A Fonte\nComprovante de débito automático\nData do débito\n19/08/2026\nValor debitado\nR$ 2.780,00\nEmpresa conveniada\nSeguradora Risco Engenharia S.A.\nTitular da conta\nConstrutora Horizonte Ltda\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-19",
+    "valor": "2780.00",
+    "sentido": "D",
+    "contraparte": "Seguradora Risco Engenharia S.A.",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "outro",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Comprovante\nsem data nem valor",
+   "resultado": "nenhum",
+   "saida": null
+  },
+  {
+   "entrada": "Comprovante de pagamento\nData do pagamento\n10/08/2026\nPagador\nConstrutora Horizonte Ltda\n",
+   "resultado": "nenhum",
+   "saida": null
+  },
+  {
+   "entrada": "Comprovante de pagamento\nValor pago\nR$ 1.234,56\n",
+   "resultado": "nenhum",
+   "saida": null
+  },
+  {
+   "entrada": "Comprovante\npago em 03/09/2026 o total de R$ 1.500,00 ao fornecedor",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-09-03",
+    "valor": "1500.00",
+    "sentido": "C",
+    "contraparte": "",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "outro",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "0.8000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nRecebedor\nConstrutora Horizonte Ltda\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Banco Digital Nuvem",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nFavorecido\nConstrutora Horizonte Ltda\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\nParcela 2 de 3\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [
+     "parcelado"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\nNFS-e 2201 serviço\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": "NFS-E 2201",
+    "tipo_operacao": "pix",
+    "alertas": [
+     "nf:NFS-E 2201"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\n(+) Juros\nR$ 10,00\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [
+     "juros"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\n(+) Juros\nR$ 0,00\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\n(+) juros 1% ao mês\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [
+     "juros"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco Digital Nuvem\nComprovante de transferência PIX\nData e hora\n05/08/2026 09:12\nValor\nR$ 2.000,00\nPagador\nAna Lucia Ferreira\nRecebedor\nConstrutora Horizonte Ltda\nISS retido 2%\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "2000.00",
+    "sentido": "C",
+    "contraparte": "Ana Lucia Ferreira",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [
+     "iss_retido"
+    ],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Comprovante de pagamento de salários (lote)\nData do processamento\n01/08/2026 07:30\nTipo\nFolha de pagamento - competência 07/2026\nConta debitada\nBanco A Fonte (777) Ag 1234 CC 56789-0\nValor total do lote\nR$ 68.450,00\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-01",
+    "valor": "68450.00",
+    "sentido": "D",
+    "contraparte": "Folha de pagamento - competência 07/2026",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "outro",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Comprovante de arrecadação\nData do pagamento\n20/08/2026\nValor total pago\nR$ 9.400,00\nTipo de documento\nDARF\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-20",
+    "valor": "9400.00",
+    "sentido": "D",
+    "contraparte": "DARF",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "outro",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "0.8000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Banco X - Agência Centro\nComprovante de TED\nData\n02/09/2026\nValor\nR$ 50,00\nRemetente\nFulano de Tal\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-09-02",
+    "valor": "50.00",
+    "sentido": "C",
+    "contraparte": "Fulano de Tal",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "ted",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "0.8000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Comprovante de boleto\nData\n31/02/2026\nValor\nR$ 10,00\n",
+   "resultado": "erro:ValueError"
+  },
+  {
+   "entrada": "Comprovante PIX\nData e hora\n05/08/2026\nValor\nR$ 0,00\nPagador\nConstrutora Horizonte Ltda\nRecebedor\nAlguém\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "0.00",
+    "sentido": "D",
+    "contraparte": "Alguém",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "COMPROVANTE DE PAGAMENTO DE BOLETO\nDATA DO PAGAMENTO\n15/08/2026\nVALOR PAGO\nR$ 300,00\nBENEFICIÁRIO\nLoja Y\nPAGADOR\nConstrutora Horizonte Ltda\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-15",
+    "valor": "300.00",
+    "sentido": "D",
+    "contraparte": "Loja Y",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "boleto",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  },
+  {
+   "entrada": "Comprovante PIX\nData e hora\n٠٥/٠٨/٢٠٢٦ 10:00\nValor\nR$ ١٠,٠٠\nRecebedor\nConstrutora Horizonte Ltda\nPagador\nMaria\n",
+   "resultado": "ok",
+   "saida": {
+    "data": "2026-08-05",
+    "valor": "10.00",
+    "sentido": "C",
+    "contraparte": "Maria",
+    "contraparte_doc": null,
+    "documento": null,
+    "tipo_operacao": "pix",
+    "alertas": [],
+    "confianca_por_campo": {
+     "data": "1.0000",
+     "valor": "1.0000",
+     "sentido": "1.0000",
+     "contraparte": "1.0000"
+    },
+    "origem_por_campo": {}
+   }
+  }
+ ]
+}

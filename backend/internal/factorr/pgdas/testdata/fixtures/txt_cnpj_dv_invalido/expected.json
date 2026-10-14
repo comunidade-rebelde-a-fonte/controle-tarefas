@@ -1,0 +1,16 @@
+{
+  "sintetica": true,
+  "campos": {
+    "cnpj": "11222333000182",
+    "pa": "2026-09",
+    "rbt12": "600000.00",
+    "rpa": "50000.00",
+    "fs12": "180000.00",
+    "fator_r": "0.30",
+    "das": "5280.00",
+    "anexo": "III"
+  },
+  "confianca_min": 0.85,
+  "confianca_max": 0.95,
+  "motivo": null
+}

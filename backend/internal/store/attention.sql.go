@@ -29,9 +29,10 @@ FROM (
         WHERE dep.active AND d.competence_id = $1
           AND d.applicable AND NOT d.is_final AND p.applicable AND NOT p.is_final
           AND (dep.dependency_mode = 'SOFT' OR p.is_blocking)
-          AND ($2::text IS NULL OR s.regime_group = $2::text)
-          AND ($3::text IS NULL OR s.tax_regime = $3::text)
-          AND ($4::uuid IS NULL OR $4::uuid = CASE d.primary_module
+          AND ($2::uuid IS NULL OR c.id = $2::uuid)
+          AND ($3::text IS NULL OR s.regime_group = $3::text)
+          AND ($4::text IS NULL OR s.tax_regime = $4::text)
+          AND ($5::uuid IS NULL OR $5::uuid = CASE d.primary_module
                 WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
                 WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
         GROUP BY dep.dependency_mode, c.id, c.internal_code, c.legal_name
@@ -43,6 +44,7 @@ ORDER BY y.mode, y.rn
 
 type AttentionBlockedDependenciesParams struct {
 	CompetenceID  string
+	CompanyID     *string
 	RegimeGroup   *string
 	TaxRegime     *string
 	ResponsibleID *string
@@ -65,6 +67,7 @@ type AttentionBlockedDependenciesRow struct {
 func (q *Queries) AttentionBlockedDependencies(ctx context.Context, arg AttentionBlockedDependenciesParams) ([]AttentionBlockedDependenciesRow, error) {
 	rows, err := q.db.Query(ctx, attentionBlockedDependencies,
 		arg.CompetenceID,
+		arg.CompanyID,
 		arg.RegimeGroup,
 		arg.TaxRegime,
 		arg.ResponsibleID,
@@ -118,9 +121,10 @@ FROM (
             CASE WHEN v.applicable AND v.status_code = 'ERROR' THEN 'ERROR' END
         ]::text[]) AS cat
         WHERE v.competence_id = $2 AND cat IS NOT NULL
-          AND ($3::text IS NULL OR s.regime_group = $3::text)
-          AND ($4::text IS NULL OR s.tax_regime = $4::text)
-          AND ($5::uuid IS NULL OR $5::uuid = CASE v.primary_module
+          AND ($3::uuid IS NULL OR c.id = $3::uuid)
+          AND ($4::text IS NULL OR s.regime_group = $4::text)
+          AND ($5::text IS NULL OR s.tax_regime = $5::text)
+          AND ($6::uuid IS NULL OR $6::uuid = CASE v.primary_module
                 WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
                 WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
     ) x
@@ -132,6 +136,7 @@ ORDER BY y.category, y.rn
 type AttentionObligationsParams struct {
 	Today         time.Time
 	CompetenceID  string
+	CompanyID     *string
 	RegimeGroup   *string
 	TaxRegime     *string
 	ResponsibleID *string
@@ -151,13 +156,15 @@ type AttentionObligationsRow struct {
 	RegimeGroup      string
 }
 
-// "Exige atenção" [PRD §24.6]: contagem e amostra (5 primeiros) por categoria.
+// "Exige atenção" [PRD §24.6]: contagem e amostra (5 primeiros) por categoria. company_id restringe
+// a uma empresa: as pendências da Visão geral da ficha (TASK-025, D-039).
 // Atrasadas, pendências, documentos faltantes e erros na competência, com os filtros do
 // dashboard. Amostra: vencimento mais antigo primeiro.
 func (q *Queries) AttentionObligations(ctx context.Context, arg AttentionObligationsParams) ([]AttentionObligationsRow, error) {
 	rows, err := q.db.Query(ctx, attentionObligations,
 		arg.Today,
 		arg.CompetenceID,
+		arg.CompanyID,
 		arg.RegimeGroup,
 		arg.TaxRegime,
 		arg.ResponsibleID,
@@ -203,9 +210,10 @@ FROM (
         JOIN companies c ON c.id = p.company_id
         JOIN company_competence_snapshots s ON s.company_id = p.company_id AND s.competence_id = p.competence_id
         WHERE k.competence_key < $1 AND p.state = 'OPEN'
-          AND ($2::text IS NULL OR s.regime_group = $2::text)
-          AND ($3::text IS NULL OR s.tax_regime = $3::text)
-          AND ($4::uuid IS NULL OR $4::uuid = CASE p.module_code
+          AND ($2::uuid IS NULL OR c.id = $2::uuid)
+          AND ($3::text IS NULL OR s.regime_group = $3::text)
+          AND ($4::text IS NULL OR s.tax_regime = $4::text)
+          AND ($5::uuid IS NULL OR $5::uuid = CASE p.module_code
                 WHEN 'FISCAL' THEN s.fiscal_responsible_user_id WHEN 'DECLARATIONS' THEN s.declarations_responsible_user_id
                 WHEN 'ACCOUNTING' THEN s.accounting_responsible_user_id WHEN 'PAYROLL' THEN s.payroll_responsible_user_id END)
         GROUP BY c.id, c.internal_code, c.legal_name
@@ -217,6 +225,7 @@ ORDER BY y.rn
 
 type AttentionPreviousOpenParams struct {
 	CompetenceKey string
+	CompanyID     *string
 	RegimeGroup   *string
 	TaxRegime     *string
 	ResponsibleID *string
@@ -235,6 +244,7 @@ type AttentionPreviousOpenRow struct {
 func (q *Queries) AttentionPreviousOpen(ctx context.Context, arg AttentionPreviousOpenParams) ([]AttentionPreviousOpenRow, error) {
 	rows, err := q.db.Query(ctx, attentionPreviousOpen,
 		arg.CompetenceKey,
+		arg.CompanyID,
 		arg.RegimeGroup,
 		arg.TaxRegime,
 		arg.ResponsibleID,

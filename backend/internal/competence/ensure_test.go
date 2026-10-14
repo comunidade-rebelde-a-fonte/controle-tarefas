@@ -12,6 +12,7 @@ import (
 	"controle/internal/testutil"
 	"controle/internal/testutil/seeded"
 	"controle/internal/user"
+	"controle/seed"
 )
 
 func engine(t *testing.T, pool *pgxpool.Pool) *competence.Engine {
@@ -81,8 +82,8 @@ func TestCA005_OnlyActiveInServicePeriod(t *testing.T) {
 	lateStart := addCompany(t, pool, "904", "90000000000404", "2026-10-20", nil, true) // começa no meio da competência
 
 	s := ensure(t, engine(t, pool), "2026-10")
-	if s.CompaniesProcessed != 21 {
-		t.Fatalf("empresas processadas = %d, want 21 (20 do seed + 904)", s.CompaniesProcessed)
+	if s.CompaniesProcessed != seed.DemoCompanyCount+1 {
+		t.Fatalf("empresas processadas = %d, want %d (as do seed + 904)", s.CompaniesProcessed, seed.DemoCompanyCount+1)
 	}
 	got := scalar[int](t, pool, `SELECT count(*) FROM company_competence_snapshots s JOIN companies c ON c.id = s.company_id WHERE c.internal_code IN ('901','902','903')`)
 	if got != 0 {
@@ -91,8 +92,8 @@ func TestCA005_OnlyActiveInServicePeriod(t *testing.T) {
 	if n := scalar[int](t, pool, `SELECT count(*) FROM obligation_instances WHERE company_id = $1`, lateStart); n == 0 {
 		t.Fatal("empresa com início no meio da competência deveria receber instâncias")
 	}
-	if n := scalar[int](t, pool, `SELECT count(DISTINCT company_id) FROM obligation_instances`); n != 21 {
-		t.Fatalf("empresas com instâncias = %d, want 21", n)
+	if n := scalar[int](t, pool, `SELECT count(DISTINCT company_id) FROM obligation_instances`); n != seed.DemoCompanyCount+1 {
+		t.Fatalf("empresas com instâncias = %d, want %d", n, seed.DemoCompanyCount+1)
 	}
 }
 

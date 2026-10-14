@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, type Locator, type Page, test } from "@playwright/test";
-import { apiJson, bulkStatus, fixedToday, latestCompetence, openGridRow } from "../support/api";
+import { apiJson, bulkStatus, cnpjWithCheckDigits, fixedToday, latestCompetence, openGridRow, uniqueDigits } from "../support/api";
+import { statement, uploadAndWait } from "../support/pgdas";
 
 /**
  * Acessibilidade [PRD §28.3, §45.4]: axe (WCAG 2.2 A/AA) em todas as telas e modais, sem violações
@@ -25,7 +26,7 @@ async function ready(page: Page, heading?: string | RegExp): Promise<void> {
 const EPSILON = "Empresa Fictícia Épsilon Logística Ltda";
 
 test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ page, request }) => {
-  test.setTimeout(120_000); // ~30 varreduras completas
+  test.setTimeout(240_000); // ~45 varreduras completas (telas, configurações, seções da ficha e Fator R)
   const competence = await latestCompetence(request);
   const screens: [string, string | RegExp][] = [
     [`/dashboard?competence=${competence}`, "Dashboard"],
@@ -36,7 +37,12 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     [`/accounting?competence=${competence}`, "Contábil"],
     [`/payroll?competence=${competence}`, "Folha"],
     [`/dctfweb?competence=${competence}`, "DCTFWeb"],
+    [`/factor-r?pa=${competence}`, "Fator R"],
+    ["/factor-r/inbox", "Inbox PGDAS-D"],
+    [`/factor-r/agents?pa=${competence}`, "Agentes do Fator R"],
+    ["/factor-r/runs", "Observabilidade dos agentes"],
     ["/credentials", "Procurações e Certificados"],
+    ["/documents", "Documentos"],
     [`/backlog?competence=${competence}`, "Backlog"],
     [`/obligations?competence=${competence}&state=overdue`, /Atrasadas/],
     ["/imports", /Importa/],
@@ -49,10 +55,10 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
     await audit(page, url);
   }
 
-  for (const tab of ["Catálogo de obrigações", "Regras de vencimento", "Feriados", "Faixas de validade", "Responsáveis"]) {
+  for (const tab of ["Catálogo de obrigações", "Regras de vencimento", "Feriados", "Faixas de validade", "Responsáveis", "IA"]) {
     await page.goto("/settings");
     await ready(page, "Cadastros e Configurações");
-    await page.getByRole("tab", { name: tab }).click();
+    await page.getByRole("tab", { name: tab, exact: true }).click();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
     await audit(page, `/settings — ${tab}`);
   }
@@ -61,20 +67,63 @@ test("T-M7-04 axe: todas as telas sem violações serious/critical", async ({ pa
   await page.getByRole("searchbox", { name: "Buscar empresa" }).fill("Alfa Comércio");
   await page.getByRole("link", { name: "Empresa Fictícia Alfa Comércio Ltda" }).click();
   await ready(page, "Empresa Fictícia Alfa Comércio Ltda");
-  for (const tab of [
-    "Dados gerais",
-    "Regime tributário",
-    "Módulos",
-    "Obrigações/aplicabilidade",
-    "Folha",
-    "Responsáveis",
-    "Procurações/Certificados",
-    "Histórico de competências",
-  ]) {
-    await page.getByRole("tab", { name: tab }).click();
+  // As seções da ficha e as subabas de Dados gerais e de Obrigações (TASK-025).
+  for (const [section, tab] of [
+    ["Visão geral", null],
+    ["Dados gerais", "Cadastro"],
+    ["Dados gerais", "Regime tributário"],
+    ["Dados gerais", "Módulos"],
+    ["Dados gerais", "Responsáveis"],
+    ["Dados gerais", "Folha"],
+    ["Obrigações", "Da competência"],
+    ["Obrigações", "Aplicabilidade"],
+    ["Fator R", null],
+    ["Conciliação", null],
+    ["Documentos", null],
+    ["Procurações/Certificados", null],
+    ["Histórico de competências", null],
+  ] as const) {
+    await page.getByRole("tablist", { name: "Seções da ficha" }).getByRole("tab", { name: section, exact: true }).click();
+    if (tab) await page.getByRole("tablist", { name: section }).getByRole("tab", { name: tab, exact: true }).click();
     await expect(page.locator(".animate-pulse")).toHaveCount(0);
-    await audit(page, `ficha da empresa — ${tab}`);
+    await audit(page, `ficha da empresa — ${tab ? `${section} › ${tab}` : section}`);
   }
+
+  // Fator R de uma empresa da carteira: painel, simulador, consultor, grade mensal editável,
+  // extratos, corridas e configuração.
+  await page.goto("/factor-r");
+  await page.getByRole("link", { name: "Brisa Serviços Digitais Ltda" }).click();
+  await ready(page, "Brisa Serviços Digitais Ltda");
+  await audit(page, "ficha da empresa — Fator R (Brisa, com mês do PGDAS-D)");
+  await page.getByRole("button", { name: "Simular" }).click();
+  await expect(page.getByTestId("resultado-simulacao")).toBeVisible({ timeout: 15_000 });
+  await audit(page, "ficha da empresa — Fator R, resultado do simulador");
+});
+
+test("TASK-014b axe: documento do inbox, cadastro pelo extrato, agentes e trace", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  // Extrato de um CNPJ fora do cadastro: fica em revisão, com a oferta de cadastro.
+  const doc = await uploadAndWait(request, "extrato-a11y.txt", statement("txt_padrao", cnpjWithCheckDigits(`63${uniqueDigits()}`)));
+  expect(doc.status).toBe("needs_review");
+  await page.goto(`/factor-r/inbox/${doc.id}`);
+  await ready(page, "Extrato PGDAS-D");
+  await audit(page, "documento do inbox em revisão");
+  await page.getByRole("button", { name: "Cadastrar e vincular" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await audit(page, "diálogo Cadastrar a empresa do extrato");
+  await page.keyboard.press("Escape");
+
+  // Chat do priorizador com a fila e o trace da corrida.
+  await page.goto("/factor-r/agents");
+  await ready(page, "Agentes do Fator R");
+  const chat = page.getByTestId("chat-priorizador");
+  await chat.getByLabel("Pergunta ao Priorizador").fill("O que priorizar esta semana?");
+  await chat.getByRole("button", { name: "Enviar" }).click();
+  await expect(chat.getByTestId("fila-priorizador")).toBeVisible({ timeout: 15_000 });
+  await audit(page, "agentes — fila do priorizador");
+  await chat.getByRole("link", { name: "ver trace" }).click();
+  await ready(page, "Trace do Priorizador");
+  await audit(page, "trace da corrida");
 });
 
 test("T-M7-04 axe: diálogos, menus e popovers sem violações serious/critical", async ({ page, request }) => {
@@ -196,6 +245,20 @@ test("T-M7-04 axe: diálogos de empresas, DCTFWeb, configurações, credenciais 
   await page.getByRole("table", { name: /^Catálogo — / }).first().getByRole("button", { name: /^Editar / }).first().click();
   await expect(page.getByRole("dialog")).toBeVisible();
   await audit(page, "diálogo Editar tipo de obrigação");
+  await page.keyboard.press("Escape");
+
+  // Configurações → IA: edição do alias com o resultado da validação (cancelada, nada gravado).
+  await page.getByRole("tab", { name: "IA", exact: true }).click();
+  await page.getByRole("button", { name: "Editar extrator", exact: true }).click();
+  const aiDialog = page.getByRole("dialog", { name: "Configurar extrator" });
+  await aiDialog.getByLabel("Escolher o modelo").check();
+  await aiDialog.getByRole("button", { name: "Validar configuração" }).click();
+  await expect(aiDialog.getByTestId("resultado-validacao")).toBeVisible();
+  await audit(page, "diálogo Configurar alias de IA (validação aprovada)");
+  await aiDialog.getByLabel("Modelo", { exact: true }).fill("gpt-6-texto");
+  await aiDialog.getByRole("button", { name: "Validar configuração" }).click();
+  await expect(aiDialog.getByTestId("resultado-validacao")).toContainText("Configuração reprovada");
+  await audit(page, "diálogo Configurar alias de IA (validação reprovada)");
   await page.keyboard.press("Escape");
 
   // Credenciais: documentos e observações; "Renovado" pede a nova validade (cancelado).

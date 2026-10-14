@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"controle/internal/testutil"
+	"controle/seed"
 )
 
 type bulkResult struct {
@@ -70,13 +71,14 @@ func bulkHistory(t *testing.T, srv *testutil.Server, typeCode string) int {
 func TestCA016_BulkUpdate(t *testing.T) {
 	srv := server(t)
 
-	// 20 selecionadas geram 20 históricos individuais com origem BULK [CA-016].
+	// 20 selecionadas geram 20 históricos individuais com origem BULK [CA-016]: as 20 empresas do
+	// PRD, sem a 111 do cenário da Conciliação (D-041).
 	entradas := typeInstances(t, srv, "FISCAL_ENTRADAS")
-	if len(entradas) != 20 {
-		t.Fatalf("esperava 20 instâncias, veio %d", len(entradas))
+	if len(entradas) != seed.DemoCompanyCount {
+		t.Fatalf("esperava %d instâncias, veio %d", seed.DemoCompanyCount, len(entradas))
 	}
 	var res bulkResult
-	srv.Post("/api/v1/obligation-instances/bulk-status", map[string]any{"instance_ids": values(entradas), "status_code": "CLOSED"}).
+	srv.Post("/api/v1/obligation-instances/bulk-status", map[string]any{"instance_ids": values(entradas, seed.HorizonteCode), "status_code": "CLOSED"}).
 		MustStatus(t, http.StatusOK).JSON(t, &res)
 	if res.Selected != 20 || res.Updated != 20 || len(res.Skipped) != 0 || res.DryRun {
 		t.Fatalf("lote = %+v", res)

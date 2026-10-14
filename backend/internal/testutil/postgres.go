@@ -25,6 +25,7 @@ import (
 	"github.com/pressly/goose/v3"
 	"github.com/testcontainers/testcontainers-go"
 	tcpostgres "github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 
 	"controle/internal/platform/db"
 	"controle/migrations"
@@ -52,21 +53,23 @@ var (
 	templateErr sync.Map // nome → error
 )
 
+// runPostgres sobe o container. Com dezenas de pacotes subindo Postgres ao mesmo tempo, o
+// Docker Desktop no Windows às vezes não responde à detecção do provedor ("failed to create
+// Docker provider", antes de criar qualquer container): espera um pouco e tenta de novo.
+func runPostgres(ctx context.Context) (*tcpostgres.PostgresContainer, error) {
+	for attempt := 1; ; attempt++ {
+		ctr, err := startPostgres(ctx)
+		if err == nil || attempt == 3 || !strings.Contains(err.Error(), "Docker provider") {
+			return ctr, err
+		}
+		time.Sleep(time.Duration(attempt) * 3 * time.Second)
+	}
+}
+
 func startCluster() {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
-	ctr, err := tcpostgres.Run(ctx, PostgresImage,
-		tcpostgres.WithUsername(pgUser),
-		tcpostgres.WithPassword(pgPassword),
-		tcpostgres.WithDatabase("postgres"),
-		// Mesmos INITDB_ARGS e fuso do docker-compose.yml.
-		testcontainers.WithEnv(map[string]string{
-			"POSTGRES_INITDB_ARGS": "--encoding=UTF8 --locale-provider=icu --icu-locale=pt-BR",
-			"TZ":                   "UTC",
-			"PGTZ":                 "UTC",
-		}),
-		tcpostgres.BasicWaitStrategies(),
-	)
+	ctr, err := runPostgres(ctx)
 	if err != nil {
 		shared.err = fmt.Errorf("subir postgres de teste (Docker está rodando?): %w", err)
 		return
@@ -83,6 +86,27 @@ func startCluster() {
 	if err := createMigratedTemplate(ctx); err != nil {
 		shared.err = err
 	}
+}
+
+func startPostgres(ctx context.Context) (*tcpostgres.PostgresContainer, error) {
+	return tcpostgres.Run(ctx, PostgresImage,
+		tcpostgres.WithUsername(pgUser),
+		tcpostgres.WithPassword(pgPassword),
+		tcpostgres.WithDatabase("postgres"),
+		// Mesmos INITDB_ARGS e fuso do docker-compose.yml.
+		testcontainers.WithEnv(map[string]string{
+			"POSTGRES_INITDB_ARGS": "--encoding=UTF8 --locale-provider=icu --icu-locale=pt-BR",
+			"TZ":                   "UTC",
+			"PGTZ":                 "UTC",
+		}),
+		// As esperas de tcpostgres.BasicWaitStrategies, com prazo de 3 min em vez do padrão de
+		// 60 s: no `make test`, dezenas de pacotes sobem Postgres ao mesmo tempo e, no Windows, o
+		// initdb pode passar de 60 s (BL-005).
+		testcontainers.WithWaitStrategyAndDeadline(3*time.Minute,
+			wait.ForLog("database system is ready to accept connections").WithOccurrence(2),
+			wait.ForListeningPort("5432/tcp"),
+		),
+	)
 }
 
 func dbURL(name string) string {

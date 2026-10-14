@@ -8,9 +8,11 @@ import { CompetenceInput } from "./CompetenceInput";
 /**
  * Navegação de competência das telas mensais [PRD §10.7]:
  * `← MM/AAAA | seletor | MM/AAAA →` e "Mais recente". O estado fica na URL.
- * Não avança além da competência mais recente gerada (não há dados depois dela).
+ * Não avança além da competência mais recente gerada (não há dados depois dela), salvo com
+ * `unbounded`: a ficha da empresa, em que a competência é também o PA do Fator R e um PA futuro
+ * tem cálculo (TASK-025, D-039).
  */
-export function CompetenceNav() {
+export function CompetenceNav({ unbounded = false }: { unbounded?: boolean } = {}) {
   const { competence, latest, setCompetence, isLoading } = useCompetence();
 
   if (isLoading || competence === null) {
@@ -20,7 +22,7 @@ export function CompetenceNav() {
   const prev = prevCompetence(competence);
   const next = nextCompetence(competence);
   // Enquanto a mais recente não chega, não há como saber se a próxima existe.
-  const atLatest = latest === null || compareCompetence(competence, latest) >= 0;
+  const atLatest = !unbounded && (latest === null || compareCompetence(competence, latest) >= 0);
 
   return (
     <nav aria-label="Competência" className="flex items-center gap-2">
@@ -31,9 +33,9 @@ export function CompetenceNav() {
       <CompetenceInput
         aria-label="Selecionar competência"
         value={competence}
-        {...(latest ? { max: latest } : {})}
+        {...(latest && !unbounded ? { max: latest } : {})}
         onChange={(v) => {
-          if (latest === null || compareCompetence(v, latest) <= 0) setCompetence(v);
+          if (unbounded || latest === null || compareCompetence(v, latest) <= 0) setCompetence(v);
         }}
       />
       <Button

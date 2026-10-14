@@ -86,6 +86,19 @@ describe("CompetenceNav", () => {
     expect(screen.getByRole("button", { name: "Próxima competência: 10/2026" })).toBeDisabled();
   });
 
+  it("TASK-025: sem limite (a ficha), avança além da mais recente: um PA futuro do Fator R", async () => {
+    mockLatest("2026-09");
+    const user = userEvent.setup();
+    const { router } = renderWithProviders(<CompetenceNav unbounded />, { route: "/companies/x", path: "/companies/x" });
+    const next = await screen.findByRole("button", { name: "Próxima competência: 10/2026" });
+    expect(next).toBeEnabled();
+    await user.click(next);
+    expect(search(router).get("competence")).toBe("2026-10");
+    expect(screen.getByLabelText("Selecionar competência")).not.toHaveAttribute("max");
+    fireEvent.change(screen.getByLabelText("Selecionar competência"), { target: { value: "2026-12" } });
+    expect(search(router).get("competence")).toBe("2026-12");
+  });
+
   it("ignora competência inválida na URL e usa a mais recente", async () => {
     mockLatest("2026-09");
     renderNav("/fiscal?competence=2026-13");

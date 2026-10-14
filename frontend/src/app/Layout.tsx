@@ -1,18 +1,22 @@
 import { NavLink, Outlet } from "react-router";
+import logo from "@/assets/brand/inovasala-by-ceath-branco.png";
 import { cn } from "@/lib/utils";
 import { ApiStatus } from "./ApiStatus";
 import { AREA_GROUPS, AREAS } from "./areas";
 
+/**
+ * Casca da aplicação (TASK-029, D-043): o menu lateral com o logo InovaSala by Ceath e o nome do
+ * sistema, as áreas na ordem aprovada e o item ativo em destaque (fundo neutral-800 e o acento
+ * laranja do Design System).
+ */
 export function Layout() {
   return (
     <div className="flex h-full">
-      <aside className="flex w-60 shrink-0 flex-col bg-sidebar text-sidebar-foreground" aria-label="Menu principal">
-        <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-5">
-          <img src="/favicon.svg" alt="" className="size-7" />
-          <div className="leading-tight">
-            <p className="text-sm font-semibold whitespace-nowrap">Controle de Obrigações</p>
-            <p className="text-[11px] text-sidebar-muted">Escritório contábil</p>
-          </div>
+      <aside className="flex w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground" aria-label="Menu principal">
+        <div className="border-b border-sidebar-border px-5 pt-5 pb-4">
+          <img src={logo} alt="InovaSala by Ceath" width={144} height={46} className="h-auto w-36" />
+          <p className="mt-2 font-display text-sm font-light tracking-tight whitespace-nowrap text-white">Controle de Obrigações</p>
+          <p className="text-[11px] text-sidebar-muted">Escritório contábil</p>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           {AREA_GROUPS.map((group) => (
@@ -25,13 +29,18 @@ export function Layout() {
                       to={area.path}
                       className={({ isActive }) =>
                         cn(
-                          "flex items-center gap-2.5 truncate rounded-md px-2 py-1.5 text-sm whitespace-nowrap transition-colors hover:bg-sidebar-accent",
+                          "relative flex items-center gap-2.5 truncate rounded-lg px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors hover:bg-white/5 hover:text-white",
                           isActive && "bg-sidebar-accent font-medium text-white",
                         )
                       }
                     >
-                      <area.icon className="size-4 shrink-0" aria-hidden />
-                      {area.label}
+                      {({ isActive }) => (
+                        <>
+                          {isActive ? <span aria-hidden className="absolute top-1/2 left-0 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary" /> : null}
+                          <area.icon className={cn("size-4 shrink-0", isActive && "text-orange-400")} aria-hidden />
+                          {area.label}
+                        </>
+                      )}
                     </NavLink>
                   </li>
                 ))}
