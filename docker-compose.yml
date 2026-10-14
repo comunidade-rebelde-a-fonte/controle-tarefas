@@ -41,7 +41,7 @@ services:
       start_period: 5s
 
   api:
-    image: golang:1.26.8-bookworm
+    image: golang:1.26.9-bookworm
     working_dir: /app/backend
     # tini como PID 1: recolhe os processos órfãos dos reloads, que o air deixava como zumbis [D-035].
     init: true
@@ -132,7 +132,7 @@ services:
 
   # Jobs assíncronos: mesmo binário da API, subcomando `worker`, processo separado [spec 04 §7].
   worker:
-    image: golang:1.26.8-bookworm
+    image: golang:1.26.9-bookworm
     working_dir: /app/backend
     # tini como PID 1, como na API [D-035].
     init: true

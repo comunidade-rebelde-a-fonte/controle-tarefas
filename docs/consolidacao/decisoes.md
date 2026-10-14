@@ -4,6 +4,12 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
 
 ## 1. Decisões
 
+### D-045 — Go 1.26.9 em todo o projeto para o govulncheck do CI passar (14/10/2026; correção do CI no PR #1, sem regra de negócio)
+
+- **Problema:** no PR #1 (`feat/consolidacao` → `main`), o job "Vulnerabilidades conhecidas" falhou no govulncheck: 30 vulnerabilidades da biblioteca padrão do Go 1.26.1, a versão do `go.mod` que o `setup-go` usa via `go-version-file`. Todas têm correção na série 1.26; a mais recente exige a 1.26.9. O `npm audit` foi pulado por causa da falha, e rodado localmente no `frontend` e no `e2e` deu 0 vulnerabilidades.
+- **Correção:** `go 1.26.9` no `backend/go.mod` e `golang:1.26.9-bookworm` no `Dockerfile` e na API e no worker do `docker-compose.yml` (estavam na 1.26.8). CI, dev e produção passam a compilar com a mesma versão.
+- **Verificação local** (govulncheck v1.8.0 com Go 1.26.9): 0 vulnerabilidades que afetam o código; restam 6 em módulos exigidos que o código não chama (não falham o CI).
+
 ### D-044 — Execução local completa e backup de todos os armazenamentos (TASK-031; 13/10/2026; quatro decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **O que a spec pede (adendo D-011, FR-21):**
