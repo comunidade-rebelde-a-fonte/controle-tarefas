@@ -297,6 +297,8 @@ Implementar tokens/componentes oficiais somente após material disponível.
 **Aceite:** AC-001 a AC-035.  
 **Validação:** TEST-030 — `make lint`, `make test`, `make e2e`, golden/evals aplicáveis e review checklist.
 
+> **Como foi feita (13/10/2026).** A revisão foi enxuta, por pedido do usuário: o produto é uma demonstração para alunos. Houve a rodada final completa (`make lint`, `make test`, `make e2e`, `make test-langfuse`, `make test-restore` e `make audit`), a jornada da demonstração no navegador e o checklist percorrido por bloco, com a evidência de cada um. O resultado, as pendências que continuam e a proposta de veredito estão em `docs/consolidacao/revisao-final.md`.
+
 ## 9. Paralelização
 
 Pode ocorrer após M2:

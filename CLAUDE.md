@@ -263,6 +263,7 @@ Aplicado na TASK-029 (D-043):
 - Baseline de regressão: `docs/consolidacao/baseline.md`.
 - Fontes congeladas e inventário de capacidades: `docs/consolidacao/fontes.md`.
 - Decisões, conflitos e pendências: `docs/consolidacao/decisoes.md`.
+- Revisão final (TASK-030), pendências que continuam e o roteiro da demonstração: `docs/consolidacao/revisao-final.md`.
 
 ## Segurança
 
