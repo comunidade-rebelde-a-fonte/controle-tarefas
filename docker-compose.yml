@@ -43,6 +43,8 @@ services:
   api:
     image: golang:1.26.8-bookworm
     working_dir: /app/backend
+    # tini como PID 1: recolhe os processos órfãos dos reloads, que o air deixava como zumbis [D-035].
+    init: true
     # air é instalado com versão fixada; o cache fica em volumes nomeados.
     command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.toml"]
     environment:
@@ -132,6 +134,8 @@ services:
   worker:
     image: golang:1.26.8-bookworm
     working_dir: /app/backend
+    # tini como PID 1, como na API [D-035].
+    init: true
     command: ["sh", "-c", "go install github.com/air-verse/air@v1.67.4 && exec air -c .air.worker.toml"]
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-controle}:${POSTGRES_PASSWORD:-dev-only-change-me}@db:5432/${POSTGRES_DB:-controle}?sslmode=disable

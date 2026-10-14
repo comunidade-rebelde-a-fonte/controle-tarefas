@@ -295,6 +295,39 @@ Decisões tomadas durante a execução da spec (`docs/ai-spec/`), conflitos enco
   Concluída, a rodada some da aba.
 - **E2E:** o TEST-021b passou a concluir a competência, ver a trava num lançamento e reabrir com motivo, com o axe. A empresa do E2E não tem a obrigação gerada em 08/2026 (a API só gera a competência corrente), então a sincronização com a obrigação real fica nos testes de integração.
 
+### D-035 — Hot reload de dev: uma instância por container e polling só do que entra no binário (11/10/2026; correção do ambiente pedida pelo usuário, sem regra de negócio; aguarda validação do usuário)
+
+- **Problema (observado em 10/10/2026).**
+  - Desde 09/10 às 18:24 UTC, a API de dev servia o binário daquela hora. Dois rebuilds sobrepostos terminaram juntos (dois `running...` com 0,2 ms de diferença), o segundo binário morreu com `bind: address already in use` e o primeiro ficou órfão. Todo reload seguinte falhou no bind (113 vezes no log), e as rotas da TASK-021c respondiam 404 em `localhost:8088`.
+  - A hipótese do sinal que não chega ao filho do `sh -c` não se confirmou: o air v1.67.4 (a versão mais recente) mata o grupo de processos e os descendentes. A causa é uma corrida do próprio air (`runner/engine.go`):
+    - um evento durante um build desarranja o controle dos builds, que deixam de ser cancelados e terminam em paralelo;
+    - quando um binário sai sozinho, o air descarta a referência ao processo em execução, mesmo que ela seja de outro binário.
+  - A corrida foi reproduzida num container descartável com o mesmo air, com uma barreira que faz dois builds terminarem juntos.
+  - Efeitos colaterais:
+    - o air era o PID 1 e não recolhia órfãos (80 zumbis na API e 151 no worker);
+    - saídas 127 e 126 quando um `go build` trocava o binário durante o exec de outro.
+  - O worker não chegou a ter instância antiga consumindo a fila (nenhum erro de bind no log), mas estava sujeito à mesma corrida.
+  - O polling dos dois containers consumia cerca de 170% de um núcleo cada, quase tudo em tempo de kernel: 117 diretórios a cada 1 s, com um stat por entrada pelo compartilhamento de arquivos do Docker no Windows. Com a máquina saturada, um build levava de 15 s a 3 min.
+- **Correção** (`backend/.air.toml`, `backend/.air.worker.toml`, `backend/.air-run.sh` e `docker-compose.yml`):
+  - **Um build por vez** em cada container, com `flock` no `/tmp` do container.
+  - **Uma instância por container.** O binário sobe pelo `backend/.air-run.sh`, que encerra qualquer instância anterior do mesmo binário (SIGTERM, até 20 s na API e 40 s no worker, depois SIGKILL) e faz `exec`: o air acompanha o próprio binário, sem `sh -c` no meio.
+  - **Encerramento ordenado no reload** (`send_interrupt`, `kill_delay` de 20 s e 40 s). O worker conclui o job em andamento em até 30 s (o `ShutdownGrace` da fila) ou o registra como `WORKER_SHUTDOWN`. Antes, com o SIGKILL direto, o job ficava preso até a posse de 5 min vencer.
+  - **`init: true`** na API e no worker: o tini, como PID 1, recolhe os órfãos.
+  - **Polling só do que entra no binário `./cmd/api`** (conferido com `go list -deps` e os `go:embed`). Saem `api/`, `queries/`, as ferramentas de teste e de carga e o `testdata/` de cada pacote, listado um a um porque o `exclude_dir` do air casa o caminho exato. Pacote novo com `testdata/` entra nos dois arquivos. O polling foi de 117 para 76 diretórios, com varredura a cada 2 s e `delay` de 1 s.
+- **O que muda no ambiente:**
+  - não reiniciam mais a API nem o worker: `api/openapi.yaml`, `queries/*.sql`, `sqlc.yaml` e testes, que não mudam o binário. O `make gen` grava `internal/store`, e essa gravação reinicia;
+  - passam a reiniciar: prompts (`.md`), a tabela do Simples (`.csv`), `go.mod` e `go.sum`, que vão para o binário;
+  - do salvamento à instância nova, o reload leva de 5 a 7 s (até 2 s para perceber a mudança, 1 s de delay, o build e o encerramento ordenado). Mudanças em rajada viram um build só;
+  - depois de mudar um `.air*.toml` ou o `.air-run.sh`, rode `docker compose restart api worker`, porque o air só lê a configuração ao subir. Depois de mudar o `docker-compose.yml`, rode `make dev`.
+- **Resultado (11/10/2026, depois do `make dev`):**
+  - CPU do air: de 168% para 12% de um núcleo na API e de 173% para 10% no worker;
+  - builds de 1 a 3 s;
+  - nos testes de rajada e de mudanças durante o build, sempre uma instância por container, nenhum zumbi e nenhum erro de bind;
+  - as rotas da TASK-021c passaram a responder.
+- **Fora do escopo, para decisão do usuário:**
+  - código no sistema de arquivos do WSL2, com eventos no lugar do polling (muda a D-001 e a D-003);
+  - o worker reaproveitar o build da API: metade do polling e dos builds, mas os dois containers ficam acoplados.
+
 ### D-034 — Playbooks, métricas, aba Conciliação da ficha e contas bancárias (TASK-021c; 10/10/2026; duas decisões do usuário, o resto dentro da autonomia da spec; validada pelo usuário com a TASK)
 
 - **Porte** das rotas `/playbooks` e `/metricas` e da tela "Clientes e contas" do Conciliador (`app/web/rotas.py`, `playbooks.html`, `metricas.html` e `clientes.html`, commit `2bc6e26`).

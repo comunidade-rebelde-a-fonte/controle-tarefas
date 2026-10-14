@@ -1,17 +1,49 @@
-# Hot reload da API no container de desenvolvimento (make dev).
+# Hot reload da API no container de desenvolvimento (make dev). Build, início e polling seguem o mesmo
+# esquema do .air.worker.toml (mudou um, mude o outro), explicado na D-035.
 root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -o ./tmp/api ./cmd/api"
-  entrypoint = ["./tmp/api", "serve"]
-  include_ext = ["go", "sql", "yaml"]
-  exclude_dir = ["tmp", "tmp-worker", "bin", "testdata"]
+  # Um build por vez no container (lock no /tmp dele): o air v1.67.4 deixa rebuilds se sobreporem, e
+  # dois "go build" no mesmo ./tmp/api terminavam juntos (dois binários no ar) ou trocavam o arquivo
+  # durante o exec (saída 127 ou 126).
+  cmd = "flock /tmp/air-build.lock go build -o ./tmp/api ./cmd/api"
+  # O .air-run.sh encerra qualquer instância anterior antes de subir a nova (até 20 s de encerramento
+  # ordenado; o Shutdown da API espera 15 s) e faz exec: o air acompanha o próprio binário.
+  full_bin = "exec sh .air-run.sh 20 ./tmp/api serve"
+  # O air também pede o encerramento com SIGINT e só manda SIGKILL depois de kill_delay (em ms).
+  send_interrupt = true
+  kill_delay = 20000
+  # Só o que entra no binário ./cmd/api: código Go (sem testes), os arquivos embutidos (.sql das
+  # migrations e do seed, .md dos prompts, .csv das tabelas do Simples) e as dependências.
+  include_ext = ["go", "sql", "md", "csv"]
+  include_file = ["go.mod", "go.sum"]
   exclude_regex = ["_test\\.go$"]
-  delay = 500
-  # Bind mount no macOS: polling é mais confiável que eventos do sistema de arquivos.
+  # exclude_dir casa o caminho exato a partir de backend/, sem valer para subpastas: o testdata/ de
+  # cada pacote fica listado (pacote novo com testdata/: acrescente aqui e no .air.worker.toml). Fora
+  # do binário também: o contrato OpenAPI, as consultas do sqlc (o binário muda quando o make gen
+  # grava internal/store) e as ferramentas de teste e de carga.
+  exclude_dir = [
+    "tmp", "tmp-worker", "bin", "testdata",
+    "api", "queries", "cmd/loadgen", "internal/loadgen", "internal/testutil",
+    "internal/ai/langfuse/testdata",
+    "internal/factorr/agents/testdata",
+    "internal/factorr/engine/testdata",
+    "internal/factorr/pgdas/testdata",
+    "internal/platform/pdftext/testdata",
+    "internal/reconciliation/classification/testdata",
+    "internal/reconciliation/matching/testdata",
+    "internal/reconciliation/receipt/testdata",
+    "internal/reconciliation/resolver/testdata",
+    "internal/reconciliation/statement/testdata",
+    "internal/reconciliation/testdata",
+  ]
+  # Bind mount no Windows e no macOS: sem eventos do sistema de arquivos, o air varre os diretórios,
+  # com um stat por entrada pelo compartilhamento de arquivos do Docker (caro em CPU). Varredura a
+  # cada 2 s; o delay junta as gravações de uma rajada (make gen, git) num build só.
   poll = true
-  poll_interval = 1000
+  poll_interval = 2000
+  delay = 1000
   stop_on_error = true
 
 [log]
